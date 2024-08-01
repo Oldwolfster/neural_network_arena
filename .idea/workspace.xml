@@ -4,18 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="97819472-8627-49f4-8865-7643f03068cc" name="Changes" comment="Initial Structure">
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/BaseZero.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/Simpletron.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/SimpletronGradientDescent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/SimpletronWithBias.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/SimpletronWithExperiment.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/SimpletronWithL1L2Regularization.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/SimpletronWithReLU.py" afterDir="false" />
+    <list default="true" id="97819472-8627-49f4-8865-7643f03068cc" name="Changes" comment="Correctly running with Gladiators in subfolder">
+      <change afterPath="$PROJECT_DIR$/src/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/arena.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/arena.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -31,6 +22,9 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo"><![CDATA[{
   "associatedIndex": 0
@@ -83,12 +77,21 @@
       <option name="project" value="LOCAL" />
       <updated>1722161391003</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="Correctly running with Gladiators in subfolder">
+      <option name="closed" value="true" />
+      <created>1722522299597</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1722522299597</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="Initial Structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="Initial Structure" />
+    <MESSAGE value="Correctly running with Gladiators in subfolder" />
+    <option name="LAST_COMMIT_MESSAGE" value="Correctly running with Gladiators in subfolder" />
   </component>
 </project>
