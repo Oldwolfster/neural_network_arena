@@ -4,21 +4,31 @@ import importlib
 from tabulate import tabulate
 from abc import ABC, abstractmethod
 
+
+# MAE  Mean Absolute Error sum the abs value of the loss....
+
 ############################################################
 # Arena Parameters are set here as global variables.       #
 ############################################################
 epochs_to_run = 111     # Number of times training run will cycle through all training data
 qty_rand_data = 30      # If random data is generated, how many
-logs_to_print = 10      # It will print this many of the first and this many of the last iteration logs
+logs_to_print = -1      # It will print this many of the first and this many of the last iteration logs
+
+############################################################
+# Interesting Data.       #
+############################################################
+
+#mae_does_not_converge = [(49, 0), (19, 0), (69, 1), (90, 1), (89, 1), (50, 1), (42, 0), (72, 1), (86, 1), (62, 1), (61, 1), (59, 1), (55, 1), (21, 0), (15, 0), (3, 0), (1, 0), (24, 0), (62, 1), (20, 0), (41, 0), (90, 1), (57, 1), (68, 1), (88, 1), (20, 0), (75, 1), (83, 1), (91, 1), (91, 1)]
+
 
 
 def main():
-    training_data = generate_random_linear_data(True)
+    training_data = generate_random_linear_data(False)
 
     # List of tuples with module and class names
     nn_modules_and_classes = [
         'Simpletron'
-        ,'SimpletronWithBias'
+        #,'SimpletronWithBias'
         #,'SimpletronWithReLU'
         #,'SimpletronWithExperiment'
         #,'SimpletronGradientDescent'
@@ -62,7 +72,7 @@ def generate_random_linear_data(include_anomalies):
         if include_anomalies:
             second_number = 1 if random.random() < (score / 100) else 0
         else:
-            second_number = 1 if score >=.5 else 0
+            second_number = 1 if score >=50 else 0
         training_data.append((score, second_number))
     return training_data
 
@@ -71,9 +81,9 @@ def give_me_a_line():
     print(f"{'=' * 129}")
 
 def print_results(metrics_list, training_data):
-    print_logs(metrics_list)
+    #print_logs(metrics_list)
     print_grid(metrics_list)
-    print(training_data)
+    print(f"Training Data: {training_data}")
     #print_footer(training_data, metrics)
 
 
@@ -83,13 +93,15 @@ def print_grid(metrics_list):
 
     # Prepare data
     data = []
+    mae = []    # MAE  Mean Absolute Error - sum the abs value of the loss....
     for metrics in metrics_list:
         # Calculate metrics
         accuracy = metrics.accuracy * 100
         precision = metrics.precision * 100
         recall = metrics.recall * 100
         f1_score = metrics.f1_score * 100
-
+        mae = metrics.losses
+        mae_for_who = metrics.name
         # Append row data
         data.append([
             metrics.name,
@@ -104,19 +116,24 @@ def print_grid(metrics_list):
 
     # Print table
     print(tabulate(data, headers=headers, tablefmt="grid"))
+    print(f"MAE: {mae}")
 
 
 def print_logs(metrics_list):
     for metrics in metrics_list:
         # Print logs for each metrics object
         print(f"Logs for {metrics.name}:")
+        if logs_to_print < 0:  # Sentinel value to print all logs.
+            for log in metrics.log_list:
+                print(log)
+
         for log in metrics.log_list[:logs_to_print]:
             print(log)
-            give_me_a_line()
+            # give_me_a_line()
 
         for log in metrics.log_list[-logs_to_print:]:
             print(log)
-            give_me_a_line()
+            # give_me_a_line()
 
 def print_footer(training_data, metrics):
     print(training_data)
