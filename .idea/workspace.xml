@@ -5,9 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97819472-8627-49f4-8865-7643f03068cc" name="Changes" comment="Correctly running with Gladiators in subfolder">
+      <change afterPath="$PROJECT_DIR$/src/gladiators/Binary_cross_entropy_loss.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Fool.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_LearningRate001.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Probabilistic.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/gladiators/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/graphing.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/snippets/for_claude.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/snippets/law_of_large_numbers.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/snippets/smallest_NN.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/arena.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/arena.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gladiator.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gladiators/SimpletronWithBias.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_With_Bias.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/reporting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/reporting.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/snippets/visualize_DB_2.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/snippets/visualize_DB_2.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/snippets/visualize_decision_boundaries.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/snippets/visualize_decision_boundaries.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,9 +42,9 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2js1RLe6BTrT3C6EJ1dt7vZypLT" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -43,16 +58,25 @@
     "ASKED_ADD_EXTERNAL_FILES": "true",
     "Python.Simpletron.executor": "Run",
     "Python.arena.executor": "Run",
+    "Python.metrics.executor": "Debug",
     "Python.normal_arena_start.executor": "Run",
+    "Python.smallest_NN.executor": "Run",
+    "Python.visualize_DB_2.executor": "Run",
+    "Python.visualize_decision_boundaries.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/dad/PycharmProjects/neural_network_arena/src/arena.py"
+    "last_opened_file_path": "C:/Users/dad/PycharmProjects/neural_network_arena"
   }
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\snippets" />
+      <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src" />
+      <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\gladiators" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\gladiators" />
     </key>
   </component>
@@ -121,5 +145,16 @@
     <MESSAGE value="Initial Structure" />
     <MESSAGE value="Correctly running with Gladiators in subfolder" />
     <option name="LAST_COMMIT_MESSAGE" value="Correctly running with Gladiators in subfolder" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/src/metrics.py</url>
+          <line>58</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

@@ -1,11 +1,12 @@
 from src.arena import *
+from src.gladiator import Gladiator
 
 # Model Parameters are set here as global variables.
 neuron_weight = 0.2
 neuron_bias = 0.0
-learning_rate = 0.1
+learning_rate = .001
 
-class SimpletronWithBias(Gladiator):
+class Simpletron_With_Bias(Gladiator):
     def __init__(self, number_of_epochs, metrics):
         super().__init__(number_of_epochs)
         self.metrics = metrics
@@ -16,9 +17,9 @@ class SimpletronWithBias(Gladiator):
             neuron_weight, neuron_bias = self.run_a_epoch(training_data, neuron_weight, neuron_bias, epoch)
 
     def run_a_epoch(self, train_data, weight, bias, epoch_num):
-        self.metrics.clear_epoch_level()
         for i, (credit_score, result) in enumerate(train_data):
             weight, bias = self.training_iteration(i, credit_score, result, weight, bias)
+        self.metrics.epoch_completed()
         return weight, bias
 
     def training_iteration(self, i, credit_score, result, weight, bias):
