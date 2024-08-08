@@ -1,4 +1,4 @@
-from src.arena import *
+from src._main import *
 from src.metrics import Metrics
 from src.gladiator import Gladiator
 

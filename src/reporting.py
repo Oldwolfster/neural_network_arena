@@ -10,7 +10,7 @@ def give_me_a_line():
 def print_results(metrics_list, training_data, display_graphs):
     # print_logs(metrics_list)
     print_grid(metrics_list)
-    # print(f"Training Data: {training_data}")
+    print(f"Training Data: {training_data}")
     if display_graphs == True:
         for metrics in metrics_list:
             all_graphs(metrics)
