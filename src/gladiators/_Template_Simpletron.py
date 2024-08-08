@@ -12,11 +12,12 @@ class _Template_Simpletron(Gladiator):
     2) After each iteration call metrics.record_epoch_metrics (no additional info req - uses info from iterations)
     """
 
-    def __init__(self, number_of_epochs: int, metrics: Metrics, learning_rate: float = 0.001, initial_weight: float = 0.2):
-        super().__init__(number_of_epochs)
-        self.metrics = metrics
-        self.weight = initial_weight
-        self.learning_rate = learning_rate
+    def __init__(self, number_of_epochs: int, metrics: Metrics, *args, **kwargs):
+        super().__init__(number_of_epochs, metrics, *args, **kwargs)
+        # Ideally avoid overriding these, but specific models may need, so must be free to do so
+        # It keeps comparisons straight if respected
+        # self.weight = override_weight
+        # self.learning_rate = override_learning_rate
 
     def train(self, training_data):
         for epoch in range(self.number_of_epochs):

@@ -7,20 +7,9 @@
     <list default="true" id="97819472-8627-49f4-8865-7643f03068cc" name="Changes" comment="Correctly running with Gladiators in subfolder">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/arena.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/arena.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Binary_cross_entropy_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Binary_cross_entropy_loss.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Old_Templates/Simpletron_Orig.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Old_Templates/Simpletron_Orig.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Old_Templates/Template_Simpletron_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Old_Templates/Template_Simpletron_Claude.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Bias.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Bias.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Bias_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Bias_Claude.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Fool.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Fool.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Gradient_Descent_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Gradient_Descent_Claude.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gladiator.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiator.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_LearningRate001.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_LearningRate001.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Probabilistic.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_Probabilistic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_With_Bias_old.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/Simpletron_With_Bias_old.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gladiators/_Template_Simpletron.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/_Template_Simpletron.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/metrics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reporting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/reporting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/snippets/for_claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/snippets/for_claude.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

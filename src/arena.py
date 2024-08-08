@@ -11,7 +11,13 @@ import time
 epochs_to_run = 100     # Number of times training run will cycle through all training data
 qty_rand_data = 3000      # If random data is generated, how many
 display_graphs = False   # Display Graphs at the end of run
-
+############################################################
+# Model Parameters are set here as global variables.       #
+############################################################
+# Ideally avoid overriding these, but specific models, may need so must be free to do so
+# It keeps comparisons straight if respected
+default_neuron_weight   = .2        # Any value works as the training data will adjust it
+default_learning_rate   = .1       # Reduces impact of adjustment to avoid overshooting
 ############################################################
 # Interesting Data.       #
 ############################################################
@@ -26,7 +32,7 @@ def main():
     gladiators = [
 
         '_Template_Simpletron'
-        , 'Simpletron_Fool'
+        # , 'Simpletron_Fool'
         , 'Simpletron_LearningRate001'
         # ,'Simpletron_Bias'
         # ,'Simpletron_Gradient_Descent_Claude'
@@ -42,11 +48,25 @@ def main():
 
 def run_a_match(gladiators, arena):
     metrics_list = []
-    for nn_name in gladiators:
-        print(f'Importing gladiators.{nn_name}')
-        module = importlib.import_module(f'gladiators.{nn_name}')
-        nn_class = getattr(module, nn_name)
-        metrics = Metrics(nn_name)  # Create a new Metrics instance with the name as a string
+    for gladiator in gladiators:    # Loop through the NNs competing.
+        metrics = Metrics(gladiator)  # Create a new Metrics instance with the name as a string
+        metrics_list.append(metrics)
+        nn = cut_a_cookie(gladiator, 'gladiators', epochs_to_run, metrics, default_neuron_weight, default_learning_rate)
+        start_time = time.time()  # Start timing
+        nn.train(arena)
+        end_time = time.time()  # End timing
+        metrics.run_time = end_time - start_time
+
+    print_results(metrics_list, arena, display_graphs)
+
+def run_a_match2(gladiators, arena):
+    metrics_list = []
+    for gladiator in gladiators:
+
+        print(f'Importing gladiators.{gladiator}')
+        module = importlib.import_module(f'gladiators.{gladiator}')
+        nn_class = getattr(module, gladiator)
+        metrics = Metrics(gladiator)  # Create a new Metrics instance with the name as a string
         metrics_list.append(metrics)
         nn_instance = nn_class(epochs_to_run, metrics)
 
@@ -56,6 +76,25 @@ def run_a_match(gladiators, arena):
         metrics.run_time = end_time - start_time
 
     print_results(metrics_list, arena, display_graphs)
+
+
+def cut_a_cookie(class_name, path, *args):
+    """
+    Dynamically instantiate object without needing an include statement
+
+    Args:
+        class_name (str): The name of the file AND class to instantiate.
+                            THE NAMES MUST MATCH EXACTLY
+        path (str): The path to the module containing the class.
+        *args: Arguments to pass to the class constructor.
+
+    Returns:
+        object: An instance of the specified class.
+    """
+    module_path = f'{path}.{class_name}'
+    module = importlib.import_module(module_path)
+    class_ = getattr(module, class_name)
+    return class_(*args)
 
 
 def generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent(n_samples=1000):
