@@ -2,6 +2,7 @@ import random
 import importlib
 from metrics import *
 from reporting import print_results
+import numpy as np
 
 ############################################################
 # Arena Parameters are set here as global variables.       #
@@ -21,15 +22,18 @@ def main():
         run_a_match()
 def run_a_match():
     training_data = generate_random_linear_data(True)
+    #training_data = generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent()
 
     # List of tuples with module and class names
     gladiators = [
 
         #'Simpletron_Fool'
         #'Simpletron_LearningRate001'
-        ,'Simpletron'
-        ,'Simpletron_Bias'
-        ,'Simpletron_Bias_Claude'
+        'Simpletron_Orig'
+        ,'Template_Simpletron_Claude'
+        ,'Template_Simpletron_ChatGPT'
+        #,'Simpletron_Bias'
+        #,'Simpletron_Gradient_Descent_Claude'
         #,'SimpletronWithReLU'
         #,'SimpletronWithExperiment'
         #,'SimpletronGradientDescent'
@@ -58,8 +62,19 @@ def run_a_match():
     print_results(metrics_list, training_data, display_graphs)
 
 
+def generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent(n_samples=1000):
+    # Generate two clusters of points
+    cluster1 = np.random.randn(n_samples // 2, 1) - 2
+    cluster2 = np.random.randn(n_samples // 2, 1) + 2
 
+    X = np.vstack((cluster1, cluster2)).flatten()
+    y = np.hstack((np.zeros(n_samples // 2), np.ones(n_samples // 2)))
 
+    # Shuffle the data
+    shuffle_idx = np.random.permutation(n_samples)
+    X, y = X[shuffle_idx], y[shuffle_idx]
+
+    return list(zip(X, y))
 
 def generate_random_linear_data(include_anomalies):
     training_data = []

@@ -36,13 +36,14 @@ class Metrics:
 
         self.predictions.append(prediction)
         self.actuals.append(result)
+        # print(f"Appending Result {result} and Prediction {prediction}")
         self.total_loss_for_epoch += abs(loss)
         log_entry = f"epoch: {epoch+1} iteration: {iteration + 1}\tcredit score: {input_value:2}\tresult: {result}\tprediction: {prediction}\tloss: {loss:.2f}\tresult: {'CORRECT' if loss == 0 else 'WRONG'}\told weight: {weight:.5f}\tnew weight: {new_weight:.5f}"
         self.log_list.append(log_entry)
         self.weights_this_epoch.append(new_weight)
         self.epoch_curr_number = epoch
 
-    def epoch_completed(self):
+    def record_epoch_metrics(self):
         self.epoch_is_over = 1  # signal to clear if another epoch begins (but retain last epoch values if it doesn't
         self.losses.append(self.total_loss_for_epoch)
         self.percents.append(self.accuracy * 100)

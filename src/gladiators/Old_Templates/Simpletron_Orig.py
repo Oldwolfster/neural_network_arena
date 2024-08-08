@@ -3,7 +3,7 @@ from src.metrics import Metrics
 from src.gladiator import Gladiator
 
 
-class Simpletron(Gladiator):
+class Simpletron_Orig(Gladiator):
 
     def __init__(self, number_of_epochs, metrics):
         super().__init__(number_of_epochs)
