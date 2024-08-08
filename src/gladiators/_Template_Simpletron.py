@@ -2,7 +2,7 @@ from src.arena import *
 from src.metrics import Metrics
 from src.gladiator import Gladiator
 
-class Template_Simpletron_ChatGPT(Gladiator):
+class _Template_Simpletron(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
@@ -26,14 +26,14 @@ class Template_Simpletron_ChatGPT(Gladiator):
     def run_an_epoch(self, train_data, epoch_num: int) -> bool:
         for i, (credit_score, result) in enumerate(train_data):
             self.training_iteration(i, epoch_num, credit_score, result)
-        return self.metrics.epoch_completed()
+        return self.metrics.record_epoch()
 
     def training_iteration(self, i: int, epoch: int, credit_score: float, result: int) -> None:
         prediction = self.predict(credit_score)
         loss = self.compare(prediction, result)
         adjustment = self.adjust_weight(loss)
         new_weight = self.weight + adjustment
-        self.metrics.record_iteration_metrics(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
+        self.metrics.record_iteration(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
         self.weight = new_weight
 
     def predict(self, credit_score: float) -> int:

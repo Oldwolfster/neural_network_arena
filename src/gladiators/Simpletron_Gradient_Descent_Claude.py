@@ -54,7 +54,7 @@ class Simpletron_Gradient_Descent_Claude(Gladiator):
 
         avg_loss = total_loss / len(train_data)
         print(f"Epoch {epoch_num}, Average Loss: {avg_loss}")
-        return self.metrics.epoch_completed()
+        return self.metrics.record_epoch()
 
     def training_iteration(self, i: int, epoch: int, feature: float, label: int) -> float:
         """
@@ -72,8 +72,8 @@ class Simpletron_Gradient_Descent_Claude(Gladiator):
         prediction = self.predict_prob(feature)
         loss = self.compute_loss(prediction, label)
         self.adjust_parameters(feature, label, prediction)
-        self.metrics.record_iteration_metrics(i, epoch, feature, label, prediction, loss, 0, self.weight, self.weight,
-                                              self.metrics)
+        self.metrics.record_iteration(i, epoch, feature, label, prediction, loss, 0, self.weight, self.weight,
+                                      self.metrics)
         return loss
 
     def predict_prob(self, feature: float) -> float:

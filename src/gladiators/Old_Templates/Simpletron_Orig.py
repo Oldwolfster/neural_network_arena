@@ -18,14 +18,14 @@ class Simpletron_Orig(Gladiator):
     def run_a_epoch(self, train_data, epoch_num):
         for i, (credit_score, result) in enumerate(train_data):
             self.training_iteration(i, epoch_num, credit_score, result)
-        self.metrics.epoch_completed()
+        self.metrics.record_epoch()
 
     def training_iteration(self, i, epoch, credit_score, result):
         prediction  = self.predict(credit_score, self.weight)
         loss        = self.compare(prediction, result)
         adjustment  = self.adjust_weight(loss, self.learning_rate)
         new_weight  = self.weight + adjustment
-        self.metrics.record_iteration_metrics(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
+        self.metrics.record_iteration(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
         self.weight = new_weight
 
     def predict(self, credit_score, weight):        # print(f"Credit Score: {credit_score}, Weight: {weight}, Product: {product}, Result: {result}")

@@ -48,7 +48,7 @@ class Template_Simpletron_Claude(Gladiator):
         """
         for i, (credit_score, result) in enumerate(train_data):
             self.training_iteration(i, epoch_num, credit_score, result)
-        return self.metrics.epoch_completed()
+        return self.metrics.record_epoch()
 
     def training_iteration(self, i: int, epoch: int, credit_score: float, result: int) -> None:
         """
@@ -64,7 +64,7 @@ class Template_Simpletron_Claude(Gladiator):
         loss = self.compare(prediction, result)
         adjustment = self.adjust_weight(loss, credit_score)
         new_weight = self.weight + adjustment
-        self.metrics.record_iteration_metrics(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
+        self.metrics.record_iteration(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
         self.weight = new_weight
 
     def predict(self, credit_score: float) -> int:

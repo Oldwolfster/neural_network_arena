@@ -3,12 +3,13 @@ import importlib
 from metrics import *
 from reporting import print_results
 import numpy as np
+import time
 
 ############################################################
 # Arena Parameters are set here as global variables.       #
 ############################################################
 epochs_to_run = 100     # Number of times training run will cycle through all training data
-qty_rand_data = 30000      # If random data is generated, how many
+qty_rand_data = 3000      # If random data is generated, how many
 display_graphs = False   # Display Graphs at the end of run
 
 ############################################################
@@ -18,48 +19,43 @@ display_graphs = False   # Display Graphs at the end of run
 
 
 def main():
-    for x in range(30):
-        run_a_match()
-def run_a_match():
     training_data = generate_random_linear_data(True)
-    #training_data = generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent()
+    # training_data = generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent()
 
-    # List of tuples with module and class names
+    # For right now, set the gladiators here.
     gladiators = [
 
-        #'Simpletron_Fool'
-        #'Simpletron_LearningRate001'
-        'Simpletron_Orig'
-        ,'Template_Simpletron_Claude'
-        ,'Template_Simpletron_ChatGPT'
-        #,'Simpletron_Bias'
-        #,'Simpletron_Gradient_Descent_Claude'
-        #,'SimpletronWithReLU'
-        #,'SimpletronWithExperiment'
-        #,'SimpletronGradientDescent'
-        #,'SimpletronWithL1L2Regularization'
+        '_Template_Simpletron'
+        , 'Simpletron_Fool'
+        , 'Simpletron_LearningRate001'
+        # ,'Simpletron_Bias'
+        # ,'Simpletron_Gradient_Descent_Claude'
+        # ,'SimpletronWithReLU'
+        # ,'SimpletronWithExperiment'
+        # ,'SimpletronGradientDescent'
+        # ,'SimpletronWithL1L2Regularization'
     ]
 
-    # Instantiate and train each NN
+    for x in range(30):
+        run_a_match(gladiators, training_data)
+
+
+def run_a_match(gladiators, arena):
     metrics_list = []
     for nn_name in gladiators:
-
-        # Define the folder name
-        folder_name = 'gladiators'
-
-        full_module_name = f'{folder_name}.{nn_name}' # Full module name with folder path
-
-        # Import the module
-        print (f'Importing {full_module_name}')
-        module = importlib.import_module(full_module_name)
-
+        print(f'Importing gladiators.{nn_name}')
+        module = importlib.import_module(f'gladiators.{nn_name}')
         nn_class = getattr(module, nn_name)
         metrics = Metrics(nn_name)  # Create a new Metrics instance with the name as a string
         metrics_list.append(metrics)
         nn_instance = nn_class(epochs_to_run, metrics)
-        nn_instance.train(training_data)
 
-    print_results(metrics_list, training_data, display_graphs)
+        start_time = time.time()  # Start timing
+        nn_instance.train(arena)
+        end_time = time.time() # End timing
+        metrics.run_time = end_time - start_time
+
+    print_results(metrics_list, arena, display_graphs)
 
 
 def generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent(n_samples=1000):

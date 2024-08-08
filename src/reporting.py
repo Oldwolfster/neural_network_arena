@@ -18,7 +18,7 @@ def print_results(metrics_list, training_data, display_graphs):
 
 def print_grid(metrics_list):
     # Prepare headers
-    headers = ["Neural Network Arena", "Correct", "Wrong/Loss", "Accuracy", "Precision", "Recall", "F1 Score", "Epoch to Converge", "SAE at Conv"]
+    headers = ["Neural Network Arena", "Run Time", "Correct", "Wrong/Loss", "Accuracy", "Precision", "Recall", "F1 Score", "Epoch to Converge", "SAE at Conv"]
 
     # Prepare data
     data = []
@@ -33,6 +33,7 @@ def print_grid(metrics_list):
         # Append row data
         data.append([
             metrics.name,
+            f"{metrics.run_time:.2f}",
             metrics.correct,
             metrics.wrong,
             # f"{metrics.total_loss_for_epoch:.0f}",

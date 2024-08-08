@@ -19,7 +19,7 @@ class Simpletron_With_Bias(Gladiator):
     def run_a_epoch(self, train_data, weight, bias, epoch_num):
         for i, (credit_score, result) in enumerate(train_data):
             weight, bias = self.training_iteration(i, credit_score, result, weight, bias)
-        self.metrics.epoch_completed()
+        self.metrics.record_epoch()
         return weight, bias
 
     def training_iteration(self, i, credit_score, result, weight, bias):

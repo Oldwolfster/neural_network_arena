@@ -17,14 +17,14 @@ class Simpletron_Bias_Claude(Gladiator):
     def run_a_epoch(self, train_data, epoch_num):
         for i, (credit_score, result) in enumerate(train_data):
             self.training_iteration(i, epoch_num, credit_score, result)
-        self.metrics.epoch_completed()
+        self.metrics.record_epoch()
 
     def training_iteration(self, i, epoch, credit_score, result):
         prediction = self.predict(credit_score)
         loss = self.compare(prediction, result)
         self.adjust_parameters(loss, credit_score)
-        self.metrics.record_iteration_metrics(i, epoch, credit_score, result, prediction, loss,
-                                              self.weight - self.weight, self.weight, self.weight, self.metrics)
+        self.metrics.record_iteration(i, epoch, credit_score, result, prediction, loss,
+                                      self.weight - self.weight, self.weight, self.weight, self.metrics)
 
     def predict(self, credit_score):
         return 1 if credit_score * self.weight + self.bias >= 0.5 else 0

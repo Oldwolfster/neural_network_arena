@@ -29,8 +29,9 @@ class Metrics:
         self.converge_required = 30         # How many epochs of no change before we call it converged?
         self.epochs_to_converge = 0         # How many epochs to converge - if it doesn't converge then it will be zero
         self.MAE_at_convergence = 0
+        self.run_time = 0                   # How long did training take?
 
-    def record_iteration_metrics(self, iteration, epoch, input_value, result, prediction, loss, adjustment, weight, new_weight, metrics):
+    def record_iteration(self, iteration, epoch, input_value, result, prediction, loss, adjustment, weight, new_weight, metrics):
         if self.epoch_is_over == 1:
             self.epoch_reset()
 
@@ -43,7 +44,7 @@ class Metrics:
         self.weights_this_epoch.append(new_weight)
         self.epoch_curr_number = epoch
 
-    def record_epoch_metrics(self):
+    def record_epoch(self):
         self.epoch_is_over = 1  # signal to clear if another epoch begins (but retain last epoch values if it doesn't
         self.losses.append(self.total_loss_for_epoch)
         self.percents.append(self.accuracy * 100)

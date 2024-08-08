@@ -26,7 +26,7 @@ class Simpletron_Bias(Gladiator):
     def run_a_epoch(self, train_data, weight, epoch_num):
         for i, (credit_score, result) in enumerate(train_data):
             weight, bias = self.training_iteration(i, epoch_num, credit_score, result, weight)
-        self.metrics.epoch_completed()
+        self.metrics.record_epoch()
         return weight, bias
 
     def training_iteration(self, i, epoch, credit_score, result, weight):
@@ -35,7 +35,7 @@ class Simpletron_Bias(Gladiator):
         adjustment  = self.adjust_weight(loss, credit_score, learning_rate)
         new_weight  = weight + adjustment
         new_bias  = neuron_bias + adjustment
-        self.metrics.record_iteration_metrics(i, epoch, credit_score, result, prediction, loss, adjustment, weight, new_weight, self.metrics)
+        self.metrics.record_iteration(i, epoch, credit_score, result, prediction, loss, adjustment, weight, new_weight, self.metrics)
         return new_weight, new_bias
 
     def predict(self, credit_score, weight):
