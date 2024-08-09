@@ -42,8 +42,8 @@ def main():
 
 def run_a_match(gladiators):
     metrics_list = []
-    arn = dynamic_instantiate(training_data_arena,'arenas', training_data_qty, training_data_anom)
-    training_data = arn.generate_training_data()
+    arena_data = dynamic_instantiate(training_data_arena,'arenas', training_data_qty, training_data_anom)
+    training_data = arena_data.generate_training_data()
 
     for gladiator in gladiators:    # Loop through the NNs competing.
         metrics = Metrics(gladiator)  # Create a new Metrics instance with the name as a string

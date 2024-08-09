@@ -5,27 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97819472-8627-49f4-8865-7643f03068cc" name="Changes" comment="Correctly running with Gladiators in subfolder">
-      <change afterPath="$PROJECT_DIR$/src/_main.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/arenas/LinearSeparable.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/arenas/LinearSeparableLessAnomalies.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/arenas/QuadrantBased.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/arenas/ThresholdBased.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/deleteme.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/gladiators/old_models/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/snippets/episode_log.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/arena.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/arena.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Binary_cross_entropy_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/Binary_cross_entropy_loss.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/SimpletronGradientDescent.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/SimpletronGradientDescent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/SimpletronWithExperiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/SimpletronWithExperiment.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/SimpletronWithL1L2Regularization.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/SimpletronWithL1L2Regularization.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/SimpletronWithReLU.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/SimpletronWithReLU.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Bias.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/Simpletron_Bias.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Bias_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/Simpletron_Bias_Claude.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_Probabilistic.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/Simpletron_Probabilistic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/Simpletron_With_Bias_old.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/old_models/Simpletron_With_Bias_old.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/gladiators/_Template_Simpletron.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/gladiators/_Template_Simpletron.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/reporting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/reporting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/snippets/for_claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/snippets/for_claude.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/_main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/_main.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,6 +18,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Python Script" />
+        <option value="HTML File" />
       </list>
     </option>
   </component>
@@ -59,6 +42,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ASKED_ADD_EXTERNAL_FILES": "true",
+    "DefaultHtmlFileTemplate": "HTML File",
     "Python.Simpletron.executor": "Run",
     "Python.arena.executor": "Run",
     "Python.metrics.executor": "Debug",
