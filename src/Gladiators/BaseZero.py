@@ -1,4 +1,4 @@
-from ..arena import *
+from ..TrainingPit import *
 
 # Add metric, epochs to stabilization.
 

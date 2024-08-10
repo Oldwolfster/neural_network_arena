@@ -1,5 +1,5 @@
 from tabulate import tabulate
-from graphing import *
+from Graphing import *
 
 logs_to_print = -1      # It will print this many of the first and this many of the last iteration logs
 
@@ -8,7 +8,7 @@ def give_me_a_line():
     print(f"{'=' * 129}")
 
 def print_results(metrics_list, training_data, display_graphs):
-    # print_logs(metrics_list)
+    print_logs(metrics_list)
     print_grid(metrics_list)
     print(f"Training Data: {training_data}")
     if display_graphs == True:
@@ -52,7 +52,34 @@ def print_grid(metrics_list):
     #   print(f"Total Loss By Epoch for {name}: {losses}")
 
 
+
+# Define color codes
+colors = [
+    "\033[97m",  # White
+    "\033[91m",  # Red
+    "\033[92m",  # Green
+    "\033[93m",  # Yellow
+    "\033[94m",  # Blue
+    "\033[95m",  # Magenta
+    "\033[96m",  # Cyan
+
+]
+
+# Function to reset color
+reset_color = "\033[0m"
+
 def print_logs(metrics_list):
+    max_length = max(len(metrics.log_list) for metrics in metrics_list)
+    for i in range(max_length):
+        for idx, metrics in enumerate(metrics_list):
+            if i < len(metrics.log_list):
+                color = colors[idx % len(colors)]  # Cycle through colors if more metrics than colors
+                print(f"{color}{metrics.log_list[i]}\t{metrics.name}{reset_color}")
+
+
+
+
+def print_logs_old(metrics_list):
     for metrics in metrics_list:
         # Print logs for each metrics object
         print(f"Logs for {metrics.name}:")

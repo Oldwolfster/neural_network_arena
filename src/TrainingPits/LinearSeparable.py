@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Any
-from src.arena import Arena
+from src.TrainingPit import TrainingPit
 import random
 from typing import List, Tuple
 
-class LinearSeparable(Arena):
+
+class LinearSeparable(TrainingPit):
     """
     Concrete class that generates linearly separable training data.
     it first calculates a credit score between 0-100.  If include_anomolies is false and the credit is 50 or greater the output is 1 (repayment)

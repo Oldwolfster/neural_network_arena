@@ -1,5 +1,5 @@
-from src.arena import *
-from src.gladiator import Gladiator
+from src.TrainingPit import *
+from src.Gladiator import Gladiator
 
 # Model Parameters are set here as global variables.
 neuron_weight = 0.2

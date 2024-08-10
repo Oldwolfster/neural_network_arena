@@ -1,9 +1,9 @@
 import random
 from typing import List, Tuple
-from src.arena import Arena
+from src.TrainingPit import TrainingPit
 
 
-class ThresholdBased(Arena):
+class ThresholdBased(TrainingPit):
     """
     Concrete class that generates linearly separable training data based on a threshold.
     If include_anomalies is true, the score is used as the percent chance the output is correct.

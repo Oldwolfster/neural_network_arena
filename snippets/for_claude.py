@@ -5,6 +5,10 @@
 # Note, the training data is normally run with anomalies (which i define as the outcome that is not statistically most likely)  this is
 # because if there are no anomalies it will get 100% correct, so there isn't much to learn there.
 
+from src.Arena import *
+from src.Metrics import Metrics
+from src.Gladiator import Gladiator
+
 class _Template_Simpletron(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
@@ -15,8 +19,9 @@ class _Template_Simpletron(Gladiator):
     2) After each iteration call metrics.record_epoch_metrics (no additional info req - uses info from iterations)
     """
 
-    def __init__(self, number_of_epochs: int, metrics: Metrics, *args, **kwargs):
-        super().__init__(number_of_epochs, metrics, *args, **kwargs)
+    def __init__(self, number_of_epochs: int, metrics: Metrics, *args):
+        super().__init__(number_of_epochs, metrics, *args)
+       #  print(f'Learning rate2 = {self.learning_rate} args[1]{args[1]}')
         # Ideally avoid overriding these, but specific models may need, so must be free to do so
         # It keeps comparisons straight if respected
         # self.weight = override_weight
@@ -49,12 +54,14 @@ class _Template_Simpletron(Gladiator):
     def adjust_weight(self, loss: float) -> float:
         return loss * self.learning_rate
 
+
+
 def run_a_match(gladiators, arena):
     metrics_list = []
     for gladiator in gladiators:    # Loop through the NNs competing.
         metrics = Metrics(gladiator)  # Create a new Metrics instance with the name as a string
         metrics_list.append(metrics)
-        nn = dynamic_instantiate(gladiator, 'gladiators', epochs_to_run, metrics, default_neuron_weight, default_learning_rate)
+        nn = dynamic_instantiate(gladiator, 'Gladiators', epochs_to_run, metrics, default_neuron_weight, default_learning_rate)
         start_time = time.time()  # Start timing
         nn.train(arena)
         end_time = time.time()  # End timing

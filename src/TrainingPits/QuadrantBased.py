@@ -1,9 +1,9 @@
 from typing import List, Tuple
-from src.arena import Arena
+from src.TrainingPit import TrainingPit
 import random
 
 
-class QuadrantBased(Arena):
+class QuadrantBased(TrainingPit):
     """
     Concrete class that generates linearly separable training data based on quadrants.
     Points in the upper-right or lower-left quadrants are considered positive cases (1).

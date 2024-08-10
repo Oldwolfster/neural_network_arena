@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import List, Tuple, Any
-from src.arena import Arena
+from src.TrainingPit import TrainingPit
 import random
 from typing import List, Tuple
 
-class LinearSeparableLessAnomalies(Arena):
+class LinearSeparableLessAnomalies(TrainingPit):
     """
     Concrete class that generates linearly separable training data with a single input and single output.
     The input is a single number between 0 and 100, and the output is 1 if the input is greater than or equal to 50, and 0 otherwise.
