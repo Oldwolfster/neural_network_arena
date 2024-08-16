@@ -2,7 +2,7 @@ from src.Arena import *
 from src.Metrics import Metrics
 from src.Gladiator import Gladiator
 
-class _Template_Simpletron(Gladiator):
+class SimpletronFool(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
@@ -18,7 +18,7 @@ class _Template_Simpletron(Gladiator):
         # Ideally avoid overriding these, but specific models may need, so must be free to do so
         # It keeps comparisons straight if respected
         # self.weight = override_weight
-        # self.learning_rate = override_learning_rate
+        self.learning_rate = .1
 
     def train(self, training_data):
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs

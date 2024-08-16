@@ -6,40 +6,36 @@ import numpy as np
 import time
 
 ############################################################
-# Arena Parameters are set here as global variables.       #
+# Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run       = 20                   # Number of times training run will cycle through all training data
-training_data_qty   = 3011                  # Qty of training data
-training_data_arena = "LinearSeparableLessAnomalies"
-training_data_anom  = True
-display_graphs      = False                 # Display Graphs at the end of run
+epochs_to_run       = 40            # Number of times training run will cycle through all training data
+training_set_size   = 3000            # Qty of training data
+include_anomalies   = True          # Sometimes people with good credit don't pay
+display_graphs      = False         # Display Graphs at the end of run
 
 # Ideally avoid overriding these, but specific models, may need so must be free to do so
 default_neuron_weight   = .2        # Any value works as the training data will adjust it
-default_learning_rate   = .001       # Reduces impact of adjustment to avoid overshooting
+default_learning_rate   = .001      # Affects magnitude of weight adjustments
 
 
 def main():
+
+    # Set the training pit here
+    training_pit = "SingleInput_CreditScore"
+
+    # List the gladiators here
     gladiators = [
         #'_Template_Simpletron'
-         'SimpletronFool'
-        , 'SimpletronEins'
-        # , 'Simpletron_LearningRate001'
-        # ,'Simpletron_Bias'
-        # ,'Simpletron_Gradient_Descent_Claude'
-        # ,'SimpletronWithReLU'
-        # ,'SimpletronWithExperiment'
-        # ,'SimpletronGradientDescent'
-        # ,'SimpletronWithL1L2Regularization'
+        'SimpletronEinstein'
+        ,'SimpletronFool'
     ]
 
-    #for x in range(30):
-    run_a_match(gladiators)
+    run_a_match(gladiators, training_pit)
 
 
-def run_a_match(gladiators):
+def run_a_match(gladiators, training_pit):
     metrics_list = []
-    arena_data = dynamic_instantiate(training_data_arena, 'TrainingPits', training_data_qty, training_data_anom)
+    arena_data = dynamic_instantiate(training_pit, 'TrainingPits', training_set_size, include_anomalies)
     training_data = arena_data.generate_training_data()
 
     for gladiator in gladiators:    # Loop through the NNs competing.
@@ -53,6 +49,14 @@ def run_a_match(gladiators):
 
     print_results(metrics_list, training_data, display_graphs)
 
+
+# , 'Simpletron_LearningRate001'
+# ,'Simpletron_Bias'
+# ,'Simpletron_Gradient_Descent_Claude'
+# ,'SimpletronWithReLU'
+# ,'SimpletronWithExperiment'
+# ,'SimpletronGradientDescent'
+# ,'SimpletronWithL1L2Regularization'
 
 def dynamic_instantiate(class_name, path, *args):
     """

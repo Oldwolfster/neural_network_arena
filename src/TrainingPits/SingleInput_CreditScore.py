@@ -5,7 +5,7 @@ import random
 from typing import List, Tuple
 
 
-class LinearSeparable(TrainingPit):
+class SingleInput_CreditScore(TrainingPit):
     """
     Concrete class that generates linearly separable training data.
     it first calculates a credit score between 0-100.  If include_anomolies is false and the credit is 50 or greater the output is 1 (repayment)

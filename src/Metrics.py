@@ -26,7 +26,7 @@ class Metrics:
         self.predictions = []               # List of the result the model predicted.
         self.actuals = []                   # List of the actual result in the training data
         self.epoch_curr_number = 0          # Which epoch are we currently on.
-        self.converge_required = 30         # How many epochs of no change before we call it converged?
+        self.converge_required = 10         # How many epochs of no change before we call it converged?
         self.epochs_to_converge = 0         # How many epochs to converge - if it doesn't converge then it will be zero
         self.MAE_at_convergence = 0
         self.run_time = 0                   # How long did training take?
@@ -52,6 +52,7 @@ class Metrics:
         self.total_loss_for_last_epoch = self.total_loss_for_epoch  # record loss to compare after next epoch
 
     def check_for_epoch_convergence(self):
+        # print(f'self.total_loss_for_epoch\t{self.total_loss_for_epoch}\tself.total_loss_for_last_epoch\t{self.total_loss_for_last_epoch}\tself.epochs_with_no_change\t{self.epochs_with_no_change}\t')
         if self.total_loss_for_epoch == self.total_loss_for_last_epoch:            # No change in loss, so increment convergence counter
             self.epochs_with_no_change += 1
         else:

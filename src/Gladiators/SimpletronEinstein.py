@@ -2,7 +2,7 @@ from src.Arena import *
 from src.Metrics import Metrics
 from src.Gladiator import Gladiator
 
-class SimpletronEinstien(Gladiator):
+class SimpletronEinstein(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.

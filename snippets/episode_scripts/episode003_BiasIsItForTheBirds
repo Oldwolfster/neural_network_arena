@@ -1,0 +1,48 @@
+rena Introduction (30 seconds)
+Welcome back to the Neural Network Arena! Last time, we saw Simpletron master learning rates. Today, we're taking flight with a new challenge: bias! Is it just for the birds, or is it a crucial component for soaring success? Get ready for a high-flying showdown that'll ruffle some feathers!
+Contender Introductions (1 minute)
+In the left corner, meet SimpletronHayabusa! This fierce predator of a neural network is designed with a bias term, giving it an extra parameter to adjust during training. Like its namesake falcon, it has an additional tool in its arsenal.
+And in the right corner, we have SimpletronBlackbird! This network, inspired by the prey of the Hayabusa, is set up without a bias term. It's a purist, relying solely on its weight to make predictions. Will simplicity be its strength or its downfall?
+The key difference? Hayabusa has a bias term, while Blackbird does not.
+Battle Focus: Bias Showdown (2 minutes)
+So, what exactly is bias in a neural network? It's not about prejudice, but rather an additional parameter that gives the network more flexibility. Think of it as a bird's ability to adjust its flight path mid-air.
+In mathematical terms, bias is an extra term in the neuron's equation. Without bias, our neuron's output is simply the input multiplied by the weight. With bias, we add an extra term: output = (input * weight) + bias.
+Why does this matter? Well, bias allows the network to shift its activation function, enabling it to represent patterns that don't necessarily pass through the origin. It's like giving a bird the ability to take off from different altitudes, not just ground level.
+Training Ground Tour (2 minutes)
+[This section remains largely the same as in the previous script, focusing on the dataset.]
+Code Forge (3 minutes)
+Now, let's bring our feathered gladiators to life! We'll start with our Simpletron template and make a crucial modification for Hayabusa.
+For SimpletronHayabusa:
+pythonCopyclass SimpletronHayabusa(_Template_Simpletron):
+    def __init__(self, number_of_epochs: int, metrics: Metrics, *args):
+        super().__init__(number_of_epochs, metrics, *args)
+        self.bias = 0.0  # Initialize bias
+
+    def predict(self, credit_score: float) -> int:
+        return 1 if round(credit_score * self.weight + self.bias, 7) >= 0.5 else 0
+
+    def adjust_weight(self, loss: float) -> float:
+        self.bias += loss * self.learning_rate  # Update bias
+        return loss * self.learning_rate
+SimpletronBlackbird will use the template as-is, without any bias term.
+The key difference is that Hayabusa has an additional bias term that it updates during training, while Blackbird relies solely on adjusting its weight.
+Battle Royale (3 minutes)
+And they're off! Look at Hayabusa dive into the classification task, using both its weight and bias to carve through the data space. It's showing more flexibility in finding the decision boundary.
+Blackbird, on the other hand, is taking a more straightforward approach. It's adjusting its single weight parameter, which forces its decision boundary to always pass through the origin.
+Oh! Around epoch 50, we're seeing a shift. Hayabusa is fine-tuning both its weight and bias, potentially capturing nuances in the data. Blackbird is still improving, but it seems to be struggling with certain data points.
+As we approach the final epochs, it's a close race. Both models are converging, but their paths and final decision boundaries look distinctly different!
+Results Analysis (3 minutes)
+Let's break this down. Hayabusa achieved 95% accuracy, while Blackbird reached 92%. This difference, while small, is significant!
+Looking at the decision boundaries, we can see that Hayabusa's line doesn't pass through the origin, thanks to its bias term. This allowed it to better separate the classes in our slightly imbalanced dataset.
+Blackbird, constrained to a line through the origin, had to make some compromises. It performed well overall but struggled with data points near the origin.
+Their learning curves tell an interesting story too. Hayabusa had more parameters to tune, so its initial progress was slower, but it eventually found a better solution. Blackbird learned quickly at first but then plateaued as it reached the limits of what it could represent without bias.
+Lessons from the Arena (2 minutes)
+So, what can we learn from our avian adversaries?
+
+Bias adds flexibility: It allows the model to shift its decision boundary away from the origin, which can be crucial for many real-world datasets.
+No free lunch: While bias helped here, it also added complexity. For very simple, linearly separable problems, a bias-free model might perform just as well with less complexity.
+Dataset characteristics matter: Our slightly imbalanced dataset benefited from the added flexibility of bias. In perfectly balanced, origin-centered data, the difference might be less noticeable.
+Optimization trade-offs: Models with bias have an extra parameter to tune, which can lead to better solutions but might require more training time or data.
+
+In the real world, bias is almost always used in neural networks, but understanding its role helps us appreciate the model's capabilities and limitations.
+[The Next Battle Preview and Audience Engagement sections can remain the same as in the previous script.]
