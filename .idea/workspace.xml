@@ -5,33 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="97819472-8627-49f4-8865-7643f03068cc" name="Changes" comment="Correctly running with Gladiators in subfolder">
-      <change afterPath="$PROJECT_DIR$/snippets/episode_scripts/episode000_StandardFormat.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/snippets/episode_scripts/episode002_LearningRates.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/snippets/episode_scripts/episode003_BiasIsItForTheBirds" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/snippets/episode_scripts/img.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/snippets/old_models/__init__.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Gladiators/SimpletronEinstein.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Gladiators/SimpletronFool.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/TrainingPits/Offline/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/TrainingPits/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Arena.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Arena.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/_Template_Simpletron.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Gladiators/_Template_Simpletron.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/ShowOvershootingDueToLargeLearningRate.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Binary_cross_entropy_loss.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Binary_cross_entropy_loss.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/SimpletronGradientDescent.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/SimpletronGradientDescent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/SimpletronWithExperiment.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/SimpletronWithExperiment.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/SimpletronWithL1L2Regularization.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/SimpletronWithL1L2Regularization.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/SimpletronWithReLU.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/SimpletronWithReLU.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Simpletron_Bias.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Simpletron_Bias.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Simpletron_Bias_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Simpletron_Bias_Claude.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Simpletron_Gradient_Descent_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Simpletron_Gradient_Descent_Claude.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Simpletron_Orig.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Simpletron_Orig.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Simpletron_Probabilistic.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Simpletron_Probabilistic.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Simpletron_With_Bias_old.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Simpletron_With_Bias_old.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/Template_Simpletron_Claude.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/old_models/Template_Simpletron_Claude.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Gladiators/old_models/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/snippets/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Metrics.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Metrics.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Reporting.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/Reporting.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/TrainingPits/LinearSeparable.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/TrainingPits/SingleInput_CreditScore.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/TrainingPits/LinearSeparableLessAnomalies.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/TrainingPits/Offline/LinearSeparableLessAnomalies.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/TrainingPits/QuadrantBased.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/TrainingPits/Offline/QuadrantBased.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/TrainingPits/SingleInput_CreditScore.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/TrainingPits/SingleInput_CreditScore.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/TrainingPits/ThresholdBased.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/TrainingPits/Offline/ThresholdBased.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,6 +49,7 @@
     "DefaultHtmlFileTemplate": "HTML File",
     "Python.ShowOvershootingDueToLargeLearningRate.executor": "Run",
     "Python.Simpletron.executor": "Run",
+    "Python.W2_L4.executor": "Run",
     "Python.arena.executor": "Run",
     "Python.metrics.executor": "Debug",
     "Python.normal_arena_start.executor": "Run",
@@ -79,7 +60,8 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "git-widget-placeholder": "master",
     "ignore.virus.scanning.warn.message": "true",
-    "last_opened_file_path": "C:/Users/dad/PycharmProjects/neural_network_arena/src/Gladiators"
+    "last_opened_file_path": "C:/MyDocs/SynologyDrive/Development/PycharmProjects/Neural_Network_Arena",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -90,11 +72,11 @@
       <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\TrainingPits\Offline" />
       <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\snippets" />
       <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\Gladiators\old_models" />
       <recent name="C:\Users\dad\PycharmProjects\neural_network_arena" />
       <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\gladiators\old_models" />
-      <recent name="C:\Users\dad\PycharmProjects\neural_network_arena\src\gladiators\Old_Templates" />
     </key>
   </component>
   <component name="RunManager">

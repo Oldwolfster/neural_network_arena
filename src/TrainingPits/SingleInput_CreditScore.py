@@ -3,8 +3,6 @@ from typing import List, Tuple, Any
 from src.TrainingPit import TrainingPit
 import random
 from typing import List, Tuple
-
-
 class SingleInput_CreditScore(TrainingPit):
     """
     Concrete class that generates linearly separable training data.
