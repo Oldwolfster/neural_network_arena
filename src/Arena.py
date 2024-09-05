@@ -8,26 +8,36 @@ import time
 ############################################################
 # Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run       = 40            # Number of times training run will cycle through all training data
-training_set_size   = 3000            # Qty of training data
-include_anomalies   = True          # Sometimes people with good credit don't pay
-display_graphs      = False         # Display Graphs at the end of run
-
-# Ideally avoid overriding these, but specific models, may need so must be free to do so
-default_neuron_weight   = .2        # Any value works as the training data will adjust it
+epochs_to_run       = 100            # Number of times training run will cycle through all training data
+training_set_size   = 3000           # Qty of training data
+default_neuron_weight   = .2        # Any initial value works as the training data will adjust it
 default_learning_rate   = .001      # Affects magnitude of weight adjustments
+include_anomalies   = True          # Sometimes people with good credit don't pay
+
+############################################################
+# Report Parameters are set here as global variables.      #
+############################################################
+display_graphs      = False         # Display Graphs at the end of run
+display_logs        = True          # Display the logs at the end of the run
+display_train_data  = False          # Display the training data at the end of the rn.
 
 
 def main():
 
     # Set the training pit here
-    training_pit = "SingleInput_CreditScore"
+    #training_pit = "SingleInput_CreditScoreShifted"
+    training_pit = "Temp"
+    #training_pit = "SingleInput_CreditScore"
+    # training_pit = "Manual"
 
     # List the gladiators here
     gladiators = [
-        #'_Template_Simpletron'
-        'SimpletronEinstein'
-        ,'SimpletronFool'
+        '_Template_Simpletron'
+        ,'Simpletron_Bias_MyApproach'
+        #, 'Simpletron_Bias_ChatGPT'
+        #, 'Simpletron_Bias_Claude3'
+        #, 'Simpletron_Bias_Perplexity'
+
     ]
 
     run_a_match(gladiators, training_pit)
@@ -46,8 +56,9 @@ def run_a_match(gladiators, training_pit):
         nn.train(training_data)
         end_time = time.time()  # End timing
         metrics.run_time = end_time - start_time
+        print (f"{gladiator} completed in {metrics.run_time}")
 
-    print_results(metrics_list, training_data, display_graphs)
+    print_results(metrics_list, training_data, display_graphs, display_logs, display_train_data, epochs_to_run, training_set_size)
 
 
 # , 'Simpletron_LearningRate001'

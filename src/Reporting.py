@@ -7,17 +7,20 @@ logs_to_print = -1      # It will print this many of the first and this many of 
 def give_me_a_line():
     print(f"{'=' * 129}")
 
-def print_results(metrics_list, training_data, display_graphs):
-    print_logs(metrics_list)
-    print_grid(metrics_list)
-    print(f"Training Data: {training_data}")
+def print_results(metrics_list, training_data, display_graphs, display_logs, display_train_data,epochs_to_run, training_set_size):
+    if display_logs == True:
+        print_logs(metrics_list)
+    print_grid(metrics_list,epochs_to_run, training_set_size)
+    if display_train_data:
+        print(f"Training Data: {training_data}")
     if display_graphs == True:
         for metrics in metrics_list:
             all_graphs(metrics)
 
 
-def print_grid(metrics_list):
+def print_grid(metrics_list,epochs_to_run, training_set_size):
     # Prepare headers
+    print(f"\nEpochs:{epochs_to_run}\tTraining Samples: {training_set_size}")
     headers = ["Neural Network Arena", "Run Time", "Correct", "Wrong/Loss", "Accuracy", "Precision", "Recall", "F1 Score", "Epoch to Converge", "SAE at Conv"]
 
     # Prepare data
@@ -134,3 +137,5 @@ def is_it_an_anomaly(credit_score, result):
     if credit_score >= 50 and result == 0:
         return True
     return False
+
+

@@ -31,7 +31,7 @@ class Metrics:
         self.MAE_at_convergence = 0
         self.run_time = 0                   # How long did training take?
 
-    def record_iteration(self, iteration, epoch, input_value, result, prediction, loss, adjustment, weight, new_weight, metrics):
+    def record_iteration(self, iteration, epoch, input_value, result, prediction, loss, adjustment, weight, new_weight, metrics, bias=0, old_bias=0):
         if self.epoch_is_over == 1:
             self.epoch_reset()
 
@@ -39,7 +39,8 @@ class Metrics:
         self.actuals.append(result)
         # print(f"Appending Result {result} and Prediction {prediction}")
         self.total_loss_for_epoch += abs(loss)
-        log_entry = f"epoch: {epoch+1} iteration: {iteration + 1}\tcredit score: {input_value:2}\tresult: {result}\tprediction: {prediction}\tloss: {loss:.2f}\tresult: {'CORRECT' if loss == 0 else 'WRONG'}\told weight: {weight:.5f}\tnew weight: {new_weight:.5f}"
+        #8/26/2024 log_entry = f"{epoch+1}:{iteration + 1}\tInput: {input_value:2}\tResult: {result}\tPrediction: {prediction}\tloss: {loss:.2f}\tResult: {'CORRECT' if loss == 0 else 'WRONG'}\tOld Weight: {weight:.5f}\tNew Weight: {new_weight:.5f}\tOld Bias: {weight:.5f}\tNew Bias: {new_weight:.5f}"
+        log_entry = f"{epoch + 1}:{iteration + 1}\tInput: {input_value:2}\tTarget: {result}\tPrediction: {prediction}\t{'CORRECT' if loss == 0 else 'WRONG'}\tloss: {loss:.2f}\tOld Weight: {weight:.5f}\tNew Weight: {new_weight:.5f}\tOld Bias: {old_bias:.5f}\tNew Bias: {bias:.5f}"
         self.log_list.append(log_entry)
         self.weights_this_epoch.append(new_weight)
         self.epoch_curr_number = epoch
