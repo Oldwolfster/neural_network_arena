@@ -12,13 +12,12 @@ epochs_to_run       = 100            # Number of times training run will cycle t
 training_set_size   = 3000           # Qty of training data
 default_neuron_weight   = .2        # Any initial value works as the training data will adjust it
 default_learning_rate   = .001      # Affects magnitude of weight adjustments
-include_anomalies   = True          # Sometimes people with good credit don't pay
 
 ############################################################
 # Report Parameters are set here as global variables.      #
 ############################################################
 display_graphs      = False         # Display Graphs at the end of run
-display_logs        = True          # Display the logs at the end of the run
+display_logs        = False          # Display the logs at the end of the run
 display_train_data  = False          # Display the training data at the end of the rn.
 
 
@@ -26,17 +25,14 @@ def main():
 
     # Set the training pit here
     #training_pit = "SingleInput_CreditScoreShifted"
-    training_pit = "Temp"
+    training_pit = "SingleInput_CreditScoreShiftedto90"
     #training_pit = "SingleInput_CreditScore"
     # training_pit = "Manual"
 
     # List the gladiators here
     gladiators = [
         '_Template_Simpletron'
-        ,'Simpletron_Bias_MyApproach'
-        #, 'Simpletron_Bias_ChatGPT'
-        #, 'Simpletron_Bias_Claude3'
-        #, 'Simpletron_Bias_Perplexity'
+        ,'_Template_Simpletron_With_Bias'
 
     ]
 
@@ -45,7 +41,7 @@ def main():
 
 def run_a_match(gladiators, training_pit):
     metrics_list = []
-    arena_data = dynamic_instantiate(training_pit, 'TrainingPits', training_set_size, include_anomalies)
+    arena_data = dynamic_instantiate(training_pit, 'TrainingPits', training_set_size)
     training_data = arena_data.generate_training_data()
 
     for gladiator in gladiators:    # Loop through the NNs competing.

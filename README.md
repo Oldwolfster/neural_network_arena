@@ -1,4 +1,4 @@
-Steps to sync to github
+Steps to sync to gitHub
 
 git status
 git add .

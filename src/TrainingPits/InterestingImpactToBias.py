@@ -3,7 +3,7 @@ import random
 from typing import List, Tuple
 
 
-class Temp(TrainingPit):
+class InterestingImpactToBias(TrainingPit):
     """
     Concrete class that generates training data with a decision boundary at 90.
     This data will perform better with a model that includes bias.

@@ -1,4 +1,4 @@
-Neural Network Arena: The Battle of Learning Rates
+Neural Network Arena: The Ultimate Learning Rate Showdown
 Introduction
 Greetings and welcome to the Neural Network Arena, where algorithms duke it out and only the fittest survive! I'm your boy, Simpleton, here to keep it simple with the Simpletron!
 Today, we're diving into a battle of learning rates that'll make your neurons spin. Let's meet our contenders:z

@@ -13,20 +13,13 @@ class SingleInput_CreditScoreShiftedto90(TrainingPit):
     If include_anomalies is true, it uses (score - 40) as the percent chance the loan was repaid.
     """
 
-    def __init__(self, num_samples: int, include_anomalies: bool):
+    def __init__(self, num_samples: int):
         self.num_samples = num_samples
-        self.include_anomalies = include_anomalies
-        self.boundary = 90  # More extremely shifted decision boundary
 
     def generate_training_data(self) -> List[Tuple[int, int]]:
         training_data = []
         for _ in range(self.num_samples):
             score = random.randint(1, 100)
-            if self.include_anomalies:
-                # Shift the probability calculation even more
-                repayment_chance = max(0, min(1, (score - 40) / 60))
-                second_number = 1 if random.random() < repayment_chance else 0
-            else:
-                second_number = 1 if score >= self.boundary else 0
+            second_number = 1 if random.random() < .1 else 0
             training_data.append((score, second_number))
         return training_data
