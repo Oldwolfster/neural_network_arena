@@ -2,7 +2,10 @@ Hello, I’ve been on a quest to build the simplest neural network possible for 
 I’ve also created the “Arena”, a system consisting of 3 main parts
 Gladiators (Neural Network Models)
 Training Pits (algorithms to produce training/test data)
-Arena engine – 1) gets one set of data from the Training pit 2) sends it to all competing Gladiators  3)Compiles and reports on the results.
+Arena engine which
+1) gets a single set of data from the Training pit
+2) sends it to all competing Gladiators
+3)Compiles and reports on the results.
 Here’s my current plan of how I am proceeding,
 
 Phase 1: Single Neuron, Single Input
@@ -96,20 +99,23 @@ from typing import List, Tuple
 class SingleInput_CreditScore(TrainingPit):
     """
     Concrete class that generates linearly separable training data.
-    it first calculates a credit score between 0-100.  If include_anomalies is false and the credit is 50 or greater the output is 1 (repayment)
-    if include_anomalies is true, it uses the credit score as the percent chance the loan was repaid
+    it first calculates a credit score between 0-100. It then uses the credit score as the percent chance the loan was repaid
     for example a score of 90 would normally repay, but there is a 10% chance it will not.
     """
-    def __init__(self,num_samples: int, include_anomalies: bool):
+    def __init__(self,num_samples: int):
         self.num_samples = num_samples
-        self.include_anomalies = include_anomalies
     def generate_training_data(self) -> List[Tuple[int, int]]:
         training_data = []
         for _ in range(self.num_samples):
             score = random.randint(1, 100)
-            if self.include_anomalies:
-                second_number = 1 if random.random() < (score / 100) else 0
-            else:
-                second_number = 1 if score >= 50 else 0
+            second_number = 1 if random.random() < (score / 100) else 0
             training_data.append((score, second_number))
         return training_data
+
+
+I am currently on the activation function video and i switched to a training pit that uses quadratic data
+however is still cannot create a gladiator that outperforms the plain simpleton template that i've included above.
+
+I want to know for sure if there is a way to show the activation giving a benefit on this "Single input single layer single neuron" Neural network
+or if in fact activation functions do not give a benefit until i get to a neural network with more neurons.
+

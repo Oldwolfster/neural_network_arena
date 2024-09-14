@@ -1,0 +1,19 @@
+from src.TrainingPit import TrainingPit
+import random
+from typing import List, Tuple
+
+class SingleInput_Quadratic2(TrainingPit):
+    """
+    Generates non-linear training data using a quadratic relationship.
+    This will create a regression task where a non-linear model can outperform a linear one.
+    """
+    def __init__(self, num_samples: int):
+        self.num_samples = num_samples
+
+    def generate_training_data(self) -> List[Tuple[float, float]]:
+        training_data = []
+        for _ in range(self.num_samples):
+            x = random.uniform(-10, 10)  # Input range from -10 to 10
+            y = 3 * x**2 + random.gauss(0, 3)  # Quadratic relationship with some noise
+            training_data.append((x, y))
+        return training_data

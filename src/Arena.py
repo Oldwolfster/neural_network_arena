@@ -8,8 +8,8 @@ import time
 ############################################################
 # Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run       = 100            # Number of times training run will cycle through all training data
-training_set_size   = 3000           # Qty of training data
+epochs_to_run       = 5            # Number of times training run will cycle through all training data
+training_set_size   = 5           # Qty of training data
 default_neuron_weight   = .2        # Any initial value works as the training data will adjust it
 default_learning_rate   = .001      # Affects magnitude of weight adjustments
 
@@ -17,22 +17,21 @@ default_learning_rate   = .001      # Affects magnitude of weight adjustments
 # Report Parameters are set here as global variables.      #
 ############################################################
 display_graphs      = False         # Display Graphs at the end of run
-display_logs        = False          # Display the logs at the end of the run
-display_train_data  = False          # Display the training data at the end of the rn.
+display_logs        = True          # Display the logs at the end of the run
+display_train_data  = True          # Display the training data at the end of the rn.
 
 
 def main():
 
     # Set the training pit here
-    #training_pit = "SingleInput_CreditScoreShifted"
-    training_pit = "SingleInput_CreditScoreShiftedto90"
+    training_pit = "QuadraticInput_CreditScore"
     #training_pit = "SingleInput_CreditScore"
-    # training_pit = "Manual"
-
+    training_pit = "QuadraticTrainingPit"
+    training_pit = "HouseValue_SqrFt"
     # List the gladiators here
     gladiators = [
         '_Template_Simpletron'
-        ,'_Template_Simpletron_With_Bias'
+        ,'Simpletron_Sigmoid'
 
     ]
 
