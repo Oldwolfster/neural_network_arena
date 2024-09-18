@@ -2,7 +2,7 @@ from src.Arena import *
 from src.Metrics import Metrics, IterationData
 from src.Gladiator import Gladiator
 
-class LinearRegression(Gladiator):
+class LinearRegression_Claude(Gladiator):
     """
     A simple linear regression implementation for educational purposes.
     This class serves as a template for more complex implementations.
