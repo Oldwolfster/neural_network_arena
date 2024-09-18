@@ -1,4 +1,8 @@
-class GradientDescentSimpleVersion(Gladiator):
+from src.Arena import *
+from src.Metrics import Metrics
+from src.Gladiator import Gladiator
+
+class GradientDescent(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
@@ -39,6 +43,6 @@ class GradientDescentSimpleVersion(Gladiator):
         return result - prediction
 
     def adjust_parameters(self, loss: float, credit_score: float) -> tuple:  # Adjust both weight and bias
-            adjustment_weight = loss * credit_score * self.learning_rate  # Gradient descent for weight
+        adjustment_weight = loss * credit_score * self.learning_rate  # Gradient descent for weight
         adjustment_bias = loss * self.learning_rate  # Gradient descent for bias
         return adjustment_weight, adjustment_bias

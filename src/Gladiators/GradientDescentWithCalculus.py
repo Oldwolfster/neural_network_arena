@@ -1,4 +1,8 @@
-class _Calculus_Simpletron(Gladiator):
+from src.Arena import *
+from src.Metrics import Metrics
+from src.Gladiator import Gladiator
+
+class GradientDescentWithCalculus(Gladiator):
     """
     A perceptron implementation that explicitly uses calculus for gradient descent.
     This version uses Mean Squared Error (MSE) as the loss function and updates weights and bias accordingly.

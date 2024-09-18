@@ -2,7 +2,7 @@ from src.Arena import *
 from src.Metrics import Metrics, IterationData
 from src.Gladiator import Gladiator
 
-class _Template_Simpletron_Regressive(Gladiator):
+class Regressive_Gradient_BS(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
@@ -24,28 +24,41 @@ class _Template_Simpletron_Regressive(Gladiator):
                 break
 
     def run_an_epoch(self, train_data, epoch_num: int) -> bool:         # Function to run single epoch
-        for i, (input1, output) in enumerate(train_data):                # Loop through all the training data
-            self.training_iteration(i, epoch_num, input1, output)        # Run single sample of training data
+        for i, (sqr_ft, price) in enumerate(train_data):                # Loop through all the training data
+            self.training_iteration(i, epoch_num, sqr_ft, price)        # Run single sample of training data
         return self.metrics.record_epoch()                              # Sends back the data for an epoch
 
-    def training_iteration(self, i: int, epoch: int, input1: float, output: float) -> None:
-        prediction  = self.predict(input1)                              # Step 1) Guess
-        error       = self.compare(prediction, output)                   # Step 2) Check guess, if wrong, by how much and quare it (MSE)
-        adjustment  = self.adjust_weight(error)                         # Step 3) Adjust(Calc)
-        loss        = (error ** 2) * 0.5                                # For MSE the loss is the error squared and cut in half
-        new_weight  = self.weight + adjustment                          # Step 3) Adjust(Apply)
+    def training_iteration(self, i: int, epoch: int, sqr_ft: float, price: float) -> None:
+        # Normalize the input to a reasonable range (e.g., between 0 and 1)
+        sqr_ft_scaled = sqr_ft / 10000  # Example scaling factor, adjust based on your data
+
+        # Step 1) Guess
+        prediction = self.predict(sqr_ft_scaled)
+
+        # Step 2) Check guess (raw error)
+        error = prediction - price
+
+        # Step 3) Adjust weight using raw error, scaled input, and reduced learning rate
+        weight_adj = error * self.learning_rate * sqr_ft_scaled
+
+        # Step 4) For MSE, the loss is the error squared and cut in half
+        loss = (error ** 2) * 0.5
+
+        # Step 5) Update the weight
+        new_weight = self.weight + weight_adj
+
+        new_weight  = self.weight + weight_adj                          # Step 3) Adjust(Apply)
         data = IterationData(
             iteration=i+1,
             epoch=epoch+1,
-            input=input1,
-            target=output,
+            input=sqr_ft,
+            target=price,
             prediction=prediction,
-            adjustment=adjustment,
+            adjustment=weight_adj,
             weight=self.weight,
             new_weight=new_weight,
             bias=0.0,
-            new_bias=0.0
-
+            old_bias=0.0
         )
 
         self.metrics.record_iteration(data)

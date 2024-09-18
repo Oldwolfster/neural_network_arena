@@ -49,7 +49,7 @@ class SimpletronWithL1L2Regularization(Gladiator):
 
     def record_iteration_metrics(self, i, credit_score, result, prediction, loss, adjustment, weight, new_weight):
         self.metrics.predictions.append(prediction)
-        self.metrics.actuals.append(result)
+        self.metrics.targets.append(result)
         total_loss = self.calculate_total_loss(prediction, result)
         self.metrics.total_loss_for_epoch += total_loss
         log_entry = (

@@ -7,9 +7,12 @@
 - Epoch Summary
 
 # Items to complete
-- Detect convergence
+- Detect convergence 
 - look at graphs
+- look at chat gpts suggestions (half done)
+  - remove self.errors and self.errors_squared from MEtric(calc on fly from prediction and target)  
 - explore why no bias impact
+- get working with binary decision
 
 # Arena Introduction (30 seconds)
 

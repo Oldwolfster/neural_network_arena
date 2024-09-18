@@ -1,0 +1,44 @@
+from src.TrainingPit import TrainingPit
+import random
+from typing import List, Tuple
+
+class HouseValue_SqrFt_WhereBiasWillMAtter(TrainingPit):
+    """
+    Thank you Claude for this excellent algorithm!
+    Concrete class that generates training data for regression.
+    It first calculates square feet between 500-4000.
+    It then determines price per sq ft, using a base of 200 with some variability.
+    It adds noise from a gaussian distribution centered on 0 with 68% of values within 50k.
+    Finally, it adjusts very low prices to create a more realistic distribution.
+    """
+    def __init__(self, num_samples: int):
+        self.num_samples = num_samples
+
+    def generate_training_data(self) -> List[Tuple[float, float]]:
+        training_data = []
+        for _ in range(self.num_samples):
+            # Generate square footage between 500 and 4000
+            sqft = round(random.uniform(500, 4000), 0)
+
+            # Base price per square foot with some variability
+            price_per_sqft = random.normalvariate(200, 20)  # Mean 200, SD 20
+
+            # Calculate base price
+            base_price = sqft * price_per_sqft
+
+            # Add a flat amount to represent non-sqft based value
+            base_price += 50000000000  # Adjust as needed
+
+            # Add noise to the price
+            noise = random.gauss(0, 50000)  # Mean 0, SD 50,000
+            price = base_price + noise
+
+            # Adjust very low prices to create a more realistic minimum
+            if price < 10000:
+                price = 10000 + random.uniform(0, 40000)
+
+            # Round to nearest dollar
+            price = round(price, 0)
+
+            training_data.append((sqft, price))
+        return training_data

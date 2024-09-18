@@ -1,5 +1,9 @@
-# Topics to cover
+# Why Gradient Descent is bs.
 
+1) it can be arbitray, credit score could be structured good is high or good is low.
+2) when it's multiplied by learning rate that washes out the complex logic.
+3) all that really counts is that it moves in the right direction
+4) the inputs value doesn't necessarily represent it's contribution to the error
 - Regression description
 - Impact to metrics
 - MSE
@@ -7,9 +11,12 @@
 - Epoch Summary
 
 # Items to complete
-- Detect convergence
+- Detect convergence 
 - look at graphs
+- look at chat gpts suggestions (half done)
+  - remove self.errors and self.errors_squared from MEtric(calc on fly from prediction and target)  
 - explore why no bias impact
+- get working with binary decision
 
 # Arena Introduction (30 seconds)
 

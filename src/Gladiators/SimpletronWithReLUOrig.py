@@ -45,7 +45,7 @@ class SimpletronWithReLU(Gladiator):
 
     def record_iteration_metrics(self, i, credit_score, result, prediction, loss, adjustment, weight, new_weight, metrics):
         self.metrics.predictions.append(prediction)
-        self.metrics.actuals.append(result)
+        self.metrics.targets.append(result)
         self.metrics.total_loss_for_epoch += abs(loss)
         log_entry = (
             f"Trn Data #{i + 1}:\tNeuron Weight:\t{weight:.3f}\t\tCredit Score:\t{credit_score:.3f}\t"

@@ -8,30 +8,37 @@ import time
 ############################################################
 # Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run       = 5            # Number of times training run will cycle through all training data
-training_set_size   = 5           # Qty of training data
-default_neuron_weight   = .2        # Any initial value works as the training data will adjust it
-default_learning_rate   = .001      # Affects magnitude of weight adjustments
+epochs_to_run       = 300          # Number of times training run will cycle through all training data
+training_set_size   = 20           # Qty of training data
+default_neuron_weight   = 0.2        # Any initial value works as the training data will adjust it
+default_learning_rate   = .0001      # Affects magnitude of weight adjustments
+converge_epochs = 10  # How many epochs of no change before we call it converged?
+converge_swag = 0.01  # What percentage must weight be within compared to prior epochs weight to call it "same"
 
 ############################################################
 # Report Parameters are set here as global variables.      #
 ############################################################
+
 display_graphs      = False         # Display Graphs at the end of run
-display_logs        = True          # Display the logs at the end of the run
+#display_logs        = True          # Display the logs at the end of the run
+display_logs        = False          # Display the logs at the end of the run
 display_train_data  = True          # Display the training data at the end of the rn.
 
 
 def main():
-
+# causing error [(3808.0, 761600.0), (2560.0, 512000.0), (3745.0, 749000.0), (1553.0, 310600.0), (3347.0, 669400.0)]
+#working Training Data: [(2451.0, 490200.0), (3238.0, 647600.0), (1356.0, 271200.0), (1127.0, 225400.0), (3284.0, 656800.0)]
     # Set the training pit here
-    training_pit = "QuadraticInput_CreditScore"
+    #training_pit = "QuadraticInput_CreditScore"
     #training_pit = "SingleInput_CreditScore"
-    training_pit = "QuadraticTrainingPit"
-    training_pit = "HouseValue_SqrFt"
+    #training_pit = "QuadraticTrainingPit"
+    training_pit = "CreditScoreRegression"
+    #training_pit = "HouseValue_SqrFt__ForBias"
     # List the gladiators here
     gladiators = [
-        '_Template_Simpletron'
-        ,'Simpletron_Sigmoid'
+        '_Template_Simpletron_Regressive'
+        ,'LinearRegression'
+        #,'Regressive_Gradient_BS'
 
     ]
 
@@ -44,7 +51,7 @@ def run_a_match(gladiators, training_pit):
     training_data = arena_data.generate_training_data()
 
     for gladiator in gladiators:    # Loop through the NNs competing.
-        metrics = Metrics(gladiator)  # Create a new Metrics instance with the name as a string
+        metrics = Metrics(gladiator, converge_epochs, converge_swag)  # Create a new Metrics instance with the name as a string
         metrics_list.append(metrics)
         nn = dynamic_instantiate(gladiator, 'Gladiators', epochs_to_run, metrics, default_neuron_weight, default_learning_rate)
         start_time = time.time()  # Start timing

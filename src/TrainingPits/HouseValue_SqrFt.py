@@ -16,7 +16,7 @@ class HouseValue_SqrFt(TrainingPit):
         training_data = []
         for _ in range(self.num_samples):
             # Generate square footage between 500 and 4000
-            sqft = round(random.uniform(500, 4000), 0)
+            sqft = round(random.uniform(1500, 4000), 0)
 
             # Base price per square foot
             price_per_sqft = 200  # Adjust as needed
@@ -24,12 +24,14 @@ class HouseValue_SqrFt(TrainingPit):
             # Calculate base price
             base_price = sqft * price_per_sqft
 
+            # Try adding a flat amount like 20k and see if that makes the bias useful?
+
             # Add noise to the price
             noise = random.gauss(0, 50000)  # Mean 0, SD 50,000
             price = base_price + noise
-
+            #price = base_price # temporarily remove the noise
             # Ensure price doesn't go below zero and round to nearest dollar
-            price = round(max(price, 0),0)
-
+            #price = round(max(price, random.uniform(50000, 40000)),0)
+            #price += 5000000 # I was expecting this to make use of bias
             training_data.append((sqft, price))
         return training_data

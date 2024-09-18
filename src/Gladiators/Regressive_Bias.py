@@ -2,10 +2,10 @@ from src.Arena import *
 from src.Metrics import Metrics, IterationData
 from src.Gladiator import Gladiator
 
-class _Template_Simpletron_Regressive(Gladiator):
+class Regressive_Bias(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
-    This class serves as a template for more complex implementations.
+    This class is setup for regression using both a weight and bias
 
     Leverage metrics with just two steps required:
     1) After each iteration call metrics.record_iteration_metrics
@@ -14,9 +14,7 @@ class _Template_Simpletron_Regressive(Gladiator):
 
     def __init__(self, number_of_epochs: int, metrics: Metrics, *args):
         super().__init__(number_of_epochs, metrics, *args)
-        # Ideally avoid overriding these, but specific models may need to; so must be free to do so  # It keeps comparisons straight if respected
-        # self.weight = override_weight                 # Default  set in parent class
-        # self.learning_rate = override_learning_rate   # Default  set in parent class
+        self.bias = 1
 
     def train(self, training_data):
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
@@ -24,29 +22,32 @@ class _Template_Simpletron_Regressive(Gladiator):
                 break
 
     def run_an_epoch(self, train_data, epoch_num: int) -> bool:         # Function to run single epoch
-        for i, (input1, output) in enumerate(train_data):                # Loop through all the training data
-            self.training_iteration(i, epoch_num, input1, output)        # Run single sample of training data
+        for i, (sqr_ft, price) in enumerate(train_data):                # Loop through all the training data
+            self.training_iteration(i, epoch_num, sqr_ft, price)        # Run single sample of training data
         return self.metrics.record_epoch()                              # Sends back the data for an epoch
 
-    def training_iteration(self, i: int, epoch: int, input1: float, output: float) -> None:
-        prediction  = self.predict(input1)                              # Step 1) Guess
-        error       = self.compare(prediction, output)                   # Step 2) Check guess, if wrong, by how much and quare it (MSE)
+    def training_iteration(self, i: int, epoch: int, sqr_ft: float, price: float) -> None:
+        prediction  = self.predict(sqr_ft)                              # Step 1) Guess
+        error       = self.compare(prediction, price)                   # Step 2) Check guess, if wrong, by how much and quare it (MSE)
         adjustment  = self.adjust_weight(error)                         # Step 3) Adjust(Calc)
         loss        = (error ** 2) * 0.5                                # For MSE the loss is the error squared and cut in half
         new_weight  = self.weight + adjustment                          # Step 3) Adjust(Apply)
+        new_bias    = self.bias + adjustment
         data = IterationData(
             iteration=i+1,
             epoch=epoch+1,
-            input=input1,
-            target=output,
+            input=sqr_ft,
+            target=price,
             prediction=prediction,
             adjustment=adjustment,
             weight=self.weight,
             new_weight=new_weight,
-            bias=0.0,
-            new_bias=0.0
-
+            bias=new_bias,
+            old_bias=self.bias
         )
+
+        #print(f"new_bias{new_bias}\t old bias{self.bias}")
+
 
         self.metrics.record_iteration(data)
 
@@ -54,9 +55,10 @@ class _Template_Simpletron_Regressive(Gladiator):
         #self.metrics.record_iteration(i, epoch, credit_score, result, prediction, loss, adjustment, self.weight, new_weight, self.metrics)
         # def record_iteration(self, iteration, epoch, input_value, result, prediction, loss, adjustment, weight, new_weight, metrics, bias=0, old_bias=0):
         self.weight = new_weight
+        self.bias   = new_bias
 
     def predict(self, credit_score: float) -> float:
-        return credit_score * self.weight                               # Simplifies prediction as no step function
+        return credit_score * self.weight + self.bias                             # Simplifies prediction as no step function
 
 
     def compare(self, prediction: float, target: float) -> float:            # Calculate the Loss (Just MSE for now)
