@@ -4,7 +4,7 @@ from src.Gladiator import Gladiator
 
 class LinearRegression_Claude(Gladiator):
     """
-    A simple linear regression implementation for educational purposes.
+    A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
     """
 
@@ -12,39 +12,24 @@ class LinearRegression_Claude(Gladiator):
         super().__init__(number_of_epochs, metrics, *args)
         self.bias = 0.0  # Initialize bias term
 
-    def train(self, training_data):
-        for epoch in range(self.number_of_epochs):
-            if self.run_an_epoch(training_data, epoch):
-                break
-
-    def run_an_epoch(self, train_data, epoch_num: int) -> bool:
-        for i, (credit_score, result) in enumerate(train_data):
-            self.training_iteration(i, epoch_num, credit_score, result)
-        return self.metrics.record_epoch()
-
-    def training_iteration(self, i: int, epoch: int, credit_score: float, result: float) -> None:
+    def training_iteration(self, training_data) -> IterationData:
+        credit_score = training_data[0]
+        result = training_data[1]
         prediction = self.predict(credit_score)
         loss = self.compare(prediction, result)
         adjustment_weight, adjustment_bias = self.adjust_parameters(loss, credit_score, result)
         new_weight = self.weight + adjustment_weight
         new_bias = self.bias + adjustment_bias
         data = IterationData(
-            iteration=i + 1,
-            epoch=epoch + 1,
-            input=credit_score,
-            target=result,
             prediction=prediction,
             adjustment=adjustment_weight,
             weight=self.weight,
             new_weight=new_weight,
-            bias=self.bias,
-            new_bias=new_bias
-
+            bias=0.0,
+            new_bias=0.0
         )
-
-        self.metrics.record_iteration(data)
         self.weight = new_weight
-        self.bias = new_bias
+        return data
 
     def predict(self, credit_score: float) -> float:
         return credit_score * self.weight + self.bias  # Linear prediction

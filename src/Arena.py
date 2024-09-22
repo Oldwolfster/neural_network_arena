@@ -1,28 +1,31 @@
 import random
 import importlib
-from Metrics import *
-from Reporting import print_results
+from MetricsMgr import MetricsMgr
+from Reporting import print_results, determine_problem_type
 import numpy as np
 import time
 
 ############################################################
 # Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run       = 300          # Number of times training run will cycle through all training data
-training_set_size   = 20           # Qty of training data
-default_neuron_weight   = 0.2        # Any initial value works as the training data will adjust it
-default_learning_rate   = .0001      # Affects magnitude of weight adjustments
-converge_epochs = 10  # How many epochs of no change before we call it converged?
-converge_swag = 0.01  # What percentage must weight be within compared to prior epochs weight to call it "same"
+epochs_to_run           = 500         # Number of times training run will cycle through all training data
+training_set_size       = 10         # Qty of training data
+default_neuron_weight   = 0.2       # Any initial value works as the training data will adjust it
+default_learning_rate   = .0001     # Affects magnitude of weight adjustments
+converge_epochs         = 10        # How many epochs of no change before we call it converged?
+converge_threshold      = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
+accuracy_threshold      = 1      #
 
 ############################################################
 # Report Parameters are set here as global variables.      #
 ############################################################
 
-display_graphs      = False         # Display Graphs at the end of run
-#display_logs        = True          # Display the logs at the end of the run
-display_logs        = False          # Display the logs at the end of the run
 display_train_data  = True          # Display the training data at the end of the rn.
+display_graphs      = False         # Display Graphs at the end of run
+display_epoch_sum   = True         # Display the epoch summary
+display_logs        = True          # Display the logs at the end of the run
+#display_logs        = False         # Display the logs at the end of the run
+
 
 
 def main():
@@ -31,36 +34,38 @@ def main():
     # Set the training pit here
     #training_pit = "QuadraticInput_CreditScore"
     #training_pit = "SingleInput_CreditScore"
-    #training_pit = "QuadraticTrainingPit"
-    training_pit = "CreditScoreRegression"
+    training_pit = "Manual"
+    #training_pit = "CreditScoreRegression"
     #training_pit = "HouseValue_SqrFt__ForBias"
     # List the gladiators here
     gladiators = [
-        '_Template_Simpletron_Regressive'
-        ,'LinearRegression'
+        #'_Template_Simpletron_Regressive'
+        '_Template_Simpletron'
+        #'_Template_Simpletron_Regressive'
+        #,'LinearRegression_Claude'
+        #,'LinearRegression_ChatGPT'
         #,'Regressive_Gradient_BS'
-
     ]
-
     run_a_match(gladiators, training_pit)
 
 
 def run_a_match(gladiators, training_pit):
-    metrics_list = []
+    mgr_list = []
     arena_data = dynamic_instantiate(training_pit, 'TrainingPits', training_set_size)
     training_data = arena_data.generate_training_data()
-
+    #problem_type = determine_problem_type(training_data)
+    #print(f"In Arena {problem_type}")
     for gladiator in gladiators:    # Loop through the NNs competing.
-        metrics = Metrics(gladiator, converge_epochs, converge_swag)  # Create a new Metrics instance with the name as a string
-        metrics_list.append(metrics)
-        nn = dynamic_instantiate(gladiator, 'Gladiators', epochs_to_run, metrics, default_neuron_weight, default_learning_rate)
+        metrics_mgr = MetricsMgr(gladiator, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
+        mgr_list.append(metrics_mgr)
+        nn = dynamic_instantiate(gladiator, 'Gladiators', epochs_to_run, metrics_mgr, default_neuron_weight, default_learning_rate)
         start_time = time.time()  # Start timing
         nn.train(training_data)
         end_time = time.time()  # End timing
-        metrics.run_time = end_time - start_time
-        print (f"{gladiator} completed in {metrics.run_time}")
+        metrics_mgr.run_time = end_time - start_time
+        print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    print_results(metrics_list, training_data, display_graphs, display_logs, display_train_data, epochs_to_run, training_set_size)
+    print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size)
 
 
 # , 'Simpletron_LearningRate001'
