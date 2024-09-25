@@ -41,6 +41,7 @@ def main():
     gladiators = [
         #'_Template_Simpletron_Regressive'
         '_Template_Simpletron'
+        ,'_Template_Simpletron2'
         #'_Template_Simpletron_Regressive'
         #,'LinearRegression_Claude'
         #,'LinearRegression_ChatGPT'
@@ -66,6 +67,7 @@ def run_a_match(gladiators, training_pit):
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
     print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size)
+    #print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size)
 
 
 # , 'Simpletron_LearningRate001'

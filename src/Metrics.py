@@ -1,26 +1,5 @@
-from dataclasses import dataclass, field
+from Utils import *
 from typing import List
-
-@dataclass
-class GladiatorOutput:
-    prediction: float
-    adjustment: float
-    weight: float
-    new_weight: float
-    bias: float = 0
-    new_bias: float = 0
-
-@dataclass
-class IterationContext:
-    iteration: int
-    epoch: int
-    input: float
-    target: float
-
-@dataclass
-class IterationResult:
-    gladiator_output: GladiatorOutput
-    context: IterationContext
 
 
 class Metrics:
@@ -39,7 +18,7 @@ class Metrics:
         self.new_bias       = data.gladiator_output.new_bias
 
     @classmethod
-    def set_accuracy_threshold(cls, threshold: float):
+    def set_acc_threshold(cls, threshold: float):
         cls.accuracy_threshold = threshold  # Allows updating the shared accuracy threshold
 
     @property
@@ -89,14 +68,12 @@ class Metrics:
             self.target,
             self.prediction,
             self.error,
-            self.absolute_error,
+            self.absolute_error, #6
             self.squared_error,
             self.relative_error,
             self.is_correct,
-            self.weight,
+            self.weight,   #10
             self.new_weight,
             self.bias,
             self.new_bias
         ]
-
-

@@ -21,6 +21,10 @@ Components:
    - The Engine runs the entire arena, taking the specified Training Pit, a list of Gladiators, and hyperparameters.
    - It generates a single set of training data, feeds it to all the Gladiators, and collects detailed results.
    - The Engine produces comprehensive reports comparing the Gladiators’ performance based on key metrics.
+     - Iteration Level - Fields like Input, Target, Prediction, Weight, New Weight, Bias
+     - Epoch Summary - the fields vary based on if the problem type is classification or regression.
+     - Run Summary - one line per model of the overall performance, fields same as epoch summary. 
+
 
 Approach and Philosophy:
 -------------------------
