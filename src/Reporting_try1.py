@@ -2,69 +2,32 @@ from tabulate import tabulate
 from Graphing import *
 from colorama import Fore, Style
 from typing import List, Dict
-from MetricsMgr import MetricsMgr
+from MetricsMgr import MetricsMgr, get_all_epoch_summaries
 from Utils import *
 
+iteration_log = []
 
 def print_results(mgr_list : List[MetricsMgr], training_data, display_graphs, display_iteration_logs, display_train_data, display_epoch_sum, epoch_count : int, iteration_count: int):
     problem_type = determine_problem_type(training_data)
-    #iteration_log = []
-    #prepare_data(mgr_list, iteration_log, epoch_count, iteration_count)
-    #print_iteration_logs(iteration_log, display_iteration_logs)
-
+    prepare_data(mgr_list)
     if display_iteration_logs:
         print_logs(mgr_list, epoch_count, iteration_count)
-    print_epoch_summaries(mgr_list)
+    print_epoch_summaries(mgr_list, problem_type)
 
+    if display_train_data:
+        print(f"Training Data: {training_data}")
 
-def print_epoch_summaries(mgr_list : List[MetricsMgr]):
-    all_summaries = []
-    for mgr in mgr_list:
-        add_summary(mgr, all_summaries)
-    headers = ["Model", "Epoch", "TP", "TN", "FP", "FN"]
-    print(tabulate(all_summaries, headers=headers, tablefmt="fancy_grid"))
+def prepare_data(mgr_list : List[MetricsMgr], epoch_count: int, iteration_count: int):
+    max_rows = epoch_count * iteration_count  # Each MetricsMgr can have this many rows.
 
-
-def add_summary(mgr: MetricsMgr, epoch_summaries : list):
-    for summary in mgr.epoch_summaries:
-        append_summary_row(summary, epoch_summaries)
-
-def append_summary_row(summary, epoch_summaries : list):
-    epoch_summaries.append([
-        summary.model_name,
-        summary.epoch,
-        summary.tp,
-        summary.tn,
-        summary.fp,
-        summary.fn
-    ])
-
-
-def print_iteration_logs(iteration_log: List, display_i_logs):
-    if not display_i_logs:
-        return  #Option is set to NOT display iteration log
-    headers = ["Model", "Epoch", "Iter#", "Input", "Target", "Prediction", "Error", "Old Weight", "New Weight", "Old Bias", "New Bias"]
-    print(tabulate(iteration_log, headers=headers, tablefmt="fancy_grid"))
-
-
-def prepare_data(mgr_list : List[MetricsMgr], iteration_log, epoch_count: int, iteration_count: int):
-    prepare_iteration_data(mgr_list, iteration_log, epoch_count, iteration_count)
-#    prepare_summaries( iteration_log, epoch_count, iteration_count)
-
-
-
-
-def prepare_iteration_data(mgr_list : List[MetricsMgr], iteration_log, epoch_count: int, iteration_count: int):
     # Create a list of count of iteration and name for each manager's metrics
     lengths = [len(mgr.metrics) for mgr in mgr_list]
     model_names = [mgr.name for mgr in mgr_list]
-    max_rows = epoch_count * iteration_count  # Each MetricsMgr can have this many rows.
 
+    iteration_log = []
     for row in range(max_rows):                             # Loop through each iteration
         for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each model
-            if row < lengths[mgr_idx]:
-                append_iteration_row(iteration_log, model_names[mgr_idx], mgr.metrics[row])
-
+            append_iteration_row(iteration_log, model_names[mgr_idx], mgr.metrics[row])
 
 
 def append_iteration_row(iteration_log: list, model_name: str, data_row):
@@ -125,22 +88,52 @@ def append_data_row(correlated_log: list, model_name: str, data_row):
         smart_format(data[13]),  # New Bias
     ])
 
+
+#def print_epoch_summaries(all_summaries: Dict[str, List[EpochSummary]]):
+def print_epoch_summaries(mgr_list: List[MetricsMgr]):
+    all_summaries = get_all_epoch_summaries(mgr_list)
+    for model_name, summaries in all_summaries.items():
+        print(f"\nEpoch Summaries for {model_name}:")
+        headers = ["Epoch", "Total Samples", "Correct", "Accuracy", "MAE", "MSE"]
+        table_data = []
+        for summary in summaries:
+            accuracy = summary.correct_predictions / summary.total_samples
+            mae = summary.total_absolute_error / summary.total_samples
+            mse = summary.total_squared_error / summary.total_samples
+            table_data.append([
+                summary.epoch,
+                summary.total_samples,
+                summary.correct_predictions,
+                f"{accuracy:.2%}",
+                f"{mae:.4f}",
+                f"{mse:.4f}"
+            ])
+        print(tabulate(table_data, headers=headers, tablefmt="fancy_grid"))
+
 """
-@property
-def tngpt(self, iteration_log: list[list]) -> int:
-    ""True Negatives - Correctly predicted within threshold when target is zero""
-    return sum(1 for log in iteration_log
-               if abs((log[3] - log[2]) / (log[3] + 1e-64)) <= self.accuracy_threshold and log[3] == 0)
+            # Check if row counter has reached the repeat interval
+            if row_counter % repeat_header_interval == 0 and row_counter > 0:
+                correlated_log.append(headers)
 
-    @property
-    def tnorig(self, iteration_log:list[list]) -> int:
-        ""True Negatives - Correctly predicted within threshold when target is zero""
-        return sum(1 for p, t in zip(self.predictions, self.targets)
-                   if abs((t - p) / (t + 1e-64)) <= self.accuracy_threshold and t == 0)
+            if row < lengths[mgr_idx]:  # Use precomputed length
+                data_row = mgr.metrics[row].to_list()  # Get iteration data from mgr
+                correlated_log.append([
+                    model_names[mgr_idx],
+                    data_row[0],
+                    data_row[1],
+                    smart_format(data_row[2]),
+                    smart_format(data_row[3]),
+                    smart_format(data_row[4]),
+                    smart_format(data_row[5]),
+                    smart_format(data_row[10]),  # Old Weight
+                    smart_format(data_row[11]),
+                    smart_format(data_row[12]),
+                    smart_format(data_row[13]),
+                ])
+                row_counter += 1  # Increment the counter after each data row
 
-
-
-
+    # Print the final result
+    print(tabulate(correlated_log, headers=headers, tablefmt="fancy_grid"))
     """
 
 

@@ -16,8 +16,7 @@ class Gladiator(ABC):
 
     def run_an_epoch(self, training_data: list[tuple[float, ...]], epoch_num: int) -> bool:         # Function to run single epoch
         for i, sample in enumerate(training_data):         # Loop through all the training data
-            gladiator_output = self.training_iteration(sample) # Run single sample of training data
-
+            gladiator_output = self.training_iteration(sample) # HEE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
             context = IterationContext(
                 iteration=i + 1,
                 epoch=epoch_num + 1,

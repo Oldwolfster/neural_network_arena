@@ -6,14 +6,12 @@ from collections import defaultdict
 
 
 class MetricsMgr:
-    def __init__(self, name, sample_count: int,  conv_e, conv_t, acc_t, data):
+    def __init__(self, name, conv_e, conv_t, acc_t, data):
         # Run Level members
         self.name = name
-        self.epoch_summaries = []           # Store the epoch summaries
-        self.summary = EpochSummary()       # The current Epoch summary
         self.run_time = 0                   # How long did training take?
-        self.iteration_num = 0              # Current Iteration #
-        self.sample_count = sample_count    # Number of samples in each iteration.
+        self.iteration_count = 0            # Count number of iterations in epoch
+        self.prob_type = "Binary Decision"
         self.accuracy_threshold = acc_t     # In regression, how close must it be to be considered "accurate"
         self.epoch_curr_number = 1          # Which epoch are we currently on.
         Metrics.set_acc_threshold(acc_t)    # Set at Class level (not instance) one value shared across all instances
@@ -21,72 +19,58 @@ class MetricsMgr:
         self.converge_required = conv_e     # How many epochs of no change are required before we call it convg
         self.converge_progress = 0          # Used to track how many epochs loss remains unchanged.
         self.converge_threshold = conv_t    # How close does the MAE have to be between epochs to consider it converged
-        self.converge_prior_tae = 0         # This is the prior loss we are checking for stability against and if unchanged for n epochs then we call it converged.
-        self.converge_tae_final=0           # The MAE the training session converged at.
+        self.converge_prior_mae = 0         # This is the prior loss we are checking for stability against and if unchanged for n epochs then we call it converged.
+        self.converge_mae_final=0           # The MAE the training session converged at.
         self.converge_tae_current = 0       # Sum the Total Absolute Error as we log each iteration
         self.metrics = []                   # The list of metrics this manager is running.
 
+        # I believe these are all unnecessary as i have the data in my metrics
+        self.errors = []                    # -- List of total "Absolute Error" for each epochs
+        self.errors_squared = []            # -- List of total squared "Absolute Error" total for each epochs
+        self.log_list = []                  # List of multiline string with details of all iteration for all epochs
+        #self.log_data = []                  # List of same log data but just the data
+        #self.epoch_summaries = []           # Stores the data for the "Epoch Summary Report"
+        #Epoch level members
+        #self.epoch_is_over = 0              # Used to reset metrics when next epoch begins (but keep values for last epoch to run)
+        #self.weights_this_epoch = []        # For the current  epoch, list of weights at each iteration.
+        #self.bias_values_this_epoch = []    # store the bias of each iteration
+        self.predictions = []               # List of the result the model predicted for the current epoch
+        self.targets = []                   # List of the actual result in the training data for the current epoch
+        self.total_pap = 0                  # Sum the PAP values to display total for the epoch
+
     def record_iteration(self, result):
-        self.iteration_num += 1
+        self.iteration_count += 1
         data = Metrics(result)
-        self.metrics.append(data)
-        self.update_summary(data)
-        print(f"About to check if epoch is over")
-        self.check_for_epoch_over(data)
-
-    def update_summary(self, data: Metrics):
-        if data.target == 0: # It's a True Neg or False Neg
-            """True Positives - Correctly predicted within threshold when target is non-zero"""
-            #if abs((t - p) / (t + 1e-64)) <= self.accuracy_threshold and t != 0)
-            if data.target == data.prediction:
-                self.summary.tn += 1
-            else:
-                self.summary.fn += 1
-        else:  # If's a True Positive or True Negative
-            if data.target == data.prediction:
-                self.summary.tp += 1
-            else:
-                self.summary.fp += 1
-
-
-    def check_for_epoch_over(self, data):
+#        if self.epoch_is_over == 1:
+#            self.epoch_reset(data.epoch)
         self.converge_tae_current += abs(data.target - data.prediction)
-        print(f"data.iteration{data.iteration}\tself.sample_count{ self.sample_count}")
-        if data.iteration == self.sample_count:
-            self.finish_summary(data)
-            self.check_for_convergence()
+        self.metrics.append(data)
 
-
-    def finish_summary(self, data : Metrics):
-        self.summary.model_name = self.name
-        self.summary.epoch = self.epoch_curr_number
-        self.summary.total_samples = self.iteration_num
-        self.epoch_summaries.append(self.summary)
-        print (f"Recording summary self.epoch_curr_number = {self.epoch_curr_number}\t")
-        self.summary = EpochSummary()
+    def iteration_log(self) -> List[List]:
+        return [metric.to_list() for metric in self.metrics]
 
     def check_for_convergence(self):
         if self.converge_epoch != 0:  # Prevent from running after convergence has been detected
             return False
-        tae = self.converge_prior_tae
-        if tae == 0:
-            tae = 1E-20  # Prevent divide by zero errors
+        mae = self.converge_tae_current / self.iteration_count
+        if mae == 0:
+            mae = 1E-20  # Prevent divide by zero errors
 
-        difference_between_epochs = abs(self.converge_prior_tae - tae) / tae
+        difference_between_epochs = abs(self.converge_prior_mae - mae) / mae
         if difference_between_epochs < self.converge_threshold:  # Epoch MAE is within threshold of prior epoch
             self.converge_progress += 1
             if self.converge_progress > self.converge_required:
                 self.converge_epoch = self.epoch_curr_number - self.converge_required - 1
-                self.converge_tae_final = tae
+                self.converge_mae_final = mae
                 self.remove_logs_after_convergence()
                 return True
         else:
             self.converge_progress = 0
-            self.converge_prior_tae = tae
+            self.converge_prior_mae = mae
         return False
 
     def remove_logs_after_convergence(self):
-        return
+
         epochs_to_remove = self.converge_required + 1
         iterations_to_remove = epochs_to_remove * self.iteration_count
         print(f"***iteration_count ={self.iteration_count}\tepoch_curr_number={self.epoch_curr_number}\tepoch_curr_number={iterations_to_remove}")
@@ -94,9 +78,7 @@ class MetricsMgr:
         #del self.log_data[-iterations_to_remove:]
         #del self.metrics[-iterations_to_remove:]
 
-    def iteration_log(self) -> List[List]:
-        return [metric.to_list() for metric in self.metrics]
-    """
+
     def get_epoch_summaries(self) -> List[EpochSummary]:
         summaries = []
         epoch_data = defaultdict(lambda: {
@@ -202,5 +184,10 @@ class MetricsMgr:
             "Root Mean Squared Error": self.root_mean_squared_error,
             "Sum of Squared Errors": self.sum_squared_errors
         }
-        """
 
+
+def get_all_epoch_summaries(mgr_list: List[MetricsMgr]) -> Dict[str, List[EpochSummary]]:
+    all_summaries = {}
+    for mgr in mgr_list:
+        all_summaries[mgr.name] = mgr.get_epoch_summaries()
+    return all_summaries

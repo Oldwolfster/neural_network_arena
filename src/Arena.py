@@ -8,10 +8,10 @@ import time
 ############################################################
 # Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run           = 500         # Number of times training run will cycle through all training data
-training_set_size       = 10         # Qty of training data
-default_neuron_weight   = 0.2       # Any initial value works as the training data will adjust it
-default_learning_rate   = .0001     # Affects magnitude of weight adjustments
+epochs_to_run           = 3       # Number of times training run will cycle through all training data
+training_set_size       = 3        # Qty of training data
+default_neuron_weight   = 1       # Any initial value works as the training data will adjust it
+default_learning_rate   = .001     # Affects magnitude of weight adjustments
 converge_epochs         = 10        # How many epochs of no change before we call it converged?
 converge_threshold      = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
 accuracy_threshold      = 1      #
@@ -33,15 +33,15 @@ def main():
 #working Training Data: [(2451.0, 490200.0), (3238.0, 647600.0), (1356.0, 271200.0), (1127.0, 225400.0), (3284.0, 656800.0)]
     # Set the training pit here
     #training_pit = "QuadraticInput_CreditScore"
-    #training_pit = "SingleInput_CreditScore"
-    training_pit = "Manual"
+    training_pit = "SingleInput_CreditScore"
+    #training_pit = "Manual"
     #training_pit = "CreditScoreRegression"
     #training_pit = "HouseValue_SqrFt__ForBias"
     # List the gladiators here
     gladiators = [
         #'_Template_Simpletron_Regressive'
         '_Template_Simpletron'
-        ,'_Template_Simpletron2'
+        #,'_Template_Simpletron2'
         #'_Template_Simpletron_Regressive'
         #,'LinearRegression_Claude'
         #,'LinearRegression_ChatGPT'
@@ -57,7 +57,7 @@ def run_a_match(gladiators, training_pit):
     #problem_type = determine_problem_type(training_data)
     #print(f"In Arena {problem_type}")
     for gladiator in gladiators:    # Loop through the NNs competing.
-        metrics_mgr = MetricsMgr(gladiator, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
+        metrics_mgr = MetricsMgr(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
         mgr_list.append(metrics_mgr)
         nn = dynamic_instantiate(gladiator, 'Gladiators', epochs_to_run, metrics_mgr, default_neuron_weight, default_learning_rate)
         start_time = time.time()  # Start timing
