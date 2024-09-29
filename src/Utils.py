@@ -1,12 +1,17 @@
 from dataclasses import dataclass, field
 
 
+def chunk_list(lst: list, chunk_size: int):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i + chunk_size]
+
+
 def smart_format(number):
     if number == 0:
         return "0"
     elif abs(number) < 1:
         # For very small numbers, show 4 decimal places
-        return f"{number:,.4f}"
+        return f"{number:,.6f}"
     elif abs(number) > 1000:
         # For large numbers, show no decimal places
         return f"{number:,.0f}"
@@ -21,7 +26,7 @@ def determine_problem_type(data):
     """
     # Extract unique values from the second element of each tuple
     unique_values = set(item[1] for item in data)
-
+    print(f"determine{unique_values}")
     # If there are only two unique values, it's likely a binary decision problem
     if len(unique_values) == 2:
         return "Binary Decision"
@@ -57,21 +62,14 @@ class IterationResult:
     gladiator_output: GladiatorOutput
     context: IterationContext
 
-@dataclass
-class EpochSummarysmall:
-    model_name: str
-    epoch: int
-    total_samples: int
-    correct_predictions: int
-    total_absolute_error: float
-    total_squared_error: float
 
 @dataclass
 class EpochSummary:
     # Stored once per epoch
     model_name = ""
     epoch: int = 0
-    total_samples: int = 0
+    final_weight = 0
+    total_samples: int = 0  #Could this be removed?
     # Accumulated over epoch
     tp: int = 0
     tn: int = 0

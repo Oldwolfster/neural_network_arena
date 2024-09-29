@@ -8,23 +8,24 @@ import time
 ############################################################
 # Battle Parameters are set here as global variables.       #
 ############################################################
-epochs_to_run           = 3       # Number of times training run will cycle through all training data
-training_set_size       = 3        # Qty of training data
-default_neuron_weight   = 1       # Any initial value works as the training data will adjust it
-default_learning_rate   = .001     # Affects magnitude of weight adjustments
-converge_epochs         = 10        # How many epochs of no change before we call it converged?
-converge_threshold      = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
+epochs_to_run           = 2000       # Number of times training run will cycle through all training data
+training_set_size       = 100         # Qty of training data
+default_neuron_weight   = .1       # Any initial value works as the training data will adjust it
+converge_epochs         = 100        # How many epochs of no change before we call it converged?
+#default_learning_rate   = .0000000001     # Affects magnitude of weight adjustments
+default_learning_rate   = .01     # Affects magnitude of weight adjustments
+
+converge_threshold      = 0.00001      # What percentage must weight be within compared to prior epochs weight to call it "same"
 accuracy_threshold      = 1      #
 
 ############################################################
 # Report Parameters are set here as global variables.      #
 ############################################################
-
-display_train_data  = True          # Display the training data at the end of the rn.
+display_train_data  = False          # Display the training data at the end of the rn.
 display_graphs      = False         # Display Graphs at the end of run
 display_epoch_sum   = True         # Display the epoch summary
 display_logs        = True          # Display the logs at the end of the run
-#display_logs        = False         # Display the logs at the end of the run
+display_logs        = False         # Display the logs at the end of the run
 
 
 
@@ -41,7 +42,13 @@ def main():
     gladiators = [
         #'_Template_Simpletron_Regressive'
         '_Template_Simpletron'
-        #,'_Template_Simpletron2'
+        #,'_Template_Simpletron_Claude'
+        ,'First_MLP_2_ChatGPT'
+        ,'First_MLP_10_ChatGPT'
+        ,'First_MLP_20_ChatGPT'
+        ,'First_MLP_2000_ChatGPT'
+        #,'MLP_Gladiator'
+        #,'Decaytron_ChatGPT'
         #'_Template_Simpletron_Regressive'
         #,'LinearRegression_Claude'
         #,'LinearRegression_ChatGPT'

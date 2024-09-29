@@ -9,6 +9,7 @@ class Gladiator(ABC):
         self.weight = args[0]
         self.learning_rate = args[1]
 
+
     def train(self, training_data: list[tuple[float, ...]]) -> None:
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             if self.run_an_epoch(training_data, epoch):                 # Call function to run single epoch
@@ -29,7 +30,8 @@ class Gladiator(ABC):
                 context=context
             )
             self.metrics_mgr.record_iteration(result)
-        return self.metrics_mgr.check_for_convergence()                              # Sends back the data for an epoch
+        return self.metrics_mgr.finish_epoch_summary()
+
 
     @abstractmethod
     def training_iteration(self, training_data: tuple[float]) -> GladiatorOutput:

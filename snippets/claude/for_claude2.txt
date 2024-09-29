@@ -38,7 +38,7 @@ We've been working on "Neural Network Arena" for about 3 months. Key points:
   - Very close to video on activation functions, however the simpletron is to simple to leverage them and they do not impact results, so thinking we should push back and see if in regression we can show benefit of them.
 
 ## Tools and Technologies
-I'm not a big python fan either, i'd rate it about 23 on my list of favorite languages,
+I'm not a big python fan either, i'd rate it about 23rd on my list of favorite languages,
 but as it's the language of ML it's what we are using.
 
 ## Youtube Series Evolving Plan
