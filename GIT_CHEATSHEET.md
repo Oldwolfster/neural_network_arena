@@ -1,30 +1,54 @@
 # Steps to sync to gitHub
-git status
-git add .
-git commit -m "Msg here"
-git push origin master
+git status                              # Check the status of your files
+git add .                               # Stage all changes
+git commit -m "Your commit message"     # Commit changes with a message
+git push origin master                  # Push changes to the 'master' branch on 'origin'
+git push                                # If your local master branch is already tracking origin/master, you can simply use
+
 ---
 # Steps to create "snapshot in time" for each episode
 ## freeze progress for an episode, create a branch:
-git checkout -b episode-1-yadayada
-git push origin episode-1
+git checkout -b episode_x_yadayada                   # Create and switch to a new branch
+git push -u origin episode_x_yadayada                # Push to 'origin' and set upstream
+
 
 ## Switch back to the main branch to continue working
-git checkout main
+git checkout master                                  # Switch back to 'master' branch
+
+## View local branches
+git branch                                           # List all local branches
+(NOTE: highlights the current one with an asterisk (*).)
+    
+## View remote branches
+git branch -r                                        # List all remote branches
+
+## check if your local branches have upstream branches
+git branch -vv
+
+## View differences between branches
+git diff master feature_branch
 
 ---
-# Steps to view old v   ersion of file
+# Steps to view old version of file
+git log --follow -- src/Metrics.py                   # View commit history for 'src/Metrics.py'
 
-git log --follow -- src/Metrics.py
 
 ## show commits where file has changed with nice formmating of date
 git log --follow --pretty=format:"%h %ad | %s" --date=short src/Metrics.py
 
+
 ## View differences
-git diff <commit_hash> <path_to_file>
+git diff <commit_hash> <path_to_file>                # Show differences between a commit and working directory
+Example:
 git diff f8db2ee798a22cad26fd872170e976276a37bd15 /src/Metrics.py
 
+## View differences between 2 commits
+git diff <commit_hash1> <commit_hash2> <path_to_file>
+
+
 ## restore old version to different file.
-git show <commit_hash>:<path_to_file> > <Path to file of different name>
-git show f8db2ee798a22cad26fd872170e976276a37bd15:src/Metrics.py > src/Metrics_old_version.py
+git show <commit_hash>:<path_to_file> > <path_to_new_file>
+Example:
+git show f8db2ee:src/Metrics.py > src/Metrics_old_version.py
+
 
