@@ -1,6 +1,6 @@
-from src.TrainingPit import *
+from src.BaseArena import *
 from src.Metrics import Metrics
-from src.Gladiator import Gladiator
+from src.BaseGladiator import Gladiator
 
 
 class Simpletron_Orig(Gladiator):

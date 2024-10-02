@@ -1,6 +1,6 @@
-from src.Arena import *
+from src.ArenaEngine import *
 from src.Metrics import GladiatorOutput
-from src.Gladiator import Gladiator
+from src.BaseGladiator import Gladiator
 
 
 class _Template_Simpletron(Gladiator):

@@ -1,16 +1,20 @@
+import math
+
 from tabulate import tabulate
 from Graphing import *
 from colorama import Fore, Style
 from typing import List, Dict
 from MetricsMgr import MetricsMgr
 from Utils import *
+
 repeat_header_interval = 10
 
-def print_results(mgr_list : List[MetricsMgr], training_data, display_graphs, display_iteration_logs, display_train_data, display_epoch_sum, epoch_count : int, iteration_count: int):
+def print_results(mgr_list : List[MetricsMgr], training_data, display_graphs, display_iteration_logs, display_train_data, display_epoch_sum, epoch_count : int, iteration_count: int, default_learning_rate: float, training_pit):
     problem_type = determine_problem_type(training_data)
     print_iteration_logs(mgr_list, epoch_count, iteration_count, display_iteration_logs)
     print_epoch_summaries(mgr_list, problem_type)
-    print_model_comparison(mgr_list, problem_type, epoch_count, iteration_count)
+    print(f"Data: {training_pit}\tTraining Set Size: {iteration_count}\t Max Epochs: {epoch_count}\tDefault Learning Rate: {default_learning_rate}")
+    print_model_comparison(mgr_list, problem_type)
     if display_train_data:
         print (training_data)
 
@@ -66,10 +70,12 @@ def print_epoch_summaries(mgr_list : List[MetricsMgr],problem_type):
     all_summaries = []
     for mgr in mgr_list:
         add_summary(mgr, all_summaries, problem_type)
-    headers = ["Epoch Summary", "Epoch", "Final\nWeight","Total\nError", "Correct", "Wrong", "Accuracy","Mean\nAbs Err"]
+    headers = ["Epoch Summary", "Epoch", "Final\nWeight","Correct", "Wrong", "Accuracy", "Mean\nAbs Err", "Mean\nSqr Err"]
 
     if problem_type == "Binary Decision":
         headers.extend(["TP", "TN", "FP", "FN","Prec\nision", "Recall", "F1\nScore", "Specif\nicity"])
+    else: # Regression adds RMSE
+        headers.extend(["RMSE"])
 
     chunks = list(chunk_list(all_summaries, repeat_header_interval))    # Split correlated_log into sublists of length repeat_header_interval
     for chunk in chunks:                                                        # Print each chunk using tabulate
@@ -86,11 +92,11 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
         summary.model_name,
         summary.epoch,
         smart_format(summary.final_weight),
-        smart_format(summary.total_absolute_error),
         summary.tp + summary.tn,
         summary.fp + summary.fn,
         f"{smart_format((summary.tp + summary.tn)/summary.total_samples * 100)}%",
-        smart_format(summary.total_absolute_error/summary.total_samples)
+        smart_format(summary.total_absolute_error/summary.total_samples),
+        smart_format(summary.total_squared_error/summary.total_samples)
     ]
 
     if problem_type == "Binary Decision":
@@ -103,8 +109,12 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
             smart_format(recall(summary.tp, summary.fn)),
             smart_format(f1(summary.tp, summary.fp, summary.fn)),
             smart_format(specificity(summary.tn, summary.fp))
+        ])
+    else: # Regression
 
-    ])
+        epoch_summary.extend([smart_format(math.sqrt( summary.total_squared_error))])
+
+
     #print(epoch_summary)
     epoch_summaries.append(epoch_summary)
 
@@ -127,7 +137,6 @@ def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -
                 f"{smart_format((last_summary.tp + last_summary.tn) / last_summary.total_samples * 100)}%",  # Accuracy
                 smart_format(last_summary.total_absolute_error / last_summary.total_samples)  # Mean Abs Error
             ]
-
             # Append the sliced fields to the summary_row
             summary_row.extend(summary_fields)
 
@@ -149,13 +158,15 @@ def collect_final_epoch_summaryorig(mgr_list: List[MetricsMgr], problem_type: st
 ############# Third level of reporting, Model Comparision#############################
 ######################################################################################
 
-def print_model_comparison(mgr_list : List[MetricsMgr],problem_type ,  epoch_count, iteration_count):
+def print_model_comparison(mgr_list : List[MetricsMgr],problem_type):
     # Collect and print final epoch summaries
     final_summaries = collect_final_epoch_summary(mgr_list, problem_type)
-    headers = ["Model Summary", "Run Time", "Epc 2 Convg", "Final Weight", "Total Error", "Correct", "Wrong", "Accuracy", "Mean Abs Err"]
+    headers = ["Gladiator Comparision", "Run Time", "Converged", "Final Weight", "Total Error", "Correct", "Wrong", "Accuracy", "Mean Abs Err"]
     if problem_type == "Binary Decision":
         headers.extend(["TP", "TN", "FP", "FN", "Precision", "Recall", "F1 Score", "Specificity"])
-    print(f"Training Set Size: {iteration_count}\t Max Epochs:{epoch_count}")
+    else: # Regression
+        headers.extend(["RMSE"])
+#    print(f"Training Set Size: {iteration_count}\t Max Epochs: {epoch_count}\tDefault Learning Rate: {default_learning_rate}")
     print(tabulate(final_summaries, headers=headers, tablefmt="fancy_grid"))
 
 
