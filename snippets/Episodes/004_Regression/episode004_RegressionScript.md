@@ -8,7 +8,7 @@ machine learning toolkit.
 ## Hook the Audience  
 >Visual of Arena
 
-Binary classification, which we've explored before predictions  one of two choices
+Binary classification, which we've explored before, predicts one of two choices
 In contrast, Regression allows us to make precise predictions on a continuous scale
 Value of a house, probability of occurrence, total sales.  Any number at all.  
 

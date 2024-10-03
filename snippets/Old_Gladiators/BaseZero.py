@@ -1,4 +1,4 @@
-from ..BaseArena import *
+from src.BaseArena import *
 
 # Add metric, epochs to stabilization.
 
