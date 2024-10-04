@@ -1,10 +1,10 @@
-from src.ArenaEngine import *
+from src.Engine import *
 from src.Metrics import GladiatorOutput
 from src.BaseGladiator import Gladiator
 
-class Regression_Bias_ChatGPT3(Gladiator):
+class Regression_GBS(Gladiator):
     """
-    A simple perceptron implementation for accurate regression.
+    A simple perceptron implementation for accurate regression. (By ChatGPT)
     It is designed for training data that predicts repayment ratio (0.0 to 1.0)
     based on credit score between 0-100, with added noise.
     Includes bias and improved weight adjustment logic for accuracy.
@@ -16,20 +16,16 @@ class Regression_Bias_ChatGPT3(Gladiator):
 
     def training_iteration(self, training_data) -> GladiatorOutput:
         input = training_data[0]
-
-        result = training_data[1]
-        prediction = self.predict(input)            # Step 1: Prediction
-        error = self.compare(prediction, result)  # Step 2: Calculate error (MSE can be applied here later, starting with simple error)
-
-
-        adjustment = self.adjust_weight(error, input)  # Step 3: Calculate weight and bias adjustment
-        new_weight = self.weight + adjustment
+        target = training_data[1]
+        prediction = (input * self.weight) + self.bias
+        error = target - prediction
+        new_weight = self.weight + self.learning_rate * error * input
         new_bias = self.bias + (self.learning_rate * error)  # Bias adjustment
 
         # Output object containing results of this iteration
         gladiator_output = GladiatorOutput(
             prediction=prediction,
-            adjustment=adjustment,
+            adjustment=new_weight-self.weight,
             weight=self.weight,
             new_weight=new_weight,
             bias=self.bias,

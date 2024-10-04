@@ -8,7 +8,7 @@ from MetricsMgr import MetricsMgr
 from Utils import *
 
 repeat_header_interval = 10
-
+MAX_ITERATION_LINES = 200
 def print_results(mgr_list : List[MetricsMgr], training_data, display_graphs, display_iteration_logs, display_train_data, display_epoch_sum, epoch_count : int, iteration_count: int, default_learning_rate: float, training_pit):
     problem_type = determine_problem_type(training_data)
     print_iteration_logs(mgr_list, epoch_count, iteration_count, display_iteration_logs)
@@ -24,7 +24,7 @@ def print_results(mgr_list : List[MetricsMgr], training_data, display_graphs, di
 def print_iteration_logs(mgr_list: List[MetricsMgr], epoch_count: int, iteration_count: int, display_iteration_logs):
     if not display_iteration_logs:
         return
-    headers = ["Iteration Summary", "Epoch", "Iter#", "Input", "Target", "Prediction", "Error", "Old Weight", "New Weight", "Old Bias", "New Bias"]
+    headers = ["Iteration Summary", "Epoch", "Iter#", "Start Weight", "Input", "Prediction", "Target", "Error", "New Weight", "Old Bias", "New Bias"]
     row_counter = 0  # Keep track of the number of rows printed
     max_rows = epoch_count * iteration_count  # Each MetricsMgr can have this many rows.
 
@@ -35,11 +35,13 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], epoch_count: int, iteration
     repeat_header_interval = 10
     correlated_log = []                                     # Create new list to merge and format data
     for row in range(max_rows):                             # Loop through each iteration
+        #if row_counter > MAX_ITERATION_LINES:                              # Exit the loop if row_counter exceeds 2000
         for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each model
             if row < lengths[mgr_idx]:
                 # Instead of adding headers in body we will print many tabulates add_extra_headers(correlated_log, row_counter, repeat_header_interval, headers)
                 append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row])
                 row_counter += 1
+
 
     chunks = list(chunk_list(correlated_log, repeat_header_interval))    # Split correlated_log into sublists of length repeat_header_interval
     for chunk in chunks:                                                        # Print each chunk using tabulate
@@ -52,11 +54,11 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
         model_name,
         data[0],  # Epoch
         data[1],  # Iteration
+        smart_format(data[10]), # Start Weight
         smart_format(data[2]),  # Input
-        smart_format(data[3]),  # Target
         smart_format(data[4]),  # Prediction
+        smart_format(data[3]),  # Target
         smart_format(data[5]),  # Error
-        smart_format(data[10]),  # Old Weight
         smart_format(data[11]),  # New Weight
         smart_format(data[12]),  # Old Bias
         smart_format(data[13]),  # New Bias
@@ -70,7 +72,7 @@ def print_epoch_summaries(mgr_list : List[MetricsMgr],problem_type):
     all_summaries = []
     for mgr in mgr_list:
         add_summary(mgr, all_summaries, problem_type)
-    headers = ["Epoch Summary", "Epoch", "Final\nWeight","Correct", "Wrong", "Accuracy", "Mean\nAbs Err", "Mean\nSqr Err"]
+    headers = ["Epoch Summary", "Epoch", "Final\nWeight", "Final\nBias","Correct", "Wrong", "Accuracy", "Mean\nAbs Err", "Mean\nSqr Err"]
 
     if problem_type == "Binary Decision":
         headers.extend(["TP", "TN", "FP", "FN","Prec\nision", "Recall", "F1\nScore", "Specif\nicity"])
@@ -92,6 +94,7 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
         summary.model_name,
         summary.epoch,
         smart_format(summary.final_weight),
+        smart_format(summary.final_bias),
         summary.tp + summary.tn,
         summary.fp + summary.fn,
         f"{smart_format((summary.tp + summary.tn)/summary.total_samples * 100)}%",
@@ -131,6 +134,7 @@ def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -
             summary_fields = [
                 last_summary.epoch,
                 last_summary.final_weight,
+                last_summary.final_bias,
                 last_summary.total_absolute_error,
                 last_summary.tp + last_summary.tn,  # Correct
                 last_summary.fp + last_summary.fn,  # Wrong
@@ -161,7 +165,7 @@ def collect_final_epoch_summaryorig(mgr_list: List[MetricsMgr], problem_type: st
 def print_model_comparison(mgr_list : List[MetricsMgr],problem_type):
     # Collect and print final epoch summaries
     final_summaries = collect_final_epoch_summary(mgr_list, problem_type)
-    headers = ["Gladiator Comparision", "Run Time", "Converged", "Final Weight", "Total Error", "Correct", "Wrong", "Accuracy", "Mean Abs Err"]
+    headers = ["Gladiator Comparision", "Run Time", "Conv\nEpoch", "Final\nWeight", "Final\nBias", "Total\nError", "Correct", "Wrong", "Accuracy", "Mean\nAbs Err"]
     if problem_type == "Binary Decision":
         headers.extend(["TP", "TN", "FP", "FN", "Precision", "Recall", "F1 Score", "Specificity"])
     else: # Regression

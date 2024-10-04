@@ -24,10 +24,11 @@ class MetricsMgr:
         self.update_summary(data)
 
     def update_summary(self, data: Metrics):
+        self.summary.total_error += data.prediction - data.target
         self.summary.total_absolute_error += abs(data.prediction - data.target)
-        #print(f"data.prediction = {data.prediction}\tdata.target = {data.target} ")
         self.summary.total_squared_error += (data.prediction - data.target) ** 2
         self.summary.final_weight = data.new_weight
+        self.summary.final_bias = data.new_bias
         epsilon = 1e-6  # Small tolerance for floating-point comparisons
 
         if data.target == 0:  # True class is Negative

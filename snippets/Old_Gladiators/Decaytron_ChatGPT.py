@@ -1,4 +1,4 @@
-from src.ArenaEngine import *
+from src.Engine import *
 from src.Metrics import GladiatorOutput
 from src.BaseGladiator import Gladiator
 import random

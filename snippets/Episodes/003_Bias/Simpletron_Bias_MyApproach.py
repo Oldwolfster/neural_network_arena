@@ -1,4 +1,4 @@
-from src.ArenaEngine import *
+from src.Engine import *
 from src.Metrics import Metrics
 from src.BaseGladiator import Gladiator
 

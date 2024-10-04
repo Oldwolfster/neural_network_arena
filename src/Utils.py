@@ -69,6 +69,7 @@ class EpochSummary:
     model_name = ""
     epoch: int = 0
     final_weight = 0
+    final_bias = 0
     total_samples: int = 0  #Could this be removed?
     # Accumulated over epoch
     tp: int = 0
@@ -77,6 +78,7 @@ class EpochSummary:
     fn: int = 0
     total_absolute_error: float = 0.0
     total_squared_error: float = 0.0
+    total_error: float = 0.0
 
 
     # calculated values

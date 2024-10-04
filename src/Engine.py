@@ -4,48 +4,13 @@ from MetricsMgr import MetricsMgr
 from Reporting import print_results, determine_problem_type
 import numpy as np
 import time
+from ArenaSettings import *
 
-############################################################
-# Battle Parameters are set here as global variables.       #
-############################################################
-epochs_to_run           = 5000       # Number of times training run will cycle through all training data
-training_set_size       = 200         # Qty of training data
-default_neuron_weight   = .1       # Any initial value works as the training data will adjust it
-converge_epochs         = 100        # How many epochs of no change before we call it converged?
-#default_learning_rate   = .0000000001     # Affects magnitude of weight adjustments
-default_learning_rate   = .0001     # Affects magnitude of weight adjustments
-converge_threshold      = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
-accuracy_threshold      = .2        #Careful - raising this to1 or higher will break binary decision
-
-############################################################
-# Report Parameters are set here as global variables.      #
-############################################################
-display_train_data  = False          # Display the training data at the end of the rn.
-display_graphs      = False         # Display Graphs at the end of run
-display_epoch_sum   = True         # Display the epoch summary
-display_logs        = True          # Display the logs at the end of the run
-display_logs        = False         # Display the logs at the end of the run
 
 
 
 def main():
 
-    # Set the training pit here
-    #training_pit = "SingleInput_CreditScore"
-    training_pit = "CreditScoreRegression"
-    training_pit = "CreditScoreRegressionNeedsBias"
-    #training_pit = "SalaryExperienceRegressionNeedsBias"
-
-    # List the gladiators here
-    gladiators = [
-        #'Blackbird'
-        #,'Hayabusa_MAE'
-        'Hayabusa_MAE2'
-        ,'Regression_Bias_ChatGPT2'
-        ,'Regression_Bias_ChatGPT3'
-
-
-    ]
     run_a_match(gladiators, training_pit)
 
 
