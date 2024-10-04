@@ -16,9 +16,9 @@ class _Template_Simpletron(Gladiator):
         input = training_data[0]
         target = training_data[1]
         prediction  = input * self.weight                       # Step 1) Guess
-        prediction = 1 if round(prediction,7) >= 0.5 else 0
-        loss        = target - prediction                       # Step 2) Check guess,
-        adjustment  = loss * self.learning_rate                 #         if wrong, how much?
+        prediction = 1 if round(prediction,7) >= 0.5 else 0     #         Step Function to make it 0 or 1
+        error        = target - prediction                      # Step 2) Check guess,
+        adjustment  = error * self.learning_rate                #         if wrong, how much
         new_weight  = self.weight + adjustment                  # Step 3) Adjust(Apply)
         gladiator_output = GladiatorOutput(
             prediction=prediction,
