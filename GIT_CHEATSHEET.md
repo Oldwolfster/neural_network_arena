@@ -15,6 +15,13 @@ git push -u origin episode_x_yadayada                # Push to 'origin' and set 
 ## Switch back to the main branch to continue working
 git checkout master                                  # Switch back to 'master' branch
 
+## Update the frozen branch with new code.
+Commit and upload on master branch
+git checkout episode004_From_Zero_To_Regression_Hero
+git reset --hard master
+git push -f origin episode004_From_Zero_To_Regression_Hero
+
+
 ## View local branches
 git branch                                           # List all local branches
 (NOTE: highlights the current one with an asterisk (*).)
