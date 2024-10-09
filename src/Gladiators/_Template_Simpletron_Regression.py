@@ -9,8 +9,8 @@ class _Template_Simpletron_Regression(Gladiator):
     This class serves as a template for more complex implementations.
     """
 
-    def __init__(self, number_of_epochs: int, metrics_mgr: MetricsMgr, *args):
-        super().__init__(number_of_epochs, metrics_mgr, *args)
+    def __init__(self, *args):
+        super().__init__(*args)
         self.bias = .53
         self.weight = .1
 

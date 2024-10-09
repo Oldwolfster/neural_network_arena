@@ -2,9 +2,12 @@ from src.Metrics import Metrics
 from Utils import EpochSummary
 from typing import List
 from ConvergenceDetector import ConvergenceDetector
+from ArenaSettings import HyperParameters
 
+#(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
 class MetricsMgr:
-    def __init__(self, name, sample_count: int,  conv_e, conv_t, acc_t, data):
+    def __init__(self, name, hyper: HyperParameters):
+        #def __init__(self, name, sample_count: int,  conv_e, conv_t, acc_t, data):
         # Run Level members
         self.name = name
         self.epoch_summaries = []           # Store the epoch summaries
@@ -12,11 +15,14 @@ class MetricsMgr:
         self.run_time = 0                   # How long did training take?
         self.iteration_num = 0              # Current Iteration #
         self.sample_count = 0               # Number of samples in each iteration.
-        self.accuracy_threshold = acc_t     # In regression, how close must it be to be considered "accurate"
-        Metrics.set_acc_threshold(acc_t)    # Set at Class level (not instance) one value shared across all instances
+        self.accuracy_threshold = (
+            hyper.accuracy_threshold)     # In regression, how close must it be to be considered "accurate"
+        Metrics.set_acc_threshold(
+            hyper.accuracy_threshold)    # Set at Class level (not instance) one value shared across all instances
         self.epoch_curr_number = 1          # Which epoch are we currently on.
         self.metrics = []                   # The list of metrics this manager is running.
-        self.converge_detector              = ConvergenceDetector(conv_t, conv_e)
+        self.converge_detector              = (
+            ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs))
     def record_iteration(self, result):
         self.iteration_num += 1
         if self.sample_count < self.iteration_num:

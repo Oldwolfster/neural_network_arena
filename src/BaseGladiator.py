@@ -1,19 +1,23 @@
 from abc import ABC, abstractmethod
 from src.Metrics import Metrics, GladiatorOutput, IterationResult, IterationContext
 from src.MetricsMgr import MetricsMgr
+from ArenaSettings import HyperParameters
 
 class Gladiator(ABC):
-    def __init__(self, number_of_epochs: int, metrics_mgr: MetricsMgr, *args):
-        self.number_of_epochs = number_of_epochs
-        self.metrics_mgr = metrics_mgr
-        self.weight = args[0]
-        self.learning_rate = args[1]
+    def __init__(self, *args):
+        gladiator = args[0]
+        hyper = args[1]
+        self.number_of_epochs = hyper.epochs_to_run
+        self.metrics_mgr =  MetricsMgr(gladiator,  hyper)  # Create a new Metrics instance with the name as a string)  # Create a new Metrics instance with the name as a string
+        #self.weight = args[0]
+        #self.learning_rate = args[1]
+        self.weight = hyper.default_neuron_weight
+        self.learning_rate = hyper.default_learning_rate
 
-
-    def train(self, training_data: list[tuple[float, ...]]) -> None:
+    def train(self, training_data: list[tuple[float, ...]]) -> MetricsMgr:
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             if self.run_an_epoch(training_data, epoch):                 # Call function to run single epoch
-                break
+                return self.metrics_mgr
 
     def run_an_epoch(self, training_data: list[tuple[float, ...]], epoch_num: int) -> bool:         # Function to run single epoch
         for i, sample in enumerate(training_data):         # Loop through all the training data

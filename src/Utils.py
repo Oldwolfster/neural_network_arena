@@ -40,7 +40,6 @@ def determine_problem_type(data):
         return "Inconclusive"
 
 
-
 @dataclass
 class GladiatorOutput:
     prediction: float

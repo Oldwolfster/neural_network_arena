@@ -6,27 +6,28 @@ from colorama import Fore, Style
 from typing import List, Dict
 from MetricsMgr import MetricsMgr
 from Utils import *
+from ArenaSettings import HyperParameters
 
 repeat_header_interval = 10
 MAX_ITERATION_LINES = 200
-def print_results(mgr_list : List[MetricsMgr], training_data, display_graphs, display_iteration_logs, display_train_data, display_epoch_sum, epoch_count : int, iteration_count: int, default_learning_rate: float, training_pit):
+def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParameters, training_pit):
     problem_type = determine_problem_type(training_data)
-    print_iteration_logs(mgr_list, epoch_count, iteration_count, display_iteration_logs)
+    print_iteration_logs(mgr_list, hyper)
     print_epoch_summaries(mgr_list, problem_type)
-    print(f"Data: {training_pit}\tTraining Set Size: {iteration_count}\t Max Epochs: {epoch_count}\tDefault Learning Rate: {default_learning_rate}")
+    print(f"Data: {training_pit}\tTraining Set Size: {hyper.training_set_size}\t Max Epochs: {hyper.epochs_to_run}\tDefault Learning Rate: {hyper.default_learning_rate}")
     print_model_comparison(mgr_list, problem_type)
-    if display_train_data:
+    if hyper.display_train_data:
         print (training_data)
 
 ######################################################################################
 ############# First level of reporting, iteration details ############################
 ######################################################################################
-def print_iteration_logs(mgr_list: List[MetricsMgr], epoch_count: int, iteration_count: int, display_iteration_logs):
-    if not display_iteration_logs:
+def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
+    if not hyper.display_logs:
         return
     headers = ["Iteration Summary", "Epoch", "Iter#", "Start Weight", "Input", "Prediction", "Target", "Error", "New Weight", "Old Bias", "New Bias"]
     row_counter = 0  # Keep track of the number of rows printed
-    max_rows = epoch_count * iteration_count  # Each MetricsMgr can have this many rows.
+    max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
 
     # Create a list of count of iteration and name for each manager's metrics
     lengths = [len(mgr.metrics) for mgr in mgr_list]

@@ -1,6 +1,5 @@
-import random
+
 import importlib
-from MetricsMgr import MetricsMgr
 from Reporting import print_results, determine_problem_type
 import numpy as np
 import time
@@ -15,23 +14,24 @@ def main():
 
 
 def run_a_match(gladiators, training_pit):
-    mgr_list = []
-    arena_data = dynamic_instantiate(training_pit, 'Arenas', training_set_size)
-    training_data = arena_data.generate_training_data()
-    #problem_type = determine_problem_type(training_data)
-    #print(f"In Arena {problem_type}")
+    hyper           = HyperParameters()
+    mgr_list        = []
+    arena_data      = dynamic_instantiate(training_pit, 'Arenas', hyper.training_set_size)
+    training_data   = arena_data.generate_training_data()
+
     for gladiator in gladiators:    # Loop through the NNs competing.
-        metrics_mgr = MetricsMgr(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
-        mgr_list.append(metrics_mgr)
-        nn = dynamic_instantiate(gladiator, 'Gladiators', epochs_to_run, metrics_mgr, default_neuron_weight, default_learning_rate)
+        nn = dynamic_instantiate(gladiator, 'Gladiators', gladiator, hyper)
+
         start_time = time.time()  # Start timing
-        nn.train(training_data)
+        metrics_mgr = nn.train(training_data)
+        mgr_list.append(metrics_mgr)
         end_time = time.time()  # End timing
         metrics_mgr.run_time = end_time - start_time
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size, default_learning_rate, training_pit)
-    #print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size)
+    print_results(mgr_list, training_data, hyper, training_pit)
+    #print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size, default_learning_rate, training_pit)
+
 
 
 # , 'Simpletron_LearningRate001'
@@ -105,7 +105,6 @@ def calculate_loss_gradient(self, error: float, input: float) -> float:
     else:
         # Default to MSE if no valid loss function is provided
         return error * input
-
 
 
 if __name__ == '__main__':
