@@ -165,7 +165,7 @@ def collect_final_epoch_summaryorig(mgr_list: List[MetricsMgr], problem_type: st
 def print_model_comparison(mgr_list : List[MetricsMgr],problem_type):
     # Collect and print final epoch summaries
     final_summaries = collect_final_epoch_summary(mgr_list, problem_type)
-    headers = ["Gladiator Comparision", "Run Time", "Conv\nEpoch", "Final\nWeight", "Final\nBias", "Total\nError", "Correct", "Wrong", "Accuracy", "Mean\nAbs Err"]
+    headers = ["Gladiator Comparision", "Run Time", "Epoch\nof Conv", "Final\nWeight", "Final\nBias", "Total\nError", "Correct", "Wrong", "Accuracy", "Mean\nAbs Err"]
     if problem_type == "Binary Decision":
         headers.extend(["TP", "TN", "FP", "FN", "Precision", "Recall", "F1 Score", "Specificity"])
     else: # Regression

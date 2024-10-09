@@ -11,7 +11,7 @@ class MetricsMgr:
         self.summary = EpochSummary()       # The current Epoch summary
         self.run_time = 0                   # How long did training take?
         self.iteration_num = 0              # Current Iteration #
-        self.sample_count = sample_count    # Number of samples in each iteration.
+        self.sample_count = 0               # Number of samples in each iteration.
         self.accuracy_threshold = acc_t     # In regression, how close must it be to be considered "accurate"
         Metrics.set_acc_threshold(acc_t)    # Set at Class level (not instance) one value shared across all instances
         self.epoch_curr_number = 1          # Which epoch are we currently on.
@@ -19,6 +19,8 @@ class MetricsMgr:
         self.converge_detector              = ConvergenceDetector(conv_t, conv_e)
     def record_iteration(self, result):
         self.iteration_num += 1
+        if self.sample_count < self.iteration_num:
+            self.sample_count = self.iteration_num
         data = Metrics(result)
         self.metrics.append(data)
         self.update_summary(data)

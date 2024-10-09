@@ -75,6 +75,36 @@ def generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent(n_sampl
 
     return list(zip(X, y))
 
+def calculate_loss_gradient(self, error: float, input: float) -> float:
+    """
+    Compute the gradient based on the selected loss function (MSE, MAE, RMSE, Cross Entropy, Huber).
+    """
+    if self.loss_function == 'MSE':
+        # Mean Squared Error: Gradient is error * input
+        return error * input
+    elif self.loss_function == 'RMSE':
+        # Root Mean Squared Error has the same gradient as MSE for individual updates
+        return error * input
+    elif self.loss_function == 'MAE':
+        # Mean Absolute Error: Gradient is sign of the error * input
+        return (1 if error >= 0 else -1) * input
+    elif self.loss_function == 'Cross Entropy':
+        # Convert raw prediction to probability using sigmoid
+        pred_prob = 1 / (1 + math.exp(-((input * self.weight) + self.bias)))
+        # Calculate binary cross-entropy gradient
+        return (pred_prob - input) * input  # Gradient for cross-entropy
+    elif self.loss_function == 'Huber':
+        # Huber Loss: behaves like MSE for small errors and MAE for large errors
+        delta = 1.0  # You can adjust this threshold depending on your dataset
+        if abs(error) <= delta:
+            # If error is small, use squared loss (MSE-like)
+            return error * input
+        else:
+            # If error is large, use absolute loss (MAE-like)
+            return delta * (1 if error > 0 else -1) * input
+    else:
+        # Default to MSE if no valid loss function is provided
+        return error * input
 
 
 
