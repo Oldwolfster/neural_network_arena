@@ -17,7 +17,8 @@ class Gladiator(ABC):
     def train(self, training_data: list[tuple[float, ...]]) -> MetricsMgr:
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             if self.run_an_epoch(training_data, epoch):                 # Call function to run single epoch
-                return self.metrics_mgr
+                return self.metrics_mgr                                 # Converged so end early
+        return self.metrics_mgr                                         # When it does not converge still return metrics mgr
 
     def run_an_epoch(self, training_data: list[tuple[float, ...]], epoch_num: int) -> bool:         # Function to run single epoch
         for i, sample in enumerate(training_data):         # Loop through all the training data

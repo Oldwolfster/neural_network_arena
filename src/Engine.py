@@ -1,35 +1,39 @@
-
 import importlib
+import math
+import statistics
+from typing import Tuple
+
 from Reporting import print_results, determine_problem_type
 import numpy as np
 import time
 from ArenaSettings import *
 
 
-
-
 def main():
-
     run_a_match(gladiators, training_pit)
+
 
 
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
     mgr_list        = []
     arena_data      = dynamic_instantiate(training_pit, 'Arenas', hyper.training_set_size)
-    training_data   = arena_data.generate_training_data()
+    raw_data        = arena_data.generate_training_data()
+    training        = TrainingData(data = raw_data)
+    identify_outlier(training)
 
     for gladiator in gladiators:    # Loop through the NNs competing.
+        print(f"Preparing to run model:{gladiator}")
         nn = dynamic_instantiate(gladiator, 'Gladiators', gladiator, hyper)
 
         start_time = time.time()  # Start timing
-        metrics_mgr = nn.train(training_data)
+        metrics_mgr = nn.train(training.data)
         mgr_list.append(metrics_mgr)
         end_time = time.time()  # End timing
         metrics_mgr.run_time = end_time - start_time
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    print_results(mgr_list, training_data, hyper, training_pit)
+    print_results(mgr_list, training.data, hyper, training_pit)
     #print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size, default_learning_rate, training_pit)
 
 
@@ -105,6 +109,31 @@ def calculate_loss_gradient(self, error: float, input: float) -> float:
     else:
         # Default to MSE if no valid loss function is provided
         return error * input
+
+@dataclass
+class TrainingData:
+    data: Tuple[float, ...]  # Multiple inputs
+    #target: float
+    is_outlier: bool = False
+
+def identify_outlier(td: TrainingData):
+    # Extract targets (last element of each tuple)
+    print("Greetings!!!!!!!!!!!!")
+    targets = [sample[-1] for sample in td.data]
+
+    # Calculate mean and standard deviation of targets
+    mean_target = statistics.mean(targets)
+    stdev_target = statistics.stdev(targets)
+
+    # Check for each sample if the target is beyond 3 standard deviations from the mean
+    for sample in td.data:
+        target_value = sample[-1]
+        if abs(target_value - mean_target) > 3 * stdev_target:
+            td.is_outlier = True
+            break  # If any target is an outlier, mark the data as an outlier
+        else:
+            td.is_outlier = False
+
 
 
 if __name__ == '__main__':

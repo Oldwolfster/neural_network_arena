@@ -13,7 +13,7 @@ MAX_ITERATION_LINES = 200
 def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParameters, training_pit):
     problem_type = determine_problem_type(training_data)
     print_iteration_logs(mgr_list, hyper)
-    print_epoch_summaries(mgr_list, problem_type)
+    #print_epoch_summaries(mgr_list, problem_type)
     print(f"Data: {training_pit}\tTraining Set Size: {hyper.training_set_size}\t Max Epochs: {hyper.epochs_to_run}\tDefault Learning Rate: {hyper.default_learning_rate}")
     print_model_comparison(mgr_list, problem_type)
     if hyper.display_train_data:

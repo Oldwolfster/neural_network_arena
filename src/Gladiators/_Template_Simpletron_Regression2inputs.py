@@ -3,7 +3,7 @@ from src.Metrics import GladiatorOutput
 from src.BaseGladiator import Gladiator
 
 
-class _Template_Simpletron_Regression(Gladiator):
+class _Template_Simpletron_Regression2inputs(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
@@ -16,9 +16,8 @@ class _Template_Simpletron_Regression(Gladiator):
 
 
     def training_iteration(self, training_data) -> GladiatorOutput:
-        print(f"Model:{self.metrics_mgr.name} Epoch:{self.metrics_mgr.epoch_curr_number}\tIteration:{self.metrics_mgr.iteration_num}")
         input = training_data[0]
-        target = training_data[1]
+        target = training_data[2]
         prediction  = input * self.weight + self.bias           # Step 1) Guess
         error       = target - prediction                       # Step 2) Check guess,
         adjustment  = error * self.learning_rate                #         if wrong, how much
@@ -34,7 +33,6 @@ class _Template_Simpletron_Regression(Gladiator):
         )
         self.weight = new_weight
         self.bias   = new_bias
-
         return gladiator_output
 
 
