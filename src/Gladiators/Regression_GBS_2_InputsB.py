@@ -2,7 +2,7 @@ from src.Engine import *
 from src.Metrics import GladiatorOutput
 from src.BaseGladiator import Gladiator
 
-class Regression_GBS(Gladiator):
+class Regression_GBS_2_InputsB(Gladiator):
     """
     A simple perceptron implementation for accurate regression. (By ChatGPT)
     It is designed for training data that predicts repayment ratio (0.0 to 1.0)

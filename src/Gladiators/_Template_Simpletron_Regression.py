@@ -16,9 +16,11 @@ class _Template_Simpletron_Regression(Gladiator):
 
 
     def training_iteration(self, training_data) -> GladiatorOutput:
-        print(f"Model:{self.metrics_mgr.name} Epoch:{self.metrics_mgr.epoch_curr_number}\tIteration:{self.metrics_mgr.iteration_num}")
+        #print(f"Model:{self.metrics_mgr.name} Epoch:{self.metrics_mgr.epoch_curr_number}\tIteration:{self.metrics_mgr.iteration_num}")
+
         input = training_data[0]
-        target = training_data[1]
+        target = training_data[2]
+        print(target)
         prediction  = input * self.weight + self.bias           # Step 1) Guess
         error       = target - prediction                       # Step 2) Check guess,
         adjustment  = error * self.learning_rate                #         if wrong, how much

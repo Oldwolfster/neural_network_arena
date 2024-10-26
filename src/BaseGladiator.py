@@ -27,7 +27,7 @@ class Gladiator(ABC):
                 iteration=i + 1,
                 epoch=epoch_num + 1,
                 input=sample[0],
-                target=sample[1]
+                target=sample[-1]
             )
 
             result = IterationResult(

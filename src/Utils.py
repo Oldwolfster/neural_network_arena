@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+import numpy as np
 
 
 def chunk_list(lst: list, chunk_size: int):
@@ -44,8 +45,8 @@ def determine_problem_type(data):
 class GladiatorOutput:
     prediction: float
     adjustment: float
-    weight: float
-    new_weight: float
+    weight: np.ndarray
+    new_weight: np.ndarray
     bias: float = 0
     new_bias: float = 0
 

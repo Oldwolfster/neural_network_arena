@@ -16,7 +16,7 @@ class Hayabusa2_2inputs(Gladiator):
 
 
     def training_iteration(self, training_data) -> GladiatorOutput:
-        input = training_data[0]
+        input = training_data[1]
         target = training_data[2]
         prediction  = input * self.weight + self.bias           # Step 1) Guess
         error       = target - prediction                       # Step 2) Check guess,
