@@ -23,7 +23,7 @@ class _Template_Simpletron_Regression(Gladiator):
         print(target)
         prediction  = input * self.weight + self.bias           # Step 1) Guess
         error       = target - prediction                       # Step 2) Check guess,
-        adjustment  = error * self.learning_rate                #         if wrong, how much
+        adjustment  = error * self.learning_rate                #         If wrong, how much
         new_weight  = self.weight + adjustment                  # Step 3) Adjust(Apply)
         new_bias    = self.bias + adjustment
         gladiator_output    = GladiatorOutput(

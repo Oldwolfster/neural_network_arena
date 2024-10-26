@@ -25,6 +25,7 @@ class MetricsMgr:
             ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs))
     def record_iteration(self, result):
         self.iteration_num += 1
+        # I believe these two lines can be removed as it is now set in BaseGladiator
         if self.sample_count < self.iteration_num:
             self.sample_count = self.iteration_num
         data = Metrics(result)

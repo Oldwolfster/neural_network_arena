@@ -4,7 +4,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 500       # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 50       # Number of times training run will cycle through all training data
     training_set_size       :int    = 10       # Qty of training data
     converge_epochs         :int    = 100       # How many epochs of no change before we call it converged?
     default_neuron_weight   :float  = .1        # Any initial value works as the training data will adjust it
@@ -42,8 +42,9 @@ gladiators = [
     #,'Hayabusa2'
     #,'_Template_Simpletron_Regression2inputs'
     #,'Hayabusa2_2inputs'
-    'Regression_GBS'
-    ,'Regression_GBS_2_Inputs'
+    'Regression_GBS_MultInputs'
+    ,'Regression_GBS_MultInputs_B'
+    #,'Regression_GBS_2_Inputs'
     #,'Regression_GBS_2_InputsB'
 
 ]

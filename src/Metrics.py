@@ -9,13 +9,13 @@ class Metrics:
     def __init__(self, data: IterationResult):
         self.epoch          = data.context.epoch
         self.iteration      = data.context.iteration
-        self.input          = data.context.input
+        self.inputs         = data.context.inputs
         self.target         = data.context.target
         self.prediction     = data.gladiator_output.prediction
-        self.weight         = data.gladiator_output.weight
-        self.new_weight     = data.gladiator_output.new_weight
-        self.bias           = data.gladiator_output.bias
-        self.new_bias       = data.gladiator_output.new_bias
+        self.weights        = data.context.weights
+        self.new_weight     = data.context.new_weights
+        self.bias           = data.context.bias
+        self.new_bias       = data.context.new_bias
 
     @classmethod
     def set_acc_threshold(cls, threshold: float):
@@ -64,7 +64,7 @@ class Metrics:
         return [
             self.epoch,
             self.iteration,
-            self.input,
+            self.inputs,
             self.target,
             self.prediction,
             self.error,
@@ -72,7 +72,7 @@ class Metrics:
             self.squared_error,
             self.relative_error,
             self.is_correct,
-            self.weight,   #10
+            self.weights,   #10
             self.new_weight,
             self.bias,
             self.new_bias

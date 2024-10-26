@@ -25,7 +25,7 @@ def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParam
 def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
     if not hyper.display_logs:
         return
-    headers = ["Iteration Summary", "Epoch", "Iter#", "Start Weight", "Input", "Prediction", "Target", "Error", "New Weight", "Old Bias", "New Bias"]
+    headers = ["Iteration Summary", "Epoch/Itr", "Bias", "Weight * Input", "Target - Guess = Error", "New Weight/Chg",  "New Bias"]
     row_counter = 0  # Keep track of the number of rows printed
     max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
 
@@ -48,22 +48,63 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
     for chunk in chunks:                                                        # Print each chunk using tabulate
         print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
 
-
 def append_iteration_row(correlated_log: list, model_name: str, data_row):
     data = data_row.to_list()
+    inputs      = data[2]   # Assuming this is a NumPy array of inputs
+    weights     = data[10]  # Assuming this is a NumPy array of weights
+    new_weights = data[11]
+    err_calc    = f"{smart_format(data[3])} * {smart_format(data[4])} = {smart_format(data[5])}"
+
+    # Concatenate each input-weight operation into a single cell with line breaks
+    weighted_terms = "\n".join(
+        f"{smart_format(weights[i])} * {smart_format(inputs[i])} = {smart_format(weights[i] * inputs[i])}"
+        for i in range(len(inputs))
+    )
+
+    new_weights = "\n".join(
+        #f"{smart_format(new_weights[i])}"
+        f"{smart_format(new_weights[i])} / {smart_format(new_weights[i]-weights[i])}"
+        for i in range(len(inputs))
+    )
+
+    # Append a single row for this iteration, with concatenated input-weight terms
     correlated_log.append([
         model_name,
-        data[0],  # Epoch
-        data[1],  # Iteration
-        smart_format(data[10]), # Start Weight
-        smart_format(data[2]),  # Input
-        smart_format(data[4]),  # Prediction
-        smart_format(data[3]),  # Target
-        smart_format(data[5]),  # Error
-        smart_format(data[11]),  # New Weight
-        smart_format(data[12]),  # Old Bias
-        smart_format(data[13]),  # New Bias
+        f"{data[0]} / {data[1]}",  # Epoch and iteration #
+        smart_format(data[12]),    # Starting Bias
+        weighted_terms,            # Concatenated Weighted Term calculations
+        #smart_format(data[4]),     # Prediction
+        #smart_format(data[3]),     # Target
+        #smart_format(data[5]),     # Error
+        err_calc,                   # Target - Prediction = Error
+        new_weights,               # New Weight
+
+        smart_format(data[13]),    # New Bias
     ])
+
+def append_iteration_row_old(correlated_log: list, model_name: str, data_row):
+    data = data_row.to_list()
+    inputs = data[2]  # Assuming this is a NumPy array of inputs
+    weights = data[10]  # Assuming this is a NumPy array of weights
+
+    # Append each input-weight row to the log
+    for i in range(len(inputs)):
+        correlated_log.append([
+            model_name,
+            data[0],  # Epoch
+            data[1],  # Iteration
+            smart_format(weights[i]),  # Start Weight for each input
+            smart_format(inputs[i]),  # Input for each input
+            smart_format(inputs[i] * weights[i]),  # Input x Weight product
+            smart_format(data[4]) if i == 0 else "",  # Prediction (only on the first row for readability)
+            smart_format(data[3]) if i == 0 else "",  # Target (only on the first row for readability)
+            smart_format(data[5]) if i == 0 else "",  # Error (only on the first row for readability)
+            smart_format(data[11][i]) if i == 0 else "",  # New Weight (only on the first row for readability)
+            smart_format(data[12]) if i == 0 else "",  # Old Bias (only on the first row for readability)
+            smart_format(data[13]) if i == 0 else "",  # New Bias (only on the first row for readability)
+        ])
+
+
 
 ######################################################################################
 ############# Second level of reporting, epoch details ###############################
@@ -94,7 +135,7 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
     epoch_summary = [
         summary.model_name,
         summary.epoch,
-        smart_format(summary.final_weight),
+        smart_format(summary.final_weight[0]),  #TODO handle multiple weights
         smart_format(summary.final_bias),
         summary.tp + summary.tn,
         summary.fp + summary.fn,

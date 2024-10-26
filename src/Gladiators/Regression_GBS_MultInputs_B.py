@@ -2,7 +2,7 @@ from src.Engine import *
 from src.Metrics import GladiatorOutput
 from src.BaseGladiator import Gladiator
 
-class Regression_GBS(Gladiator):
+class Regression_GBS_MultInputs_B(Gladiator):
     """
     A simple perceptron implementation for accurate regression. (By ChatGPT)
     It is designed for training data that predicts repayment ratio (0.0 to 1.0)
@@ -15,26 +15,25 @@ class Regression_GBS(Gladiator):
         self.bias = .5
 
     def training_iteration(self, training_data) -> GladiatorOutput:
-        input = training_data[0]
-        target = training_data[-1]
-        prediction = (input * self.weight) + self.bias
+        inputs = training_data[:-1]    # All elements except the last (the inputs)
+        target = training_data[-1]     # Last element is the target
+
+        # Calculate prediction as the dot product of inputs and weights plus bias
+        prediction = np.dot(inputs, self.weights) + self.bias
+
+        # Calculate error
         error = target - prediction
-        new_weight = self.weight + self.learning_rate * error * input
-        new_bias = self.bias     + self.learning_rate * error  # Bias adjustment
+
+        # Update weights: element-wise adjustment for each input
+        self.weights += self.learning_rate * error * inputs
+
+        # Update bias
+        self.bias    += self.learning_rate * error
 
         # Output object containing results of this iteration
         gladiator_output = GladiatorOutput(
-            prediction=prediction,
-            #adjustment=new_weight-self.weight,
-            #weight=self.weight,
-            #new_weight=new_weight,
-            #bias=self.bias,
-            #new_bias=new_bias
+            prediction=prediction
         )
-
-        # Update model parameters
-        self.weight = new_weight
-        self.bias = new_bias
 
         return gladiator_output
 
