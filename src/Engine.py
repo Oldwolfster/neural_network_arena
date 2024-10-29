@@ -1,50 +1,50 @@
+import os
+import sys
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(project_root)
+
 import importlib
 import math
 import statistics
 from typing import Tuple
 
+from engine.SQL import retrieve_training_data
+from engine.SQL import record_training_data
 from Reporting import print_results, determine_problem_type
 import numpy as np
 import time
 from ArenaSettings import *
 
 
-def main():
-    run_a_match(gladiators, training_pit)
-
-
-
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
     mgr_list        = []
-    arena_data      = dynamic_instantiate(training_pit, 'Arenas', hyper.training_set_size)
-    raw_data        = arena_data.generate_training_data()
-    training        = TrainingData(data = raw_data)
-    identify_outlier(training)
-
+    raw_trn_data    = get_training_data(hyper)
+    training_data   = TrainingData(to_list = raw_trn_data)             # Place holder to do any needed analysis on training data
+    record_training_data(training_data.to_list)
     for gladiator in gladiators:    # Loop through the NNs competing.
         print(f"Preparing to run model:{gladiator}")
         nn = dynamic_instantiate(gladiator, 'Gladiators', gladiator, hyper)
 
         start_time = time.time()  # Start timing
-        metrics_mgr = nn.train(training.data)
+        metrics_mgr = nn.train(training_data.to_list)
         mgr_list.append(metrics_mgr)
         end_time = time.time()  # End timing
         metrics_mgr.run_time = end_time - start_time
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    print_results(mgr_list, training.data, hyper, training_pit)
-    #print_results(mgr_list, training_data, display_graphs, display_logs, display_train_data ,display_epoch_sum, epochs_to_run, training_set_size, default_learning_rate, training_pit)
+    print_results(mgr_list, training_data.to_list, hyper, training_pit)
 
 
-
-# , 'Simpletron_LearningRate001'
-# ,'Simpletron_Bias'
-# ,'Simpletron_Gradient_Descent_Claude'
-# ,'SimpletronWithReLU'
-# ,'SimpletronWithExperiment'
-# ,'SimpletronGradientDescent'
-# ,'SimpletronWithL1L2Regularization'
+def get_training_data( hyper):
+    # Check if Arena Settings indicates to retrieve and use past training_data
+    if len(run_previous_training_data) > 0:
+        return retrieve_training_data(run_previous_training_data)
+        #return [(3.0829800228956428, 4.48830093538644, 30.780635057213185), (19.394768240791976, 4.132484554096511, 99.9506658661515)]
+    # If still here, do a run with new training data
+    arena = dynamic_instantiate(training_pit, 'Arenas', hyper.training_set_size)
+    return arena.generate_training_data()
 
 def dynamic_instantiate(class_name, path, *args):
     """
@@ -111,8 +111,8 @@ def calculate_loss_gradient(self, error: float, input: float) -> float:
         return error * input
 
 @dataclass
-class TrainingData:
-    data: Tuple[float, ...]  # Multiple inputs
+class TrainingData: #Todo this class is not functioning properly.  it should be classifying each sample as outlier or not
+    to_list: Tuple[float, ...]  # Multiple inputs
     #target: float
     is_outlier: bool = False
 
@@ -133,8 +133,3 @@ def identify_outlier(td: TrainingData):
             break  # If any target is an outlier, mark the data as an outlier
         else:
             td.is_outlier = False
-
-
-
-if __name__ == '__main__':
-    main()

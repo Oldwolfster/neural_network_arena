@@ -25,7 +25,7 @@ def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParam
 def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
     if not hyper.display_logs:
         return
-    headers = ["Iteration Summary", "Epoch/Itr", "Bias", "Weight * Input", "Target - Guess = Error", "New Weight/Chg",  "New Bias"]
+    headers = ["Step Detail", "Epoc\nStep",  "Weight * Input", "Bias\nSum ","Target - Guess = Error", "New Weight/Chg",  "New\nBias"]
     row_counter = 0  # Keep track of the number of rows printed
     max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
 
@@ -49,11 +49,11 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
         print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
 
 def append_iteration_row(correlated_log: list, model_name: str, data_row):
-    data = data_row.to_list()
-    inputs      = data[2]   # Assuming this is a NumPy array of inputs
-    weights     = data[10]  # Assuming this is a NumPy array of weights
+    data        = data_row.to_list()
+    inputs      = data[2]
+    weights     = data[10]
     new_weights = data[11]
-    err_calc    = f"{smart_format(data[3])} * {smart_format(data[4])} = {smart_format(data[5])}"
+    err_calc    = f"{smart_format(data[3])} - {smart_format(data[4])} = {smart_format(data[5])}"
 
     # Concatenate each input-weight operation into a single cell with line breaks
     weighted_terms = "\n".join(
@@ -61,24 +61,22 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
         for i in range(len(inputs))
     )
 
+    # Concatenate new weights and amount of change into a single cell with line breaks
     new_weights = "\n".join(
-        #f"{smart_format(new_weights[i])}"
-        f"{smart_format(new_weights[i])} / {smart_format(new_weights[i]-weights[i])}"
+        f"{smart_format(new_weights[i])} / ({'+' if (new_weights[i] - weights[i]) > 0 else ''}{smart_format(new_weights[i] - weights[i])})"
         for i in range(len(inputs))
     )
+    # TODO Add columnt for Activation function
 
     # Append a single row for this iteration, with concatenated input-weight terms
     correlated_log.append([
         model_name,
         f"{data[0]} / {data[1]}",  # Epoch and iteration #
-        smart_format(data[12]),    # Starting Bias
+
         weighted_terms,            # Concatenated Weighted Term calculations
-        #smart_format(data[4]),     # Prediction
-        #smart_format(data[3]),     # Target
-        #smart_format(data[5]),     # Error
+        f"{smart_format(data[12])}\n{smart_format(data[4])}",    # Starting Bias
         err_calc,                   # Target - Prediction = Error
         new_weights,               # New Weight
-
         smart_format(data[13]),    # New Bias
     ])
 

@@ -12,3 +12,6 @@ For CreditScoreRegressionNeedsBias
 BB is bad
 Busa good if bias init=.5 bad if init =0
 Regression_Bias_ChatGPT2 good either way
+
+**10/28/2024**
+Refactored to store and allow rerun of training data

@@ -43,7 +43,7 @@ def smart_formatOld(number):
         return f"{number:,.0f}"
     else:
         # For moderate numbers, show 2 decimal places
-        return f"{number:,.2f}"
+        return f"{number:,.3f}"
 
 
 
