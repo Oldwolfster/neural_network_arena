@@ -1,6 +1,5 @@
-from src.Engine import *
-from src.Metrics import GladiatorOutput
-from src.BaseGladiator import Gladiator
+from src.engine.Metrics import GladiatorOutput
+from src.engine.BaseGladiator import Gladiator
 
 
 class _Template_Simpletron_Claude(Gladiator):

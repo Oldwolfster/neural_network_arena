@@ -1,8 +1,8 @@
 import numpy as np
 from typing import List, Tuple
 from src.BaseArena import *
-from src.Metrics import Metrics
-from src.BaseGladiator import Gladiator
+from src.engine.Metrics import Metrics
+from src.engine.BaseGladiator import Gladiator
 
 
 class Simpletron_Gradient_Descent_Claude(Gladiator):

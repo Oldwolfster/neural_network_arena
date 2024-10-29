@@ -1,12 +1,43 @@
-"""
-Neural Network Arena - README
+# Neural Network Arena - README
 
-Overview:
-----------
+## Overview
+
 The Neural Network Arena is a project designed to simplify the process of understanding and evaluating neural networks. It began with a curiosity about Large Language Models (LLMs) and evolved into a comprehensive framework for building, testing, and comparing neural network models—referred to as "Gladiators"—against various test data generation algorithms known as "Training Pits." The core philosophy is to simplify each component, examine each machine learning technique individually, and gain a clear understanding of its impact.
 
-Components:
-------------
+---
+
+## Getting Started
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/neural_network_arena.git
+cd neural_network_arena
+```
+
+### 2. Install Dependencies
+Install the project in editable mode, along with all required dependencies:
+
+```bash
+pip install -e .
+```
+This will set up the project structure for easy importing and allow you to run the program directly from the command line.
+
+### 3. Run the Program
+After installation, you can start the application with:
+
+```bash
+python src/main.py
+```
+
+or use the command-line entry point:
+```bash
+run-arena
+```
+---
+
+## Components:
+
 1. **Gladiators**:
    - These are the neural network models that compete against each other in the arena.
    - The goal is to isolate various ML techniques and examine their effects on the models.

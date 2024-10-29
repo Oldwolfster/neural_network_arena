@@ -1,6 +1,5 @@
-from src.Engine import *
-from src.Metrics import Metrics
-from src.BaseGladiator import Gladiator
+from src.engine.Metrics import Metrics
+from src.engine.BaseGladiator import Gladiator
 
 class SimpletronEinstein(Gladiator):
     """

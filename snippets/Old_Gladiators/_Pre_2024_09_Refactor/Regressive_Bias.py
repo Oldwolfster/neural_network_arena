@@ -1,6 +1,5 @@
-from src.Engine import *
-from src.Metrics import Metrics, IterationData
-from src.BaseGladiator import Gladiator
+from src.engine.Metrics import Metrics, IterationData
+from src.engine.BaseGladiator import Gladiator
 
 class Regressive_Bias(Gladiator):
     """

@@ -38,11 +38,11 @@ training_pit              = "Salary2Inputs"
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    '_Template_Simpletron_Regression'
+    '_Template_Simpletron_Regression_SNMI'
     #,'Hayabusa2'
     #,'_Template_Simpletron_Regression2inputs'
     #,'Hayabusa2_2inputs'
-    ,'Regression_GBS_MultInputs'
+    ,'Regression_GBS_SNMI'
     #,'Regression_GBS_MultInputs_B'
     #,'Regression_GBS_2_Inputs'
     #,'Regression_GBS_2_InputsB'

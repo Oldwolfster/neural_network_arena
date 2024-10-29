@@ -1,6 +1,6 @@
-from src.Engine import *
-from src.Metrics import GladiatorOutput
-from src.BaseGladiator import Gladiator
+from src.engine.Engine import *
+from src.engine.Metrics import GladiatorOutput
+from src.engine.BaseGladiator import Gladiator
 
 class Regression_GBS_MultInputs_B(Gladiator):
     """
