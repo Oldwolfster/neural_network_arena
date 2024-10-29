@@ -5,9 +5,6 @@ import numpy as np
 class Regression_GBS_MultInputs(Gladiator):
     """
     A simple perceptron implementation for accurate regression. (By ChatGPT)
-    It is designed for training data that predicts repayment ratio (0.0 to 1.0)
-    based on credit score between 0-100, with added noise.
-    Includes bias and improved weight adjustment logic for accuracy.
     """
 
     def __init__(self, *args):

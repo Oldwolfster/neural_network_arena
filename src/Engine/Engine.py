@@ -1,7 +1,3 @@
-# Add the project root directory to Python path
-#project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-#sys.path.append(project_root)
-
 import math
 import statistics
 import numpy as np
@@ -13,8 +9,6 @@ from src.engine.Reporting import print_results
 from src.ArenaSettings import *
 from src.engine.BaseArena import BaseArena
 from src.engine.BaseGladiator import Gladiator
-
-
 from src.ArenaSettings import run_previous_training_data
 
 

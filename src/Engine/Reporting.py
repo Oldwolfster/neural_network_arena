@@ -5,6 +5,7 @@ from typing import List
 from .MetricsMgr import MetricsMgr
 from .Utils import *
 from src.ArenaSettings import HyperParameters
+from src.engine.graphs._GraphMaster import graph_master
 
 repeat_header_interval = 10
 MAX_ITERATION_LINES = 200
@@ -16,6 +17,7 @@ def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParam
     print_model_comparison(mgr_list, problem_type)
     if hyper.display_train_data:
         print (training_data)
+    graph_master(mgr_list)
 
 ######################################################################################
 ############# First level of reporting, iteration details ############################
@@ -23,7 +25,7 @@ def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParam
 def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
     if not hyper.display_logs:
         return
-    headers = ["Step Detail", "Epoc\nStep",  "Weight * Input", "Bias\nSum ","Target - Guess = Error", "New Weight/Chg",  "New\nBias"]
+    headers = ["Step Detail", "Epoc\nStep",  "Weight * Input + Bias", "Prediction","Target", "Error", "New Weight/Chg",  "New\nBias"]
     row_counter = 0  # Keep track of the number of rows printed
     max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
 
@@ -51,12 +53,19 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
     inputs      = data[2]
     weights     = data[10]
     new_weights = data[11]
-    err_calc    = f"{smart_format(data[3])} - {smart_format(data[4])} = {smart_format(data[5])}"
+    bias        = data[12]
+    new_bias    = data[13]
+    #err_calc    = f"{smart_format(data[3])} - {smart_format(data[4])} = {smart_format(data[5])}"
 
     # Concatenate each input-weight operation into a single cell with line breaks
+    #weighted_terms = "\n".join(
+        # originial f"{smart_format(weights[i])} * {smart_format(inputs[i])} = {smart_format(weights[i] * inputs[i])}"
+#        f"{smart_format(weights[i])} * {smart_format(inputs[i])} + {smart_format(data[12])}"
+#        for i in range(len(inputs))
+#    )
     weighted_terms = "\n".join(
-        f"{smart_format(weights[i])} * {smart_format(inputs[i])} = {smart_format(weights[i] * inputs[i])}"
-        for i in range(len(inputs))
+        f"{smart_format(weights[i])} * {smart_format(inputs[i])} + {smart_format(data[12]) if i == 0 else '0'}"
+        for i, _ in enumerate(inputs)
     )
 
     # Concatenate new weights and amount of change into a single cell with line breaks
@@ -64,6 +73,7 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
         f"{smart_format(new_weights[i])} / ({'+' if (new_weights[i] - weights[i]) > 0 else ''}{smart_format(new_weights[i] - weights[i])})"
         for i in range(len(inputs))
     )
+    new_bias = f"{smart_format(new_bias)} / ({'+' if (new_bias - bias) > 0 else ''}{smart_format(new_bias - bias)})"
     # TODO Add columnt for Activation function
 
     # Append a single row for this iteration, with concatenated input-weight terms
@@ -71,11 +81,12 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
         model_name,
         f"{data[0]} / {data[1]}",  # Epoch and iteration #
 
-        weighted_terms,            # Concatenated Weighted Term calculations
-        f"{smart_format(data[12])}\n{smart_format(data[4])}",    # Starting Bias
-        err_calc,                   # Target - Prediction = Error
-        new_weights,               # New Weight
-        smart_format(data[13]),    # New Bias
+        weighted_terms,             # Concatenated Weighted Term calculations
+        f"{smart_format(data[4])}", # Prediction
+        smart_format(data[3]),      # Target
+        smart_format(data[5]),       # Error
+        new_weights,                # New Weight
+        new_bias     # New Bias
     ])
 
 def append_iteration_row_old(correlated_log: list, model_name: str, data_row):
@@ -131,7 +142,12 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
     epoch_summary = [
         summary.model_name,
         summary.epoch,
-        smart_format(summary.final_weight[0]),  #TODO handle multiple weights
+        #smart_format(summary.final_weight[0]),  #TODO handle multiple weights
+        # Concatenate final weights and their changes into a single cell with line breaks
+        "\n".join(
+            f"{smart_format(summary.final_weight[i])}"
+            for i in range(len(summary.final_weight))
+        ),
         smart_format(summary.final_bias),
         summary.tp + summary.tn,
         summary.fp + summary.fn,

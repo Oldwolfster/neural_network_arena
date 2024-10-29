@@ -1,14 +1,22 @@
 from dataclasses import dataclass
+
+@dataclass
+class ReportSelection:
+    ############################################################
+    # BATTLE Parameters are set here                           #
+    ############################################################
+    Training_Evolution_with_Multiple_Scales :bool   = True
+
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 500       # Number of times training run will cycle through all training data
-    training_set_size       :int    = 100       # Qty of training data
+    epochs_to_run           :int    = 511       # Number of times training run will cycle through all training data
+    training_set_size       :int    = 100      # Qty of training data
     converge_epochs         :int    = 100       # How many epochs of no change before we call it converged?
-    default_neuron_weight   :float  = .1        # Any initial value works as the training data will adjust it
-    default_learning_rate   :float  = .001     # Affects magnitude of weight adjustments
+    default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
+    default_learning_rate   :float  = .0001     # Affects magnitude of weight adjustments
     converge_threshold      :float  = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
     accuracy_threshold      :float  = .2        # Careful - raising this to 1 or higher will break binary decision
 
@@ -29,20 +37,24 @@ training_pit              = "SingleInput_CreditScore"
 training_pit              = "CreditScoreRegressionNeedsBias"
 training_pit               = "Manual"
 #training_pit              = "SalaryExperienceRegressionNeedsBias"
-training_pit              = "Salary2Inputs"
-#training_pit              = "Salary2Inputs_B"
-#training_pit              = "Salary2Inputs_C"
+training_pit              = "Predict_Income_1_Input"
+training_pit              = "Predict_Income_2_Inputs_NoImpactFrom2nd"
+training_pit              = "Predict_Income_2_InputsLinear"
+#training_pit              = "Predict_Income_2_InputsFeatureEngineer"
+
+training_pit              = "Predict_Income_2_InputsFeatureEngineerAndScaled"
+
 
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    '_Template_Simpletron_Regression_SNMI'
+    #'_Template_Simpletron_Regression_SNMI'
     #,'Hayabusa2'
     #,'_Template_Simpletron_Regression2inputs'
     #,'Hayabusa2_2inputs'
-    ,'Regression_GBS_SNMI'
+    'Regression_GBS_SNMI'
     #,'Regression_GBS_MultInputs_B'
     #,'Regression_GBS_2_Inputs'
     #,'Regression_GBS_2_InputsB'
