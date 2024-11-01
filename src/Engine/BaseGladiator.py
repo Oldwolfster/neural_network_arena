@@ -34,6 +34,7 @@ class Gladiator(ABC):
         for i, sample in enumerate(training_data):         # Loop through all the training data
             sample = np.array(sample)  # Convert sample to a NumPy array TODO Have training data be a numpy array to begin with
 
+            # Record data for this iteration before passing sample to model
             context = IterationContext(
                 iteration           = i + 1,
                 epoch               = epoch_num + 1,
@@ -45,8 +46,13 @@ class Gladiator(ABC):
                 new_bias            = None
             )
 
-            gladiator_output        = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
+            # Record model's prediction
+            prediction              = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
+            gladiator_output        = GladiatorOutput(
+                prediction          = prediction
+            )
 
+            # Put all the information together
             context.new_weights     = np.copy(self.weights) # Weights AFTER model processed sample
             context.new_bias        = self.bias             # Bias    AFTER model processed sample
             result = IterationResult(
@@ -58,5 +64,6 @@ class Gladiator(ABC):
 
 
     @abstractmethod
-    def training_iteration(self, training_data: ndarray[Any, np.float64]) -> GladiatorOutput:
+    #def training_iteration(self, training_data: ndarray[Any, np.float64]) -> GladiatorOutput:
+    def training_iteration(self, training_data: ndarray[Any, np.float64]) -> float:
         pass

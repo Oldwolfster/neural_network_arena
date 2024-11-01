@@ -17,7 +17,8 @@ def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParam
     print_model_comparison(mgr_list, problem_type)
     if hyper.display_train_data:
         print (training_data)
-    graph_master(mgr_list)
+    if hyper.display_graphs:
+        graph_master(mgr_list)
 
 ######################################################################################
 ############# First level of reporting, iteration details ############################
@@ -40,7 +41,7 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
         for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each model
             if row < lengths[mgr_idx]:
                 # Instead of adding headers in body we will print many tabulates add_extra_headers(correlated_log, row_counter, repeat_header_interval, headers)
-                append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row])
+                append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row], hyper)
                 row_counter += 1
 
 
@@ -48,14 +49,20 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
     for chunk in chunks:                                                        # Print each chunk using tabulate
         print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
 
-def append_iteration_row(correlated_log: list, model_name: str, data_row):
+def append_iteration_row(correlated_log: list, model_name: str, data_row, hyper : HyperParameters,):
     data        = data_row.to_list()
+    epoch       = data[0]
     inputs      = data[2]
     weights     = data[10]
     new_weights = data[11]
     bias        = data[12]
     new_bias    = data[13]
-    #err_calc    = f"{smart_format(data[3])} - {smart_format(data[4])} = {smart_format(data[5])}"
+
+    if epoch < hyper.detail_log_min:
+        return
+    if epoch > hyper.detail_log_max:
+        return
+
 
     # Concatenate each input-weight operation into a single cell with line breaks
     #weighted_terms = "\n".join(
@@ -79,7 +86,7 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
     # Append a single row for this iteration, with concatenated input-weight terms
     correlated_log.append([
         model_name,
-        f"{data[0]} / {data[1]}",  # Epoch and iteration #
+        f"{epoch} / {data[1]}",  # Epoch and iteration #
 
         weighted_terms,             # Concatenated Weighted Term calculations
         f"{smart_format(data[4])}", # Prediction
@@ -88,29 +95,6 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row):
         new_weights,                # New Weight
         new_bias     # New Bias
     ])
-
-def append_iteration_row_old(correlated_log: list, model_name: str, data_row):
-    data = data_row.to_list()
-    inputs = data[2]  # Assuming this is a NumPy array of inputs
-    weights = data[10]  # Assuming this is a NumPy array of weights
-
-    # Append each input-weight row to the log
-    for i in range(len(inputs)):
-        correlated_log.append([
-            model_name,
-            data[0],  # Epoch
-            data[1],  # Iteration
-            smart_format(weights[i]),  # Start Weight for each input
-            smart_format(inputs[i]),  # Input for each input
-            smart_format(inputs[i] * weights[i]),  # Input x Weight product
-            smart_format(data[4]) if i == 0 else "",  # Prediction (only on the first row for readability)
-            smart_format(data[3]) if i == 0 else "",  # Target (only on the first row for readability)
-            smart_format(data[5]) if i == 0 else "",  # Error (only on the first row for readability)
-            smart_format(data[11][i]) if i == 0 else "",  # New Weight (only on the first row for readability)
-            smart_format(data[12]) if i == 0 else "",  # Old Bias (only on the first row for readability)
-            smart_format(data[13]) if i == 0 else "",  # New Bias (only on the first row for readability)
-        ])
-
 
 
 ######################################################################################
@@ -187,7 +171,7 @@ def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -
             # Explicitly slice and order the fields we need (using dot notation for clarity)
             summary_fields = [
                 last_summary.epoch,
-                last_summary.final_weight,
+                last_summary.final_weight[0],
                 last_summary.final_bias,
                 last_summary.total_absolute_error,
                 last_summary.tp + last_summary.tn,  # Correct
@@ -202,15 +186,6 @@ def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -
     return final_summaries
 
 
-
-
-def collect_final_epoch_summaryorig(mgr_list: List[MetricsMgr], problem_type: str) -> List:
-    final_summaries = []
-    for mgr in mgr_list:
-        if mgr.epoch_summaries:  # Check if there are epoch summaries available
-            last_summary = mgr.epoch_summaries[-1]  # Get the last epoch summary
-            append_summary_row(last_summary, final_summaries, problem_type)
-    return final_summaries
 
 ######################################################################################
 ############# Third level of reporting, Model Comparision#############################

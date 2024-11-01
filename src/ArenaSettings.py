@@ -12,23 +12,24 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 511       # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 1       # Number of times training run will cycle through all training data
     training_set_size       :int    = 100      # Qty of training data
     converge_epochs         :int    = 100       # How many epochs of no change before we call it converged?
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
-    default_learning_rate   :float  = .0001     # Affects magnitude of weight adjustments
+    default_learning_rate   :float  = .00001     # Affects magnitude of weight adjustments
     converge_threshold      :float  = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
     accuracy_threshold      :float  = .2        # Careful - raising this to 1 or higher will break binary decision
 
     ############################################################
     # REPORT Parameters are set here                           #
     ############################################################
-    display_train_data      :bool = True   # Display the training data at the end of the rn.
+    display_train_data      :bool = True    # Display the training data at the end of the rn.
     display_graphs          :bool = False   # Display Graphs at the end of run
     display_epoch_sum       :bool = True    # Display the epoch summary
+    display_logs            :bool = False   # Display the logs at the end of the run
     display_logs            :bool = True    # Display the logs at the end of the run
-    #display_logs            :bool = False   # Display the logs at the end of the run
-
+    detail_log_min          :int  = 0       # Which epochs to display detailed logs for(min)
+    detail_log_max          :int  = 10000       # Which epochs to display detailed logs for(min)
 ############################################################
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
@@ -40,9 +41,8 @@ training_pit               = "Manual"
 training_pit              = "Predict_Income_1_Input"
 training_pit              = "Predict_Income_2_Inputs_NoImpactFrom2nd"
 training_pit              = "Predict_Income_2_InputsLinear"
-#training_pit              = "Predict_Income_2_InputsFeatureEngineer"
-
-training_pit              = "Predict_Income_2_InputsFeatureEngineerAndScaled"
+training_pit              = "Predict_Income_2_InputsFeatureEngineer"
+#training_pit              = "Predict_Income_2_InputsFeatureEngineerAndScaled"
 
 
 
@@ -51,10 +51,10 @@ training_pit              = "Predict_Income_2_InputsFeatureEngineerAndScaled"
 ############################################################
 gladiators = [
     #'_Template_Simpletron_Regression_SNMI'
-    #,'Hayabusa2'
-    #,'_Template_Simpletron_Regression2inputs'
+    #'Regression_Hayabusa'
+    'Regression_GBS'
     #,'Hayabusa2_2inputs'
-    'Regression_GBS_SNMI'
+    #,'Regression_GBS'
     #,'Regression_GBS_MultInputs_B'
     #,'Regression_GBS_2_Inputs'
     #,'Regression_GBS_2_InputsB'

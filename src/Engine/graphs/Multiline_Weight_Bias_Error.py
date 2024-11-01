@@ -61,26 +61,26 @@ class WeightVisualizer:
         # Plot bias
         bias_ax = axes[-2]
         line = bias_ax.plot(epochs, biases,
-                          color=self.colors[-2],
+                          color=self.colors[-1],
                           linestyle='--',
                           marker='s',
                           markersize=4)
         lines.extend(line)
         labels.append('Bias')
-        bias_ax.set_ylabel('Bias', color=self.colors[-2])
-        bias_ax.tick_params(axis='y', labelcolor=self.colors[-2])
+        bias_ax.set_ylabel('Bias', color=self.colors[-1])
+        bias_ax.tick_params(axis='y', labelcolor=self.colors[-1])
 
         # Plot MAE
         mae_ax = axes[-1]
         line = mae_ax.plot(epochs, maes,
-                         color=self.colors[-1],
+                         color=self.colors[-2],
                          linestyle=':',
                          marker='^',
                          markersize=4)
         lines.extend(line)
         labels.append('MAE')
-        mae_ax.set_ylabel('MAE', color=self.colors[-1])
-        mae_ax.tick_params(axis='y', labelcolor=self.colors[-1])
+        mae_ax.set_ylabel('MAE', color=self.colors[-2])
+        mae_ax.tick_params(axis='y', labelcolor=self.colors[-2])
 
         # Set title and labels
         host.set_xlabel('Epoch')
@@ -137,7 +137,7 @@ class WeightVisualizer:
 
         # Plot normalized bias and MAE
         line = ax.plot(epochs, normalized_biases,
-                      color=self.colors[-2],
+                      color=self.colors[-1],
                       linestyle='--',
                       marker='s',
                       markersize=4)
@@ -145,7 +145,7 @@ class WeightVisualizer:
         labels.append('Bias')
 
         line = ax.plot(epochs, normalized_maes,
-                      color=self.colors[-1],
+                      color=self.colors[-2],
                       linestyle=':',
                       marker='^',
                       markersize=4)
@@ -156,7 +156,7 @@ class WeightVisualizer:
         ax.set_ylabel('Normalized Value')
         ax.set_title('Normalized Training Evolution')
         ax.legend(lines, labels)
-        ax.grid(True, alpha=0.3)
+        ax.grid(True, alpha=1)
 
         return fig, ax
 
@@ -170,5 +170,5 @@ def run_multiline_weight_bias_error(summaries):
     plt.show()
 
     # For normalized plot
-    fig, ax = visualizer.plot_normalized(summaries)
-    plt.show()
+    #fig, ax = visualizer.plot_normalized(summaries)
+    #plt.show()

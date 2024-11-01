@@ -15,10 +15,14 @@ Regression_Bias_ChatGPT2 good either way
 
 **10/28/2024**
     Refactored to store and allow rerun of training data
+      Subfoldes for arenas and gladiators
+      final filtering detail log
     * What about a metric comparing total error as percent of Sum of targets
       * Original input had college as multiplicative which made it non linear..
       * FOIL
       * Capturing Non-Linearity:
+
+
       By including the interaction term, we transform the problem into a linear one in terms of the inputs.
       Perceptron Limitations:
       A perceptron without activation functions can only model linear relationships between inputs and outputs.
@@ -43,3 +47,7 @@ Regression_Bias_ChatGPT2 good either way
         ** .001 ran perfect but 500 epochs,  .001 exploding gradient
           * Binary search
           * Feature Scaling
+
+    # Running Predict_Income_2_InputsFeatureEngineerAndScaled 
+    # with learning rate of .0001 it does not converge.  with .0007 bias drops to almost zero although it should be going to 30k
+    # Predict_Income_2_InputsFeatureEngineer LR .00001  Bias and WEight 2  take identical path

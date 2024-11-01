@@ -1,6 +1,7 @@
 # Planning 
 # Potential for many competitors, Regression_GBS, linear, engineered, scaling features, scaling features and target
 # Start with Linear model, show LR .001 good but slow, .01 Crashes
+# Feature Centering - 
 # Feature Engineering Model
 # Refactored for 
     multi-inputs,
