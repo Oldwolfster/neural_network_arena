@@ -2,12 +2,13 @@ from .Metrics import Metrics
 from .Utils import EpochSummary
 from .ConvergenceDetector import ConvergenceDetector
 from src.ArenaSettings import HyperParameters
+from .TrainingData import TrainingData
 
-#(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
-class MetricsMgr:
-    def __init__(self, name, hyper: HyperParameters):
+class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
+    def __init__       (self, name, hyper: HyperParameters, training_data: TrainingData):
         #def __init__(self, name, sample_count: int,  conv_e, conv_t, acc_t, data):
         # Run Level members
+        self.training_data = training_data
         self.name = name
         self.epoch_summaries = []           # Store the epoch summaries
         self.summary = EpochSummary()       # The current Epoch summary
@@ -21,7 +22,9 @@ class MetricsMgr:
         self.epoch_curr_number = 1          # Which epoch are we currently on.
         self.metrics = []                   # The list of metrics this manager is running.
         self.converge_detector              = (
-            ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs))
+            ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs, training_data.sum_targets))
+
+
     def record_iteration(self, result):
         self.iteration_num += 1
         # I believe these two lines can be removed as it is now set in BaseGladiator

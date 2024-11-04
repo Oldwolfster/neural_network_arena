@@ -2,16 +2,16 @@ from src.engine.Metrics import GladiatorOutput
 from src.engine.BaseGladiator import Gladiator
 
 
-class Hayabusa(Gladiator):
+class Hayabusa2_2inputs(Gladiator):
     """
     A simple perceptron implementation for educational purposes.
     This class serves as a template for more complex implementations.
     """
 
-    def __init__(self, number_of_epochs: int, metrics_mgr: MetricsMgr, *args):
-        super().__init__(number_of_epochs, metrics_mgr, *args)
-        self.bias = 111111111111.53
-        self.weight = 111111111111.1
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.bias = .53
+        self.weight = .1
 
 
     def training_iteration(self, training_data) -> GladiatorOutput:
@@ -20,8 +20,11 @@ class Hayabusa(Gladiator):
         prediction  = input * self.weight + self.bias           # Step 1) Guess
         error       = target - prediction                       # Step 2) Check guess,
         adjustment  = error * self.learning_rate                #         if wrong, how much
+        adj_bias    = (1 if error >= 0 else -1)
+        adj_bias    = adj_bias* self.learning_rate * .09
+
         new_weight  = self.weight + adjustment                  # Step 3) Adjust(Apply)
-        new_bias    = self.bias + adjustment
+        new_bias    = self.bias + adj_bias
         gladiator_output    = GladiatorOutput(
             prediction      = prediction,
             adjustment      = adjustment,

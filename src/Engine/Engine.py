@@ -10,37 +10,48 @@ from src.ArenaSettings import *
 from src.engine.BaseArena import BaseArena
 from src.engine.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
+from .TrainingData import TrainingData
 
 
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
     mgr_list        = []
-    raw_trn_data    = get_training_data(hyper)
-    training_data   = TrainingData(to_list = raw_trn_data)             # Place holder to do any needed analysis on training data
-    record_training_data(training_data.to_list)
+    #raw_trn_data    = get_training_data(hyper)
+    #training_data   = TrainingData( raw_trn_data)             # Place holder to do any needed analysis on training data
+    training_data   =  get_training_data(hyper)
+    record_training_data(training_data.get_list())
     for gladiator in gladiators:    # Loop through the NNs competing.
         print(f"Preparing to run model:{gladiator}")
-        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper)
+        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data)
 
         start_time = time.time()  # Start timing
-        metrics_mgr = nn.train(training_data.to_list)
+        metrics_mgr = nn.train()
         mgr_list.append(metrics_mgr)
         end_time = time.time()  # End timing
         metrics_mgr.run_time = end_time - start_time
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    print_results(mgr_list, training_data.to_list, hyper, training_pit)
+    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
 
+def get_training_dataOld(hyper):
+    # Check if Arena Settings indicates to retrieve and use past training_data
+    if len(run_previous_training_data) > 0:
+        return retrieve_training_data(run_previous_training_data)
+        #return [(3.0829800228956428, 4.48830093538644, 30.780635057213185), (19.394768240791976, 4.132484554096511, 99.9506658661515)]
+    # If still here, d  o a run with new training data
+    arena = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
+
+    return arena.generate_training_data()
 
 def get_training_data(hyper):
     # Check if Arena Settings indicates to retrieve and use past training_data
     if len(run_previous_training_data) > 0:
         return retrieve_training_data(run_previous_training_data)
         #return [(3.0829800228956428, 4.48830093538644, 30.780635057213185), (19.394768240791976, 4.132484554096511, 99.9506658661515)]
-    # If still here, do a run with new training data
+    # If still here, d  o a run with new training data
     arena = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
+    return TrainingData(arena.generate_training_data())             # Place holder to do any needed analysis on training data
 
-    return arena.generate_training_data()
 
 import os
 import importlib
@@ -151,7 +162,7 @@ def calculate_loss_gradient(self, error: float, input: float) -> float:
         return error * input
 
 @dataclass
-class TrainingData: #Todo this class is not functioning properly.  it should be classifying each sample as outlier or not
+class TrainingDataOld: #Todo this class is not functioning properly.  it should be classifying each sample as outlier or not
     to_list: Tuple[float, ...]  # Multiple inputs
     #target: float
     is_outlier: bool = False

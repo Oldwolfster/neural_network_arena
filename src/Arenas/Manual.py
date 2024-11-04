@@ -1,4 +1,4 @@
-from src.BaseArena import BaseArena
+from src.engine.BaseArena import BaseArena
 import random
 from typing import List, Tuple
 class Manual(BaseArena):

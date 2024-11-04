@@ -4,37 +4,34 @@ from src.engine.BaseGladiator import Gladiator
 
 class Hayabusa2_2inputs(Gladiator):
     """
-    A simple perceptron implementation for educational purposes.
-    This class serves as a template for more complex implementations.
+    Hard coded to do 3 inputs the long way
     """
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.bias = .53
-        self.weight = .1
-
+        self.bias = .5
 
     def training_iteration(self, training_data) -> GladiatorOutput:
-        input = training_data[1]
-        target = training_data[2]
-        prediction  = input * self.weight + self.bias           # Step 1) Guess
-        error       = target - prediction                       # Step 2) Check guess,
-        adjustment  = error * self.learning_rate                #         if wrong, how much
-        adj_bias    = (1 if error >= 0 else -1)
-        adj_bias    = adj_bias* self.learning_rate * .09
+        # Assign sample's inputs and target
+        target = training_data[-1]
+        inp0 = training_data[0]
+        inp1 = training_data[1]
+        #inp2 = training_data[2]
 
-        new_weight  = self.weight + adjustment                  # Step 3) Adjust(Apply)
-        new_bias    = self.bias + adj_bias
-        gladiator_output    = GladiatorOutput(
-            prediction      = prediction,
-            adjustment      = adjustment,
-            weight          = self.weight,
-            new_weight      = new_weight,
-            bias            = self.bias,
-            new_bias        = new_bias
-        )
-        self.weight = new_weight
-        self.bias   = new_bias
-        return gladiator_output
+        # Step 1) Guess
+        prediction      =  inp0 * self.weights[0]
+        prediction      += inp1 * self.weights[1]
+        #prediction      += inp2 * self.weights[2]
+        prediction      += self.bias
+        #
+        error           = target - prediction               # Step 2) Check guess,
+        adjustment      = error * self.learning_rate        # how far off * Learning rate
+
+        self.weights[0] += inp0 * adjustment
+        self.weights[1] += inp1 * adjustment
+        #self.weights[2] += inp2 * adjustment
+        self.bias       =  self.bias + adjustment
+
+        return prediction
 
 

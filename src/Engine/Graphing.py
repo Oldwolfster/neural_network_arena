@@ -5,7 +5,7 @@ def all_graphs(metrics):
     plot_training_metrics(metrics)
     plot_convergence(metrics)
     #plot_precision_recall(metrics)
-    plot_weight_distribution(metrics)
+    #plot_weight_distribution(metrics)
 
 def plot_training_metrics(metrics):
     fig, axs = plt.subplots(2, 2, figsize=(15, 15))

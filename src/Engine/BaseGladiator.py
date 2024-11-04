@@ -4,20 +4,22 @@ from src.engine.MetricsMgr import MetricsMgr
 import numpy as np
 from numpy import ndarray
 from typing import Any
-
+from .TrainingData import TrainingData
 
 class Gladiator(ABC):
     def __init__(self, *args):
         gladiator = args[0]
         self.hyper = args[1]
+        self.training_data = args[2]
         self.number_of_epochs = self.hyper.epochs_to_run
-        self.metrics_mgr =  MetricsMgr(gladiator,  self.hyper)          # Create a new Metrics instance with the name as a string)  # Create a new Metrics instance with the name as a string
+        self.metrics_mgr =  MetricsMgr(gladiator,  self.hyper, self.training_data)          # Create a new Metrics instance with the name as a string)  # Create a new Metrics instance with the name as a string
         #self.weight = self.hyper.default_neuron_weight
         self.weights = None  # Initialize to None      (or don't define yet)
         self.learning_rate = self.hyper.default_learning_rate
         self.bias = 0
 
-    def train(self, training_data: list[tuple[float, ...]]) -> MetricsMgr:
+    def train(self) -> MetricsMgr:
+        training_data = self.training_data.get_list()
         self.metrics_mgr.sample_count =  len(training_data)
         input_count = len(training_data[0])-1                           # get count of inputs (last element is target)
 
