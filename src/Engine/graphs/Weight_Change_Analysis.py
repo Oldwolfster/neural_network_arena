@@ -5,7 +5,7 @@ class WeightAnalyzer:
     def __init__(self):
         self.colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
 
-    def analyze_weight_changes(self, summaries, figsize=(15, 10)):
+    def analyze_weight_changes(self, summaries, title, figsize=(15, 10)):
         """
         Create a comprehensive analysis of weight changes
         """

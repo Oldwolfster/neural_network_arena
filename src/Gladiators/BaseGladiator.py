@@ -4,7 +4,8 @@ from src.engine.MetricsMgr import MetricsMgr
 import numpy as np
 from numpy import ndarray
 from typing import Any
-from .TrainingData import TrainingData
+from src.engine.TrainingData import TrainingData
+from datetime import datetime
 
 class Gladiator(ABC):
     def __init__(self, *args):
@@ -28,11 +29,14 @@ class Gladiator(ABC):
                             self.hyper.default_neuron_weight)
 
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
+            if epoch % 10 == 0 and epoch < 0:
+                print (f'Epoch: {epoch} for {self.metrics_mgr.name} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}')
             if self.run_an_epoch(training_data, epoch):                 # Call function to run single epoch
                 return self.metrics_mgr                                 # Converged so end early
         return self.metrics_mgr                                         # When it does not converge still return metrics mgr
 
     def run_an_epoch(self, training_data: list[tuple[float, ...]], epoch_num: int) -> bool:         # Function to run single epoch
+
         for i, sample in enumerate(training_data):         # Loop through all the training data
             sample = np.array(sample)  # Convert sample to a NumPy array TODO Have training data be a numpy array to begin with
 

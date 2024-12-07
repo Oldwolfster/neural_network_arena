@@ -1,217 +1,169 @@
-# Planning 
-# Potential for many competitors, Regression_GBS, linear, engineered, scaling features, scaling features and target
-# Start with Linear model, show LR .001 good but slow, .01 Crashes
-# Feature Centering - 
-# Feature Engineering Model
-# Refactored for 
-    multi-inputs,
-    remove more boiler plate,
-    fixed the PITA, where we had to match file and class
-    added recurse through subfolders
-
-# Feature Scaling
-    1) Eliminates some BS from GBS
-    2) Scale of Input Features:
-
-    The interaction term (years_experience * college) can have much larger values than the other inputs.
-    For example, 40 (max years) * 8 (max college years) = 320.
-    Scale of Target Variable (Salary):
-
-    The salary can be quite large due to multiplication in the calculation.
-    Large target values lead to large errors and weight updates.
-    Effects of Learning Rate:
-
-A learning rate of 0.001 may still be too high given the large scales involved.
-Lowering it to 0.0001 might prevent NaNs but slows convergence.
-
-
-
+### Double Trouble: Neural Networks Learn to Juggle Two Inputs
 # Introduction and Context Setting
 
 **Standard Greeting:**
-Greetings and welcome to another episode of Neural Network Arena, where algorithms duke it out and only the fittest survive!
-Today, we're ...
-So sit back and ....
+Greetings and welcome back to Neural Network Arena, where we're leveling up our NN one feature at a time! 
+In today's episode, we’re doubling down on complexity by adding a 2nd input to our model.
+I'm your host, Simpleton, here to keep it simple with the simpletron  and 
 
-# Hook the Audience  
+# Hook the Audience
 
-> <<Visual of robot appreciating jazz rather than evreything being black or white..>>
+> <<Visual of a juggler trying to handle one ball vs two balls>>
 
-Ever wondered what happens when our Simpletron gets tired of just 'yes' or 'no' answers?
-Today, we're upgrading our binary buddy to handle the infinite possibilities of the real world!
-It's like teaching a robot to appreciate jazz—not everything is black and white, 
-sometimes it's all about that smooth continuum!
+Imagine juggling one ball versus two — keeping it simple has allowed us to easily and clearly see how every detail
+affects accuracy. But to see the impact of some new features like loss functions activation functinos and
+feature scaling, we will need to inputs to see the impact.
+
+The example we will use today is predicting income from
+1) Years of Experience
+2) Years of College
 
 # Contender Introductions
 
 > <<Visual of Arena>>
 
-In today's showdown, we're bringing back our champions from 'Bias: Is It for the Birds?' 
-because, spoiler alert, bias is about to take center stage.
+In today's showdown, we've got a three-way face-off
+In the left corner, we have the simpleton, just a single input
 
+> <<Visual of Simpleton>>
+
+In the left corner we are going back to our simpletron, the blackbird,
+it will continue to have a single input
+
+In the right corner, we have Hayabusa - our champion from previous
+battles, which we will upgrade to handle two inputs! 
 > <<Visual of Hayabusa>>
 
-In the left corner we have Hayabusa, just like the legendary bike with all the bells and whistles 
-this model will include a bias mechanism.
-
-> <<Visual of Blackbird>>
-
-In the right corner, meet Blackbird—a sleek and powerful model, but without the bias boost. 
-
-Will Hayabusa's extra 'bias' give it the horsepower to outpace Blackbird, or will 
-Blackbird prove that sometimes less is more? Let's rev those engines and find out!
-
-> <<Visual 2 of Arena>>
+And in the center, we've got the infamous GBS, AKA Gradient Descent. 
+Sure, it's rocking parallel processing and 
+dynamic input handling — too bad it also brings all the BS of GBS!"
+It will serve as a great benchmark as we search for a better approach.
 
 # NNA Tour
 
-"I'm your host and guide through the Neural Network Arena, where epic battles between algorithms unfold. 
-Let's take a quick tour!"
+Before we plan out this enhancement, the NNA has been back to SPA getting some upgrades,
+making it even easier to make the models now:
 
-> <<Visual of 7 line NN>>>
+> <<Visual of refactoring benefits>>
+- The parent class of the gladiators will automatically create a weight for each input, removing this burden from 
+the individual model classes.
+- We removed even more boiler plate from the model..  We realized the parent class has access to most of 
+the info the child class was returning, in fact everything except the models prediction.
+Instead of the model needing to 
+create a "gladiator output" object, simply return the prediction.  This helps in ease of building models and
+keeping the code concise.
+- It used to be we had to name the model's class the same as the file so the engine could find it.
+  - Now, name it anything you like, the engine will find it by file name regardless of what you name the class.
+- Also, to get organized we set it up so we can have subfolders in Arenas and Models. 
+The engine does a recursive scan through them all.  This allows us to grow our model library without chaos
+- Finally, we decided to give the engine a folder of it's own to keep everything more organized.
 
-We begin with Simpletron—the simplest neural network around. 
-You might wonder, 'Why start simple?' Well, simplicity lets us focus on the fundamentals
-- See the mechanics in action without getting lost in complexity.
-- Test different neural network techniques efficiently.
-- "Isolate and understand the impact of each technique clearly.
+With that update, let's make a plan so we know where we are going!
 
-And trust me, with Simpletron, you won't need a pit crew—just a passion for learning!
+> <<Visual animation of basic NN loop>>
 
-> <<Diagram of NNA architecture>>
+The blackbird is following out basic NN loop.
+Let's use predicting house value from square feet as an example.
 
-Our Neural Network Arena consists of three main components:
+1. Predict: Take the input(sq feet), multiply by weight, add bias
+   (note - they often start weight and bias as random numbers - i don't quite love that
+    but  i do feel once we get this model right, you should be able to start them at any value
+    and the training process will keep adjusting them until they get to their optimum values)
+2. Check: Compare prediction with actual answer
+3. Adjust: Tweak the weight and bias based on our error
 
-1. **The Gladiators:**  These are our neural networks—the contenders. Each Gladiator embodies a 
-specific set of logic and capabilities. Simpletron is our original champion!"
+But now...
 
-2. **The Arenas:**  This is where we generate our training data—the battlegrounds where our 
-Gladiators prove their mettle."
+> <<Visual split screen - old vs new prediction>>
 
-3. **The Engine:** The heart of the operation. It feeds data from the Arena to the Gladiators,
-collects their predictions,
-and provides us with valuable insights.
-It's important to note.  It sends identical data to each Gladiator.
-No favoritism here—the Engine ensures a level playing field for all our contenders
+The second input means our neuron isn’t just working harder—
+it’s working smarter. Three small changes:
 
-# Refactor
+1. **Second Weight:** Our neuron now has TWO weights to manage
+2. **Prediction:** Instead of just one multiplication, we're doing TWO:
+   ```python
+   prediction = input1 * weight1 + input2 * weight2 + bias
+   ```
+3. **Adjustment:** We need to update BOTH weights during learning
 
-> <<VISUAL code being "pampered" at a spa—perhaps code lines wearing a face mask and cucumber slices.>>
+Here is a diagram
 
-Before we dive into the exciting world of regression, I've got some updates. 
-While tinkering with regression, we discovered a couple of things:
-1) Regression and Binary Decision  Don't Play Well Together:
-    "They clash like cats and dogs—or should I say, zeros and ones!"
-2) Our Old Simpletron Template Was Violating the 'DRY' Principle:
-   That's 'Don't Repeat Yourself' for those new to coding lingo. 
-3) Repetition in code is like telling the same joke twice—it loses its charm!
+Here's the plan:
+1) Test our existing single input Blackbird
+2) Copy it and add 2nd input handling (details on next slides)
+3) Include existing GBS
 
-> <<Visual of Goals Listed>>
+Let's copy our single-input Simpleton and convert it to the two-input Hayabusa. 
+We'll do this step by step:
+1. First, we'll capture both inputs
+2. Next - add a 2nd weight
+2. Then update the prediction logic
+3. Finally, adjust the update(learning) mechanism to update new weight
 
-So we decided to do a refactor, think of it as a software day at the  spa.
+Last thing before the battle, let's take a closer look at the arena.
 
-**Goal 1: Move Repetitive Code to the Engine:**
-- By centralizing the common code, it's easier to read and create new Gladiators. 
-- Most importantly, it ensures consistency—every model plays by the same rules.
-
-**Goal 2: Store Data Properly:**  We shifted from on-the-fly reporting to structured data storage. 
-- This makes it easier to analyze results, extract insights, and down the road could lead to some really cool stuff (like watching them compete in real time)
-
-**Goal 3: Harmonize Regression and Binary Decision Models:** We wanted these two to live together in harmony
-- but the way things stood, it was like Angus of AC/DC jamming out with a barbershop quartet..
-- Both amazing by themselves...  but not good together!
-
-> <<Visual of comparision between old and new template>>
-
-So this improved the template in two places.
-- looping through epochs and itertions.
-- Recording Results
-
-# Battle Focus: Regression
-
-So let's get to regression.  Regression predicts things like the exact amount of coffee you'll 
-need to survive a Monday morning—an infinite spectrum!
-
-> <<Visual - left half pizza yes/no - right half on scale of 1 to 100>>
-
-Or think of it in terms of pizza.
-- Binary Decision is "Do you want Pizza?  Yes or No"
-- Regression is on a scale of 1-100, how much do you want Pizza?
-Spoiler Alert:  If your asking a programmer, it's ALWAYS 100.  Just slide it under the door and run!!!
-
-> << While using a visual illustrating >>
-
-As you can see, binary classification sorts data into distinct groups—like sorting apples and oranges. 
-Regression, however, fits a line through data points to predict continuous 
-outcomes—like estimating the weight of fruit based on its size.
-
-In binary classification, we use accuracy—did we correctly predict 'yes' or 'no'? 
-Simple and straightforward."
-
-In regression, we care about 'how close' we are to the actual value. 
-This is where loss functions like Mean Absolute Error (MAE) come into play.
-(and no, 'Mean' here isn't when your little sister eats the last donut, even though shes not hungry)
-
-In regression, predicting the exact value is like finding a needle in a haystack. 
-If a house is worth 123,456 dollars and 78 cents.  then 123,456 dollars and 79 cents is 
-a pretty darned good prediction.  But technically it's wrong.
-That's why experts prefer error metrics over accuracy for regression.
-But hey, rules are made to be bent a little, right? So I introduced an 'accuracy' measure for regression
-—if we're within 0.5% of the target, we call it a win!
-I'm a big beliver in the more clues the better.
-And not for nothing when i ran it by the normally very polite chatGPT, it said i was mixing horseshoes handgrenades and nuclear bombs.
-Those NN Aficionados don't need to read it if they dont want..
-
-Now, let's see how we adapt our training data for regression.
-Previously, we generated a credit score between 1 and 100 and predicted whether 
-a loan would be repaid—yes or no.
-
-To ease into regression, we'll keep the credit scores but instead predict the probability of loan repayment—
-one of the infinite values between 0 and 1
-
-In binary decision, we're asking 'Will the loan be repaid?'. In regression, we're asking 
-'What's the likelihood the loan will be repaid?'. 
-It's a subtle but significant shift!
-
-With the theory covered, it's time for action! 
-and feel free to code along!  It's posted on github and the link is in the comments!
+1) Start with base Salary of 30k
+2) Add 2k per year of exp
+3) Add 3k per year of college
+4) Add some noise
+Keep in mind this Arena is more about providing test data for developing or multiple input handling
+opposed to trying to match exactly how it is in the real world
+> <<Visual split screen - old vs new prediction>>
 
 # Code Forge
-Here's our game plan:
-1) Look at the new even simpler Simpletron.  I'll show it side by side with the old one so you can see what's no longer required
-2) Modify that new template from BD to Regression (that will be the Blackbird).
-3) Add a bias component—that will be the Hayabusa.
 
-And with that, we are ready to unleash our Gladiators into three different Arena's and the Rumble will commence.
-And best yet, you get to play along at home.  When you see each Arena i'll ask you pick the winner!  So don't fall asleep now!
+> <<Visual of code editor split screen>>
 
-# Battle Royale (3 minutes)
+When upgrading, even a tiny tweak can make or break the whole model. 
+Here, we're carefully evolving the Simpletron to handle a new layer of complexity.
 
-- Run the models live
-- Provide commentary on what's happening in real-time
-- Highlight key moments and turning points
+Let's dive into the code! I'll show you how we're upgrading our Simpletron to handle multiple inputs.
 
-# Results Analysis (3 minutes)
+> <<Live coding isn't scripted>>
 
-- Break down the performance metrics
-- Visualize the learning curves
-- Discuss surprises and expected outcomes
 
-# Lessons from the Arena (2 minutes)
+# Battle Royale
 
-- Summarize key takeaways
-- Offer best practices for choosing learning rates
-- Relate to real-world applications
+> <<Visual of real-time competition>>
 
-# Next Battle Preview (30 seconds)
+Now it's time to see these neural networks in action! Let's take a look at our Arena
+Predict salary from years of experience and college
 
-- Tease the next episode's focus
-- Encourage viewers to make predictions
+Today, we're going to do a simple linear approach, on the next episode 
+we will add a curveball by making it multiplicative
 
-# Audience Engagement (30 seconds)
-Thank you for joining me on this journey into regression. I hope you found it as exciting as I did!
-Don't forget to like, share, and subscribe for more epic battles in the Neural Network Arena. 
-And let me know in the comments—what challenges should our Gladiators tackle next?
+30k base salary
+1-40 years of experience (4k / year)
+1-8 years of college     (5k / year)
+
+Now let's see if Hayabusa’s upgrade makes it the new champion, or
+if GBS will show us that multiple inputs demand Gradient Descent’s stinky touch.
+
+[Live competition runs]
+
+# Results Analysis
+
+> <<Visual of learning curves>>
+
+Let's break down what we just saw:
+
+# Lessons from the Arena
+
+Key takeaways from today's battle:
+1. In the real world, Real-world applications often need multiple inputs
+2. All you need for the additional input is an additional weight.
+2. Standard GBS update works on the new just like the old..
+3. Optimum weights correspond 
+# Next Battle Preview
+
+Next time, we're tackling feature scaling! 
+Scaling inputs is key—otherwise, GBS could end up swimming in more BS than it can handle!
+
+# Audience Engagement
+
+That's all for today's episode of Neural Network Arena! Don't forget to like and subscribe, 
+and let me know in the comments - what real-world problems would YOU solve with a two-input neural network?
 
 # Peace
-PEACE!!!
+
+As always... PEACE!!!

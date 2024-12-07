@@ -1,7 +1,7 @@
 from typing import List, Tuple
 from src.BaseArena import *
 from src.engine.Metrics import Metrics
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 
 class Template_Simpletron_Claude(Gladiator):
     """

@@ -21,8 +21,8 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
             hyper.accuracy_threshold)    # Set at Class level (not instance) one value shared across all instances
         self.epoch_curr_number = 1          # Which epoch are we currently on.
         self.metrics = []                   # The list of metrics this manager is running.
-        self.converge_detector              = (
-            ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs, training_data.sum_targets))
+        self.converge_detector              = ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs) #, training_data.sum_targets))
+        #33.899692251686986
 
 
     def record_iteration(self, result):
@@ -58,22 +58,6 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
                 # Model's prediction is outside the threshold
                 self.summary.fn += 1
 
-
-
-        """
-        if data.target == 0: # It's a Negative, either True  or False
-            if data.target == data.prediction:
-                self.summary.tn += 1
-            else:
-                self.summary.fn += 1
-        else:  # It's a Positive True if prediction is positive or within threshold for regression
-            if abs((data.target - data.prediction) / data.target) <= self.accuracy_threshold:
-                #print(f"True Positive, data.target={data.target}\tdata.prediction={data.prediction}")
-                self.summary.tp += 1
-            else:
-                #print(f"False Negative, data.target={data.target}\tdata.prediction={data.prediction}")
-                self.summary.fp += 1
-        """
     def finish_epoch_summary(self):
         self.summary.model_name = self.name
         self.summary.epoch = self.epoch_curr_number
@@ -84,7 +68,9 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         self.iteration_num = 0  # Reset counter back to zero
         self.epoch_summaries.append(self.summary)
         #print(f"epoch:{self.summary.epoch}self.summary.total_absolute_error = {self.summary.total_absolute_error}")
-        epochs_to_remove = self.converge_detector.check_convergence(self.summary.total_absolute_error) #, self.summary.final_weight)
+        mae= self.summary.total_absolute_error / self.summary.total_samples
+        #print (f"mean_absolute_error: {mae}")
+        epochs_to_remove = self.converge_detector.check_convergence(mae) #, self.summary.final_weight)
         if epochs_to_remove == 0:      # 0 indicates it has NOT converged
             self.summary = EpochSummary()   # Create summary for next epoch
             return False

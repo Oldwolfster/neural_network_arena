@@ -1,5 +1,5 @@
 from src.engine.Metrics import GladiatorOutput
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 import numpy as np
 
 class Regression_GBS_MultInputs(Gladiator):

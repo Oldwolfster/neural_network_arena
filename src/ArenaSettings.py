@@ -3,7 +3,7 @@ from dataclasses import dataclass
 @dataclass
 class ReportSelection:
     ############################################################
-    # BATTLE Parameters are set here                           #
+    # Report Parameters are set here                           #
     ############################################################
     Training_Evolution_with_Multiple_Scales :bool   = True
 
@@ -12,47 +12,58 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 1131       # Number of times training run will cycle through all training data
-    training_set_size       :int    = 100      # Qty of training data
+    epochs_to_run           :int    = 2999      # Number of times training run will cycle through all training data
+    training_set_size       :int    = 100       # Qty of training data
     converge_epochs         :int    = 100       # How many epochs of no change before we call it converged?
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
-    default_learning_rate   :float  = .001     # Affects magnitude of weight adjustments
-    converge_threshold      :float  = 0.01      # What percentage must weight be within compared to prior epochs weight to call it "same"
-    accuracy_threshold      :float  = .2        # Careful - raising this to 1 or higher will break binary decision
+    default_learning_rate   :float  = .0001     # Affects magnitude of weight adjustments
+    # .1 get's 4k    .1446456=4k      .14464565=29  .14= 29
+    #                                 .14464564
+    converge_threshold      :float  = .01      # What percentage must weight be within compared to prior epochs weight to call it "same"
+    accuracy_threshold      :float  = .1        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
 
     ############################################################
     # REPORT Parameters are set here                           #
     ############################################################
     display_train_data      :bool = True    # Display the training data at the end of the rn.
-    display_graphs          :bool = True   # Display Graphs at the end of run
+    display_graphs          :bool = True    # Display Graphs at the end of run
     display_epoch_sum       :bool = True    # Display the epoch summary
     display_logs            :bool = False   # Display the logs at the end of the run
-    #display_logs            :bool = True    # Display the logs at the end of the run
+    #display_logs            :bool = True   # Display the logs at the end of the run
     detail_log_min          :int  = 0       # Which epochs to display detailed logs for(min)
     detail_log_max          :int  = 10000       # Which epochs to display detailed logs for(min)
+
+
 ############################################################
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
-training_pit              = "SingleInput_CreditScore"
-#training_pit              = "CreditScoreRegression"
-training_pit              = "CreditScoreRegressionNeedsBias"
-training_pit               = "Manual"
-training_pit              = "Predict_Income_1_Input"
-training_pit              = "Predict_Income_2_Inputs_NoImpactFrom2nd"
-training_pit              = "Predict_Income_2_InputsLinear"
-#training_pit              = "Predict_Income_2_InputsFeatureEngineer"
-#training_pit              = "Predict_Income_2_InputsFeatureEngineerAndScaled"
-#training_pit              = "SalaryExperienceRegressionNeedsBias"
+
+training_pit              = "Predict_Income_2_Inputs"
+#training_pit              = "Manual"
+
 
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    'Regression_Hayabusa'
-    #,'Regression_GBS'
+    #"HayabusaFixed"
+    #,'Blackbird'
+    'Hayabusa'
+    #'GBS'
 
 ]
+
+
+
+
+
+
+
+
+
+
+
 
 ############################################################
 # List or use training data from a previous run            #

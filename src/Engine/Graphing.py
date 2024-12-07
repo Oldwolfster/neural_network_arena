@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def all_graphs(metrics):
+
+
     plot_training_metrics(metrics)
     plot_convergence(metrics)
     #plot_precision_recall(metrics)

@@ -1,5 +1,4 @@
-from src.engine.Metrics import GladiatorOutput
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 
 
 class Hayabusa2(Gladiator):

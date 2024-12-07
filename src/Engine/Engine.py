@@ -8,7 +8,7 @@ from .SQL import record_training_data
 from src.engine.Reporting import print_results
 from src.ArenaSettings import *
 from src.engine.BaseArena import BaseArena
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
 from .TrainingData import TrainingData
 
@@ -52,10 +52,6 @@ def get_training_data(hyper):
     arena = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
     return TrainingData(arena.generate_training_data())             # Place holder to do any needed analysis on training data
 
-
-import os
-import importlib
-import inspect
 
 import os
 import importlib

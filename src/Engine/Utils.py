@@ -14,6 +14,8 @@ def smart_format(number):
     def format_single(num):
         if num == 0:
             return "0"
+        elif abs(num) < .001:
+            return f"{num:,.6f}"
         elif abs(num) < 1:
             return f"{num:,.3f}"
         elif abs(num) > 1000:

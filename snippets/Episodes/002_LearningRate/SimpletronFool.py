@@ -1,5 +1,5 @@
 from src.engine.Metrics import Metrics
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 
 class SimpletronFool(Gladiator):
     """

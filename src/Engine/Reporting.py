@@ -49,7 +49,8 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
 
                 chunks = list(chunk_list(correlated_log, repeat_header_interval))  # Split correlated_log into sublists of length repeat_header_interval
                 for chunk in chunks:  # Prepare each chunk for printing
-                    buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+                    #buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+                    print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
 
     # Join all chunks into a single string with a newline separator and print once
     print("\n\n".join(buffer))
@@ -163,7 +164,13 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
     #print(epoch_summary)
     epoch_summaries.append(epoch_summary)
 
-def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -> List:
+
+######################################################################################
+############# Third level of reporting, Model Comparision#############################
+######################################################################################
+
+
+def collect_final_epoch_summary_ONLYONEWEIGHT(mgr_list: List[MetricsMgr], problem_type: str) -> List:
     final_summaries = []
     for mgr in mgr_list:
         if mgr.epoch_summaries:  # Check if there are epoch summaries available
@@ -191,9 +198,37 @@ def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -
 
 
 
-######################################################################################
-############# Third level of reporting, Model Comparision#############################
-######################################################################################
+def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -> List:
+    final_summaries = []
+    for mgr in mgr_list:
+        if mgr.epoch_summaries:  # Check if there are epoch summaries available
+            last_summary = mgr.epoch_summaries[-1]  # Get the last epoch summary
+
+            # Create a list starting with model name and runtime
+            summary_row = [last_summary.model_name, smart_format(mgr.run_time)]
+
+            # Explicitly slice and order the fields we need (using dot notation for clarity)
+            summary_fields = [
+                last_summary.epoch,
+                #last_summary.final_weight[0],
+                "\n".join(
+                    f"{smart_format(last_summary.final_weight[i])}"
+                    for i in range(len(last_summary.final_weight))
+                ),
+                last_summary.final_bias,
+                last_summary.total_absolute_error,
+                last_summary.tp + last_summary.tn,  # Correct
+                last_summary.fp + last_summary.fn,  # Wrong
+                f"{smart_format((last_summary.tp + last_summary.tn) / last_summary.total_samples * 100)}%",  # Accuracy
+                smart_format(last_summary.total_absolute_error / last_summary.total_samples)  # Mean Abs Error
+            ]
+            # Append the sliced fields to the summary_row
+            summary_row.extend(summary_fields)
+
+            final_summaries.append(summary_row)
+    return final_summaries
+
+
 
 def print_model_comparison(mgr_list : List[MetricsMgr],problem_type):
     # Collect and print final epoch summaries

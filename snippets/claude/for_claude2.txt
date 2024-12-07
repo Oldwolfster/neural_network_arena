@@ -32,13 +32,10 @@ We've been working on "Neural Network Arena" for about 3 months. Key points:
 - Exploring various aspects of neural networks, from basic concepts to advanced techniques
 
 ## Current Focus
-- Need to decide what to do next.
-  - Leaning toward a video deep diving in to decision boundaries.   We've uncovered unusual information that is not the current "belief" so want to share.
-  - Very close to ready to do video comparing binary decision to regression.
-  - Very close to video on activation functions, however the simpletron is to simple to leverage them and they do not impact results, so thinking we should push back and see if in regression we can show benefit of them.
+- Video for multiple inputs
 
 ## Tools and Technologies
-I'm not a big python fan either, i'd rate it about 23rd on my list of favorite languages,
+I'm not a big python fan either, i'd rate it about 2 out of about 25 on my list of favorite languages,
 but as it's the language of ML it's what we are using.
 
 ## Youtube Series Evolving Plan
@@ -47,26 +44,24 @@ Phase 1: Single Neuron, Single Input
 Introduction to Simpletron (DONE)
 Learning Rate and Convergence (DONE)
 Bias in Neural Networks (DONE)
-Binary vs Regression(Continuous values)
-Activation Functions (Linear vs Non-linear)
-Cost Functions and their Impact  Cross Entropy, MSE, MAE,  BCE, CCE, Hinge, Huber, KL Divergence
-Gradient Descent Variations (e.g., Stochastic vs Batch)
-Batch vs. Online Learning
-min-max scaling or standardization (z-score normalization)
+Binary vs Regression(DONE)
 
 Phase 2: Multiple Inputs
-From Single to Multiple Inputs
-Feature Scaling and Normalization
+Introducting Multipe Inputs
+Feature Scaling and normalization min-max scaling or standardization (z-score normalization)
+Cost Functions and their Impact  Cross Entropy, MSE, MAE,  BCE, CCE, Hinge, Huber, KL Divergence
+Activation Functions (Linear vs Non-linear)
+
+Phase 3: Multiple Neurons (Single Layer)
 The XOR Problem and its Significance (Single layer perceptron cannot solve)
 Multivariate Regression vs Classification
 
-Phase 3: Multiple Neurons (Single Layer)
 Phase 4: Multiple Layers
-11. Introduction to Multi-Layer Perceptrons
-12. Backpropagation Explained
-13. Vanishing and Exploding Gradients
-14. Regularization Techniques
-15. Dropout and Other Modern Techniques
+Introduction to Multi-Layer Perceptrons
+Backpropagation Explained
+Vanishing and Exploding Gradients
+Regularization Techniques
+Dropout and Other Modern Techniques
 
 Phase 5: Bonus Videos (can be interspersed)
 The Math Behind Neural Networks
@@ -75,6 +70,5 @@ Real-world Applications of Simple NNs
 Common Mistakes and How to Avoid Them
 Neural Network "Battle Royale": Comparing Different Architectures
 Ensemble Methods: As you progress, you could introduce simple ensemble methods, showing how combining multiple "weak" Gladiators can sometimes outperform a single "strong" one.
-
-## Next Steps
-[Outline of immediate goals or tasks for our current session]
+Gradient Descent Variations (e.g., Stochastic vs Batch)
+Batch vs. Online Learning

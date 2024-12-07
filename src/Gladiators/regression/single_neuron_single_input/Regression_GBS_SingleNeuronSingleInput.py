@@ -1,5 +1,5 @@
 from src.engine.Metrics import GladiatorOutput
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 
 class Regression_GBS(Gladiator):
     """
@@ -11,8 +11,8 @@ class Regression_GBS(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.bias = .5
-        self.weights = [0.1]
+        #self.bias = .5
+        #self.weights = [0.1]
 
     def training_iteration(self, training_data) -> GladiatorOutput:
         input = training_data[0]

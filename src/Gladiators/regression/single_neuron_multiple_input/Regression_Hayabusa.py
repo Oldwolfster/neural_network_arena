@@ -1,5 +1,5 @@
 from src.engine.Metrics import GladiatorOutput
-from src.engine.BaseGladiator import Gladiator
+from src.gladiators.BaseGladiator import Gladiator
 
 
 class Hayabusa2_2inputs(Gladiator):
@@ -21,7 +21,7 @@ class Hayabusa2_2inputs(Gladiator):
         # Step 1) Guess
         prediction      =  inp0 * self.weights[0]
         prediction      += inp1 * self.weights[1]
-        #prediction      += inp2 * self.weights[2]
+        #prediction     += inp2 * self.weights[2]
         prediction      += self.bias
         #
         error           = target - prediction               # Step 2) Check guess,

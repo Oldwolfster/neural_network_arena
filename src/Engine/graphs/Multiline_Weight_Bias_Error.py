@@ -6,7 +6,7 @@ class WeightVisualizer:
     def __init__(self):
         self.colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd']
 
-    def plot_multi_scale(self, summaries, figsize=(12, 8)):
+    def plot_multi_scale(self, summaries,title, figsize=(12, 8)):
         """
         Create a multi-scale plot showing weights, bias, and MAE evolution
         Each metric gets its own y-axis scale to show patterns clearly
@@ -84,7 +84,7 @@ class WeightVisualizer:
 
         # Set title and labels
         host.set_xlabel('Epoch')
-        plt.title('Training Evolution with Multiple Scales')
+        plt.title(f"{title}Training Evolution with Multiple Scales")
 
         # Add legend
         host.legend(lines, labels, loc='center left', bbox_to_anchor=(1.1, 0.5))
@@ -162,11 +162,11 @@ class WeightVisualizer:
 
 # Example usage:
 
-def run_multiline_weight_bias_error(summaries):
+def run_multiline_weight_bias_error(summaries, title):
     visualizer = WeightVisualizer()
 
     # For multi-scale plot
-    fig, axes = visualizer.plot_multi_scale(summaries)
+    fig, axes = visualizer.plot_multi_scale(summaries, title)
     plt.show()
 
     # For normalized plot
