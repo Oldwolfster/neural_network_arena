@@ -1,173 +1,75 @@
-import torch
-import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Custom activation functions
-class ShiftedReLU(nn.Module):
-    def forward(self, x):
-        return torch.maximum(torch.tensor(-1.0), x)
+# Unscaled data
+X_unscaled = np.array([
+    [0, 200],
+    [50, 95],
+    [100, 10]
+])
+y = np.array([200, 150, 110])
 
-class ScaledSigmoid(nn.Module):
-    def forward(self, x):
-        return 2 * torch.sigmoid(x) - 1
+# Min-Max scaled data
+def min_max_scale(X):
+    return (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
 
-# Networks with proper loss handling
-class StandardNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.layer1 = nn.Linear(2, 4)
-        self.relu = nn.ReLU()
-        self.layer2 = nn.Linear(4, 1)
-        self.sigmoid = nn.Sigmoid()
+X_scaled = min_max_scale(X_unscaled)
 
-    def forward(self, x):
-        x = self.layer1(x)
-        x = self.relu(x)
-        x = self.layer2(x)
-        return self.sigmoid(x)
+def compute_gradient(X, y, weights):
+    n = len(y)
+    predictions = X @ weights
+    return -2/n * X.T @ (y - predictions)
 
-class ModifiedNet(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.layer1 = nn.Linear(2, 4)
-        self.shifted_relu = ShiftedReLU()
-        self.layer2 = nn.Linear(4, 1)
-        # Note: We still need regular sigmoid for BCE loss
-        self.sigmoid = nn.Sigmoid()
+# Gradient computation for unscaled and scaled data
+def plot_gradient_comparison():
+    plt.figure(figsize=(12,5))
 
-    def forward(self, x):
-        x = self.layer1(x)
-        x = self.shifted_relu(x)
-        x = self.layer2(x)
-        return self.sigmoid(x)
+    # Unscaled data gradient computation
+    weights_unscaled = np.zeros(2)
+    gradients_unscaled = []
+    for _ in range(100):
+        grad = compute_gradient(X_unscaled, y, weights_unscaled)
+        gradients_unscaled.append(np.linalg.norm(grad))
+        weights_unscaled -= 0.01 * grad
 
-    # Separate method for getting [-1,1] output
-    def predict_scaled(self, x):
-        return self.scaled_sigmoid(self.layer2(self.shifted_relu(self.layer1(x))))
+    # Scaled data gradient computation
+    weights_scaled = np.zeros(2)
+    gradients_scaled = []
+    for _ in range(100):
+        grad = compute_gradient(X_scaled, y, weights_scaled)
+        gradients_scaled.append(np.linalg.norm(grad))
+        weights_scaled -= 0.01 * grad
 
-def generate_data():
-    np.random.seed(42)
-    n_points = 1000
+    # Plot gradients
+    plt.subplot(1,2,1)
+    plt.title('Unscaled Data Gradient Magnitude')
+    plt.plot(gradients_unscaled)
+    plt.ylabel('Gradient Magnitude')
+    plt.xlabel('Iteration')
 
-    X1 = np.random.randn(n_points//2, 2) * 0.5 + np.array([1, 1])
-    X2 = np.random.randn(n_points//2, 2) * 0.5 + np.array([-1, -1])
-    X = np.vstack([X1, X2])
+    plt.subplot(1,2,2)
+    plt.title('Scaled Data Gradient Magnitude')
+    plt.plot(gradients_scaled)
+    plt.ylabel('Gradient Magnitude')
+    plt.xlabel('Iteration')
 
-    y = np.zeros(n_points)
-    y[:n_points//2] = 1
+    plt.tight_layout()
+    plt.show()
 
-    # Normalize inputs to [-1, 1] range
-    X = (X - X.min()) / (X.max() - X.min()) * 2 - 1
+    print("Unscaled final weights:", weights_unscaled)
+    print("Scaled final weights:", weights_scaled)
 
-    X = torch.FloatTensor(X)
-    y = torch.FloatTensor(y).reshape(-1, 1)
+# Run the comparison
+plot_gradient_comparison()
 
-    return X, y
+# Detailed gradient analysis
+def detailed_gradient_analysis():
+    print("\nUnscaled Data Gradient:")
+    grad_unscaled = compute_gradient(X_unscaled, y, np.zeros(2))
+    print("Gradient for each feature:", grad_unscaled)
 
-def train_model(model, X, y, epochs=100):
-    torch.manual_seed(42)  # Add seed for reproducibility
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    criterion = nn.BCELoss()
+    print("\nScaled Data Gradient:")
+    grad_scaled = compute_gradient(X_scaled, y, np.zeros(2))
+    print("Gradient for each feature:", grad_scaled)
 
-    losses = []
-
-    for epoch in range(epochs):
-        optimizer.zero_grad()
-        output = model(X)
-        loss = criterion(output, y)
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())
-
-        if epoch % 10 == 0:
-            print(f'Epoch {epoch}, Loss: {loss.item():.4f}')
-
-    return losses
-
-# Run experiment
-rndSeed = 42
-print("Generating data...")
-X, y = generate_data()
-
-print("\nTraining standard network...")
-standard_net = StandardNet()
-standard_losses = train_model(standard_net, X, y)
-
-print("\nTraining modified network...")
-modified_net = ModifiedNet()
-modified_losses = train_model(modified_net, X, y)
-
-# Plotting results
-plt.figure(figsize=(15, 5))
-
-# Plot 1: Training Losses
-plt.subplot(1, 3, 1)
-plt.plot(standard_losses, label='Standard')
-plt.plot(modified_losses, label='Modified')
-plt.title('Training Loss')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.grid(True)
-
-# Plot 2: Decision Boundaries - Standard Net
-plt.subplot(1, 3, 2)
-x1_range = np.linspace(-1, 1, 100)
-x2_range = np.linspace(-1, 1, 100)
-X1, X2 = np.meshgrid(x1_range, x2_range)
-grid = torch.FloatTensor(np.c_[X1.ravel(), X2.ravel()])
-Z_standard = standard_net(grid).detach().numpy().reshape(X1.shape)
-
-plt.contourf(X1, X2, Z_standard, levels=20, cmap='RdBu')
-plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap='RdYlBu')
-plt.title('Standard Network')
-plt.grid(True)
-
-# Plot 3: Decision Boundaries - Modified Net
-plt.subplot(1, 3, 3)
-Z_modified = modified_net(grid).detach().numpy().reshape(X1.shape)
-plt.contourf(X1, X2, Z_modified, levels=20, cmap='RdBu')
-plt.scatter(X[:, 0], X[:, 1], c=y.reshape(-1), cmap='RdYlBu')
-plt.title('Modified Network')
-plt.grid(True)
-
-plt.tight_layout()
-plt.show()
-
-# Activation function comparison
-x = torch.linspace(-2, 2, 200)
-
-plt.figure(figsize=(15, 5))
-
-# Plot standard ReLU
-plt.subplot(1, 3, 1)
-plt.plot(x.numpy(), nn.ReLU()(x).numpy(), label='Standard ReLU')
-plt.title('Standard ReLU')
-plt.grid(True)
-
-# Plot shifted ReLU
-plt.subplot(1, 3, 2)
-plt.plot(x.numpy(), ShiftedReLU()(x).numpy(), label='Shifted ReLU')
-plt.title('Shifted ReLU')
-plt.grid(True)
-
-# Plot both sigmoids
-plt.subplot(1, 3, 3)
-plt.plot(x.numpy(), nn.Sigmoid()(x).numpy(), label='Standard Sigmoid')
-plt.plot(x.numpy(), ScaledSigmoid()(x).numpy(), label='Scaled Sigmoid')
-plt.title('Sigmoid Comparison')
-plt.legend()
-plt.grid(True)
-
-plt.tight_layout()
-plt.show()
-
-# Print final accuracies with seed information
-print("\nFinal Results:")
-with torch.no_grad():
-    standard_acc = ((standard_net(X) > 0.5) == y).float().mean()
-    modified_acc = ((modified_net(X) > 0.5) == y).float().mean()
-
-print(f"Standard Network Accuracy: {standard_acc:.4f}")
-print(f"Modified Network Accuracy: {modified_acc:.4f}")
+detailed_gradient_analysis()
