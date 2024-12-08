@@ -12,6 +12,7 @@ class Gladiator(ABC):
         gladiator = args[0]
         self.hyper = args[1]
         self.training_data = args[2]
+        self.training_data.reset_to_default()
         self.number_of_epochs = self.hyper.epochs_to_run
         self.metrics_mgr =  MetricsMgr(gladiator,  self.hyper, self.training_data)          # Create a new Metrics instance with the name as a string)  # Create a new Metrics instance with the name as a string
         #self.weight = self.hyper.default_neuron_weight

@@ -37,23 +37,58 @@ def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
     repeat_header_interval = 10
     correlated_log = []                                     # Create new list to merge and format data
     buffer = []  # Initialize an empty list to hold the output
+
+
+    # Create correlate log (i.e. epoch 1 for each model, epoch 2 for each model, etc.)
     for row in range(max_rows):                             # Loop through each iteration
         #if row_counter > MAX_ITERATION_LINES:                              # Exit the loop if row_counter exceeds 2000
 
-        for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each model
+        for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each Model's Metrics Mgr
+            if row < lengths[mgr_idx]:
+                # Instead of adding headers in body we will print many tabulates add_extra_headers(correlated_log, row_counter, repeat_header_interval, headers)
+                append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row], hyper)
+                row_counter += 1
+
+    chunks = list(chunk_list(correlated_log, repeat_header_interval))  # Split correlated_log into sublists of length repeat_header_interval
+    for chunk in chunks:  # Prepare each chunk for printing
+        buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+        #print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+
+    # Join all chunks into a single string with a newline separator and print once
+    print("\n\n".join(buffer))
+
+
+def print_iteration_logs20241208(mgr_list: List[MetricsMgr], hyper : HyperParameters):
+    if not hyper.display_logs:
+        return
+    headers = ["Step Detail", "Epoc\nStep",  "Weight * Input + Bias", "Prediction","Target", "Error", "New Weight/Chg",  "New\nBias"]
+    row_counter = 0  # Keep track of the number of rows printed
+    max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
+
+    # Create a list of count of iteration and name for each manager's metrics
+    lengths = [len(mgr.metrics) for mgr in mgr_list]
+    model_names = [mgr.name for mgr in mgr_list]
+
+    repeat_header_interval = 10
+    correlated_log = []                                     # Create new list to merge and format data
+    buffer = []  # Initialize an empty list to hold the output
+    for row in range(max_rows):                             # Loop through each iteration
+        #if row_counter > MAX_ITERATION_LINES:                              # Exit the loop if row_counter exceeds 2000
+
+        for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each Model's Metrics Mgr
             if row < lengths[mgr_idx]:
                 # Instead of adding headers in body we will print many tabulates add_extra_headers(correlated_log, row_counter, repeat_header_interval, headers)
                 append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row], hyper)
                 row_counter += 1
 
 
-                chunks = list(chunk_list(correlated_log, repeat_header_interval))  # Split correlated_log into sublists of length repeat_header_interval
-                for chunk in chunks:  # Prepare each chunk for printing
-                    #buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
-                    print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+        chunks = list(chunk_list(correlated_log, repeat_header_interval))  # Split correlated_log into sublists of length repeat_header_interval
+        for chunk in chunks:  # Prepare each chunk for printing
+            #buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+            print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
 
     # Join all chunks into a single string with a newline separator and print once
-    print("\n\n".join(buffer))
+
 def append_iteration_row(correlated_log: list, model_name: str, data_row, hyper : HyperParameters,):
     data        = data_row.to_list()
     epoch       = data[0]
@@ -92,7 +127,6 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row, hyper 
     correlated_log.append([
         model_name,
         f"{epoch} / {data[1]}",  # Epoch and iteration #
-
         weighted_terms,             # Concatenated Weighted Term calculations
         f"{smart_format(data[4])}", # Prediction
         smart_format(data[3]),      # Target

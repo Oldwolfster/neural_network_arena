@@ -1,23 +1,5 @@
-from typing import List, Tuple, Optional
 from dataclasses import dataclass
-import statistics
-import random
-import math
-
-@dataclass
-class Sample:
-    """
-    Represents a single training sample with input features and target value.
-
-    Attributes:
-        inputs: A tuple of feature values for the sample
-        target: The target/label value for the sample
-        is_outlier: Flag indicating whether this sample has been marked as an outlier
-    """
-    inputs: Tuple[float, ...]
-    target: float
-    is_outlier: bool = False
-
+from typing import List, Tuple, Optional
 
 class TrainingData:
     """
@@ -47,293 +29,173 @@ class TrainingData:
             ValueError: If data contains inconsistent feature dimensions
             ValueError: If any numeric values are invalid (NaN or infinite)
         """
-        if not data:
-            raise ValueError("Cannot initialize TrainingData with empty data")
-
-        # Validate data consistency
-        feature_dim = len(data[0]) - 1  # -1 for target value
-        if any(len(sample) - 1 != feature_dim for sample in data):
-            raise ValueError(f"Inconsistent feature dimensions. Expected {feature_dim} features for all samples")
-
-        # Validate numeric values
-        for i, sample in enumerate(data):
-            if any(not math.isfinite(x) for x in sample):
-                raise ValueError(f"Invalid numeric value (NaN or infinite) found in sample at index {i}")
-
-        self.td_original: List[Sample] = [
-            Sample(inputs=sample[:-1], target=sample[-1]) for sample in data
-        ]
-        self.td_zscore: List[Sample] = []
-        self.td_minmax: List[Sample] = []
-        self._sample_count: int = len(self.td_original)
-        self.current_data_list: List[Sample] = self.td_original
-
-        # Normalization parameters
-        self._zscore_means: Optional[List[float]] = None
-        self._zscore_stdevs: Optional[List[float]] = None
+        self.td_original    = [Tuple[float, ...]]
+        self.td_original    = data                  # Store the original data
+        self.td_z_score     = [Tuple[float, ...]]   # List in case model requests zscore
+        self.td_min_max     = []   # List in case model request minmax
+        self.td_current     = self.td_original      # pointer to the "selected list" defaults to original
+        self.count          = None
+        self.sum_targets    = None
 
     @property
     def sample_count(self) -> int:
         """
-        Get the total number of samples in the dataset.
-
         Returns:
-            int: The number of samples in the dataset
+            int: The number of samples in the training data
         """
-        return self._sample_count
+        if self.count is None:
+            self.count = len(self.td_original)
+        return self.count
 
     @property
-    def sum_targets(self) -> float:
+    def sum_of_targets(self) -> int:
         """
-        Calculate the sum of all target values in the original dataset.
+        Returns:
+            int: The sum of the targets for the entire training data
+        """
+        if self.sum_targets is None:
+            self.sum_targets = sum(tuple[-1] for tuple in self.td_original)
+        return self.sum_targets
+
+    def get_list(self) -> List[Tuple[float, ...]]:
+        """
+        Get all samples as a list of tuples based on current normalization selection.
 
         Returns:
-            float: Sum of all target values
-
-        Raises:
-            OverflowError: If the sum exceeds floating-point limits
+            List[Tuple[float, ...]]: List where each tuple contains feature values(inputs) followed by target value
         """
-        try:
-            return sum(sample.target for sample in self.td_original)
-        except OverflowError as e:
-            raise OverflowError("Sum of targets exceeded floating-point limits") from e
+        return self.td_current
 
-    def set_normalization_original(self) -> None:
+
+    def reset_to_default(self) -> None:
         """
         Reset the current data list to use the original, unnormalized data.
         This operation is always safe and does not require computation.
         """
-        self.current_data_list = self.td_original
+        self.td_current = self.td_original
 
-    def set_normalization_zscore(self) -> None:
+
+    def calculate_min_max(self):
         """
-        Set the current data list to use Z-score normalized data.
-        Z-score normalization transforms features to have mean=0 and standard deviation=1.
-        Computation is performed lazily on first call.
+        Calculates the global min and max for each feature across all data tuples.
 
-        Raises:
-            ValueError: If normalization fails due to zero standard deviation in any feature
-            RuntimeError: If computation fails for any other reason
+        :return: Two lists containing min and max values for each feature.
         """
-        if not self.td_zscore:
-            try:
-                self._compute_zscore_normalization()
-            except Exception as e:
-                raise RuntimeError(f"Failed to compute Z-score normalization: {str(e)}") from e
-        self.current_data_list = self.td_zscore
+        if not self.td_current:
+            raise ValueError("No data available for normalization.")
 
-    def set_normalization_minmax(self, min_value: float = 0.0, max_value: float = 1.0) -> None:
+        num_features = len(self.td_current[0]) - 1  # Exclude label
+        min_values = [float('inf')] * num_features
+        max_values = [float('-inf')] * num_features
+
+        for tuple in self.td_current:
+            for i in range(num_features):
+                feature = tuple[i]
+                if feature < min_values[i]:
+                    min_values[i] = feature
+                if feature > max_values[i]:
+                    max_values[i] = feature
+
+        return min_values, max_values
+
+
+    def set_normalization_min_max(self):
         """
-        Set the current data list to use Min-Max normalized data.
-        Min-Max normalization scales features to a specified range.
-        Computation is performed lazily on first call.
-
-        Args:
-            min_value: Desired minimum value after normalization (default: 0.0)
-            max_value: Desired maximum value after normalization (default: 1.0)
-
-        Raises:
-            ValueError: If min_value >= max_value
-            ValueError: If any feature has zero range (max = min)
-            RuntimeError: If computation fails for any other reason
-        """
-        if min_value >= max_value:
-            raise ValueError("min_value must be less than max_value")
-
-        if not self.td_minmax:
-            try:
-                self._compute_minmax_normalization(min_value, max_value)
-            except Exception as e:
-                raise RuntimeError(f"Failed to compute Min-Max normalization: {str(e)}") from e
-        self.current_data_list = self.td_minmax
-
-    def get_list(self) -> List[Tuple[float, ...]]:
-        """
-        Get all samples as a list of tuples based on current normalization.
+        1) populates list td_minmax with the features (all elements except the last) using min-max scaling.
+        2) points the "current list" to td_min_max
 
         Returns:
-            List[Tuple[float, ...]]: List where each tuple contains feature values followed by target value
+            td_min_max
         """
-        return [(*sample.inputs, sample.target) for sample in self.current_data_list]
+        min_values, max_values = self.calculate_min_max()
+        denominators = []
 
-    def get_sample(self, index: int) -> Sample:
-        """
-        Retrieve a single sample based on current normalization.
+        # Calculate denominators and handle division by zero
+        for min_val, max_val in zip(min_values, max_values):
+            denominator = max_val - min_val
+            if denominator == 0:
+                denominator = 1  # To avoid division by zero; alternatively, set normalized value to 0
+            denominators.append(denominator)
 
-        Args:
-            index: Index of the desired sample
+        for idx, tuple in enumerate(self.td_current):
+            print(f"Unnormalized tuple #{idx + 1}: {tuple}")
+            norm_tuple = []
+            for x, feature in enumerate(tuple[:-1]):
+                print(f"  Feature #{x + 1}: {feature}")
+                norm_value = (feature - min_values[x]) / denominators[x]
+                norm_tuple.append(norm_value)
+                print(f"    Normalized Feature #{x + 1}: {norm_value}")
+            norm_tuple.append(tuple[-1])  # Append the label without normalization
+            self.td_min_max.append(norm_tuple)
+            #print(f"  Normalized tuple #{idx + 1}: {tuple(norm_tuple)}\n")
+        print(f"Normalized data{self.td_min_max}")
+        self.td_current = self.td_min_max # Point "Current mode" to the min max list
+
+
+"""
+        # create a list of min and max values for each input
+        min_values = [min(tuple[:-1]) for tuple in self.td_current]
+        max_values = [max(tuple[:-1]) for tuple in self.td_current]
+        denominators = max_values - min)values
+
+        for tuple in self.td_current:
+            print(f"unnormalized features:{tuple}")
+            for x, input in  enumerate(tuple[:-1]):
+                norm_tuple=[]
+                print(f"#{x} input:{input}")
+                norm_value = input - min_values[x]
+                norm_tuple.append(norm_value)
+            norm_tuple.append(tuple[-1])
+            print(f"#{x} input:{input}")
+            #self.td_min_max.append()
+            #normalized_features = [(    feature - min_val) /
+            #                       (    max_val - min_val)
+            #                            for feature, min_val, max_val
+            #                            in zip(tuple[:-1], min_values, max_values)]
+
+            # normalized_tuple    =       tuple(normalized_features) + (tuple[-1],)  # Add the original target
+            # Above line gives error: TypeError: 'tuple' object is not callable
+            # normalized_tuple = zip(normalized_features,tuple[-1])
+            # normalized_tuple = tuple(normalized_features + (tuple[-1],))
+            # Above line gives error: TypeError: can only concatenate list (not "tuple") to list
+            print (f"notmalized features {normalized_features}")
+            #normalized_tuple = tuple(normalized_features + [tuple[-1]])
+            # Above line gives error: TypeError: 'tuple' object is not callable
+            self.td_min_max     .       append(normalized_tuple)
+
+        self.td_current         =       self.td_min_max # Point "Current mode" to the min max list
+
+
+
+
+
+
+
+
+
+
+
+
+
+    "" "
+
+    def z_scale(self):
+        "" "Normalizes the features (all elements except the last) using z-score scaling.
 
         Returns:
-            Sample: The requested sample
+            A new list of tuples with normalized features and the original target.
+        "" "
 
-        Raises:
-            IndexError: If index is out of range
-        """
-        if not 0 <= index < self._sample_count:
-            raise IndexError(f"Sample index {index} out of range [0, {self._sample_count - 1}]")
-        return self.current_data_list[index]
+        # Calculate the mean and standard deviation for each feature
+        means = [sum(feature) / len(self.td_current) for feature in zip(*self.td_current[:-1])]
+        stds = [((feature - mean) ** 2).sum() / (len(self.td_current) - 1) for feature, mean in zip(zip(*self.td_current[:-1]), means)]
 
-    def _compute_zscore_normalization(self) -> None:
-        """
-        Compute Z-score normalization parameters and normalized data.
-        Results are stored in td_zscore list.
+        normalized_data = []
+        for tuple in self.td_current:
+            normalized_features = [(feature - mean) / std for feature, mean, std in zip(tuple[:-1], means, stds)]
+            normalized_tuple = tuple(normalized_features) + (tuple[-1],)  # Add the original target
+            normalized_data.append(normalized_tuple)
 
-        Raises:
-            ValueError: If any feature has zero standard deviation
-            RuntimeError: If computation fails for any other reason
-        """
-        num_features = len(self.td_original[0].inputs)
-        feature_values = [[] for _ in range(num_features)]
+        return normalized_data
 
-        # Collect values for each feature
-        for sample in self.td_original:
-            for i, value in enumerate(sample.inputs):
-                feature_values[i].append(value)
-
-        try:
-            # Compute mean and std for each feature
-            self._zscore_means = [statistics.mean(values) for values in feature_values]
-            self._zscore_stdevs = [statistics.stdev(values) for values in feature_values]
-
-            # Check for zero standard deviations
-            zero_std_features = [i for i, std in enumerate(self._zscore_stdevs) if std == 0]
-            if zero_std_features:
-                raise ValueError(f"Zero standard deviation in features at indices: {zero_std_features}")
-
-            # Normalize inputs
-            for sample in self.td_original:
-                normalized_inputs = tuple(
-                    (value - self._zscore_means[i]) / self._zscore_stdevs[i]
-                    for i, value in enumerate(sample.inputs)
-                )
-                self.td_zscore.append(Sample(inputs=normalized_inputs, target=sample.target))
-        except Exception as e:
-            self.td_zscore = []  # Reset on failure
-            raise RuntimeError(f"Z-score normalization failed: {str(e)}") from e
-
-    def _compute_minmax_normalization(self, min_value: float, max_value: float) -> None:
-        """
-        Compute Min-Max normalization parameters and normalized data.
-        Results are stored in td_minmax list.
-
-        Args:
-            min_value: Desired minimum value after normalization
-            max_value: Desired maximum value after normalization
-
-        Raises:
-            ValueError: If any feature has zero range (max = min)
-            RuntimeError: If computation fails for any other reason
-        """
-        num_features = len(self.td_original[0].inputs)
-        feature_values = [[] for _ in range(num_features)]
-
-        # Collect values for each feature
-        for sample in self.td_original:
-            for i, value in enumerate(sample.inputs):
-                feature_values[i].append(value)
-
-        try:
-            # Compute min and max for each feature
-            mins = [min(values) for values in feature_values]
-            maxs = [max(values) for values in feature_values]
-
-            # Check for zero ranges
-            zero_range_features = [i for i, (min_val, max_val)
-                                 in enumerate(zip(mins, maxs))
-                                 if min_val == max_val]
-            if zero_range_features:
-                raise ValueError(f"Zero range (max = min) in features at indices: {zero_range_features}")
-
-            # Normalize inputs
-            for sample in self.td_original:
-                normalized_inputs = tuple(
-                    ((value - mins[i]) / (maxs[i] - mins[i]) * (max_value - min_value) + min_value)
-                    for i, value in enumerate(sample.inputs)
-                )
-                self.td_minmax.append(Sample(inputs=normalized_inputs, target=sample.target))
-        except Exception as e:
-            self.td_minmax = []  # Reset on failure
-            raise RuntimeError(f"Min-Max normalization failed: {str(e)}") from e
-
-    @property
-    def zscore_means(self) -> Optional[List[float]]:
-        """
-        Get the means used in Z-score normalization, if computed.
-
-        Returns:
-            Optional[List[float]]: List of means for each feature, or None if Z-score
-                                 normalization hasn't been computed
-        """
-        return self._zscore_means
-
-    @property
-    def zscore_stdevs(self) -> Optional[List[float]]:
-        """
-        Get the standard deviations used in Z-score normalization, if computed.
-
-        Returns:
-            Optional[List[float]]: List of standard deviations for each feature,
-                                 or None if Z-score normalization hasn't been computed
-        """
-        return self._zscore_stdevs
-
-    def segment_data(self, validation_ratio: float = 0.2) -> Tuple['TrainingData', 'TrainingData']:
-        """
-        Split data into training and validation sets.
-
-        Args:
-            validation_ratio: Proportion of data to use for validation (default: 0.2)
-
-        Returns:
-            Tuple[TrainingData, TrainingData]: Tuple containing (training_data, validation_data)
-
-        Raises:
-            ValueError: If validation_ratio is not in range (0, 1)
-            ValueError: If dataset is too small to split given the ratio
-        """
-        if not 0 < validation_ratio < 1:
-            raise ValueError("validation_ratio must be between 0 and 1")
-
-        min_samples = 2  # Minimum samples needed in each split
-        if self._sample_count < min_samples * 2:
-            raise ValueError(f"Dataset too small to split: need at least {min_samples * 2} samples")
-
-        validation_size = int(len(self.current_data_list) * validation_ratio)
-        if validation_size < min_samples:
-            raise ValueError(f"validation_ratio too small: would result in only {validation_size} validation samples")
-
-        data_copy = self.current_data_list[:]
-        random.shuffle(data_copy)
-        split_index = len(data_copy) - validation_size
-
-        # Convert samples back to tuples for initialization
-        training_samples = [(*sample.inputs, sample.target) for sample in data_copy[:split_index]]
-        validation_samples = [(*sample.inputs, sample.target) for sample in data_copy[split_index:]]
-
-        return TrainingData(training_samples), TrainingData(validation_samples)
-
-    def batch_data(self, batch_size: int) -> List[List[Sample]]:
-        """
-        Divide the data into batches.
-
-        Args:
-            batch_size: Number of samples per batch
-
-        Returns:
-            List[List[Sample]]: List of batches, where each batch is a list of Sample instances
-
-        Raises:
-            ValueError: If batch_size is less than 1
-            ValueError: If batch_size is larger than dataset size
-        """
-        if batch_size < 1:
-            raise ValueError("batch_size must be at least 1")
-        if batch_size > self._sample_count:
-            raise ValueError(f"batch_size ({batch_size}) cannot be larger than dataset size ({self._sample_count})")
-
-        data_copy = self.current_data_list[:]
-        random.shuffle(data_copy)
-        return [
-            data_copy[i:i + batch_size]
-            for i in range(0, len(data_copy), batch_size)
-        ]
+    """
