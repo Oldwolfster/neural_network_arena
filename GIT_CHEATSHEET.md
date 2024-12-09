@@ -6,6 +6,11 @@ git push origin master                  # Push changes to the 'master' branch on
 OR
 git push                                # If your local master branch is already tracking origin/master, you can simply use
 g
+
+---
+# Rollback to last commit
+git reset --hard HEAD
+
 ---
 # Steps to create "snapshot in time" for each episode
 ## freeze progress for an episode, create a branch:
