@@ -111,27 +111,55 @@ class IterationResult:
     context: IterationContext
 
 
+from dataclasses import dataclass, field
+import math
+
 @dataclass
 class EpochSummary:
-    # Stored once per epoch
-    model_name = ""
+    model_name: str = ""
     epoch: int = 0
-    final_weight = 0
-    final_bias = 0
-    total_samples: int = 0  #Could this be removed?
-    # Accumulated over epoch
-    tp: int = 0
-    tn: int = 0
-    fp: int = 0
-    fn: int = 0
+    final_weight: float = 0
+    final_bias: float = 0
+    total_samples: int = 0
+
+    # Confusion matrix and error metrics
+    tp: int = 0  # True Positives
+    tn: int = 0  # True Negatives
+    fp: int = 0  # False Positives
+    fn: int = 0  # False Negatives
     total_absolute_error: float = 0.0
     total_squared_error: float = 0.0
     total_error: float = 0.0
 
+    @property
+    def correct(self) -> int:
+        return self.tp + self.tn
 
-    # calculated values
-    correct: int = 0
-    wrong: int = 0
+    @property
+    def wrong(self) -> int:
+        return self.fp + self.fn
+
+    @property
+    def accuracy(self) -> float:
+        return self.correct / self.total_samples * 100 if self.total_samples > 0 else 0
+
+    @property
+    def mean_absolute_error(self) -> float:
+        return self.total_absolute_error / self.total_samples if self.total_samples > 0 else 0
+
+    @property
+    def mean_squared_error(self) -> float:
+        return self.total_squared_error / self.total_samples if self.total_samples > 0 else 0
+
+    @property
+    def rmse(self) -> float:
+        return math.sqrt(self.mean_squared_error) if self.mean_squared_error > 0 else 0
+
+
+"""
+    # Calculated values
+    correct: int = field(init=False)
+    wrong: int = field(init=False)
     accuracy: float = field(init=False)
     precision: float = field(init=False)
     recall: float = field(init=False)
@@ -143,10 +171,48 @@ class EpochSummary:
     log_loss: float = field(init=False)
     mape: float = field(init=False)
 
-    # Values i don't think i need
-    sum_target: float = 0.0
-    sum_prediction: float = 0.0
-    sum_target_squared: float = 0.0
-    sum_prediction_squared: float = 0.0
-    sum_target_prediction: float = 0.0
-    sum_mape: float = 0.0
+    def __post_init__(self):
+        # Basic counts
+        self.correct = self.tp + self.tn
+        self.wrong = self.fp + self.fn
+
+        # Accuracy
+        self.accuracy = self.correct / self.total_samples * 100 if self.total_samples > 0 else 0
+
+        # Precision (Positive Predictive Value)
+        self.precision = self.tp / (self.tp + self.fp) if (self.tp + self.fp) > 0 else 0
+
+        # Recall (Sensitivity)
+        self.recall = self.tp / (self.tp + self.fn) if (self.tp + self.fn) > 0 else 0
+
+        # F1 Score
+        self.f1 = (2 * self.precision * self.recall) / (self.precision + self.recall) \
+            if (self.precision + self.recall) > 0 else 0
+
+        # Mean Absolute Error
+        self.mean_absolute_error = self.total_absolute_error / self.total_samples \
+            if self.total_samples > 0 else 0
+
+        # Mean Squared Error
+        self.mean_squared_error = self.total_squared_error / self.total_samples \
+            if self.total_samples > 0 else 0
+
+        # Root Mean Squared Error
+        self.rmse = math.sqrt(self.mean_squared_error)
+
+        # R-squared (this would typically require predicted and actual values,
+        # so this is a placeholder calculation)
+        self.r_squared = 1 - (self.total_squared_error /
+                               (self.total_samples * math.pow(self.mean_absolute_error, 2))) \
+            if self.total_samples > 0 and self.mean_absolute_error != 0 else 0
+
+        # Log Loss (this is a simplified version and might need more context)
+        # Assumes binary classification
+        self.log_loss = -(self.tp * math.log(self.precision) +
+                          self.fn * math.log(1 - self.precision)) / self.total_samples \
+            if self.total_samples > 0 else 0
+
+        # Mean Absolute Percentage Error
+        self.mape = (self.total_absolute_error / self.total_samples) * 100 \
+            if self.total_samples > 0 else 0
+"""
