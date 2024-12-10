@@ -34,18 +34,7 @@ class TrainingData:
         self.td_z_score     = [Tuple[float, ...]]   # List in case model requests zscore
         self.td_min_max     = []   # List in case model request minmax
         self.td_current     = self.td_original      # pointer to the "selected list" defaults to original
-        self.count          = None
-        self.sum_targets    = None
-
-    @property
-    def sample_count(self) -> int:
-        """
-        Returns:
-            int: The number of samples in the training data
-        """
-        if self.count is None:
-            self.count = len(self.td_original)
-        return self.count
+        self._cache         = {}  # Private dictionary for caching values
 
     @property
     def sum_of_targets(self) -> int:
@@ -53,9 +42,21 @@ class TrainingData:
         Returns:
             int: The sum of the targets for the entire training data
         """
-        if self.sum_targets is None:
-            self.sum_targets = sum(tuple[-1] for tuple in self.td_original)
-        return self.sum_targets
+        if "sum_targets" not in self._cache:
+            if not self.td_original:
+                raise ValueError("Training data is empty; cannot compute sum of targets.")
+            self._cache["sum_targets"] = sum(tuple[-1] for tuple in self.td_original)
+        return self._cache["sum_targets"]
+
+    @property
+    def sample_count(self) -> int:
+        """
+        Returns:
+            int: The number of samples in the training data
+        """
+        if "sample_count" not in self._cache:
+            self._cache["sample_count"] = len(self.td_original)
+        return self._cache["sample_count"]
 
     def get_list(self) -> List[Tuple[float, ...]]:
         """
@@ -118,17 +119,17 @@ class TrainingData:
             denominators.append(denominator)
 
         for idx, tuple in enumerate(self.td_current):
-            print(f"Unnormalized tuple #{idx + 1}: {tuple}")
+            #print(f"Unnormalized tuple #{idx + 1}: {tuple}")
             norm_tuple = []
             for x, feature in enumerate(tuple[:-1]):
-                print(f"  Feature #{x + 1}: {feature}")
+                #print(f"  Feature #{x + 1}: {feature}")
                 norm_value = (feature - min_values[x]) / denominators[x]
                 norm_tuple.append(norm_value)
-                print(f"    Normalized Feature #{x + 1}: {norm_value}")
+                #print(f"    Normalized Feature #{x + 1}: {norm_value}")
             norm_tuple.append(tuple[-1])  # Append the label without normalization
             self.td_min_max.append(norm_tuple)
             #print(f"  Normalized tuple #{idx + 1}: {tuple(norm_tuple)}\n")
-        print(f"Normalized data{self.td_min_max}")
+        #print(f"Normalized data{self.td_min_max}")
         self.td_current = self.td_min_max # Point "Current mode" to the min max list
 
 

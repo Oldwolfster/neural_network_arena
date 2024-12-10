@@ -13,6 +13,7 @@ def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParam
     problem_type = determine_problem_type(training_data)
     print_iteration_logs(mgr_list, hyper)
     print_epoch_summaries(mgr_list, problem_type)
+    print_convergence(mgr_list)
     print(f"Data: {training_pit}\tTraining Set Size: {hyper.training_set_size}\t Max Epochs: {hyper.epochs_to_run}\tDefault Learning Rate: {hyper.default_learning_rate}")
     print_model_comparison(mgr_list, problem_type)
     if hyper.display_train_data:
@@ -134,6 +135,18 @@ def append_iteration_row(correlated_log: list, model_name: str, data_row, hyper 
         new_weights,                # New Weight
         new_bias     # New Bias
     ])
+
+######################################################################################
+############# Display Convergence ###############################
+######################################################################################
+
+def print_convergence(mgr_list : List[MetricsMgr]):
+    for mgr in mgr_list:
+        if len(mgr.convergence_signal)==0:
+            print(f"Convergence - Model:{mgr.name}\tDID NOT CONVERGE - HIT MAX EPOCHS")
+        else:
+            print(f"Convergence - Model:{mgr.name}\t{mgr.convergence_signal}")
+
 
 
 ######################################################################################

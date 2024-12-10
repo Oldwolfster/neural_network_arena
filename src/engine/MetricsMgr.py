@@ -1,6 +1,5 @@
 from .Metrics import Metrics
 from .Utils import EpochSummary
-from .ConvergenceDetector import ConvergenceDetector
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
 
@@ -10,6 +9,7 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         # Run Level members
         self.training_data = training_data
         self.name = name
+        self.hyper = hyper
         self.epoch_summaries = []           # Store the epoch summaries
         self.summary = EpochSummary()       # The current Epoch summary
         self.run_time = 0                   # How long did training take?
@@ -21,9 +21,20 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
             hyper.accuracy_threshold)    # Set at Class level (not instance) one value shared across all instances
         self.epoch_curr_number = 1          # Which epoch are we currently on.
         self.metrics = []                   # The list of metrics this manager is running.
-        self.converge_detector              = ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs) #, training_data.sum_targets))
-        #33.899692251686986
+        #self.converge_detector              = ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs) #, training_data.sum_targets))
+        self._converge_detector = None
+        self.convergence_signal = []      # Will be set by convergence detector
 
+    @property
+    def converge_detector(self):
+        """
+        Provides lazy instantiation of converge_detector so it can pass it(CD) a copy of itself (MMgr)
+        """
+        if self._converge_detector is None:
+            # Lazy import to avoid circular reference
+            from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
+            self._converge_detector = ConvergenceDetector(self.hyper, self)
+        return self._converge_detector
 
     def record_iteration(self, result):
         self.iteration_num += 1
@@ -70,12 +81,12 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         #print(f"epoch:{self.summary.epoch}self.summary.total_absolute_error = {self.summary.total_absolute_error}")
         mae= self.summary.total_absolute_error / self.summary.total_samples
         #print (f"mean_absolute_error: {mae}")
-        epochs_to_remove = self.converge_detector.check_convergence(mae) #, self.summary.final_weight)
-        if epochs_to_remove == 0:      # 0 indicates it has NOT converged
+        #epochs_to_remove = self.converge_detector.check_convergence(mae) #, self.summary.final_weight)
+
+        if not self.converge_detector.check_convergence():
             self.summary = EpochSummary()   # Create summary for next epoch
             return False
         # Still here so it has converged
-        self.remove_converged_epochs_from_logs(epochs_to_remove)
         return True
 
     def remove_converged_epochs_from_logs(self, epochs_to_remove):
@@ -86,3 +97,22 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
 
 
 
+    def finish_epoch_summaryDELETEME(self):
+        self.summary.model_name = self.name
+        self.summary.epoch = self.epoch_curr_number
+
+        self.epoch_curr_number += 1
+        self.summary.total_samples = self.sample_count
+        #self.summary.total_absolute_error= self.converge_tae_current
+        self.iteration_num = 0  # Reset counter back to zero
+        self.epoch_summaries.append(self.summary)
+        #print(f"epoch:{self.summary.epoch}self.summary.total_absolute_error = {self.summary.total_absolute_error}")
+        mae= self.summary.total_absolute_error / self.summary.total_samples
+        #print (f"mean_absolute_error: {mae}")
+        epochs_to_remove = self.converge_detector.check_convergence(mae) #, self.summary.final_weight)
+        if epochs_to_remove == 0:      # 0 indicates it has NOT converged
+            self.summary = EpochSummary()   # Create summary for next epoch
+            return False
+        # Still here so it has converged
+        self.remove_converged_epochs_from_logs(epochs_to_remove)
+        return True

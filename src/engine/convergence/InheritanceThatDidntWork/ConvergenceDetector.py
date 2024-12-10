@@ -1,40 +1,19 @@
-from src.ArenaSettings import HyperParameters
-from src.engine import MetricsMgr
-from src.engine.convergence.Signal_MAEStabilization import MAEStabilizationSignal
-
 class ConvergenceDetector:
-    def __init__(self, hyper: HyperParameters, mgr: MetricsMgr, first_time = True):
+    def __init__(self, hyper: HyperParameters, mgr: MetricsMgr, training_data: TrainingData, first_time=True):
         """
         Initialize the ConvergenceDetector.
         """
         self.hyper = hyper
         self.mgr = mgr
-        if first_time:
-            self.signals = self.create_signals()
-        self.converged_signal = None
-        self.extra_epochs = None
+        self.training_data = training_data  # Added reference to TrainingData
+        self.signals = self.create_signals()
+        self.relative_threshold = self.calculate_relative_threshold()
 
-    def create_signals(self):
-
-
-        return [
-            MAEStabilizationSignal(self.hyper, self.mgr)
-            #,F1PlateauSignal
-        ]
-
-    def evaluate(self):
-        raise NotImplementedError("Subclasses must implement this method")
-
-    @property
-    def name(self):
-        return self.__class__.__name__
-
-    def check_convergence(self):
-        converged = False  # assume not converged
-
-        print(f"cur epoch{self.mgr.epoch_curr_number}")
-        for signal in self.signals:
-            if signal.evaluate():
-                converged = True
-        if converged:
-            return 2  # TODO Change this to epochs to remove
+    def calculate_relative_threshold(self):
+        """
+        Compute the mean-based threshold for convergence using TrainingData.
+        """
+        mean_target = self.training_data.sum_of_targets / self.training_data.sample_count
+        threshold = self.hyper.convergence_factor * mean_target  # Use a single factor to scale
+        print(f"Mean-Based Threshold: {threshold}")
+        return threshold
