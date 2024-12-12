@@ -122,14 +122,17 @@ class EpochSummary:
     final_bias: float = 0
     total_samples: int = 0
 
-    # Confusion matrix and error metrics
+    # error metrics
+    total_absolute_error: float = 0.0
+    total_squared_error: float = 0.0  #TODO Convert to calculatedd
+    total_error: float = 0.0
+
+    # Confusion matrix
     tp: int = 0  # True Positives
     tn: int = 0  # True Negatives
     fp: int = 0  # False Positives
     fn: int = 0  # False Negatives
-    total_absolute_error: float = 0.0
-    total_squared_error: float = 0.0
-    total_error: float = 0.0
+
 
     @property
     def correct(self) -> int:
@@ -158,9 +161,7 @@ class EpochSummary:
 
 """
     # Calculated values
-    correct: int = field(init=False)
-    wrong: int = field(init=False)
-    accuracy: float = field(init=False)
+
     precision: float = field(init=False)
     recall: float = field(init=False)
     f1: float = field(init=False)
