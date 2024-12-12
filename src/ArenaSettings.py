@@ -42,6 +42,7 @@ training_pit              = "Predict_Income_2_Inputs"
 training_pit              = "Manual"
 training_pit              = "CreditScoreRegression"
 training_pit              = "Predict_Income_2_Inputs"
+training_pit              = "Salary2InputsNonlinear"
 
 
 
@@ -53,7 +54,8 @@ gladiators = [
     #"HayabusaFixed"
     #,'Blackbird'
     'Hayabusa'
-    ,'GBS'
+    ,'Hayabusa_two_weights'
+    #,'GBS'
 
 ]
 

@@ -5,6 +5,7 @@ import numpy as np
 class Regression_GBS_MultInputs(Gladiator):
     """
     A simple perceptron implementation for accurate regression. (By ChatGPT)
+    Automatically adapts to any number of inputs and processes with the fancy parallel techinques
     """
 
     def __init__(self, *args):

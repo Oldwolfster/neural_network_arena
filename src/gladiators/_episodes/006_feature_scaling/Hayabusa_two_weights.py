@@ -1,7 +1,7 @@
 from src.gladiators.BaseGladiator import Gladiator
 
 
-class SuzukiHayabusa(Gladiator):
+class SuzukiHayabusaTwoWeights(Gladiator):
     """
     A simple single input regression model
     This version will utilize both weights
@@ -9,6 +9,7 @@ class SuzukiHayabusa(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
+        self.initialize_neurons(2)
         #self.training_data.set_normalization_min_max()
 
     def training_iteration(self, training_data) -> float:
@@ -23,3 +24,4 @@ class SuzukiHayabusa(Gladiator):
         self.weights[1] += error * self.learning_rate * inp_1   # Step 3) Adjust Weight - formula for gradient descent
         self.bias       += error * self.learning_rate           # Step 3) Adjust Bias
         return prediction
+
