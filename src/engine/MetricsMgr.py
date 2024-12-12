@@ -20,6 +20,7 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         Metrics.set_acc_threshold(
             hyper.accuracy_threshold)    # Set at Class level (not instance) one value shared across all instances
         self.epoch_curr_number = 1          # Which epoch are we currently on.
+        #TODO name should indicate for current epoch
         self.metrics = []                   # The list of metrics this manager is running.
         #self.converge_detector              = ConvergenceDetector(hyper.converge_threshold, hyper.converge_epochs) #, training_data.sum_targets))
         self._converge_detector = None
