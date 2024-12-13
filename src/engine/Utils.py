@@ -133,7 +133,18 @@ class EpochSummary:
     fp: int = 0  # False Positives
     fn: int = 0  # False Negatives
 
+    @property
+    def precision(self) -> float: # Precision (Positive Predictive Value)  #self.precision = self.tp / (self.tp + self.fp) if (self.tp + self.fp) > 0 else 0
+        return self.tp / (self.tp + self.fp) if (self.tp + self.fp) > 0 else 0
 
+    @property
+    def recall(self) -> float: # Recall (Sensitivity)   self.recall = self.tp / (self.tp + self.fn) if (self.tp + self.fn) > 0 else 0
+        return self.tp / (self.tp + self.fn) if (self.tp + self.fn) > 0 else 0
+
+    @property
+    def F1(self) -> float:    # F1 Score
+        return (2 * self.precision * self.recall) / (self.precision + self.recall) \
+                if (self.precision + self.recall) > 0 else 0
     @property
     def correct(self) -> int:
         return self.tp + self.tn
@@ -160,47 +171,6 @@ class EpochSummary:
 
 
 """
-    # Calculated values
-
-    precision: float = field(init=False)
-    recall: float = field(init=False)
-    f1: float = field(init=False)
-    mean_absolute_error: float = field(init=False)
-    mean_squared_error: float = field(init=False)
-    rmse: float = field(init=False)
-    r_squared: float = field(init=False)
-    log_loss: float = field(init=False)
-    mape: float = field(init=False)
-
-    def __post_init__(self):
-        # Basic counts
-        self.correct = self.tp + self.tn
-        self.wrong = self.fp + self.fn
-
-        # Accuracy
-        self.accuracy = self.correct / self.total_samples * 100 if self.total_samples > 0 else 0
-
-        # Precision (Positive Predictive Value)
-        self.precision = self.tp / (self.tp + self.fp) if (self.tp + self.fp) > 0 else 0
-
-        # Recall (Sensitivity)
-        self.recall = self.tp / (self.tp + self.fn) if (self.tp + self.fn) > 0 else 0
-
-        # F1 Score
-        self.f1 = (2 * self.precision * self.recall) / (self.precision + self.recall) \
-            if (self.precision + self.recall) > 0 else 0
-
-        # Mean Absolute Error
-        self.mean_absolute_error = self.total_absolute_error / self.total_samples \
-            if self.total_samples > 0 else 0
-
-        # Mean Squared Error
-        self.mean_squared_error = self.total_squared_error / self.total_samples \
-            if self.total_samples > 0 else 0
-
-        # Root Mean Squared Error
-        self.rmse = math.sqrt(self.mean_squared_error)
-
         # R-squared (this would typically require predicted and actual values,
         # so this is a placeholder calculation)
         self.r_squared = 1 - (self.total_squared_error /
