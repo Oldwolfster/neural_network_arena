@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import List
+
 
 @dataclass
 class ReportSelection:
@@ -32,6 +34,13 @@ class HyperParameters:
     #display_logs            :bool = True   # Display the logs at the end of the run
     detail_log_min          :int  = 0       # Which epochs to display detailed logs for(min)
     detail_log_max          :int  = 10000       # Which epochs to display detailed logs for(min)
+
+    ##############################################################
+    # NEW REPORT Parameters are set here - GOING TO MULT NEURONS #
+    ##############################################################
+    criteria_neuron :List[int] = None       # None = show all - otherwise list of neurons to include
+    criteria_weight :List[int] = None       # None = show all - 0= Ommit weights - Otherwise list all weights to include
+
 
 
 ############################################################
