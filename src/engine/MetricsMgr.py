@@ -1,5 +1,5 @@
 from .Metrics import Metrics
-from .Utils import EpochSummary
+from .Utils import EpochSummary, IterationResult
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
 
@@ -37,7 +37,7 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
             self._converge_detector = ConvergenceDetector(self.hyper, self)
         return self._converge_detector
 
-    def record_iteration(self, result):
+    def record_iteration(self, result : IterationResult):
         self.iteration_num += 1
         # I believe these two lines can be removed as it is now set in BaseGladiator
         if self.sample_count < self.iteration_num:

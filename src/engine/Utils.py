@@ -87,7 +87,7 @@ class IterationContext:
     bias: float = 0
     new_bias: float = 0
 
-
+"""
 @dataclass
 class GladiatorOutputOrig:
     prediction: float
@@ -104,7 +104,7 @@ class IterationContextOrig:
     # Old from when it was only 1 input: float
     inputs: np.ndarray
     target: float
-
+"""
 @dataclass
 class IterationResult:
     gladiator_output: GladiatorOutput

@@ -73,7 +73,7 @@ class Gladiator(ABC):
     def run_an_epoch(self, epoch_num: int) -> bool:         # Function to run single epoch
 
         for i, sample in enumerate(self.training_samples):         # Loop through all the training data
-            sample = np.array(sample)  # Convert sample to a NumPy array TODO Have training data be a numpy array to begin with
+            sample = np.array(sample)  # Convert sample to a NumPy array
 
             # Record data for this iteration before passing sample to model
             context = IterationContext(
