@@ -178,7 +178,6 @@ def append_summary_row(summary, epoch_summaries : list, problem_type):
     epoch_summary = [
         summary.model_name,
         summary.epoch,
-        #smart_format(summary.final_weight[0]),  #TODO handle multiple weights
         # Concatenate final weights and their changes into a single cell with line breaks
         "\n".join(
             f"{smart_format(summary.final_weight[i])}"
