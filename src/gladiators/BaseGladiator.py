@@ -15,54 +15,20 @@ class Gladiator(ABC):
         self.hyper = args[1]
         self.training_data = args[2]
         self.training_data.reset_to_default()
-        self.training_samples = self.training_data.get_list()   # Store the list version of training data
+        self.training_samples = None     # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         self.metrics_mgr = MetricsMgr(gladiator, self.hyper, self.training_data)
-
+        self._learning_rate = self.hyper.default_learning_rate
         self.number_of_epochs = self.hyper.epochs_to_run
-        self.sample_count = len(self.training_samples)          # Calculate and store sample count
-        self.input_count = len(self.training_samples[0]) - 1    # Calculate and store input count
-
+        # WHY? #self.sample_count = len(self.training_samples)          # Calculate and store sample count
         self.neurons = []
         self.neuron_count = 0 # Default value
-
-    def initialize_neurons(self, neuron_count):
-        self.neuron_init = True
-        self.neuron_count = neuron_count
-        self.neurons = [Neuron(x, self.input_count, self.hyper.default_learning_rate) for x in range(neuron_count)]
-
-    @property
-    def weights(self):
-        """Compatibility attribute pointing to neurons[0].weights."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].weights
-
-    @property
-    def bias(self):
-        """Compatibility attribute pointing to neurons[0].bias."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].bias
-
-    @weights.setter
-    def weights(self, value):
-        """Set weights for neurons[0]."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        self.neurons[0].weights = value
-
-    @property
-    def learning_rate(self):
-        """Compatibility attribute pointing to neurons[0].bias."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].learning_rate
 
     def train(self) -> MetricsMgr:
         if self.neuron_count == 0:
             self.initialize_neurons(1) #Defaults to 1
             print(f"Warning: Defaulting to a single neuron in {self.__class__.__name__}")
 
+        self.training_samples = self.training_data.get_list()           # Store the list version of training data
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             if epoch % 10 == 0 and epoch < 0:
                 print (f"Epoch: {epoch} for {self.metrics_mgr.name} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -70,13 +36,12 @@ class Gladiator(ABC):
                 return self.metrics_mgr                                 # Converged so end early
         return self.metrics_mgr                                         # When it does not converge still return metrics mgr
 
-    def run_an_epoch(self, epoch_num: int) -> bool:         # Function to run single epoch
-
+    def run_an_epoch(self, epoch_num: int) -> bool:             # Function to run single epoch
         for i, sample in enumerate(self.training_samples):         # Loop through all the training data
             sample = np.array(sample)  # Convert sample to a NumPy array
 
-            # Record data for this iteration before passing sample to model
-            context = IterationContext(
+
+            context = IterationContext(             # Record data for this iteration before passing sample to model
                 iteration           = i + 1,
                 epoch               = epoch_num + 1,
                 inputs              = sample[:-1],          # All elements except the last
@@ -102,6 +67,11 @@ class Gladiator(ABC):
             )
             self.metrics_mgr.record_iteration(result)
         return self.metrics_mgr.finish_epoch_summary()
+
+    def initialize_neurons(self, neuron_count):
+        self.neuron_init = True
+        self.neuron_count = neuron_count
+        self.neurons = [Neuron(x, self.training_data.input_count, self.hyper.default_learning_rate) for x in range(neuron_count)]
 
     @property
     def weights(self):

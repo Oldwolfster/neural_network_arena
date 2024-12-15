@@ -49,6 +49,17 @@ class TrainingData:
         return self._cache["sum_targets"]
 
     @property
+    def input_count(self) -> int:
+        """
+        Returns:
+            int: The number of inputs  in the training data
+        """
+        if "sample_count" not in self._cache:
+            self._cache["input_count"] = len(self.td_original[0])  - 1   #len(self.training_samples[0]) - 1
+        return self._cache["input_count"]
+
+
+    @property
     def sample_count(self) -> int:
         """
         Returns:
@@ -125,12 +136,54 @@ class TrainingData:
                 #print(f"  Feature #{x + 1}: {feature}")
                 norm_value = (feature - min_values[x]) / denominators[x]
                 norm_tuple.append(norm_value)
-                #print(f"    Normalized Feature #{x + 1}: {norm_value}")
+                print(f"    Normalized Feature #{x + 1}: {norm_value}")
             norm_tuple.append(tuple[-1])  # Append the label without normalization
             self.td_min_max.append(norm_tuple)
             #print(f"  Normalized tuple #{idx + 1}: {tuple(norm_tuple)}\n")
         #print(f"Normalized data{self.td_min_max}")
         self.td_current = self.td_min_max # Point "Current mode" to the min max list
+
+    @property
+    def sum_of_inputs(self) -> List[float]:
+        """
+        Computes and caches the sum of each input feature across all training samples.
+
+        Returns:
+            List[float]: A list where each element is the sum of the corresponding input feature
+                         across all training samples.
+        """
+        if "sum_inputs" not in self._cache:
+            if not self.td_original:
+                raise ValueError("Training data is empty; cannot compute sum of inputs.")
+
+            num_features = len(self.td_original[0]) - 1  # Exclude the target value
+            sums = [0] * num_features
+
+            for sample in self.td_original:
+                for i in range(num_features):
+                    sums[i] += sample[i]  # Sum each input feature
+
+            self._cache["sum_inputs"] = sums
+
+            return self._cache["sum_inputs"]
+    @property
+    def normalizers(self) -> List[float]:
+        """
+        Computes and caches the normalizers for each input feature based on their relative magnitudes.
+
+        Returns:
+            List[float]: A list of normalizers for each input feature.
+        """
+        if "normalizers" not in self._cache:
+            sum_inputs = self.sum_of_inputs  # Get the sum of each input feature
+            total_sum = sum(sum_inputs)     # Total sum of all input feature sums
+
+            if total_sum == 0:
+                raise ValueError("Total sum of inputs is zero; cannot compute normalizers.")
+
+            self._cache["normalizers"] = [s / total_sum for s in sum_inputs]
+
+        return self._cache["normalizers"]
 
 
 """

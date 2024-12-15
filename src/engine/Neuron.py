@@ -6,10 +6,13 @@ class Neuron:
     Represents a single neuron with weights, bias, and an activation function.
     """
     def __init__(self, nid: int, input_count: int,  learning_rate: float): #activation_function: callable,
+        self.nid = nid
+
         self.input_count = input_count
-        self.weights = np.array([(nid + 1) * 111 for _ in range(input_count)])  # Differentiated by nid
-        self.bias = nid * 111  # Small bias based on nid
+        self.weights = np.array([(nid + 1) * 0 for _ in range(input_count)], dtype=np.float64)
+        self.bias = nid * 0  # Small bias based on nid
         self.learning_rate = learning_rate
+
 
         #Coming soon self.activation_function = activation_function
         #Coming soonself.learning_rate = learning_rate
