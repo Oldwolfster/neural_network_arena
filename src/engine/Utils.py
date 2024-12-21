@@ -1,6 +1,9 @@
 from dataclasses import dataclass, field
 import numpy as np
 
+from src.engine.Neuron import Neuron
+from src.engine.UtilsDataClasses import IterationData, NeuronData
+
 
 def chunk_list(lst: list, chunk_size: int):
     for i in range(0, len(lst), chunk_size):
@@ -109,7 +112,8 @@ class IterationContextOrig:
 class IterationResult:
     gladiator_output: GladiatorOutput
     context: IterationContext
-
+    new_iteration_data : IterationData
+    new_neuron_list: list[NeuronData]
 
 from dataclasses import dataclass, field
 import math

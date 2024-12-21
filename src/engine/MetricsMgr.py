@@ -3,6 +3,7 @@ from .Utils import EpochSummary, IterationResult
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
 
+
 class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
     def __init__       (self, name, hyper: HyperParameters, training_data: TrainingData):
         #def __init__(self, name, sample_count: int,  conv_e, conv_t, acc_t, data):
@@ -26,6 +27,11 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         self._converge_detector = None
         self.convergence_signal = []      # Will be set by convergence detector
 
+        #Below added when switching to multiple neurons
+        self.metrics_iteration = []
+        self.metrics_neuron = []
+
+
     @property
     def converge_detector(self):
         """
@@ -42,9 +48,28 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         # I believe these two lines can be removed as it is now set in BaseGladiator
         if self.sample_count < self.iteration_num:
             self.sample_count = self.iteration_num
+        #ORIGINAL TODO REMOVE ME
         data = Metrics(result)
         self.metrics.append(data)
         self.update_summary(data)
+
+        # Record multi neuron data
+
+        self.metrics_neuron.append( result.new_neuron_list)
+        self.metrics_iteration.append(result.new_iteration_data)
+
+
+
+        #rows = [neuron_data.to_list() for neuron_data in result.new_neuron_list]
+        #new_frame = pd.DataFrame(rows, columns=self.neuron_frame.columns)
+        #self.neuron_frame = pd.concat([self.neuron_frame, new_frame], ignore_index=True)
+        #print(self.neuron_frame.head())
+
+        #self.iteration_data.append()
+
+        #self.neuron_data = []
+
+
 
     def update_summary(self, data: Metrics):
         self.summary.total_error += data.prediction - data.target

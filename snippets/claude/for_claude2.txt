@@ -9,7 +9,7 @@ First things first, we've been working on a project together for a few months...
 - Extremely high value on simplicity and align with the "boring technology movement"
 
 ## Project Background
-We've been working on "Neural Network Arena" for about 3 months. Key points:
+We've been working on "Neural Network Arena" for about 9 months. Key points:
 
 1. Started with exploring LLMs and decided best way to learn neural networks was build the simplest one possible, then add "features" one at a time to see what they do.
 2. Developed Simpletron: a simplified neural network model
@@ -32,7 +32,7 @@ We've been working on "Neural Network Arena" for about 3 months. Key points:
 - Exploring various aspects of neural networks, from basic concepts to advanced techniques
 
 ## Current Focus
-- Video for multiple inputs
+- Expanding to multiple neurons
 
 ## Tools and Technologies
 I'm not a big python fan either, i'd rate it about 2 out of about 25 on my list of favorite languages,
@@ -48,13 +48,13 @@ Binary vs Regression(DONE)
 
 Phase 2: Multiple Inputs
 Introducting Multipe Inputs
-Feature Scaling and normalization min-max scaling or standardization (z-score normalization)
-Cost Functions and their Impact  Cross Entropy, MSE, MAE,  BCE, CCE, Hinge, Huber, KL Divergence
-Activation Functions (Linear vs Non-linear)
 
 Phase 3: Multiple Neurons (Single Layer)
 The XOR Problem and its Significance (Single layer perceptron cannot solve)
 Multivariate Regression vs Classification
+Feature Scaling and normalization min-max scaling or standardization (z-score normalization)
+Cost Functions and their Impact  Cross Entropy, MSE, MAE,  BCE, CCE, Hinge, Huber, KL Divergence
+Activation Functions (Linear vs Non-linear)
 
 Phase 4: Multiple Layers
 Introduction to Multi-Layer Perceptrons

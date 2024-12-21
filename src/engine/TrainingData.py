@@ -169,10 +169,10 @@ class TrainingData:
     @property
     def normalizers(self) -> List[float]:
         """
-        Computes and caches the normalizers for each input feature based on their relative magnitudes.
+        Computes and caches the normalizers for each input feature, adjusting for the global impact on updates.
 
         Returns:
-            List[float]: A list of normalizers for each input feature.
+            List[float]: A list of normalized values for each input feature.
         """
         if "normalizers" not in self._cache:
             sum_inputs = self.sum_of_inputs  # Get the sum of each input feature
@@ -181,7 +181,14 @@ class TrainingData:
             if total_sum == 0:
                 raise ValueError("Total sum of inputs is zero; cannot compute normalizers.")
 
-            self._cache["normalizers"] = [s / total_sum for s in sum_inputs]
+            raw_normalizers = [s / total_sum for s in sum_inputs]
+
+            # Calculate adjustment to preserve update magnitude
+            scaling_factor = len(raw_normalizers) / sum(raw_normalizers)
+
+            # Apply scaling to ensure updates retain original magnitude
+            adjusted_normalizers = [n * scaling_factor for n in raw_normalizers]
+            self._cache["normalizers"] = adjusted_normalizers
 
         return self._cache["normalizers"]
 
