@@ -48,27 +48,10 @@ class MetricsMgr:       #(gladiator, training_set_size, converge_epochs, converg
         # I believe these two lines can be removed as it is now set in BaseGladiator
         if self.sample_count < self.iteration_num:
             self.sample_count = self.iteration_num
-        #ORIGINAL TODO REMOVE ME
+
         data = Metrics(result)
         self.metrics.append(data)
         self.update_summary(data)
-
-        # Record multi neuron data
-
-        self.metrics_neuron.append( result.new_neuron_list)
-        self.metrics_iteration.append(result.new_iteration_data)
-
-
-
-        #rows = [neuron_data.to_list() for neuron_data in result.new_neuron_list]
-        #new_frame = pd.DataFrame(rows, columns=self.neuron_frame.columns)
-        #self.neuron_frame = pd.concat([self.neuron_frame, new_frame], ignore_index=True)
-        #print(self.neuron_frame.head())
-
-        #self.iteration_data.append()
-
-        #self.neuron_data = []
-
 
 
     def update_summary(self, data: Metrics):

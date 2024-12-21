@@ -1,10 +1,6 @@
 from dataclasses import dataclass, field
 import numpy as np
 
-from src.engine.Neuron import Neuron
-from src.engine.UtilsDataClasses import IterationData, NeuronData
-
-
 def chunk_list(lst: list, chunk_size: int):
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i + chunk_size]
@@ -34,23 +30,6 @@ def smart_format(number):
     else:
         # If it's a single number, just format it
         return format_single(number)
-
-
-
-def smart_formatOld(number):
-    if number == 0:
-        return "0"
-    elif abs(number) < 1:
-        # For very small numbers, show 4 decimal places
-        return f"{number:,.4f}"
-    elif abs(number) > 1000:
-        # For large numbers, show no decimal places
-        return f"{number:,.0f}"
-    else:
-        # For moderate numbers, show 2 decimal places
-        return f"{number:,.3f}"
-
-
 
 
 def determine_problem_type(data):
@@ -112,8 +91,8 @@ class IterationContextOrig:
 class IterationResult:
     gladiator_output: GladiatorOutput
     context: IterationContext
-    new_iteration_data : IterationData
-    new_neuron_list: list[NeuronData]
+    #new_iteration_data : IterationData
+    #new_neuron_list: list[NeuronData]
 
 from dataclasses import dataclass, field
 import math
