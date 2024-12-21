@@ -10,7 +10,6 @@ from src.engine.Neuron import Neuron
 from src.engine.TrainingData import TrainingData
 from datetime import datetime
 
-from src.engine.UtilsDataClasses import IterationData, NeuronData
 
 
 class Gladiator(ABC):
@@ -58,20 +57,6 @@ class Gladiator(ABC):
                 new_bias            = None
             )
 
-            # Step 1: Capture weights and biases BEFORE processing
-            neuron_data_list      = [
-                NeuronData(
-                    neuron_id       =neuron.nid,
-                    inputs=None,  # Will be updated after processing
-                    weights=np.copy(neuron.weights),
-                    bias=neuron.bias,
-                    new_weights=None,  # Placeholder for AFTER weights
-                    new_bias=None,  # Placeholder for AFTER bias
-                    activation_function="ReLU",  # Placeholder; replace if needed
-                    output=None  # Placeholder for output
-                )
-                for neuron in self.neurons
-            ]
             # Step 2: Delegate prediction to the child model
             prediction              = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
             error                   = target - prediction
@@ -82,33 +67,11 @@ class Gladiator(ABC):
                 prediction          = prediction
             )
 
-            # Step 3: Capture weights and biases AFTER processing
-            for neuron, neuron_data in zip(self.neurons, neuron_data_list):
-                neuron_data.inputs = inputs  # Update with actual inputs
-                neuron_data.new_weights = np.copy(neuron.weights)  # Capture AFTER weights
-                neuron_data.new_bias = neuron.bias  # Capture AFTER bias
-                neuron_data.output = np.dot(neuron.weights, inputs) + neuron.bias  # Neuron output
-
-            # Step 4: Collect iteration-level data
-            iteration_data = IterationData(
-                epoch=epoch_num + 1,
-                iteration=i + 1,
-                inputs=inputs,
-                target=target,
-                prediction=prediction,
-                error=error,
-                loss=error ** 2  # Example loss calculation
-            )
-
-            #ORIGINAL PROCESS # Put all the information together
             context.new_weights     = np.copy(self.weights) # Weights AFTER model processed sample
             context.new_bias        = self.bias             # Bias    AFTER model processed sample
             result                  = IterationResult(
                 gladiator_output    = gladiator_output,
-                context             = context,
-                # Original above - multi neuron version below
-                new_iteration_data  = iteration_data,
-                new_neuron_list     = neuron_data_list
+                context             = context
             )
             self.metrics_mgr.record_iteration(result)
         return self.metrics_mgr.finish_epoch_summary()
