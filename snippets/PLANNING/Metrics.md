@@ -1,3 +1,17 @@
+
+Metrics will be stored in RAM MysqlDb
+They fall along two dimensions
+
+1) Scale = Weight(element) - Neuron - Network
+   2) Time?? iteration - epoch - run
+Tables
+   Neuron
+   Weight
+   Network
+   
+
+
+
 These metrics have been working well for me as i was studying a single neuron perceptron.   I just updated the engine to do a layer of neurons and soon it will support multiple layers.  However, I have not yet converted the reporting from a single neuron to support the layer of neurons.  My expectation is i will need to break this in to groups as some of these metrics apply to details within a neuron such as bias and weights, but others apply to the entire NN such as error, loss functions, and the confusion matrix.
 
 I currently have 3 reports.

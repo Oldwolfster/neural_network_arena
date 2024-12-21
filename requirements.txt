@@ -3,4 +3,5 @@ tabulate
 colorama
 torch
 numpy
+pandas
 

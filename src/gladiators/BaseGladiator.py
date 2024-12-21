@@ -4,10 +4,14 @@ from src.engine.MetricsMgr import MetricsMgr
 import numpy as np
 from numpy import ndarray
 from typing import Any
+from numpy import array
 
 from src.engine.Neuron import Neuron
 from src.engine.TrainingData import TrainingData
 from datetime import datetime
+
+from src.engine.UtilsDataClasses import IterationData, NeuronData
+
 
 class Gladiator(ABC):
     def __init__(self,  *args):
@@ -39,8 +43,10 @@ class Gladiator(ABC):
     def run_an_epoch(self, epoch_num: int) -> bool:             # Function to run single epoch
         for i, sample in enumerate(self.training_samples):         # Loop through all the training data
             sample = np.array(sample)  # Convert sample to a NumPy array
+            inputs = sample[:-1]
+            target = sample[-1]
 
-
+            #ORIGINAL PROCESS
             context = IterationContext(             # Record data for this iteration before passing sample to model
                 iteration           = i + 1,
                 epoch               = epoch_num + 1,
@@ -52,18 +58,57 @@ class Gladiator(ABC):
                 new_bias            = None
             )
 
-            # Record model's prediction
+            # Step 1: Capture weights and biases BEFORE processing
+            neuron_data_list      = [
+                NeuronData(
+                    neuron_id       =neuron.nid,
+                    inputs=None,  # Will be updated after processing
+                    weights=np.copy(neuron.weights),
+                    bias=neuron.bias,
+                    new_weights=None,  # Placeholder for AFTER weights
+                    new_bias=None,  # Placeholder for AFTER bias
+                    activation_function="ReLU",  # Placeholder; replace if needed
+                    output=None  # Placeholder for output
+                )
+                for neuron in self.neurons
+            ]
+            # Step 2: Delegate prediction to the child model
             prediction              = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
+            error                   = target - prediction
+            loss                    = error ** 2  # Example loss calculation
+
+            #ORIGINAL PROCESS
             gladiator_output        = GladiatorOutput(
                 prediction          = prediction
             )
 
-            # Put all the information together
+            # Step 3: Capture weights and biases AFTER processing
+            for neuron, neuron_data in zip(self.neurons, neuron_data_list):
+                neuron_data.inputs = inputs  # Update with actual inputs
+                neuron_data.new_weights = np.copy(neuron.weights)  # Capture AFTER weights
+                neuron_data.new_bias = neuron.bias  # Capture AFTER bias
+                neuron_data.output = np.dot(neuron.weights, inputs) + neuron.bias  # Neuron output
+
+            # Step 4: Collect iteration-level data
+            iteration_data = IterationData(
+                epoch=epoch_num + 1,
+                iteration=i + 1,
+                inputs=inputs,
+                target=target,
+                prediction=prediction,
+                error=error,
+                loss=error ** 2  # Example loss calculation
+            )
+
+            #ORIGINAL PROCESS # Put all the information together
             context.new_weights     = np.copy(self.weights) # Weights AFTER model processed sample
             context.new_bias        = self.bias             # Bias    AFTER model processed sample
-            result = IterationResult(
-                gladiator_output=gladiator_output,
-                context=context
+            result                  = IterationResult(
+                gladiator_output    = gladiator_output,
+                context             = context,
+                # Original above - multi neuron version below
+                new_iteration_data  = iteration_data,
+                new_neuron_list     = neuron_data_list
             )
             self.metrics_mgr.record_iteration(result)
         return self.metrics_mgr.finish_epoch_summary()
