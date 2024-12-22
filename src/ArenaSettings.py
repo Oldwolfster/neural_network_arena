@@ -32,7 +32,7 @@ class HyperParameters:
     display_graphs          :bool = False   # Display Graphs at the end of run
     display_epoch_sum       :bool = True    # Display the epoch summary
     display_logs            :bool = False   # Display the logs at the end of the run
-    #display_logs            :bool = True   # Display the logs at the end of the run
+    display_logs            :bool = True   # Display the logs at the end of the run
     detail_log_min          :int  = 0       # Which epochs to display detailed logs for(min)
     detail_log_max          :int  = 10000       # Which epochs to display detailed logs for(min)
 
