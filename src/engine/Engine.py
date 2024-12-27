@@ -1,4 +1,5 @@
 import math
+import sqlite3
 import statistics
 import numpy as np
 import time
@@ -11,8 +12,7 @@ from src.engine.BaseArena import BaseArena
 from src.gladiators.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
 from .TrainingData import TrainingData
-
-
+from src.engine.ReportingFromSQL import generate_reports
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
     mgr_list        = []
@@ -20,9 +20,12 @@ def run_a_match(gladiators, training_pit):
     #training_data   = TrainingData( raw_trn_data)             # Place holder to do any needed analysis on training data
     training_data   =  get_training_data(hyper)
     record_training_data(training_data.get_list())
+    # Create a connection to an in-memory SQLite database
+    ramDb = prepSQL()
+    modelID = 0
     for gladiator in gladiators:    # Loop through the NNs competing.
         print(f"Preparing to run model:{gladiator}")
-        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data)
+        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, ramDb)
 
         start_time = time.time()  # Start timing
         metrics_mgr = nn.train()
@@ -32,16 +35,51 @@ def run_a_match(gladiators, training_pit):
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
     print_results(mgr_list, training_data.get_list(), hyper, training_pit)
+    generate_reports(ramDb)
 
-def get_training_dataOld(hyper):
-    # Check if Arena Settings indicates to retrieve and use past training_data
-    if len(run_previous_training_data) > 0:
-        return retrieve_training_data(run_previous_training_data)
-        #return [(3.0829800228956428, 4.48830093538644, 30.780635057213185), (19.394768240791976, 4.132484554096511, 99.9506658661515)]
-    # If still here, d  o a run with new training data
-    arena = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
 
-    return arena.generate_training_data()
+
+import sqlite3
+
+
+def prepSQL() -> sqlite3.Connection:
+    conn = sqlite3.connect(':memory:', isolation_level=None)
+    ramDB = conn.cursor()
+
+    # Create the iterations table
+    ramDB.execute('''
+        CREATE TABLE IF NOT EXISTS iterations (            
+            model_id TEXT NOT NULL,
+            epoch INTEGER NOT NULL,
+            step INTEGER NOT NULL,
+            inputs TEXT NOT NULL,
+            target REAL NOT NULL,
+            prediction REAL NOT NULL,
+            loss REAL NOT NULL,
+            PRIMARY KEY (model_id, epoch, step)
+        );
+    ''')
+
+    # Create the neurons table
+    ramDB.execute('''
+        CREATE TABLE IF NOT EXISTS neurons (            
+            model_id TEXT NOT NULL,
+            epoch INTEGER NOT NULL,
+            step INTEGER NOT NULL,
+            neuron_id INTEGER NOT NULL,               -- Unique ID for each neuron
+            layer_id INTEGER NOT NULL,                -- Identifies the layer the neuron belongs to
+            weights TEXT NOT NULL,                    -- Serialized weights (e.g., JSON or CSV)
+            bias REAL NOT NULL,                       -- Current bias for the neuron
+            new_weights TEXT,                         -- Updated weights after this iteration
+            new_bias REAL,                            -- Updated bias after this iteration
+            output REAL NOT NULL,                     -- Output of the neuron (post-activation)
+            PRIMARY KEY (model_id, epoch, step, neuron_id),
+            FOREIGN KEY (model_id, epoch, step) REFERENCES iterations (model_id, epoch, step)
+        );
+    ''')
+
+    return ramDB
+
 
 def get_training_data(hyper):
     # Check if Arena Settings indicates to retrieve and use past training_data
