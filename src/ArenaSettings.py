@@ -14,8 +14,8 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 2222         # Number of times training run will cycle through all training data
-    training_set_size       :int    = 100       # Qty of training data
+    epochs_to_run           :int    = 2         # Number of times training run will cycle through all training data
+    training_set_size       :int    = 2       # Qty of training data
     converge_epochs         :int    = 100       # How many epochs of no change before we call it converged?
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
     default_learning_rate   :float  = .0001     # Affects magnitude of weight adjustments #.0001 Equalizer

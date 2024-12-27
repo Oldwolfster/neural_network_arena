@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from json import dumps
+
 from src.engine.Metrics import GladiatorOutput, IterationResult, IterationContext
 from src.engine.MetricsMgr import MetricsMgr
 import numpy as np
@@ -6,25 +8,28 @@ from numpy import ndarray
 from typing import Any
 from numpy import array
 
+from src.engine.MgrSQL import MgrSQL
 from src.engine.Neuron import Neuron
 from src.engine.TrainingData import TrainingData
 from datetime import datetime
 
+from src.engine.Utils_DataClasses import IterationData
 
 
 class Gladiator(ABC):
     def __init__(self,  *args):
-        gladiator = args[0]
-        self.hyper = args[1]
-        self.training_data = args[2]
-        self.training_data.reset_to_default()
-        self.training_samples = None     # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.metrics_mgr = MetricsMgr(gladiator, self.hyper, self.training_data)
-        self._learning_rate = self.hyper.default_learning_rate
-        self.number_of_epochs = self.hyper.epochs_to_run
-        # WHY? #self.sample_count = len(self.training_samples)          # Calculate and store sample count
-        self.neurons = []
-        self.neuron_count = 0 # Default value
+        gladiator               = args[0]
+        self.hyper              = args[1]
+        self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
+        self.neurons            = []
+        self.neuron_count       = 0                         # Default value
+        self.training_data      . reset_to_default()
+        self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
+        self.metrics_mgr        = MetricsMgr    (gladiator, self.hyper, self.training_data)
+        self.mgr_sql            = MgrSQL        (gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
+        self._learning_rate     = self.hyper.default_learning_rate
+        self.number_of_epochs   = self.hyper.epochs_to_run
+
 
     def train(self) -> MetricsMgr:
         if self.neuron_count == 0:
@@ -74,12 +79,36 @@ class Gladiator(ABC):
                 context             = context
             )
             self.metrics_mgr.record_iteration(result)
+
+            # Added to support multiple neurons via SQLLite in ram db.
+            iteration_data = IterationData(
+                model_id=self.mgr_sql.model_id,
+                epoch=epoch_num + 1,
+                step=i + 1,
+                inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
+                target=sample[-1],
+                prediction=prediction,
+                loss=loss
+            )
+            print("****************************RECORDING ITERATION 1")
+            self.mgr_sql.record_iteration(iteration_data)
+        self.mgr_sql.finish_epoch()
         return self.metrics_mgr.finish_epoch_summary()
 
     def initialize_neurons(self, neuron_count):
         self.neuron_init = True
         self.neuron_count = neuron_count
-        self.neurons = [Neuron(x, self.training_data.input_count, self.hyper.default_learning_rate) for x in range(neuron_count)]
+        for x in range(neuron_count):                           # Append new neurons to the existing list
+            self.neurons.append(Neuron(x, self.training_data.input_count, self.hyper.default_learning_rate))
+
+        '''
+            self.neuron_init = True
+            self.neuron_count = neuron_count
+            self.neurons.clear()                                    # Clear the existing list to start fresh
+            for x in range(neuron_count):                           # Append new neurons to the existing list
+                self.neurons.append(Neuron(x, self.training_data.input_count, self.hyper.default_learning_rate))
+        '''
+
 
     @property
     def weights(self):

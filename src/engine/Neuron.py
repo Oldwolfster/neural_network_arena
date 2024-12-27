@@ -5,13 +5,15 @@ class Neuron:
     """
     Represents a single neuron with weights, bias, and an activation function.
     """
-    def __init__(self, nid: int, input_count: int,  learning_rate: float): #activation_function: callable,
+    def __init__(self, nid: int, input_count: int, learning_rate: float, layer_id: int = 0):
         self.nid = nid
-
+        self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
         self.input_count = input_count
         self.weights = np.array([(nid + 1) * 0 for _ in range(input_count)], dtype=np.float64)
         self.bias = nid * 0  # Small bias based on nid
         self.learning_rate = learning_rate
+        self.output = 0 #TODO need to populate this in child model???
+
 
 
         #Coming soon self.activation_function = activation_function
