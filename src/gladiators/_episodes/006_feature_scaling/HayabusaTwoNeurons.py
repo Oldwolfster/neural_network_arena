@@ -28,11 +28,12 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
         # Step 2: Calculate the error
         error = target - prediction
 
+        #print(f"in hayabusatwoneurontron Before: self.neurons[0].weights[0]={self.neurons[0].weights[0]}\tself.neurons[0].weights[1]={self.neurons[0].weights[1]}" )
         # Step 3: Update weights and biases for the first neuron
         self.neurons[0].weights[0] += error * self.learning_rate * self.normalizers[0]
         self.neurons[0].weights[1] += error * self.learning_rate * self.normalizers[1]
         self.neurons[0].bias += error * self.learning_rate
-
+        #print(f"in hayabusatwoneurontron AFTER: self.neurons[0].weights[0]={self.neurons[0].weights[0]}\tself.neurons[0].weights[1]={self.neurons[0].weights[1]}" )
         # (Second neuron deliberately ignored)
 
         return prediction

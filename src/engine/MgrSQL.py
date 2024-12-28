@@ -45,7 +45,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         return self._converge_detector
 
     def record_iteration(self, iteration_data: IterationData):
-        print("****************************RECORDING ITERATION 2")
+        #print("****************************RECORDING ITERATION 2")
         self.metrics_iteration.append(iteration_data)
 
         for neuron in self.neurons:
@@ -53,20 +53,21 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
     def record_neuron(self, iteration, neuron):
         """
-        Add a single neuron's data to the accumulator for the current iteration.
+        Record a single neuron's data, including before and after states.
         """
-        print("****************************RECORDING ITERATION 3")
-        print(f"recording neuron {neuron.nid}")
         self.metrics_neuron.append({
             'model_id': self.model_id,
             'epoch': iteration.epoch,
             'step': iteration.step,
             'neuron_id': neuron.nid,
             'layer_id': neuron.layer_id,
-            'weights': dumps(neuron.weights.tolist()),  # Serialize weights
-            'bias': neuron.bias,
-            'output': neuron.output,
+            'weights_before': dumps(neuron.weights_before.tolist()),  # Serialize weights before
+            'weights_after': dumps(neuron.weights.tolist()),  # Serialize weights after
+            'bias_before': neuron.bias_before,
+            'bias_after': neuron.bias,
+            'output': neuron.output
         })
+
 
     def finish_epoch(self):
         self.write_iterations()
@@ -80,8 +81,8 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         if not self.metrics_neuron:
             return  # Nothing to write
         sql_neurons = '''
-            INSERT INTO neurons (model_id, epoch, step, neuron_id, layer_id, weights, bias, output)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO neurons (model_id, epoch, step, neuron_id, layer_id, weights_before, weights, bias_before, bias, output)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         '''
         values_neurons = [
             (
@@ -90,8 +91,10 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 neuron['step'],
                 neuron['neuron_id'],
                 neuron['layer_id'],
-                neuron['weights'],
-                neuron['bias'],
+                neuron['weights_before'],
+                neuron['weights_after'],
+                neuron['bias_before'],
+                neuron['bias_after'],
                 neuron['output']
             )
             for neuron in self.metrics_neuron

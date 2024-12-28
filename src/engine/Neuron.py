@@ -13,11 +13,12 @@ class Neuron:
         self.bias = nid * 0  # Small bias based on nid
         self.learning_rate = learning_rate
         self.output = 0 #TODO need to populate this in child model???
-
-
-
+        self.weights_before = None
+        self.bias_before = None
         #Coming soon self.activation_function = activation_function
-        #Coming soonself.learning_rate = learning_rate
+
+
+
 
     """
     the below methods restrict experimenting to much.

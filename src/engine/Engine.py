@@ -34,12 +34,11 @@ def run_a_match(gladiators, training_pit):
         metrics_mgr.run_time = end_time - start_time
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
     generate_reports(ramDb)
+    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
 
 
 
-import sqlite3
 
 
 def prepSQL() -> sqlite3.Connection:
@@ -68,10 +67,10 @@ def prepSQL() -> sqlite3.Connection:
             step INTEGER NOT NULL,
             neuron_id INTEGER NOT NULL,               -- Unique ID for each neuron
             layer_id INTEGER NOT NULL,                -- Identifies the layer the neuron belongs to
+            weights_before TEXT NOT NULL,             -- Serialized weights PRIOR TO UPDATE (e.g., JSON or CSV)
             weights TEXT NOT NULL,                    -- Serialized weights (e.g., JSON or CSV)
+            bias_before REAL NOT NULL,                -- Current bias PRIOR TO UPDATE for the neuron
             bias REAL NOT NULL,                       -- Current bias for the neuron
-            new_weights TEXT,                         -- Updated weights after this iteration
-            new_bias REAL,                            -- Updated bias after this iteration
             output REAL NOT NULL,                     -- Output of the neuron (post-activation)
             PRIMARY KEY (model_id, epoch, step, neuron_id),
             FOREIGN KEY (model_id, epoch, step) REFERENCES iterations (model_id, epoch, step)
