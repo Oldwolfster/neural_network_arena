@@ -2,6 +2,7 @@ import json
 import sqlite3
 
 import numpy as np
+from tabulate import tabulate
 
 
 class RamDB:
@@ -44,59 +45,80 @@ class RamDB:
         sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns}, {primary_key});"
 
         # Execute table creation
+        print(f"sql={sql}")
         self.cursor.execute(sql)
         self.tables[table_name] = schema  # Track schema
 
 
     def add(self, obj, **context):
         """
-        Add an object to the database with required context fields (e.g., epoch, iteration).
+        Add an object to the database with any number of context fields.
         Automatically creates the table if it does not exist.
         """
         # Determine the table name from the object's class
         table_name = obj.__class__.__name__
 
-        # Infer the schema from the object
-        schema = self._infer_schema(obj)
-
-        # Merge context fields into the schema
-        for key, value in {"epoch": context.get('epoch'), "iteration": context.get('iteration')}.items():
-            if key and value is not None:
-                if isinstance(value, int):
-                    schema[key] = "INTEGER"
-                elif isinstance(value, float):
-                    schema[key] = "REAL"
-                elif isinstance(value, str):
-                    schema[key] = "TEXT"
-                else:
-                    raise TypeError(f"Unsupported context field type: {type(value)} for '{key}'")
-
-        # Create the table if it doesn't exist
+        # Check if the table exists, and create it if necessary
         if table_name not in self.tables:
-            self._create_table(table_name, schema)
-            self.tables[table_name] = schema  # Track schema
+            self.create_table(table_name, obj, context)
 
         # Merge object attributes and context fields
-        data = {**vars(obj), **context}
+        data = {**context, **vars(obj)}  # Context fields first
 
-        # Reorder fields for insertion
-        ordered_data = {key: data[key] for key in schema.keys()}
+        # Prepare SQL INSERT statement
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join(["?"] * len(data))
+        sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
 
         # Serialize fields (e.g., numpy arrays, lists) into JSON-friendly formats
-        ordered_data = {
+        data = {
             key: (json.dumps(value.tolist()) if isinstance(value, np.ndarray) else
                   json.dumps(value) if isinstance(value, (list, dict)) else
                   value)
-            for key, value in ordered_data.items()
+            for key, value in data.items()
         }
 
-        # Prepare SQL INSERT statement
-        columns = ", ".join(ordered_data.keys())
-        placeholders = ", ".join(["?"] * len(ordered_data))
-        sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
-
         # Execute the insert
-        self.cursor.execute(sql, tuple(ordered_data.values()))
+        self.cursor.execute(sql, tuple(data.values()))
+
+    def create_table(self, table_name, obj, context):
+        """
+        Create a table dynamically based on the object's attributes and context fields.
+        """
+        # Generate the schema
+        schema = self.create_schema(obj, context)
+
+        # Generate the SQL for creating the table
+        columns = ", ".join([f"{name} {type}" for name, type in schema.items()])
+        sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns});"
+        print(f"Creating table ==>\n{sql}")
+        # Execute the table creation
+        self.cursor.execute(sql)
+
+        # Track the schema
+        self.tables[table_name] = schema
+
+    def create_schema(self, obj, context):
+        """
+        Generate the schema for a table, prioritizing context fields before object fields.
+        """
+        # Infer schema for context fields
+        context_schema = {}
+        for key, value in context.items():
+            if isinstance(value, int):
+                context_schema[key] = "INTEGER"
+            elif isinstance(value, float):
+                context_schema[key] = "REAL"
+            elif isinstance(value, str):
+                context_schema[key] = "TEXT"
+            else:
+                raise TypeError(f"Unsupported context field type: {type(value)} for '{key}'")
+
+        # Infer schema for object fields
+        object_schema = self._infer_schema(obj)
+
+        # Merge context and object schemas, with context first
+        return {**context_schema, **object_schema}
 
 
 
@@ -115,7 +137,18 @@ class RamDB:
             raise RuntimeError(f"SQL query failed: {e}")
 
 
+    def query_print(self, sql, as_dict=True):
+        data = self.query(sql)    # Fetch the data from the database
+        if data:
+            report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
+            print(report)
+        else:
+            print(f"No results found. ==>{sql}")
 
+
+
+
+'''
 class Neuron:
     """
     Represents a single neuron with weights, bias, and an activation function.
@@ -127,7 +160,7 @@ class Neuron:
         self.input_count = input_count
         self.weights = np.array([(nid + 1) * 0 for _ in range(input_count)], dtype=np.float64)
 
-
+Sample usage
 N1 = Neuron(1, 1, .001, 1)
 N2 = Neuron(2, 2, .001, 1)
 N3 = Neuron(3, 3, .001, 2)
@@ -141,3 +174,4 @@ result = db.query("SELECT * FROM Neuron")
 result2 = db.query("SELECT * FROM Neuron", False)
 print(result)
 print(result2)
+'''

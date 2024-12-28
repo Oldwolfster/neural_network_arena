@@ -5,8 +5,9 @@ from dataclasses import dataclass
 class IterationData:
     model_id: str
     epoch: int
-    step: int
+    iteration: int
     inputs: str  # Serialized as JSON
     target: float
     prediction: float
     loss: float
+
