@@ -3,29 +3,30 @@ import sqlite3
 
 from tabulate import tabulate
 
-def generate_reports(ramDb: sqlite3.Connection):
-    generate_iteration_report(ramDb)
+from src.engine.RamDB import RamDB
 
 
-def generate_iteration_report(ramDb: sqlite3.Connection):
+def generate_reports(db : RamDB):
+    generate_iteration_report(db)
+
+
+def generate_iteration_report(db: RamDB):
+    db.query_print("SELECT * FROM IterationData")
+    db.query_print("Select * From Neuron")
     """
     Generate the step detail report using tabulate.
-    """
-    report_data = fetch_report_data(ramDb)
-    formatted_rows = format_report_data(report_data)
+    
+    # Fetch the data from the database
+    formatted_rows = db.query("SELECT * FROM IterationData")
+    print(f"Formatted Rows: {formatted_rows}")
 
-    headers = [
-        "Step Detail",
-        "Weight * Input + Bias",
-        "Prediction",
-        "Target",
-        "Error",
-        "Neuron Output"
-    ]
+    # Use "keys" for headers to match dictionary structure
+    headers = "keys"
 
+    # Generate the tabulated report
     report = tabulate(formatted_rows, headers=headers, tablefmt="fancy_grid")
     print(report)
-
+    """
 
 def fetch_report_data(ramDb: sqlite3.Connection):
     """

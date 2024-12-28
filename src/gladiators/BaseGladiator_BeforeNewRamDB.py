@@ -77,6 +77,7 @@ class Gladiator(ABC):
             gladiator_output        = GladiatorOutput(
                 prediction          = prediction
             )
+
             context.new_weights     = np.copy(self.weights) # Weights AFTER model processed sample
             context.new_bias        = self.bias             # Bias    AFTER model processed sample
             result                  = IterationResult(
@@ -89,7 +90,7 @@ class Gladiator(ABC):
             iteration_data = IterationData(
                 model_id=self.mgr_sql.model_id,
                 epoch=epoch_num + 1,
-                iteration=i + 1,
+                step=i + 1,
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
                 target=sample[-1],
                 prediction=prediction,

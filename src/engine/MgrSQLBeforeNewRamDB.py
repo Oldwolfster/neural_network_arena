@@ -2,7 +2,6 @@ import sqlite3
 from json import dumps
 from typing import List
 
-from .RamDB import RamDB
 from .Utils import IterationResult
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
@@ -10,13 +9,13 @@ from .Utils_DataClasses import IterationData
 
 
 class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
-    def __init__(self, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
+    def __init__(self, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: sqlite3.Connection):
         # Run Level members
         self.training_data          = training_data
         self.model_id               = model_id
         self.hyper                  = hyper
         self.neurons                = neurons
-        self.db                     = ramDb
+        self.ramDb                  = ramDb
                                                                 #REMOVED WHEN ADDING SQL self.epoch_summaries = []           # Store the epoch summaries
                                                                 #REMOVED WHEN ADDING SQL self.summary = EpochSummary()       # The current Epoch summary
         self.run_time               = 0                         # How long did training take?
@@ -30,8 +29,8 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.convergence_signal = []      # Will be set by convergence detector
 
         #Below added when switching to multiple neurons
-        #self.metrics_iteration = []                                 # Accumulate iteration data for batch writes
-        #self.metrics_neuron = []                                    # Accumulate iteration data for batch writes
+        self.metrics_iteration = []                                 # Accumulate iteration data for batch writes
+        self.metrics_neuron = []                                    # Accumulate iteration data for batch writes
 
 
     @property
@@ -47,14 +46,10 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
     def record_iteration(self, iteration_data: IterationData):
         #print("****************************RECORDING ITERATION 2")
-        #self.metrics_iteration.append(iteration_data)
-        self.db.add(iteration_data, show_me_first='example')
-        #db.add(N1, epoch=1, iteration=10)
-        for neuron in self.neurons:
-            epoch_num=iteration_data.epoch
-            iteration_num=iteration_data.iteration
-            self.db.add(neuron, model=self.model_id, epoch = epoch_num, iteration = iteration_num )
+        self.metrics_iteration.append(iteration_data)
 
+        for neuron in self.neurons:
+            self.record_neuron(iteration_data, neuron)
 
     def record_neuron(self, iteration, neuron):
         """
@@ -75,8 +70,6 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
 
     def finish_epoch(self):
-        return
-        #Need to move convg detector here.
         self.write_iterations()
         self.write_neurons()
 

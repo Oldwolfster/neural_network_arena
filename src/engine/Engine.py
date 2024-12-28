@@ -4,6 +4,8 @@ import statistics
 import numpy as np
 import time
 from typing import Tuple
+
+from .RamDB import RamDB
 from .SQL import retrieve_training_data
 from .SQL import record_training_data
 from src.engine.Reporting import print_results
@@ -21,11 +23,12 @@ def run_a_match(gladiators, training_pit):
     training_data   =  get_training_data(hyper)
     record_training_data(training_data.get_list())
     # Create a connection to an in-memory SQLite database
-    ramDb = prepSQL()
+    # DELETE MEramDb = prepSQL()
+    db = RamDB()
     modelID = 0
     for gladiator in gladiators:    # Loop through the NNs competing.
         print(f"Preparing to run model:{gladiator}")
-        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, ramDb)
+        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
 
         start_time = time.time()  # Start timing
         metrics_mgr = nn.train()
@@ -34,8 +37,8 @@ def run_a_match(gladiators, training_pit):
         metrics_mgr.run_time = end_time - start_time
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
-    generate_reports(ramDb)
-    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
+    generate_reports(db)
+    #print_results(mgr_list, training_data.get_list(), hyper, training_pit)
 
 
 
