@@ -62,6 +62,12 @@ class Gladiator(ABC):
                 new_bias            = None
             )
 
+            # Capture "before" state
+            for neuron in self.neurons:
+                neuron.output_before = neuron.output
+                neuron.weights_before = np.copy(neuron.weights)
+                neuron.bias_before = neuron.bias
+
             # Step 2: Delegate prediction to the child model
             prediction              = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
             error                   = target - prediction
@@ -90,7 +96,7 @@ class Gladiator(ABC):
                 prediction=prediction,
                 loss=loss
             )
-            print("****************************RECORDING ITERATION 1")
+            #print("****************************RECORDING ITERATION 1")
             self.mgr_sql.record_iteration(iteration_data)
         self.mgr_sql.finish_epoch()
         return self.metrics_mgr.finish_epoch_summary()

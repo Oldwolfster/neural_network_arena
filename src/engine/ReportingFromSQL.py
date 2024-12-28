@@ -30,6 +30,7 @@ def generate_iteration_report(ramDb: sqlite3.Connection):
 def fetch_report_data(ramDb: sqlite3.Connection):
     """
     Fetch data from the database for generating the step detail report.
+    epoch, step, prediction, target, error, neuron_id, weights_before, weights_after, bias_before, bias_after, output_before, output_after = row
     """
     sql = '''
         SELECT
@@ -51,7 +52,39 @@ def fetch_report_data(ramDb: sqlite3.Connection):
     return ramDb.execute(sql).fetchall()
 
 
+
 def format_report_data(report_data):
+    """
+    Format the fetched report data for tabulate.
+    """
+    formatted_rows = []
+    for row in report_data:
+        epoch, step, prediction, target, error, neuron_id, weights_before, weights_after, bias_before, bias_after, output_before, output_after = row
+
+        # Deserialize weights
+        weights_before = json.loads(weights_before)
+        weights_after = json.loads(weights_after)
+
+        # Generate weight * input + bias strings
+        weight_input_bias = [
+            f"N{neuron_id}W{i+1} {w_before} -> {w_after}"
+            for i, (w_before, w_after) in enumerate(zip(weights_before, weights_after))
+        ]
+
+        # Add formatted row
+        formatted_rows.append([
+            f"Epoch {epoch} / Step {step}",
+            "\n".join(weight_input_bias),
+            prediction,
+            target,
+            error,
+            f"{bias_before} -> {bias_after}",
+            f"{output_before} -> {output_after}"
+        ])
+    return formatted_rows
+
+
+def format_report_dataOrigi(report_data):
     """
     Format the fetched report data for tabulate.
     """
