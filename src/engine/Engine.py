@@ -38,49 +38,7 @@ def run_a_match(gladiators, training_pit):
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
     generate_reports(db)
-    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
-
-
-
-
-
-def prepSQL() -> sqlite3.Connection:
-    conn = sqlite3.connect(':memory:', isolation_level=None)
-    ramDB = conn.cursor()
-
-    # Create the iterations table
-    ramDB.execute('''
-        CREATE TABLE IF NOT EXISTS iterations (            
-            model_id TEXT NOT NULL,
-            epoch INTEGER NOT NULL,
-            step INTEGER NOT NULL,
-            inputs TEXT NOT NULL,
-            target REAL NOT NULL,
-            prediction REAL NOT NULL,
-            loss REAL NOT NULL,
-            PRIMARY KEY (model_id, epoch, step)
-        );
-    ''')
-
-    # Create the neurons table
-    ramDB.execute('''
-        CREATE TABLE IF NOT EXISTS neurons (            
-            model_id TEXT NOT NULL,
-            epoch INTEGER NOT NULL,
-            step INTEGER NOT NULL,
-            neuron_id INTEGER NOT NULL,               -- Unique ID for each neuron
-            layer_id INTEGER NOT NULL,                -- Identifies the layer the neuron belongs to
-            weights_before TEXT NOT NULL,             -- Serialized weights PRIOR TO UPDATE (e.g., JSON or CSV)
-            weights TEXT NOT NULL,                    -- Serialized weights (e.g., JSON or CSV)
-            bias_before REAL NOT NULL,                -- Current bias PRIOR TO UPDATE for the neuron
-            bias REAL NOT NULL,                       -- Current bias for the neuron
-            output REAL NOT NULL,                     -- Output of the neuron (post-activation)
-            PRIMARY KEY (model_id, epoch, step, neuron_id),
-            FOREIGN KEY (model_id, epoch, step) REFERENCES iterations (model_id, epoch, step)
-        );
-    ''')
-
-    return ramDB
+    #print_results(mgr_list, training_data.get_list(), hyper, training_pit)
 
 
 def get_training_data(hyper):
