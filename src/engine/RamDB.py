@@ -45,7 +45,7 @@ class RamDB:
         sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns}, {primary_key});"
 
         # Execute table creation
-        print(f"sql={sql}")
+        #print(f"sql={sql}")
         self.cursor.execute(sql)
         self.tables[table_name] = schema  # Track schema
 
@@ -91,7 +91,7 @@ class RamDB:
         # Generate the SQL for creating the table
         columns = ", ".join([f"{name} {type}" for name, type in schema.items()])
         sql = f"CREATE TABLE IF NOT EXISTS {table_name} ({columns});"
-        print(f"Creating table ==>\n{sql}")
+        #print(f"Creating table ==>\n{sql}")
         # Execute the table creation
         self.cursor.execute(sql)
 
@@ -141,10 +141,33 @@ class RamDB:
         data = self.query(sql)    # Fetch the data from the database
         if data:
             report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
+            print(sql)
             print(report)
         else:
             print(f"No results found. ==>{sql}")
 
+    def list_tables(self, detail_level=2):
+        """
+        :param detail_level - 1 just tables.  2 tables and fields, 3 include data type
+        List all tables in the database.
+        If details=True, print the schema for each table including column data types.
+        """
+        if not (detail_level==1 or detail_level==2 or detail_level==3):
+            raise RuntimeError(f"Invalid value for detail_level(use 1,2, or 3)  not ==> {detail_level}")
+        if not self.tables:
+            print("No tables found.")
+            return
+
+        if detail_level==3:
+            for table_name, schema in self.tables.items():
+                print(f"\nTable: {table_name}")
+                # Create a list of dictionaries for tabulation
+                detailed_schema = [{"Column": col, "Type": col_type} for col, col_type in schema.items()]
+                print(tabulate(detailed_schema, headers="keys", tablefmt="fancy_grid"))
+        if detail_level==2:
+            print(tabulate(self.tables, headers="keys", tablefmt="fancy_grid"))
+        if detail_level==1:
+            print(tabulate([{"Table Name": table_name} for table_name in self.tables.keys()], headers="keys", tablefmt="fancy_grid"))
 
 
 

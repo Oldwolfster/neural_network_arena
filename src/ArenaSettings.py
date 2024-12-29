@@ -14,9 +14,9 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 2         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 11         # Number of times training run will cycle through all training data
     training_set_size       :int    = 1       # Qty of training data
-    converge_epochs         :int    = 100       # How many epochs of no change before we call it converged?
+    converge_epochs         :int    = 2       # How many epochs of no change before we call it converged?
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
     default_learning_rate   :float  = .0001     # Affects magnitude of weight adjustments #.0001 Equalizer
     # .1 get's 4k    .1446456=4k      .14464565=29  .14= 29
@@ -51,8 +51,8 @@ class HyperParameters:
 training_pit              = "Predict_Income_2_Inputs"
 #training_pit              = "Manual"
 #training_pit              = "CreditScoreRegression"
-training_pit              = "Predict_Income_2_Inputs"
-#training_pit              = "Salary2InputsNonlinear"
+#training_pit              = "Predict_Income_2_Inputs"
+##training_pit              = "Salary2InputsNonlinear"
 
 
 
@@ -64,8 +64,10 @@ gladiators = [
     #"HayabusaFixed"
     #,'Blackbird'
     #'Hayabusa'
+    #'HayabusaNormalizer'
     'HayabusaTwoNeurons'
-    #,'GBS'
+    ,'GBS_MultipleOutputNeurons'
+    #'GBS_one_neuron'
 
 ]
 

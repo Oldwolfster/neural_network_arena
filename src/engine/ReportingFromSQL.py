@@ -1,9 +1,8 @@
 import json
 import sqlite3
-
 from tabulate import tabulate
-
 from src.engine.RamDB import RamDB
+from src.engine.Utils import smart_format
 
 
 def generate_reports(db : RamDB):
@@ -11,104 +10,105 @@ def generate_reports(db : RamDB):
 
 
 def generate_iteration_report(db: RamDB):
-    db.query_print("SELECT * FROM IterationData")
-    db.query_print("Select * From Neuron")
-    """
-    Generate the step detail report using tabulate.
-    
-    # Fetch the data from the database
-    formatted_rows = db.query("SELECT * FROM IterationData")
-    print(f"Formatted Rows: {formatted_rows}")
-
-    # Use "keys" for headers to match dictionary structure
-    headers = "keys"
-
-    # Generate the tabulated report
-    report = tabulate(formatted_rows, headers=headers, tablefmt="fancy_grid")
-    print(report)
+    #db.query_print("SELECT * FROM Iteration")
+    #db.query_print("Select * From Neuron")
+    SQL = """
+    SELECT  *
+    FROM    Iteration I
+    JOIN    Neuron N
+    ON      I.model_id  = N.model 
+    AND     I.epoch     = N.epoch_n
+    AND     I.iteration = N.iteration_n
+    ORDER BY epoch, iteration, model, nid 
     """
 
-def fetch_report_data(ramDb: sqlite3.Connection):
+    data = db.query(SQL)
+    print("NEURON LEVEL REPORT==========================================================================")
+    #print(data)
+    results = neuron_report_organize_info(data)
+    iteration_report = tabulate(results, headers="keys", tablefmt="fancy_grid")
+    print(iteration_report)
+
+
+
+def neuron_report_organize_info(rows):
     """
-    Fetch data from the database for generating the step detail report.
-    epoch, step, prediction, target, error, neuron_id, weights_before, weights_after, bias_before, bias_after, output_before, output_after = row
+    Organize detailed neuron information for the report.
+    Includes Model, Neuron Context, Weight * Input, Bias, Raw Sum, Output, and New Weights.
     """
-    sql = '''
-        SELECT
-            i.epoch,
-            i.step,
-            i.prediction,
-            i.target,
-            i.target - i.prediction AS error,
-            n.neuron_id,
-            n.weights,
-            n.bias,
-            n.output
-        FROM iterations AS i
-        JOIN neurons AS n
-        ON i.model_id = n.model_id AND i.epoch = n.epoch AND i.step = n.step
-        ORDER BY i.epoch, i.step, n.neuron_id
-    '''
+    report_data = []
 
-    return ramDb.execute(sql).fetchall()
+    for row in rows:
+        # Extract basic information
+        model = row['model_id']
+        context = f"{row['epoch']} / {row['iteration']} / {row['nid']}"
+        prediction_logic = build_prediction_logic(row)
+        new_weights_logic = build_new_weights_logic(row)  # Add new weights logic
+
+        # Calculate bias and raw sum
+        bias = row.get('bias_before', 0)  # Default to 0 if bias is missing
+        weights = json.loads(row.get('weights_before', '[]'))
+        inputs = json.loads(row.get('inputs', '[]'))
+        raw_sum = sum(w * inp for w, inp in zip(weights, inputs)) + bias
+
+        # Determine output (activation function currently linear)
+        output = f"{row['activation']}: {smart_format(raw_sum)}"  # Use activation function name from the row
+
+        # Append to the report data
+        report_data.append({
+            "Model": model,
+            "Epc / Iter / Nrn": context,
+            "Weight * Input": prediction_logic,
+            "Bias": smart_format(bias),
+            "Raw Sum": smart_format(raw_sum),
+            "Output": output,
+            "New Weights": new_weights_logic  # Add new weights to the report
+        })
+
+    return report_data
 
 
 
-def format_report_data(report_data):
+def build_new_weights_logic(row):
     """
-    Format the fetched report data for tabulate.
+    Build new weights logic for a single neuron (row).
+    Loops through new weights, generating labeled entries.
     """
-    formatted_rows = []
-    for row in report_data:
-        epoch, step, prediction, target, error, neuron_id, weights_before, weights_after, bias_before, bias_after, output_before, output_after = row
+    nid = row.get('nid')  # Get neuron ID
+    new_weights = json.loads(row.get('weights', '[]'))  # Deserialize new weights
 
-        # Deserialize weights
-        weights_before = json.loads(weights_before)
-        weights_after = json.loads(weights_after)
+    if not new_weights:
+        raise ValueError(f"No new weights found for neuron ID {nid}")
 
-        # Generate weight * input + bias strings
-        weight_input_bias = [
-            f"N{neuron_id}W{i+1} {w_before} -> {w_after}"
-            for i, (w_before, w_after) in enumerate(zip(weights_before, weights_after))
-        ]
+    # Generate new weights logic
+    new_weights_lines = [
+        f"W{i+1} {smart_format(w)}" for i, w in enumerate(new_weights)
+    ]
 
-        # Add formatted row
-        formatted_rows.append([
-            f"Epoch {epoch} / Step {step}",
-            "\n".join(weight_input_bias),
-            prediction,
-            target,
-            error,
-            f"{bias_before} -> {bias_after}",
-            f"{output_before} -> {output_after}"
-        ])
-    return formatted_rows
+    # Combine into a single multi-line string
+    return "\n".join(new_weights_lines)
 
 
-def format_report_dataOrigi(report_data):
+def build_prediction_logic(row):
     """
-    Format the fetched report data for tabulate.
+    Build prediction logic for a single neuron (row).
+    Loops through weights and inputs, generating labeled calculations.
     """
-    formatted_rows = []
-    for row in report_data:
-        epoch, step, prediction, target, error, neuron_id, weights, bias, output = row
+    nid = row.get('nid')  # Get neuron ID
+    weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
+    inputs = json.loads(row.get('inputs', '[]'))  # Deserialize inputs
 
-        # Deserialize weights (assuming JSON storage)
-        weights = json.loads(weights)
+    # Validate lengths of weights and inputs
+    if len(weights) != len(inputs):
+        raise ValueError(f"Mismatch in length of weights ({len(weights)}) and inputs ({len(inputs)})")
 
-        # Generate weight * input + bias string
-        weight_input_bias = [
-            f"N{neuron_id}W{i+1} {w} * X + {bias}"
-            for i, w in enumerate(weights)
-        ]
+    # Generate prediction logic
+    predictions = []
+    for i, (w, inp) in enumerate(zip(weights, inputs), start=1):
+        label = f"W{i}I{i}"  # Update label to match new specs
+        calculation = f"{label} {smart_format(w)} * {smart_format(inp)} = {smart_format(w * inp)}"
+        predictions.append(calculation)
 
-        formatted_rows.append([
-            f"Epoch {epoch} / Step {step}",
-            "\n".join(weight_input_bias),
-            prediction,
-            target,
-            error,
-            f"Neuron {neuron_id} Output: {output}"
-        ])
-    return formatted_rows
+    # Combine multi-line predictions into a single string
+    return "\n".join(predictions)
 

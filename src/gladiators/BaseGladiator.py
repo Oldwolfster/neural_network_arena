@@ -13,7 +13,7 @@ from src.engine.Neuron import Neuron
 from src.engine.TrainingData import TrainingData
 from datetime import datetime
 
-from src.engine.Utils_DataClasses import IterationData
+from src.engine.Utils_DataClasses import Iteration
 
 
 class Gladiator(ABC):
@@ -86,7 +86,7 @@ class Gladiator(ABC):
             self.metrics_mgr.record_iteration(result)
 
             # Added to support multiple neurons via SQLLite in ram db.
-            iteration_data = IterationData(
+            iteration_data = Iteration(
                 model_id=self.mgr_sql.model_id,
                 epoch=epoch_num + 1,
                 iteration=i + 1,
@@ -97,8 +97,10 @@ class Gladiator(ABC):
             )
             #print("****************************RECORDING ITERATION 1")
             self.mgr_sql.record_iteration(iteration_data)
+        converged = self.metrics_mgr.finish_epoch_summary()
         self.mgr_sql.finish_epoch()
-        return self.metrics_mgr.finish_epoch_summary()
+
+        return converged
 
     def initialize_neurons(self, neuron_count):
         self.neuron_init = True
