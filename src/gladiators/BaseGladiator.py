@@ -93,7 +93,9 @@ class Gladiator(ABC):
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
                 target=sample[-1],
                 prediction=prediction,
+                error = loss,
                 loss=loss
+
             )
             #print("****************************RECORDING ITERATION 1")
             self.mgr_sql.record_iteration(iteration_data)

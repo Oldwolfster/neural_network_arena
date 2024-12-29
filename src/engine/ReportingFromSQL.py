@@ -6,10 +6,10 @@ from src.engine.Utils import smart_format
 
 
 def generate_reports(db : RamDB):
-    generate_iteration_report(db)
+    neuron_report_launch(db)
 
 
-def generate_iteration_report(db: RamDB):
+def neuron_report_launch(db: RamDB):
     #db.query_print("SELECT * FROM Iteration")
     #db.query_print("Select * From Neuron")
     SQL = """
@@ -25,51 +25,136 @@ def generate_iteration_report(db: RamDB):
     data = db.query(SQL)
     print("NEURON LEVEL REPORT==========================================================================")
     #print(data)
-    results = neuron_report_organize_info(data)
-    iteration_report = tabulate(results, headers="keys", tablefmt="fancy_grid")
-    print(iteration_report)
+    #results = neuron_report_organize_info(data)
+    #iteration_report = tabulate(results, headers="keys", tablefmt="fancy_grid")
+    #print(iteration_report)
+    # Organize and tabulate mini-reports
+    grouped_reports = neuron_report_organize_info(data)
+    for mini_report in grouped_reports:
+        print(tabulate(mini_report, headers="keys", tablefmt="fancy_grid"))
 
 
-
-def neuron_report_organize_info(rows):
+def neuron_report_organize_info(query_results):
     """
     Organize detailed neuron information for the report.
-    Includes Model, Neuron Context, Weight * Input, Bias, Raw Sum, Output, and New Weights.
+    Groups rows by Model, Epoch, and Iteration, and formats them as mini-reports.
+
+    :param query_results: List of dictionaries, results from a query joining neuron and iteration data.
+    :return: A list of dictionaries, each representing a neuron row for a given model, epoch, and iteration.
+
+    The report includes:
+    - Model, Neuron Context (Epoch / Iteration / Neuron ID)
+    - Weight * Input, Bias, Raw Sum, Output, and New Weights
+    - Summary-level fields: Target, Prediction, Error, and Loss (left blank for neuron rows)
     """
     report_data = []
+    current_idx = 0
 
-    for row in rows:
-        # Extract basic information
-        model = row['model_id']
-        context = f"{row['epoch']} / {row['iteration']} / {row['nid']}"
-        prediction_logic = build_prediction_logic(row)
-        new_weights_logic = build_new_weights_logic(row)  # Add new weights logic
-
-        # Calculate bias and raw sum
-        bias = row.get('bias_before', 0)  # Default to 0 if bias is missing
-        weights = json.loads(row.get('weights_before', '[]'))
-        inputs = json.loads(row.get('inputs', '[]'))
-        raw_sum = sum(w * inp for w, inp in zip(weights, inputs)) + bias
-
-        # Determine output (activation function currently linear)
-        output = f"{row['activation']}: {smart_format(raw_sum)}"  # Use activation function name from the row
-
-        # Append to the report data
-        report_data.append({
-            "Model": model,
-            "Epc / Iter / Nrn": context,
-            "Weight * Input": prediction_logic,
-            "Bias": smart_format(bias),
-            "Raw Sum": smart_format(raw_sum),
-            "Output": output,
-            "New Weights": new_weights_logic  # Add new weights to the report
-        })
-
+    while current_idx < len(query_results):
+        # Extract the next group of rows
+        group, next_idx = neuron_report_extract_group(query_results, current_idx)
+        current_idx = next_idx  # Update the starting index
+        mini_report = neuron_report_format_output(group)
+        report_data.append(mini_report)
     return report_data
 
 
+def neuron_report_format_output(rows_for_an_iteration):
+    """
+    Converts the data from the query to the desired report format for a given iteration
 
-def build_new_weights_logic(row):
+    :param rows_for_an_iteration: List of dictionaries, all neurons for an iteration and iteration summary
+    :return: A list of dictionaries, each representing a neuron row for a given model, epoch, and iteration.
+    """
+
+    mini_report = []
+    for row in rows_for_an_iteration:
+        # Extract basic information
+        model       = row['model_id']
+        context     = f"{row['epoch']} / {row['iteration']} / {row['nid']}"
+        weight_inp  = neuron_report_build_prediction_logic(row)
+        new_weights = neuron_report_build_new_weights_logic(row)
+
+        # Extract bias and raw sum
+        bias        = row.get('bias_before', 0)
+        weights     = json.loads(row.get('weights_before', '[]'))
+        inputs      = json.loads(row.get('inputs', '[]'))
+        raw_sum     = sum(w * inp for w, inp in zip(weights, inputs)) + bias
+        output_val  = row.get('output')
+        output      = f"{row['activation']}: {smart_format(output_val)}"
+
+        # Append to the report data
+        mini_report.append({
+            "Model"             : model,
+            "Epc / Iter / Nrn"  : context,
+            "Weight * Input"    : weight_inp,
+            "Bias"              : smart_format(bias),
+            "Raw Sum"           : smart_format(raw_sum),
+            "Output"            : output,
+            "New Weights"       : new_weights,
+
+        })
+
+    # Add summary row
+    summary_row = neuron_report_build_iteration_summary(rows_for_an_iteration)
+    mini_report.append(summary_row)
+    return mini_report
+
+
+def neuron_report_build_iteration_summary(rows_for_an_iteration):
+    """
+    Create a summary row for the given group of rows (all neurons for a single iteration).
+
+    :param rows_for_an_iteration: List of dictionaries for a single Model, Epoch, and Iteration.
+    :return: A single dictionary representing the summary row.
+    """
+    # Use the first row to extract shared fields
+    prediction  = smart_format(rows_for_an_iteration[0].get("prediction"))
+    target      = smart_format(rows_for_an_iteration[0].get("target"))
+    error       = smart_format(rows_for_an_iteration[0].get("prediction")-rows_for_an_iteration[0].get("target"))
+    loss        = smart_format(rows_for_an_iteration[0].get("loss"))
+    summary_row = {
+        "Model"            : "Iteration Summary",
+        "Epc / Iter / Nrn" : "Pred - Targ = Err",
+        "Weight * Input"   : f"{prediction} - {target} = {error}",
+        "Bias"             : "",  # Blank for summary
+        "Raw Sum"          : "Loss",
+        "Output"           : "MSE",  #  Placeholder for now
+        "New Weights"      : loss,  # Currently only MSE
+    }
+    return summary_row
+
+
+def neuron_report_extract_group(query_results, start_idx):
+    """
+    Extract a group of rows from query_results with the same Model, Epoch, and Iteration.
+
+    :param query_results: List of dictionaries, results from a query joining neuron and iteration data.
+    :param start_idx: The current starting index in query_results.
+    :return: (group, next_idx) where:
+        - group is a list of rows for the same Model, Epoch, and Iteration.
+        - next_idx is the index to start processing the next group.
+    """
+    group = []
+    initial_key = (
+        query_results[start_idx]['model_id'],
+        query_results[start_idx]['epoch'],
+        query_results[start_idx]['iteration']
+    )
+
+    for idx in range(start_idx, len(query_results)):
+        row = query_results[idx]
+        current_key = (row['model_id'], row['epoch'], row['iteration'])
+
+        if current_key != initial_key:
+            return group, idx  # End of the current group
+
+        group.append(row)
+
+    return group, len(query_results)  # End of all rows
+
+
+def neuron_report_build_new_weights_logic(row):
     """
     Build new weights logic for a single neuron (row).
     Loops through new weights, generating labeled entries.
@@ -89,7 +174,7 @@ def build_new_weights_logic(row):
     return "\n".join(new_weights_lines)
 
 
-def build_prediction_logic(row):
+def neuron_report_build_prediction_logic(row):
     """
     Build prediction logic for a single neuron (row).
     Loops through weights and inputs, generating labeled calculations.
