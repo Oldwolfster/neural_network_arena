@@ -8,7 +8,7 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons(2)
+        self.initialize_neurons(1)
         self.normalizers = self.training_data.normalizers  # Output: [0.333, 0.666]
         #self.training_data.set_normalization_min_max()
 
@@ -22,13 +22,8 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
                     inp_1 * self.neurons[0].weights[1] +
                     self.neurons[0].bias)
 
-        # Step 2: Compute the output of the second neuron
-        output_1 = (inp_0 * self.neurons[1].weights[0] +
-                    inp_1 * self.neurons[1].weights[1] +
-                    self.neurons[1].bias)
-
-        # sum, should we divide???? Dividing adds epochs for same result... strange  in Predict_Income_2_Inputs
-        prediction = (output_0 + output_1)
+        # Use only the first neuron for the prediction
+        prediction = output_0
 
         # Step 2: Calculate the error
         error = target - prediction
@@ -38,11 +33,6 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
         self.neurons[0].weights[0] += error * self.learning_rate * self.normalizers[0]
         self.neurons[0].weights[1] += error * self.learning_rate * self.normalizers[1]
         self.neurons[0].bias += error * self.learning_rate
-
-        # Step 4: Update weights and biases for the first neuron
-        self.neurons[1].weights[0] += error * self.learning_rate * self.normalizers[0]
-        self.neurons[1].weights[1] += error * self.learning_rate * self.normalizers[1]
-        self.neurons[1].bias += error * self.learning_rate
         #print(f"in hayabusatwoneurontron AFTER: self.neurons[0].weights[0]={self.neurons[0].weights[0]}\tself.neurons[0].weights[1]={self.neurons[0].weights[1]}" )
         # (Second neuron deliberately ignored)
 

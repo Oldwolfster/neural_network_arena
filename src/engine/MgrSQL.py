@@ -6,7 +6,7 @@ from .RamDB import RamDB
 from .Utils import IterationResult
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
-from .Utils_DataClasses import IterationData
+from .Utils_DataClasses import Iteration
 
 
 class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
@@ -45,15 +45,15 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
             self._converge_detector = ConvergenceDetector(self.hyper, self)
         return self._converge_detector
 
-    def record_iteration(self, iteration_data: IterationData):
+    def record_iteration(self, iteration_data: Iteration):
         #print("****************************RECORDING ITERATION 2")
         #self.metrics_iteration.append(iteration_data)
-        self.db.add(iteration_data, show_me_first='example')
+        self.db.add(iteration_data)
         #db.add(N1, epoch=1, iteration=10)
         for neuron in self.neurons:
             epoch_num=iteration_data.epoch
             iteration_num=iteration_data.iteration
-            self.db.add(neuron, model=self.model_id, epoch = epoch_num, iteration = iteration_num )
+            self.db.add(neuron, model=self.model_id, epoch_n = epoch_num, iteration_n = iteration_num )
 
 
     def record_neuron(self, iteration, neuron):

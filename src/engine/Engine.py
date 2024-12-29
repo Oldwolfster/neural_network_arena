@@ -38,7 +38,7 @@ def run_a_match(gladiators, training_pit):
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
     generate_reports(db)
-    #print_results(mgr_list, training_data.get_list(), hyper, training_pit)
+    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
 
 
 
