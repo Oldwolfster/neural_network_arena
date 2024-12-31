@@ -15,6 +15,9 @@ from src.gladiators.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
 from .TrainingData import TrainingData
 from src.engine.ReportingFromSQL import generate_reports
+from .Utils_DataClasses import ModelInfo
+
+
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
     mgr_list        = []
@@ -35,10 +38,12 @@ def run_a_match(gladiators, training_pit):
         mgr_list.append(metrics_mgr)
         end_time = time.time()  # End timing
         metrics_mgr.run_time = end_time - start_time
+        model_details= ModelInfo(gladiator, metrics_mgr.run_time)
+        db.add(model_details)
         print (f"{gladiator} completed in {metrics_mgr.run_time}")
 
     generate_reports(db)
-    #print_results(mgr_list, training_data.get_list(), hyper, training_pit)
+    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
 
 
 def get_training_data(hyper):
