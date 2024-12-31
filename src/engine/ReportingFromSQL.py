@@ -6,9 +6,87 @@ from src.engine.Utils import smart_format
 
 
 def generate_reports(db : RamDB):
-    neuron_report_launch(db)
+    #neuron_report_launch(db)
+    epoch_report_launch(db)
+    summary_report_launch(db)
 
 
+def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
+    # model_id           │   epoch │   correct │   wrong │   mean_absolute_error │   mean_squared_error │   root_mean_squared_error │ weights                                    │ biases              │   seconds │
+    SQL = """
+        SELECT  S.model_id as [Gladiator\nComparison], ROUND(I.seconds, 2) AS [Run\nTime],
+                S.epoch[Epoch of\nConv], s.correct[Correct], s.wrong[Wrong], 
+                round((S.correct * 1.0 / (S.correct + S.wrong)) * 100,2) AS [Accuracy],
+                s.mean_absolute_error[Mean\nAbs Err], s.root_mean_squared_error[RMSE], s.weights[Weights, s.biases[Biases] 
+        FROM EpochSummary S
+        JOIN (
+            Select model_id,max(epoch) LastEpoch
+            FROM EpochSummary 
+            GROUP BY model_ID
+            ) M
+        On S.model_id = M.model_id and S.epoch = M.LastEpoch
+        JOIN ModelInfo I 
+        ON S.model_id = I.model_id        
+        """
+    print("GLADIATOR COMPARISON ================================================")
+    db.query_print(SQL)
+
+def epoch_report_launch(db: RamDB):
+    SQL = """
+        CREATE VIEW IF NOT EXISTS EpochSummary AS
+        SELECT DISTINCT
+            m.model_id,
+            m.epoch,
+            m.correct,
+            m.wrong,
+            m.mean_absolute_error,
+            m.mean_squared_error,
+            m.root_mean_squared_error,
+            n.combined_weights AS weights,
+            n.combined_biases AS biases
+        FROM (
+            SELECT 
+                model_id,
+                epoch,
+                SUM(is_true) AS correct,
+                SUM(is_false) AS wrong,
+                AVG(absolute_error) AS mean_absolute_error,
+                SUM(squared_error) / COUNT(*) AS mean_squared_error,
+                SQRT(SUM(squared_error) / COUNT(*)) AS root_mean_squared_error
+            FROM Iteration
+            GROUP BY model_id, epoch
+        ) m
+        LEFT JOIN (
+            SELECT 
+                model AS model_id,
+                epoch_n AS epoch,
+                GROUP_CONCAT(nid || ': ' || weights, '\n') AS combined_weights,
+                GROUP_CONCAT(nid || ': ' || bias, '\n') AS combined_biases
+            FROM Neuron
+            WHERE (model, epoch_n, iteration_n) IN (
+                SELECT 
+                    model_id, epoch, MAX(iteration) AS max_iteration
+                FROM Iteration
+                GROUP BY model_id, epoch
+            )
+            GROUP BY model, epoch_n
+        ) n
+        ON m.model_id = n.model_id AND m.epoch = n.epoch
+        ORDER BY m.epoch;
+    """
+    try:
+        print("Epoch Summary ===============================================")
+        db.execute(SQL)
+        db.query_print("SELECT * FROM EpochSummary")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+
+
+
+#############################NEURON DETAIL REPORT *************************
+#############################NEURON DETAIL REPORT *************************
+#############################NEURON DETAIL REPORT *************************
 def neuron_report_launch(db: RamDB):
     #db.query_print("SELECT * FROM Iteration")
     #db.query_print("Select * From Neuron")

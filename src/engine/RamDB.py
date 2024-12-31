@@ -13,23 +13,43 @@ class RamDB:
 
     def _infer_schema(self, obj):
         """
-        Infer SQLite schema from a Python object.
+        Infer SQLite schema from a Python object, including properties.
         """
         schema = {}
-        for attr, value in vars(obj).items():
-            if isinstance(value, int):
-                schema[attr] = "INTEGER"
-            elif isinstance(value, float):
-                schema[attr] = "REAL"
-            elif isinstance(value, str):
-                schema[attr] = "TEXT"
-            elif isinstance(value, (list, dict)):
-                schema[attr] = "TEXT"  # Serialize as JSON
-            elif isinstance(value, np.ndarray):  # Handle numpy arrays
-                schema[attr] = "TEXT"  # Serialize as JSON
+        # Get all attributes, including properties
+        for attr_name in dir(obj):
+            # Skip private and special attributes
+            if attr_name.startswith("_"):
+                continue
+
+            # Get the attribute or property value
+            attr_value = getattr(obj, attr_name, None)
+
+            if callable(attr_value):
+                continue  # Skip methods
+
+            if isinstance(attr_value, bool):
+                schema[attr_name] = "INTEGER"  # Map bool to INTEGER
+
+            if isinstance(attr_value, (bool, np.bool_)):  # Handle native and numpy booleans
+                schema[attr_name] = "INTEGER"  # Map bool to INTEGER
+
+            elif isinstance(attr_value, int):
+                schema[attr_name] = "INTEGER"
+            elif isinstance(attr_value, float):
+                schema[attr_name] = "REAL"
+            elif isinstance(attr_value, str):
+                schema[attr_name] = "TEXT"
+            elif isinstance(attr_value, (list, dict)):
+                schema[attr_name] = "TEXT"  # Serialize as JSON
+            elif isinstance(attr_value, np.ndarray):  # Handle numpy arrays
+                schema[attr_name] = "TEXT"  # Serialize as JSON
             else:
-                raise TypeError(f"Unsupported field type: {type(value)} for attribute '{attr}'")
+                raise TypeError(f"Unsupported field type: {type(attr_value)} for attribute '{attr_name}'")
+
         return schema
+
+
     def _create_table(self, table_name, schema):
         """
         Create a SQLite table dynamically with context fields prioritized and a composite primary key.
@@ -49,7 +69,6 @@ class RamDB:
         self.cursor.execute(sql)
         self.tables[table_name] = schema  # Track schema
 
-
     def add(self, obj, **context):
         """
         Add an object to the database with any number of context fields.
@@ -62,24 +81,44 @@ class RamDB:
         if table_name not in self.tables:
             self.create_table(table_name, obj, context)
 
-        # Merge object attributes and context fields
+        # Merge object attributes, computed properties, and context fields
         data = {**context, **vars(obj)}  # Context fields first
+
+        # Dynamically add computed properties
+        computed_fields = {
+            attr: getattr(obj, attr)
+            for attr in dir(obj)
+            if isinstance(getattr(type(obj), attr, None), property)
+        }
+        data.update(computed_fields)
+
+        # Convert booleans to integers
+        for key, value in data.items():
+            if isinstance(value, (bool, np.bool_)):  # Handle booleans
+                data[key] = int(value)
+
+        # Serialize fields (e.g., numpy arrays, lists) into JSON-friendly formats
+        for key, value in data.items():
+            if isinstance(value, np.ndarray):
+                data[key] = json.dumps(value.tolist())
+            elif isinstance(value, (list, dict)):
+                data[key] = json.dumps(value)
+
+        # Debugging: Print the final data being inserted
+        #print("Prepared data for insertion:", data)
 
         # Prepare SQL INSERT statement
         columns = ", ".join(data.keys())
         placeholders = ", ".join(["?"] * len(data))
         sql = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
 
-        # Serialize fields (e.g., numpy arrays, lists) into JSON-friendly formats
-        data = {
-            key: (json.dumps(value.tolist()) if isinstance(value, np.ndarray) else
-                  json.dumps(value) if isinstance(value, (list, dict)) else
-                  value)
-            for key, value in data.items()
-        }
+        # Debugging: Print the SQL statement
+        #print("Executing SQL:", sql)
 
         # Execute the insert
         self.cursor.execute(sql, tuple(data.values()))
+
+
 
     def create_table(self, table_name, obj, context):
         """
@@ -120,7 +159,14 @@ class RamDB:
         # Merge context and object schemas, with context first
         return {**context_schema, **object_schema}
 
-
+    def execute(self, sql):
+        """
+        Execute a SQL command that doesn't return a result set.
+        """
+        try:
+            self.cursor.execute(sql)
+        except sqlite3.Error as e:
+            raise RuntimeError(f"SQL execution failed: {e}")
 
     def query(self, sql, as_dict=True):
         """
@@ -141,7 +187,7 @@ class RamDB:
         data = self.query(sql)    # Fetch the data from the database
         if data:
             report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
-            print(sql)
+            #print(sql)
             print(report)
         else:
             print(f"No results found. ==>{sql}")
@@ -198,3 +244,5 @@ result2 = db.query("SELECT * FROM Neuron", False)
 print(result)
 print(result2)
 '''
+
+

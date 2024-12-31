@@ -93,8 +93,8 @@ class Gladiator(ABC):
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
                 target=sample[-1],
                 prediction=prediction,
-                error = loss,
-                loss=loss
+                loss=loss,
+                accuracy_threshold=self.hyper.accuracy_threshold
 
             )
             #print("****************************RECORDING ITERATION 1")
