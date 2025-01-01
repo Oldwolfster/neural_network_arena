@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from json import dumps
-
+from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
 from src.engine.Metrics import GladiatorOutput, IterationResult, IterationContext
 from src.engine.MetricsMgr import MetricsMgr
 import numpy as np
@@ -25,13 +25,12 @@ class Gladiator(ABC):
         self.neuron_count       = 0                         # Default value
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.metrics_mgr        = MetricsMgr    (gladiator, self.hyper, self.training_data)
+        #self.metrics_mgr        = MetricsMgr    (gladiator, self.hyper, self.training_data)
         self.mgr_sql            = MgrSQL        (gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate
         self.number_of_epochs   = self.hyper.epochs_to_run
 
-
-    def train(self) -> MetricsMgr:
+    def train(self) -> str:
         if self.neuron_count == 0:
             self.initialize_neurons(1) #Defaults to 1
             print(f"Warning: Defaulting to a single neuron in {self.__class__.__name__}")
@@ -40,27 +39,16 @@ class Gladiator(ABC):
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             if epoch % 10 == 0 and epoch < 0:
                 print (f"Epoch: {epoch} for {self.metrics_mgr.name} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-            if self.run_an_epoch(epoch):                                # Call function to run single epoch
-                return self.metrics_mgr                                 # Converged so end early
-        return self.metrics_mgr                                         # When it does not converge still return metrics mgr
+            convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
+            if convg_signal !="":                                 # Converged so end early
+                return convg_signal
+        return "Did not converge"                                         # When it does not converge still return metrics mgr
 
     def run_an_epoch(self, epoch_num: int) -> bool:             # Function to run single epoch
         for i, sample in enumerate(self.training_samples):         # Loop through all the training data
             sample = np.array(sample)  # Convert sample to a NumPy array
             inputs = sample[:-1]
             target = sample[-1]
-
-            #ORIGINAL PROCESS
-            context = IterationContext(             # Record data for this iteration before passing sample to model
-                iteration           = i + 1,
-                epoch               = epoch_num + 1,
-                inputs              = sample[:-1],          # All elements except the last
-                target              = sample[-1],           # Last element as target
-                weights             = np.copy(self.weights),# Weights PRIOR to model processing Sample
-                bias                = self.bias,            # Bias    PRIOR to model processing Sample
-                new_weights         = None,
-                new_bias            = None
-            )
 
             # Capture "before" state
             for neuron in self.neurons:
@@ -72,18 +60,6 @@ class Gladiator(ABC):
             prediction              = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
             error                   = target - prediction
             loss                    = error ** 2  # Example loss calculation
-
-            #ORIGINAL PROCESS
-            gladiator_output        = GladiatorOutput(
-                prediction          = prediction
-            )
-            context.new_weights     = np.copy(self.weights) # Weights AFTER model processed sample
-            context.new_bias        = self.bias             # Bias    AFTER model processed sample
-            result                  = IterationResult(
-                gladiator_output    = gladiator_output,
-                context             = context
-            )
-            self.metrics_mgr.record_iteration(result)
 
             # Added to support multiple neurons via SQLLite in ram db.
             iteration_data = Iteration(
@@ -99,10 +75,8 @@ class Gladiator(ABC):
             )
             #print("****************************RECORDING ITERATION 1")
             self.mgr_sql.record_iteration(iteration_data)
-        converged = self.metrics_mgr.finish_epoch_summary()
-        self.mgr_sql.finish_epoch()
+        return self.mgr_sql.finish_epoch()
 
-        return converged
 
     def initialize_neurons(self, neuron_count):
         self.neuron_init = True

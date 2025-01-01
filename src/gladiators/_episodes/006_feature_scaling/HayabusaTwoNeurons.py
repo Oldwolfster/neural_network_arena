@@ -1,4 +1,4 @@
-from src.gladiators.BaseGladiator import Gladiator
+from src.engine.BaseGladiator import Gladiator
 
 
 class SuzukiHayabusaTwoNeurons(Gladiator):

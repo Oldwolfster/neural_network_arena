@@ -7,6 +7,7 @@ from .Utils import IterationResult
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
 from .Utils_DataClasses import Iteration
+from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
 
 
 class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
@@ -17,122 +18,40 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.hyper                  = hyper
         self.neurons                = neurons
         self.db                     = ramDb
-                                                                #REMOVED WHEN ADDING SQL self.epoch_summaries = []           # Store the epoch summaries
-                                                                #REMOVED WHEN ADDING SQL self.summary = EpochSummary()       # The current Epoch summary
-        self.run_time               = 0                         # How long did training take?
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
         self.sample_count           = len(self.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
         self.accuracy_threshold     = (hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
-                                                                    #REMOVED WHEN ADDING SQL Metrics.set_acc_threshold(hyper.accuracy_threshold)    # Set at Class level (not instance) one value shared across all instances
-                                                                    #REMOVED WHEN ADDING SQL self.metrics = []                   # The list of metrics this manager is running.
-        self._converge_detector = None
-        self.convergence_signal = []      # Will be set by convergence detector
-
-        #Below added when switching to multiple neurons
-        #self.metrics_iteration = []                                 # Accumulate iteration data for batch writes
-        #self.metrics_neuron = []                                    # Accumulate iteration data for batch writes
-
-
-    @property
+        self.converge_detector     = ConvergenceDetector(hyper,training_data)
+        self.abs_error_for_epoch = 0
+        self.convergence_signal = None      # Will be set by convergence detector
+    """
+    @property    
     def converge_detector(self):
-        """
+    
         Provides lazy instantiation of converge_detector so it can pass it(CD) a copy of itself (MMgr)
-        """
+        
         if self._converge_detector is None:
             # Lazy import to avoid circular reference
             from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
-            self._converge_detector = ConvergenceDetector(self.hyper, self)
+            self._converge_detector = ConvergenceDetector(self.hyper, self.training_data, self)
         return self._converge_detector
-
+    """
     def record_iteration(self, iteration_data: Iteration):
         #print("****************************RECORDING ITERATION 2")
-        #self.metrics_iteration.append(iteration_data)
         self.db.add(iteration_data)
-        #db.add(N1, epoch=1, iteration=10)
+        self.abs_error_for_epoch += abs(iteration_data.error)
+
         for neuron in self.neurons:
             epoch_num=iteration_data.epoch
             iteration_num=iteration_data.iteration
             self.db.add(neuron, model=self.model_id, epoch_n = epoch_num, iteration_n = iteration_num )
 
-
-    def record_neuron(self, iteration, neuron):
-        """
-        Record a single neuron's data, including before and after states.
-        """
-        self.metrics_neuron.append({
-            'model_id': self.model_id,
-            'epoch': iteration.epoch,
-            'step': iteration.step,
-            'neuron_id': neuron.nid,
-            'layer_id': neuron.layer_id,
-            'weights_before': dumps(neuron.weights_before.tolist()),  # Serialize weights before
-            'weights_after': dumps(neuron.weights.tolist()),  # Serialize weights after
-            'bias_before': neuron.bias_before,
-            'bias_after': neuron.bias,
-            'output': neuron.output
-        })
-
-
     def finish_epoch(self):
-        return
-        #Need to move convg detector here.
-        self.write_iterations()
-        self.write_neurons()
+        mae = self.abs_error_for_epoch / self.training_data.sample_count
+        self.abs_error_for_epoch = 0 # Reset for next epoch
+        print(f"MgrSQL ===> MAE = {mae}")
+        return self.converge_detector.check_convergence(mae)
 
 
-    def write_neurons(self):
-        """
-        Batch write all accumulated neuron data to the database.
-        """
-        if not self.metrics_neuron:
-            return  # Nothing to write
-        sql_neurons = '''
-            INSERT INTO neurons (model_id, epoch, step, neuron_id, layer_id, weights_before, weights, bias_before, bias, output)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        '''
-        values_neurons = [
-            (
-                neuron['model_id'],
-                neuron['epoch'],
-                neuron['step'],
-                neuron['neuron_id'],
-                neuron['layer_id'],
-                neuron['weights_before'],
-                neuron['weights_after'],
-                neuron['bias_before'],
-                neuron['bias_after'],
-                neuron['output']
-            )
-            for neuron in self.metrics_neuron
-        ]
-        self.ramDb.executemany(sql_neurons, values_neurons)
-        self.metrics_neuron.clear()
-
-
-    def write_iterations(self):
-        """
-        Batch write all accumulated iteration data to the database.
-        """
-        if not self.metrics_iteration:
-            return  # Nothing to write
-
-        sql = '''
-            INSERT INTO iterations (model_id, epoch, step, inputs, target, prediction, loss)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        '''
-        values = [
-            (
-                iteration.model_id,
-                iteration.epoch,
-                iteration.step,
-                iteration.inputs,
-                iteration.target,
-                iteration.prediction,
-                iteration.loss
-            )
-            for iteration in self.metrics_iteration
-        ]
-        self.ramDb.executemany(sql, values)
-        self.metrics_iteration.clear()  # Clear the accumulator after writing
 

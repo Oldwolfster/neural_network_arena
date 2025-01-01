@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from src.engine.MetricsMgr import MetricsMgr
+
 
 
 class Signal__BASE(ABC):
@@ -16,7 +17,7 @@ class Signal__BASE(ABC):
         threshold (float): The threshold value used to evaluate convergence.
     """
 
-    def __init__(self, mgr: MetricsMgr, threshold: float):
+    def __init__(self,  threshold: float, MAE_per_epoch: List[float]):
         """
         Initialize the base signal.
 
@@ -24,9 +25,9 @@ class Signal__BASE(ABC):
             mgr (MetricsMgr): The metrics manager, providing access to error metrics.
             threshold (float): The threshold value for evaluating convergence.
         """
-        self.mgr = mgr
-        self.threshold = threshold
 
+        self.threshold = threshold
+        self.MAE_per_epoch = MAE_per_epoch
 
     @property
     def signal_name(self):
@@ -41,7 +42,6 @@ class Signal__BASE(ABC):
         Returns:
             str: Signal Name if true, otherwise None
         """
-        pass
 
     def evaluate_mae_change(self, n_epochs: int) -> bool:
         """
@@ -53,14 +53,15 @@ class Signal__BASE(ABC):
         Returns:
             bool: True if the MAE change is below the threshold, otherwise False.
         """
-        if len(self.mgr.epoch_summaries) < n_epochs:  # Not enough epochs to compare
+        #if self.mgr.epoch_curr_number < n_epochs:  # Not enough epochs to compare
+        if len(self.MAE_per_epoch) < n_epochs:
             return False
 
-        MAE_now = self.mgr.epoch_summaries[-1].mean_absolute_error
-        MAE_prior = self.mgr.epoch_summaries[-n_epochs].mean_absolute_error
+        MAE_now = self.MAE_per_epoch[-1]
+        MAE_prior = self.MAE_per_epoch[-n_epochs]
         change = abs(MAE_now - MAE_prior)
 
-        if self.mgr.epoch_curr_number % 100 == 0:
-            print(f"{self.mgr.name} MAE over {n_epochs} epochs:{self.mgr.epoch_curr_number} "
-                  f"MAE_now={MAE_now}, MAE_prior={MAE_prior}, change={change}\tthreshold {self.threshold}")
+        #if self.mgr.epoch_curr_number % 100 == 0:
+        #    print(f"{self.mgr.name} MAE over {n_epochs} epochs:{self.mgr.epoch_curr_number} "
+        #          f"MAE_now={MAE_now}, MAE_prior={MAE_prior}, change={change}\tthreshold {self.threshold}")
         return change < self.threshold

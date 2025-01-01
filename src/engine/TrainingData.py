@@ -54,7 +54,7 @@ class TrainingData:
         Returns:
             int: The number of inputs  in the training data
         """
-        if "sample_count" not in self._cache:
+        if "input_count" not in self._cache:
             self._cache["input_count"] = len(self.td_original[0])  - 1   #len(self.training_samples[0]) - 1
         return self._cache["input_count"]
 

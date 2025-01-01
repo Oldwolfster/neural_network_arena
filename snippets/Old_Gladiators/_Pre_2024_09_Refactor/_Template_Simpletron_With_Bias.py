@@ -1,5 +1,5 @@
 from src.engine.Metrics import Metrics
-from src.gladiators.BaseGladiator import Gladiator
+from src.engine.BaseGladiator import Gladiator
 
 class _Template_Simpletron_With_Bias(Gladiator):
     """
