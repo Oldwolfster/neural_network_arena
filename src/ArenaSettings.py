@@ -49,7 +49,7 @@ class HyperParameters:
 ############################################################
 
 training_pit              = "Predict_Income_2_Inputs"
-#training_pit              = "Manual"
+training_pit              = "Manual"
 #training_pit              = "CreditScoreRegression"
 #training_pit              = "Predict_Income_2_Inputs"
 ##training_pit              = "Salary2InputsNonlinear"
@@ -66,7 +66,7 @@ gladiators = [
     #'Hayabusa'
     #'HayabusaNormalizer'
     'HayabusaTwoNeurons'
-    #,'GBS_MultipleOutputNeurons'
+    ,'GBS_MultipleOutputNeurons'
     #'GBS_one_neuron'
 
 ]

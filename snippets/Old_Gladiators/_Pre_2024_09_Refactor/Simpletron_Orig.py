@@ -1,5 +1,5 @@
 from src.BaseArena import *
-from src.gladiators.BaseGladiator import Gladiator
+from src.engine.BaseGladiator import Gladiator
 
 
 class Simpletron_Orig(Gladiator):

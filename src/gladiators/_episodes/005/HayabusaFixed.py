@@ -1,6 +1,6 @@
 import numpy as np
 
-from src.gladiators.BaseGladiator import Gladiator
+from src.engine.BaseGladiator import Gladiator
 
 
 class SuzukiHayabusaNoExplode(Gladiator):

@@ -1,5 +1,4 @@
 import math
-import sqlite3
 import statistics
 import numpy as np
 import time
@@ -11,7 +10,7 @@ from .SQL import record_training_data
 from src.engine.Reporting import print_results
 from src.ArenaSettings import *
 from src.engine.BaseArena import BaseArena
-from src.gladiators.BaseGladiator import Gladiator
+from src.engine.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
 from .TrainingData import TrainingData
 from src.engine.ReportingFromSQL import generate_reports
@@ -34,16 +33,15 @@ def run_a_match(gladiators, training_pit):
         nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
 
         start_time = time.time()  # Start timing
-        metrics_mgr = nn.train()
-        mgr_list.append(metrics_mgr)
+        cvg_condtion = nn.train()
         end_time = time.time()  # End timing
-        metrics_mgr.run_time = end_time - start_time
-        model_details= ModelInfo(gladiator, metrics_mgr.run_time)
+        run_time = end_time - start_time
+        model_details= ModelInfo(gladiator, run_time)
         db.add(model_details)
-        print (f"{gladiator} completed in {metrics_mgr.run_time}")
+        print (f"{gladiator} completed in {run_time}")
 
     generate_reports(db)
-    print_results(mgr_list, training_data.get_list(), hyper, training_pit)
+
 
 
 def get_training_data(hyper):

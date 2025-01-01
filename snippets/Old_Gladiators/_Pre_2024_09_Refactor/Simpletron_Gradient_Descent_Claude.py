@@ -2,7 +2,7 @@ import numpy as np
 from typing import List, Tuple
 from src.BaseArena import *
 from src.engine.Metrics import Metrics
-from src.gladiators.BaseGladiator import Gladiator
+from src.engine.BaseGladiator import Gladiator
 
 
 class Simpletron_Gradient_Descent_Claude(Gladiator):
