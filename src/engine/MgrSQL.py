@@ -3,12 +3,12 @@ from json import dumps
 from typing import List
 
 from .RamDB import RamDB
-from .Utils import IterationResult
+
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
 from .Utils_DataClasses import Iteration
 from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
-
+from typing import Dict
 
 class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
     def __init__(self, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
@@ -50,8 +50,34 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
     def finish_epoch(self):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
         self.abs_error_for_epoch = 0 # Reset for next epoch
-        print(f"MgrSQL ===> MAE = {mae}")
-        return self.converge_detector.check_convergence(mae)
+        epoch_metrics = self.get_metrics_from_ramdb()
+        #print(f"MgrSQL ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
+
+        return self.converge_detector.check_convergence(epoch_metrics)
+
+    def get_metrics_from_ramdb(self) -> Dict[str, float]:
+        """
+        Fetch the latest epoch's metrics for the current model.
+
+        Returns:
+            Dict[str, float]: A dictionary containing the metrics, where all values are floats.
+        """
+        sql = """
+            SELECT *
+            FROM EpochSummary
+            WHERE model_id = ?
+            ORDER BY epoch DESC
+            LIMIT 1;
+        """
+        # Pass the parameter correctly as a tuple
+        result = self.db.query(sql, params=(self.model_id,), as_dict=True)
+
+        if result:
+            return result[0]  # Return the first row as a dictionary
+        raise RuntimeError("No records found for the specified model_id")  # Raise error if no records are found
+
+
+
 
 
 

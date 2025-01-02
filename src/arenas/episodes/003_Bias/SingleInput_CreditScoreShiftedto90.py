@@ -1,9 +1,9 @@
-from src.BaseArena import TrainingPit
+from src.engine.BaseArena import BaseArena
 import random
 from typing import List, Tuple
 
 
-class SingleInput_CreditScoreShiftedto90(TrainingPit):
+class SingleInput_CreditScoreShiftedto90(BaseArena):
     """
     Concrete class that generates training data with a more extremely shifted decision boundary.
     This data will perform better with a model that includes bias.

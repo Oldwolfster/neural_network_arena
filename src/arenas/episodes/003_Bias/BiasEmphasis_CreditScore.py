@@ -1,9 +1,9 @@
-from src.BaseArena import TrainingPit
+from src.engine.BaseArena import BaseArena
 import random
 from typing import List, Tuple
 
 
-class BiasEmphasis_CreditScore(TrainingPit):
+class BiasEmphasis_CreditScore(BaseArena):
     """
     Concrete class that generates training data to emphasize the impact of bias.
     It calculates a credit score between 600-800, shifting the data away from the origin.

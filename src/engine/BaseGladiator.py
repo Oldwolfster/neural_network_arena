@@ -1,8 +1,5 @@
 from abc import ABC, abstractmethod
 from json import dumps
-from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
-from src.engine.Metrics import GladiatorOutput, IterationResult, IterationContext
-from src.engine.MetricsMgr import MetricsMgr
 import numpy as np
 from numpy import ndarray
 from typing import Any
@@ -18,7 +15,7 @@ from src.engine.Utils_DataClasses import Iteration
 
 class Gladiator(ABC):
     def __init__(self,  *args):
-        gladiator               = args[0]
+        self.gladiator          = args[0]
         self.hyper              = args[1]
         self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.neurons            = []
@@ -26,7 +23,7 @@ class Gladiator(ABC):
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         #self.metrics_mgr        = MetricsMgr    (gladiator, self.hyper, self.training_data)
-        self.mgr_sql            = MgrSQL        (gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
+        self.mgr_sql            = MgrSQL        (self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate
         self.number_of_epochs   = self.hyper.epochs_to_run
 
@@ -37,8 +34,8 @@ class Gladiator(ABC):
 
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
-            if epoch % 10 == 0 and epoch < 0:
-                print (f"Epoch: {epoch} for {self.metrics_mgr.name} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            if epoch % 100 == 0:
+                print (f"Epoch: {epoch} for {self.gladiator} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
                 return convg_signal
@@ -52,7 +49,6 @@ class Gladiator(ABC):
 
             # Capture "before" state
             for neuron in self.neurons:
-                neuron.output_before = neuron.output
                 neuron.weights_before = np.copy(neuron.weights)
                 neuron.bias_before = neuron.bias
 
@@ -79,6 +75,18 @@ class Gladiator(ABC):
 
 
     def initialize_neurons(self, neuron_count):
+        """
+        SNIPER - NOT SHOTGUN
+        Spaced values (e.g., equally distributed across
+                −
+                𝜎
+                −σ to
+                +
+                𝜎
+                +σ).
+                Scaled eigenvectors of the input data covariance matrix.
+                A low-discrepancy sequence (e.g., Sobol or Halton) for quasi-random sampling.
+        """
         self.neuron_init = True
         self.neuron_count = neuron_count
         for x in range(neuron_count):                           # Append new neurons to the existing list

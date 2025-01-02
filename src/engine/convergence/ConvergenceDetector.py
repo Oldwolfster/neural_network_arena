@@ -1,9 +1,8 @@
 from typing import List
 
 from src.ArenaSettings import HyperParameters
-from src.engine.MetricsMgr import MetricsMgr
-
 from src.engine.TrainingData import TrainingData
+from src.engine.convergence.Signal_StableAccuracy import Signal_StableAccuracy
 from src.engine.convergence.Signal_UnderMeanThreshold_ShortTerm import Signal_UnderMeanThreshold_ShortTerm
 
 
@@ -22,7 +21,7 @@ class ConvergenceDetector:
         #self.mgr = mgr
         self.relative_threshold = self.calculate_relative_threshold()
         print(f"ConvergenceDetector - relative_threshold = {self.relative_threshold} ")
-        self.MAE_per_epoch = []
+        self.metrics = []
         self.triggered_signals = []
         self.signals = self.create_signals()
 
@@ -37,20 +36,21 @@ class ConvergenceDetector:
     """
     def create_signals(self):
         return [
-            Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.MAE_per_epoch)
+            Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.metrics),
+            Signal_StableAccuracy(self.hyper.accuracy_threshold, self.metrics)
             #,Signal_UnderMeanThreshold_LongTerm (self.mgr, self.relative_threshold)
         ]
 
-    def check_convergence(self, MAE : float) -> str:
+    def check_convergence(self, epoch_metrics : dict[str, float]) -> str:
         """
         Evaluate all signals - for now, if all are true we call it converged.
         Returns:
             List[str]: Signal Names that triggered convergence
         """
 
-        self.MAE_per_epoch.append(MAE)
+        self.metrics.append(epoch_metrics)
         for signal in self.signals:
-            triggered_signal = signal.evaluate(self.MAE_per_epoch)
+            triggered_signal = signal.evaluate()
             if triggered_signal:
                 self.triggered_signals.append(triggered_signal)
 

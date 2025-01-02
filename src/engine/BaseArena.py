@@ -6,8 +6,6 @@ class BaseArena(ABC):
     """
     Abstract base class for different types of training data TrainingPits.
     """
-
-
     @abstractmethod
     def generate_training_data(self) -> List[Tuple[Any, ...]]:
 

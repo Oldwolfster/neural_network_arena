@@ -1,9 +1,8 @@
-from src.BaseArena import TrainingPit
+from src.engine.BaseArena import BaseArena
 import random
 from typing import List, Tuple
 
-
-class SingleInput_CreditScoreShifted(TrainingPit):
+class SingleInput_CreditScoreShifted(BaseArena):
     """
     Generates training data with an offset decision boundary.
     This data should perform significantly better with a model that includes bias.
