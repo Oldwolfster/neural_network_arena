@@ -7,27 +7,23 @@ from typing import Tuple
 from .RamDB import RamDB
 from .SQL import retrieve_training_data
 from .SQL import record_training_data
-from src.engine.Reporting import print_results
+
 from src.ArenaSettings import *
 from src.engine.BaseArena import BaseArena
 from src.engine.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
 from .TrainingData import TrainingData
-from src.engine.ReportingFromSQL import generate_reports
+from src.engine.Reporting import generate_reports
+from src.engine.Reporting import prep_RamDB
 from .Utils_DataClasses import ModelInfo
 
 
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
-    mgr_list        = []
-    #raw_trn_data    = get_training_data(hyper)
-    #training_data   = TrainingData( raw_trn_data)             # Place holder to do any needed analysis on training data
     training_data   =  get_training_data(hyper)
+    db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     record_training_data(training_data.get_list())
-    # Create a connection to an in-memory SQLite database
-    # DELETE MEramDb = prepSQL()
-    db = RamDB()
-    modelID = 0
+
     for gladiator in gladiators:    # Loop through the NNs competing.
         print(f"Preparing to run model:{gladiator}")
         nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
@@ -40,7 +36,8 @@ def run_a_match(gladiators, training_pit):
         db.add(model_details)
         print (f"{gladiator} completed in {run_time}")
 
-    generate_reports(db)
+    generate_reports(db, training_data, hyper)
+
 
 
 

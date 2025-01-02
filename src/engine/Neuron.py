@@ -10,10 +10,12 @@ class Neuron:
         self.nid = nid+1
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
         self.input_count = input_count
-        self.weights_before = None
-        self.bias_before = None
+
+
         self.weights = np.array([(nid + 1) * 10 for _ in range(input_count)], dtype=np.float64)
-        self.bias = nid * 0  # Small bias based on nid
+        self.weights_before = self.weights.copy()       #Done so it's available to create view
+        self.bias = float(nid * 0)                      # Explicitly set as float
+        self.bias_before = self.bias                    #Done so it's available to create view
         self.learning_rate = learning_rate
         self.activation = "Linear"
         self.output = 0 #TODO need to populate this in child model???

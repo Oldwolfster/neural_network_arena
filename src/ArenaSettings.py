@@ -14,13 +14,13 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 5555         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 1111         # Number of times training run will cycle through all training data
     training_set_size       :int    = 111       # Qty of training data
     converge_epochs         :int    = 2       # How many epochs of no change before we call it converged?
+    min_no_epochs           :int    = 10        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
     default_learning_rate   :float  = .0001     # Affects magnitude of weight adjustments #.0001 Equalizer
-    # .1 get's 4k    .1446456=4k      .14464565=29  .14= 29
-    #                                 .14464564
+
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
     accuracy_threshold      :float  = .1        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
 
@@ -31,7 +31,7 @@ class HyperParameters:
     display_graphs          :bool = True   # Display Graphs at the end of run
     display_graphs          :bool = False   # Display Graphs at the end of run
     display_epoch_sum       :bool = True    # Display the epoch summary
-    display_logs            :bool = False   # Display the logs at the end of the run
+    display_neuron_report   :bool = False   # Display the logs at the end of the run
     #display_logs            :bool = True   # Display the logs at the end of the run
     detail_log_min          :int  = 0       # Which epochs to display detailed logs for(min)
     detail_log_max          :int  = 10000       # Which epochs to display detailed logs for(min)
@@ -49,8 +49,10 @@ class HyperParameters:
 ############################################################
 
 training_pit              = "Predict_Income_2_Inputs"
-training_pit              = "Manual"
-#training_pit              = "CreditScoreRegression"
+#training_pit              = "Manual"
+training_pit                = "XOR"
+
+#training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
 ##training_pit              = "Salary2InputsNonlinear"
 
@@ -62,12 +64,13 @@ training_pit              = "Manual"
 ############################################################
 gladiators = [
     #"HayabusaFixed"
-    #,'Blackbird'
+    #'Blackbird'
     #'Hayabusa'
+    'XOR'
     #'HayabusaNormalizer'
-    'HayabusaTwoNeurons'
-    ,'GBS_MultipleOutputNeurons'
-    #'GBS_one_neuron'
+    #'HayabusaTwoNeurons'
+    #,'GBS_MultipleOutputNeurons'
+#    '_Template_Simpletron'
 
 ]
 

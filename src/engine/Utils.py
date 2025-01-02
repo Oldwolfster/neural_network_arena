@@ -51,7 +51,7 @@ def determine_problem_type(data):
     else:
         return "Inconclusive"
 
-
+"""DELETE ME 
 @dataclass
 class GladiatorOutput:
     prediction: float
@@ -69,7 +69,7 @@ class IterationContext:
     bias: float = 0
     new_bias: float = 0
 
-"""
+
 @dataclass
 class GladiatorOutputOrig:
     prediction: float
@@ -86,7 +86,7 @@ class IterationContextOrig:
     # Old from when it was only 1 input: float
     inputs: np.ndarray
     target: float
-"""
+
 @dataclass
 class IterationResult:
     gladiator_output: GladiatorOutput
@@ -153,7 +153,7 @@ class EpochSummary:
         return math.sqrt(self.mean_squared_error) if self.mean_squared_error > 0 else 0
 
 
-"""
+
         # R-squared (this would typically require predicted and actual values,
         # so this is a placeholder calculation)
         self.r_squared = 1 - (self.total_squared_error /

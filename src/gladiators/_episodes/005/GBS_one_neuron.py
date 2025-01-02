@@ -1,4 +1,4 @@
-from src.engine.Metrics import GladiatorOutput
+
 from src.engine.BaseGladiator import Gladiator
 import numpy as np
 
@@ -12,7 +12,7 @@ class Regression_GBS_MultInputs(Gladiator):
         super().__init__(*args)
         #self.bias = .5
 
-    def training_iteration(self, training_data) -> GladiatorOutput:
+    def training_iteration(self, training_data) -> float:
         inputs          = training_data[:-1]                        # All elements except the last (the inputs)
         target          = training_data[-1]                         # Last element is the target
         prediction      = np.dot(inputs, self.weights) + self.bias  # Calculate prediction as the dot product of inputs and weights plus bias

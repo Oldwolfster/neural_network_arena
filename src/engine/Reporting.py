@@ -1,318 +1,298 @@
-import math
-
+import json
+import sqlite3
 from tabulate import tabulate
-from typing import List
-from .MetricsMgr import MetricsMgr
-from .Utils import *
+
 from src.ArenaSettings import HyperParameters
-from src.engine.graphs._GraphMaster import graph_master
+from src.engine.Neuron import Neuron
+from src.engine.RamDB import RamDB
+from src.engine.Utils import smart_format
+from src.engine.Utils_DataClasses import Iteration
 
-repeat_header_interval = 10
-MAX_ITERATION_LINES = 200
-def print_results(mgr_list : List[MetricsMgr], training_data, hyper : HyperParameters, training_pit):
-    problem_type = determine_problem_type(training_data)
-    print_iteration_logs(mgr_list, hyper)
-    #print_epoch_summaries(mgr_list, problem_type)
-    print_convergence(mgr_list)
-    print(f"Data: {training_pit}\tTraining Set Size: {hyper.training_set_size}\t Max Epochs: {hyper.epochs_to_run}\tDefault Learning Rate: {hyper.default_learning_rate}")
-    print_model_comparison(mgr_list, problem_type)
-    if hyper.display_train_data:
-        print (training_data)
-    if hyper.display_graphs:
-        graph_master(mgr_list)
+def generate_reports(db : RamDB, training_data, hyper : HyperParameters):
+    if hyper.display_neuron_report:
+        neuron_report_launch(db)
+    #epoch_report_launch(db)
+    summary_report_launch(db)
+    print(training_data.get_list())
 
-######################################################################################
-############# First level of reporting, iteration details ############################
-######################################################################################
-def print_iteration_logs(mgr_list: List[MetricsMgr], hyper : HyperParameters):
-    if not hyper.display_logs:
-        return
-    headers = ["Step Detail", "Epoc\nStep",  "Weight * Input + Bias", "Prediction","Target", "Error", "New Weight/Chg",  "New\nBias"]
-    row_counter = 0  # Keep track of the number of rows printed
-    max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
+def prep_RamDB():
+    db=RamDB()
 
-    # Create a list of count of iteration and name for each manager's metrics
-    lengths = [len(mgr.metrics) for mgr in mgr_list]
-    model_names = [mgr.name for mgr in mgr_list]
-
-    repeat_header_interval = 10
-    correlated_log = []                                     # Create new list to merge and format data
-    buffer = []  # Initialize an empty list to hold the output
+    dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.0, prediction=0.0, loss=0.0,accuracy_threshold=0.0)
+    dummy_neuron = Neuron(0,1,0.0,0)
+    db.add(dummy_iteration)
+    db.add(dummy_neuron, model='dummy', epoch_n = 0, iteration_n = 0 )
+    epoch_create_view_epochSummary(db)
+    return db
 
 
-    # Create correlate log (i.e. epoch 1 for each model, epoch 2 for each model, etc.)
-    for row in range(max_rows):                             # Loop through each iteration
-        #if row_counter > MAX_ITERATION_LINES:                              # Exit the loop if row_counter exceeds 2000
 
-        for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each Model's Metrics Mgr
-            if row < lengths[mgr_idx]:
-                # Instead of adding headers in body we will print many tabulates add_extra_headers(correlated_log, row_counter, repeat_header_interval, headers)
-                append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row], hyper)
-                row_counter += 1
+def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
+    # model_id           │   epoch │   correct │   wrong │   mean_absolute_error │   mean_squared_error │   root_mean_squared_error │ weights                                    │ biases              │   seconds │
+    # round((S.correct * 1.0 / (S.correct + S.wrong)) * 100,2) AS [Accuracy],
+    SQL = """
+        SELECT  S.model_id as [Gladiator\nComparison], ROUND(I.seconds, 2) AS [Run\nTime],
+                S.epoch[Epoch of\nConv], s.correct[Correct], s.wrong[Wrong], 
+                Accuracy,
+                s.mean_absolute_error[Mean\nAbs Err], s.root_mean_squared_error[RMSE], s.weights[Weights, s.biases[Biases] 
+        FROM EpochSummary S
+        JOIN (
+            Select model_id,max(epoch) LastEpoch
+            FROM EpochSummary 
+            GROUP BY model_ID
+            ) M
+        On S.model_id = M.model_id and S.epoch = M.LastEpoch
+        JOIN ModelInfo I 
+        ON S.model_id = I.model_id        
+        """
+    print("GLADIATOR COMPARISON ================================================")
+    db.query_print(SQL)
 
-    chunks = list(chunk_list(correlated_log, repeat_header_interval))  # Split correlated_log into sublists of length repeat_header_interval
-    for chunk in chunks:  # Prepare each chunk for printing
-        buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
-        #print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+def epoch_report_launch(db: RamDB):
+    db.query_print("SELECT * FROM EpochSummary")
 
-    # Join all chunks into a single string with a newline separator and print once
-    print("\n\n".join(buffer))
+def epoch_create_view_epochSummary(db: RamDB):
+    SQL = """
+        CREATE VIEW IF NOT EXISTS EpochSummary AS
+        SELECT DISTINCT
+            m.model_id,
+            m.epoch,
+            m.correct,
+            round((m.correct * 1.0 / (m.correct + m.wrong)) * 100,3) AS [Accuracy],
+            m.wrong,
+            m.mean_absolute_error,
+            m.mean_squared_error,
+            m.root_mean_squared_error,
+            n.combined_weights AS weights,
+            n.combined_biases AS biases
+        FROM (
+            SELECT 
+                model_id,
+                epoch,
+                SUM(is_true) AS correct,
+                SUM(is_false) AS wrong,
+                AVG(absolute_error) AS mean_absolute_error,
+                SUM(squared_error) / COUNT(*) AS mean_squared_error,
+                SQRT(SUM(squared_error) / COUNT(*)) AS root_mean_squared_error
+            FROM Iteration
+            GROUP BY model_id, epoch
+        ) m
+        LEFT JOIN (
+            SELECT 
+                model AS model_id,
+                epoch_n AS epoch,
+                GROUP_CONCAT(nid || ': ' || weights, '\n') AS combined_weights,
+                GROUP_CONCAT(nid || ': ' || bias, '\n') AS combined_biases
+            FROM Neuron
+            WHERE (model, epoch_n, iteration_n) IN (
+                SELECT 
+                    model_id, epoch, MAX(iteration) AS max_iteration
+                FROM Iteration
+                GROUP BY model_id, epoch
+            )
+            GROUP BY model, epoch_n
+        ) n
+        ON m.model_id = n.model_id AND m.epoch = n.epoch
+        ORDER BY m.epoch;
+    """
+    try:
+        print("Epoch Summary ===============================================")
+        db.execute(SQL)
+        db.query_print("SELECT * FROM EpochSummary")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
-def print_iteration_logs20241208(mgr_list: List[MetricsMgr], hyper : HyperParameters):
-    if not hyper.display_logs:
-        return
-    headers = ["Step Detail", "Epoc\nStep",  "Weight * Input + Bias", "Prediction","Target", "Error", "New Weight/Chg",  "New\nBias"]
-    row_counter = 0  # Keep track of the number of rows printed
-    max_rows = hyper.epochs_to_run * hyper.training_set_size  # Each MetricsMgr can have this many rows.
-
-    # Create a list of count of iteration and name for each manager's metrics
-    lengths = [len(mgr.metrics) for mgr in mgr_list]
-    model_names = [mgr.name for mgr in mgr_list]
-
-    repeat_header_interval = 10
-    correlated_log = []                                     # Create new list to merge and format data
-    buffer = []  # Initialize an empty list to hold the output
-    for row in range(max_rows):                             # Loop through each iteration
-        #if row_counter > MAX_ITERATION_LINES:                              # Exit the loop if row_counter exceeds 2000
-
-        for mgr_idx, mgr in enumerate(mgr_list):            # Loop through each Model's Metrics Mgr
-            if row < lengths[mgr_idx]:
-                # Instead of adding headers in body we will print many tabulates add_extra_headers(correlated_log, row_counter, repeat_header_interval, headers)
-                append_iteration_row(correlated_log, model_names[mgr_idx], mgr.metrics[row], hyper)
-                row_counter += 1
 
 
-        chunks = list(chunk_list(correlated_log, repeat_header_interval))  # Split correlated_log into sublists of length repeat_header_interval
-        for chunk in chunks:  # Prepare each chunk for printing
-            #buffer.append(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
-            print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
+#############################NEURON DETAIL REPORT *************************
+#############################NEURON DETAIL REPORT *************************
+#############################NEURON DETAIL REPORT *************************
+def neuron_report_launch(db: RamDB):
+    #db.query_print("SELECT * FROM Iteration")
+    #db.query_print("Select * From Neuron")
+    SQL = """
+    SELECT  *
+    FROM    Iteration I
+    JOIN    Neuron N
+    ON      I.model_id  = N.model 
+    AND     I.epoch     = N.epoch_n
+    AND     I.iteration = N.iteration_n
+    ORDER BY epoch, iteration, model, nid 
+    """
 
-    # Join all chunks into a single string with a newline separator and print once
-
-def append_iteration_row(correlated_log: list, model_name: str, data_row, hyper : HyperParameters,):
-    data        = data_row.to_list()
-    epoch       = data[0]
-    inputs      = data[2]
-    weights     = data[10]
-    new_weights = data[11]
-    bias        = data[12]
-    new_bias    = data[13]
-
-    if epoch < hyper.detail_log_min:
-        return
-    if epoch > hyper.detail_log_max:
-        return
+    data = db.query(SQL)
+    print("NEURON LEVEL REPORT==========================================================================")
+    #print(data)
+    #results = neuron_report_organize_info(data)
+    #iteration_report = tabulate(results, headers="keys", tablefmt="fancy_grid")
+    #print(iteration_report)
+    # Organize and tabulate mini-reports
+    grouped_reports = neuron_report_organize_info(data)
+    for mini_report in grouped_reports:
+        print(tabulate(mini_report, headers="keys", tablefmt="fancy_grid"))
 
 
-    # Concatenate each input-weight operation into a single cell with line breaks
-    #weighted_terms = "\n".join(
-        # originial f"{smart_format(weights[i])} * {smart_format(inputs[i])} = {smart_format(weights[i] * inputs[i])}"
-#        f"{smart_format(weights[i])} * {smart_format(inputs[i])} + {smart_format(data[12])}"
-#        for i in range(len(inputs))
-#    )
-    weighted_terms = "\n".join(
-        f"{smart_format(weights[i])} * {smart_format(inputs[i])} + {smart_format(data[12]) if i == 0 else '0'}"
-        for i, _ in enumerate(inputs)
+def neuron_report_organize_info(query_results):
+    """
+    Organize detailed neuron information for the report.
+    Groups rows by Model, Epoch, and Iteration, and formats them as mini-reports.
+
+    :param query_results: List of dictionaries, results from a query joining neuron and iteration data.
+    :return: A list of dictionaries, each representing a neuron row for a given model, epoch, and iteration.
+
+    The report includes:
+    - Model, Neuron Context (Epoch / Iteration / Neuron ID)
+    - Weight * Input, Bias, Raw Sum, Output, and New Weights
+    - Summary-level fields: Target, Prediction, Error, and Loss (left blank for neuron rows)
+    """
+    report_data = []
+    current_idx = 0
+
+    while current_idx < len(query_results):
+        # Extract the next group of rows
+        group, next_idx = neuron_report_extract_group(query_results, current_idx)
+        current_idx = next_idx  # Update the starting index
+        mini_report = neuron_report_format_output(group)
+        report_data.append(mini_report)
+    return report_data
+
+
+def neuron_report_format_output(rows_for_an_iteration):
+    """
+    Converts the data from the query to the desired report format for a given iteration
+
+    :param rows_for_an_iteration: List of dictionaries, all neurons for an iteration and iteration summary
+    :return: A list of dictionaries, each representing a neuron row for a given model, epoch, and iteration.
+    """
+
+    mini_report = []
+    for row in rows_for_an_iteration:
+        # Extract basic information
+        model       = row['model_id']
+        context     = f"{row['epoch']} / {row['iteration']} / {row['nid']}"
+        weight_inp  = neuron_report_build_prediction_logic(row)
+        new_weights = neuron_report_build_new_weights_logic(row)
+
+        # Extract bias and raw sum
+        bias        = row.get('bias_before', 0)
+        weights     = json.loads(row.get('weights_before', '[]'))
+        inputs      = json.loads(row.get('inputs', '[]'))
+        raw_sum     = sum(w * inp for w, inp in zip(weights, inputs)) + bias
+        output_val  = row.get('output')
+        output      = f"{row['activation']}: {smart_format(output_val)}"
+
+        # Append to the report data
+        mini_report.append({
+            "Model"             : model,
+            "Epc / Iter / Nrn"  : context,
+            "Weight * Input"    : weight_inp,
+            "Bias"              : smart_format(bias),
+            "Raw Sum"           : smart_format(raw_sum),
+            "Output"            : output,
+            "New Weights"       : new_weights,
+
+        })
+
+    # Add summary row
+    summary_row = neuron_report_build_iteration_summary(rows_for_an_iteration)
+    mini_report.append(summary_row)
+    return mini_report
+
+
+def neuron_report_build_iteration_summary(rows_for_an_iteration):
+    """
+    Create a summary row for the given group of rows (all neurons for a single iteration).
+
+    :param rows_for_an_iteration: List of dictionaries for a single Model, Epoch, and Iteration.
+    :return: A single dictionary representing the summary row.
+    """
+    # Use the first row to extract shared fields
+    prediction  = smart_format(rows_for_an_iteration[0].get("prediction"))
+    target      = smart_format(rows_for_an_iteration[0].get("target"))
+    error       = smart_format(rows_for_an_iteration[0].get("prediction")-rows_for_an_iteration[0].get("target"))
+    loss        = smart_format(rows_for_an_iteration[0].get("loss"))
+    summary_row = {
+        "Model"            : "Iteration Summary",
+        "Epc / Iter / Nrn" : "Pred - Targ = Err",
+        "Weight * Input"   : f"{prediction} - {target} = {error}",
+        "Bias"             : "",  # Blank for summary
+        "Raw Sum"          : "Loss",
+        "Output"           : "MSE",  #  Placeholder for now
+        "New Weights"      : loss,  # Currently only MSE
+    }
+    return summary_row
+
+
+def neuron_report_extract_group(query_results, start_idx):
+    """
+    Extract a group of rows from query_results with the same Model, Epoch, and Iteration.
+
+    :param query_results: List of dictionaries, results from a query joining neuron and iteration data.
+    :param start_idx: The current starting index in query_results.
+    :return: (group, next_idx) where:
+        - group is a list of rows for the same Model, Epoch, and Iteration.
+        - next_idx is the index to start processing the next group.
+    """
+    group = []
+    initial_key = (
+        query_results[start_idx]['model_id'],
+        query_results[start_idx]['epoch'],
+        query_results[start_idx]['iteration']
     )
 
-    # Concatenate new weights and amount of change into a single cell with line breaks
-    new_weights = "\n".join(
-        f"{smart_format(new_weights[i])} / ({'+' if (new_weights[i] - weights[i]) > 0 else ''}{smart_format(new_weights[i] - weights[i])})"
-        for i in range(len(inputs))
-    )
-    new_bias = f"{smart_format(new_bias)} / ({'+' if (new_bias - bias) > 0 else ''}{smart_format(new_bias - bias)})"
-    # TODO Add columnt for Activation function
+    for idx in range(start_idx, len(query_results)):
+        row = query_results[idx]
+        current_key = (row['model_id'], row['epoch'], row['iteration'])
 
-    # Append a single row for this iteration, with concatenated input-weight terms
-    correlated_log.append([
-        model_name,
-        f"{epoch} / {data[1]}",  # Epoch and iteration #
-        weighted_terms,             # Concatenated Weighted Term calculations
-        f"{smart_format(data[4])}", # Prediction
-        smart_format(data[3]),      # Target
-        smart_format(data[5]),       # Error
-        new_weights,                # New Weight
-        new_bias     # New Bias
-    ])
+        if current_key != initial_key:
+            return group, idx  # End of the current group
 
-######################################################################################
-############# Display Convergence ###############################
-######################################################################################
+        group.append(row)
 
-def print_convergence(mgr_list : List[MetricsMgr]):
-    for mgr in mgr_list:
-        if len(mgr.convergence_signal)==0:
-            print(f"Convergence - Model:{mgr.name}\tDID NOT CONVERGE - HIT MAX EPOCHS")
-        else:
-            print(f"Convergence - Model:{mgr.name}\t{mgr.convergence_signal}")
+    return group, len(query_results)  # End of all rows
 
 
+def neuron_report_build_new_weights_logic(row):
+    """
+    Build new weights logic for a single neuron (row).
+    Loops through new weights, generating labeled entries.
+    """
+    nid = row.get('nid')  # Get neuron ID
+    new_weights = json.loads(row.get('weights', '[]'))  # Deserialize new weights
 
-######################################################################################
-############# Second level of reporting, epoch details ###############################
-######################################################################################
+    if not new_weights:
+        raise ValueError(f"No new weights found for neuron ID {nid}")
 
-def print_epoch_summaries(mgr_list : List[MetricsMgr],problem_type):
-    all_summaries = []
-    for mgr in mgr_list:
-        add_summary(mgr, all_summaries, problem_type)
-    headers = ["Epoch Summary", "Epoch", "Final\nWeight", "Final\nBias","Correct", "Wrong", "Accuracy", "Mean\nAbs Err", "Mean\nSqr Err"]
-
-    if problem_type == "Binary Decision":
-        headers.extend(["TP", "TN", "FP", "FN","Prec\nision", "Recall", "F1\nScore", "Specif\nicity"])
-    else: # Regression adds RMSE
-        headers.extend(["RMSE"])
-
-    chunks = list(chunk_list(all_summaries, repeat_header_interval))    # Split correlated_log into sublists of length repeat_header_interval
-    for chunk in chunks:                                                        # Print each chunk using tabulate
-        print(tabulate(chunk, headers=headers, tablefmt="fancy_grid"))
-
-
-def add_summary(mgr: MetricsMgr, epoch_summaries : list, problem_type):
-    for summary in mgr.epoch_summaries:
-        append_summary_row(summary, epoch_summaries, problem_type)
-
-
-def append_summary_row(summary, epoch_summaries : list, problem_type):
-    epoch_summary = [
-        summary.model_name,
-        summary.epoch,
-        # Concatenate final weights and their changes into a single cell with line breaks
-        "\n".join(
-            f"{smart_format(summary.final_weight[i])}"
-            for i in range(len(summary.final_weight))
-        ),
-        smart_format(summary.final_bias),
-        summary.tp + summary.tn,
-        summary.fp + summary.fn,
-        f"{smart_format((summary.tp + summary.tn)/summary.total_samples * 100)}%",
-        smart_format(summary.total_absolute_error/summary.total_samples),
-        smart_format(summary.total_squared_error/summary.total_samples)
+    # Generate new weights logic
+    new_weights_lines = [
+        f"W{i+1} {smart_format(w)}" for i, w in enumerate(new_weights)
     ]
 
-    if problem_type == "Binary Decision":
-        epoch_summary.extend([
-            summary.tp,
-            summary.tn,
-            summary.fp,
-            summary.fn,
-            smart_format(precision(summary.tp, summary.fp)),
-            smart_format(recall(summary.tp, summary.fn)),
-            smart_format(f1(summary.tp, summary.fp, summary.fn)),
-            smart_format(specificity(summary.tn, summary.fp))
-        ])
-    else: # Regression
-
-        epoch_summary.extend([smart_format(math.sqrt( summary.total_squared_error))])
+    # Combine into a single multi-line string
+    return "\n".join(new_weights_lines)
 
 
-    #print(epoch_summary)
-    epoch_summaries.append(epoch_summary)
+def neuron_report_build_prediction_logic(row):
+    """
+    Build prediction logic for a single neuron (row).
+    Loops through weights and inputs, generating labeled calculations.
+    """
+    nid = row.get('nid')  # Get neuron ID
+    weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
+    inputs = json.loads(row.get('inputs', '[]'))  # Deserialize inputs
 
+    # Validate lengths of weights and inputs
+    if len(weights) != len(inputs):
+        raise ValueError(f"Mismatch in length of weights ({len(weights)}) and inputs ({len(inputs)})")
 
-######################################################################################
-############# Third level of reporting, Model Comparision#############################
-######################################################################################
+    # Generate prediction logic
+    predictions = []
+    for i, (w, inp) in enumerate(zip(weights, inputs), start=1):
+        label = f"W{i}I{i}"  # Update label to match new specs
+        calculation = f"{label} {smart_format(w)} * {smart_format(inp)} = {smart_format(w * inp)}"
+        predictions.append(calculation)
 
-
-def collect_final_epoch_summary_ONLYONEWEIGHT(mgr_list: List[MetricsMgr], problem_type: str) -> List:
-    final_summaries = []
-    for mgr in mgr_list:
-        if mgr.epoch_summaries:  # Check if there are epoch summaries available
-            last_summary = mgr.epoch_summaries[-1]  # Get the last epoch summary
-
-            # Create a list starting with model name and runtime
-            summary_row = [last_summary.model_name, smart_format(mgr.run_time)]
-
-            # Explicitly slice and order the fields we need (using dot notation for clarity)
-            summary_fields = [
-                last_summary.epoch,
-                last_summary.final_weight[0],
-                last_summary.final_bias,
-                last_summary.total_absolute_error,
-                last_summary.tp + last_summary.tn,  # Correct
-                last_summary.fp + last_summary.fn,  # Wrong
-                f"{smart_format((last_summary.tp + last_summary.tn) / last_summary.total_samples * 100)}%",  # Accuracy
-                smart_format(last_summary.total_absolute_error / last_summary.total_samples)  # Mean Abs Error
-            ]
-            # Append the sliced fields to the summary_row
-            summary_row.extend(summary_fields)
-
-            final_summaries.append(summary_row)
-    return final_summaries
-
-
-
-def collect_final_epoch_summary(mgr_list: List[MetricsMgr], problem_type: str) -> List:
-    final_summaries = []
-    for mgr in mgr_list:
-        if mgr.epoch_summaries:  # Check if there are epoch summaries available
-            last_summary = mgr.epoch_summaries[-1]  # Get the last epoch summary
-
-            # Create a list starting with model name and runtime
-            summary_row = [last_summary.model_name, smart_format(mgr.run_time)]
-
-            # Explicitly slice and order the fields we need (using dot notation for clarity)
-            summary_fields = [
-                last_summary.epoch,
-                #last_summary.final_weight[0],
-                "\n".join(
-                    f"{smart_format(last_summary.final_weight[i])}"
-                    for i in range(len(last_summary.final_weight))
-                ),
-                last_summary.final_bias,
-                last_summary.total_absolute_error,
-                last_summary.tp + last_summary.tn,  # Correct
-                last_summary.fp + last_summary.fn,  # Wrong
-                f"{smart_format((last_summary.tp + last_summary.tn) / last_summary.total_samples * 100)}%",  # Accuracy
-                smart_format(last_summary.total_absolute_error / last_summary.total_samples)  # Mean Abs Error
-            ]
-            # Append the sliced fields to the summary_row
-            summary_row.extend(summary_fields)
-
-            final_summaries.append(summary_row)
-    return final_summaries
-
-
-
-def print_model_comparison(mgr_list : List[MetricsMgr],problem_type):
-    # Collect and print final epoch summaries
-    final_summaries = collect_final_epoch_summary(mgr_list, problem_type)
-    headers = ["Gladiator Comparision", "Run Time", "Epoch\nof Conv", "Final\nWeight", "Final\nBias", "Total\nError", "Correct", "Wrong", "Accuracy", "Mean\nAbs Err"]
-    if problem_type == "Binary Decision":
-        headers.extend(["TP", "TN", "FP", "FN", "Precision", "Recall", "F1 Score", "Specificity"])
-    else: # Regression
-        headers.extend(["RMSE"])
-#    print(f"Training Set Size: {iteration_count}\t Max Epochs: {epoch_count}\tDefault Learning Rate: {default_learning_rate}")
-    print(tabulate(final_summaries, headers=headers, tablefmt="fancy_grid"))
-
-
-
-def precision(tp, fp) -> float:
-    """how many of the predicted positive instances are actually positive."""
-    return tp / (tp + fp) if (tp + fp) > 0 else 0
-
-
-def recall(tp, fn) -> float:
-    """how many of the actual positive instances are correctly predicted."""
-    return tp / (tp + fn) if (tp + fn) > 0 else 0
-
-
-def f1(tp, fp, fn) -> float:
-    """harmonic mean of precision and recall"""
-    prec = precision(tp, fp)
-    rec  = recall(tp, fn)
-    if (prec + rec) > 0:
-        return 2 * (prec * rec) / (prec + rec)
-    return 0
-
-def specificity(tn, fp) -> float:
-    """how many of the actual negatives are correctly predicted"""
-    return tn / (tn + fp) if (tn + fp) > 0 else 0
-
-
-
-
-
+    # Combine multi-line predictions into a single string
+    return "\n".join(predictions)
 

@@ -6,10 +6,10 @@ class Signal_UnderMeanThreshold_ShortTerm(Signal__BASE):
     """
     Checks if the MAE of this epoch has improved less than the threshold since the previosu epoch
     """
-    def __init__(self,  threshold: float , MAE_per_epoch):
-        super().__init__(threshold,MAE_per_epoch)
+    def __init__(self,  threshold: float , metrics):
+        super().__init__(threshold,metrics)
 
-    def evaluate(self, MAE_per_epoch : List[float]) -> Optional[str]:
+    def evaluate(self) -> Optional[str]:
         """
         Evaluates the signal and returns its name if it triggers, otherwise None.
 

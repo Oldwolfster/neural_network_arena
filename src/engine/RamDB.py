@@ -28,15 +28,16 @@ class RamDB:
             if callable(attr_value):
                 continue  # Skip methods
 
+            # Handle various data types
             if isinstance(attr_value, bool):
                 schema[attr_name] = "INTEGER"  # Map bool to INTEGER
-
-            if isinstance(attr_value, (bool, np.bool_)):  # Handle native and numpy booleans
-                schema[attr_name] = "INTEGER"  # Map bool to INTEGER
-
-            elif isinstance(attr_value, int):
+            elif isinstance(attr_value, (np.bool_,)):  # Handle numpy booleans
+                schema[attr_name] = "INTEGER"
+            elif isinstance(attr_value, (int, np.integer)):  # Include numpy integers
                 schema[attr_name] = "INTEGER"
             elif isinstance(attr_value, float):
+                schema[attr_name] = "REAL"
+            elif isinstance(attr_value, (np.float32, np.float64)):  # Handle numpy floats
                 schema[attr_name] = "REAL"
             elif isinstance(attr_value, str):
                 schema[attr_name] = "TEXT"
@@ -168,19 +169,17 @@ class RamDB:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL execution failed: {e}")
 
-    def query(self, sql, as_dict=True):
-        """
-        Execute a SQL query and return the results.
-        """
+    def query(self, sql, params=None, as_dict=True):
         try:
-            self.cursor.execute(sql)
+            self.cursor.execute(sql, params or ())
             rows = self.cursor.fetchall()
             if as_dict:
                 column_names = [description[0] for description in self.cursor.description]
                 return [dict(zip(column_names, row)) for row in rows]
-            return rows  # Default to tuples
+            return rows
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL query failed: {e}")
+
 
 
     def query_print(self, sql, as_dict=True):

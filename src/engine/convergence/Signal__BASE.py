@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
-from src.engine.MetricsMgr import MetricsMgr
 
 
 
@@ -17,7 +16,7 @@ class Signal__BASE(ABC):
         threshold (float): The threshold value used to evaluate convergence.
     """
 
-    def __init__(self,  threshold: float, MAE_per_epoch: List[float]):
+    def __init__(self,  threshold: float, metrics):
         """
         Initialize the base signal.
 
@@ -27,7 +26,7 @@ class Signal__BASE(ABC):
         """
 
         self.threshold = threshold
-        self.MAE_per_epoch = MAE_per_epoch
+        self.metrics = metrics
 
     @property
     def signal_name(self):
@@ -54,14 +53,14 @@ class Signal__BASE(ABC):
             bool: True if the MAE change is below the threshold, otherwise False.
         """
         #if self.mgr.epoch_curr_number < n_epochs:  # Not enough epochs to compare
-        if len(self.MAE_per_epoch) < n_epochs:
+        if len(self.metrics) < n_epochs:
             return False
 
-        MAE_now = self.MAE_per_epoch[-1]
-        MAE_prior = self.MAE_per_epoch[-n_epochs]
+        MAE_now = self.metrics[-1]['mean_absolute_error']  # epoch_metrics['mean_absolute_error']}
+        MAE_prior = self.metrics[-n_epochs]['mean_absolute_error']
         change = abs(MAE_now - MAE_prior)
 
-        #if self.mgr.epoch_curr_number % 100 == 0:
-        #    print(f"{self.mgr.name} MAE over {n_epochs} epochs:{self.mgr.epoch_curr_number} "
+
+        #print(f"Signal__BASE - change={change}\tthreshold={self.threshold} ")
         #          f"MAE_now={MAE_now}, MAE_prior={MAE_prior}, change={change}\tthreshold {self.threshold}")
         return change < self.threshold
