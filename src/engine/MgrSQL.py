@@ -39,8 +39,14 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
     """
     def record_iteration(self, iteration_data: Iteration):
         #print("****************************RECORDING ITERATION 2")
+        #print(f"iteration_data.error={iteration_data.error}\titeration_data.absolute_error={iteration_data.absolute_error}")
+
         self.db.add(iteration_data)
-        self.abs_error_for_epoch += abs(iteration_data.error)
+        #self.db.query_print("Select * from Iteration")
+        #print(f"error: {iteration_data.error} (type: {type(iteration_data.error)})")
+        #print(f"absolute_error: {iteration_data.absolute_error} (type: {type(iteration_data.absolute_error)})")
+        #self.db.query_print("PRAGMA table_info(Iteration);")
+        self.abs_error_for_epoch += abs(iteration_data.error)   #TODO This shuold be using RamDB
 
         for neuron in self.neurons:
             epoch_num=iteration_data.epoch

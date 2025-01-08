@@ -49,6 +49,9 @@ class ConvergenceDetector:
         """
 
         self.metrics.append(epoch_metrics)
+        if len(self.metrics) < self.hyper.min_no_epochs:
+            return ""   # Has not yet met minimum no of epochs per hyper paramater setting
+
         for signal in self.signals:
             triggered_signal = signal.evaluate()
             if triggered_signal:

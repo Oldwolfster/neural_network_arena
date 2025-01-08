@@ -20,11 +20,11 @@ class Iteration:
 
     @property
     def error(self) -> float:
-        return self.target - self.prediction
+        return float(self.target - self.prediction)
 
     @property
     def absolute_error(self) -> float:
-        return abs(self.error)
+        return float(abs(self.error))
 
     @property
     def squared_error(self) -> float:
