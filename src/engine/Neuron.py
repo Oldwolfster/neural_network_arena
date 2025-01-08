@@ -7,7 +7,7 @@ class Neuron:
     """
     def __init__(self, nid: int, input_count: int, learning_rate: float, layer_id: int = 0):
         #print(f"creating neuron - nid={nid}")
-        self.nid = nid+1
+        self.nid = nid
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
         self.input_count = input_count
 

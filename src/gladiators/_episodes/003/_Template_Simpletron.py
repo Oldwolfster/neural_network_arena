@@ -21,7 +21,7 @@ class _Template_Simpletron(Gladiator):
 
 
         self.weights[0] = new_weight
-        print(f"input={input}\ttarget={target}\tprediction={prediction}\terror={error}\tadjustment={adjustment}\tnew_weight={new_weight}\tself.weights[0]={self.weights[0]}\t")
+        #print(f"input={input}\ttarget={target}\tprediction={prediction}\terror={error}\tadjustment={adjustment}\tnew_weight={new_weight}\tself.weights[0]={self.weights[0]}\t")
         return prediction
 
 

@@ -186,8 +186,9 @@ class RamDB:
         data = self.query(sql)    # Fetch the data from the database
         if data:
             report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
-            #print(sql)
+            print(f"PRINTING FROM RamDB queryprint")
             print(report)
+            return data
         else:
             print(f"No results found. ==>{sql}")
 

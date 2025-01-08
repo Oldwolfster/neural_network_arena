@@ -1,5 +1,3 @@
-import numpy as np
-
 from src.engine.BaseGladiator import Gladiator
 import math
 
@@ -25,63 +23,21 @@ class SuzukiHayabusa_XOR(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons(3)
-
-
-
-        # Hidden Layer 1
-        self.neurons[0].weights[0] = 20.0  # Strong positive weight for first input
-        self.neurons[0].weights[1] = 20.0  # Strong positive weight for second input
-        self.neurons[0].bias = -10.0       # Negative bias to act as threshold
-
-        # Hidden Layer 2
-        self.neurons[1].weights[0] = -20.0  # Strong negative weight for first input
-        self.neurons[1].weights[1] = -20.0  # Strong negative weight for second input
-        self.neurons[1].bias = 30.0         # Large positive bias
-
-        # Output Layer
-        self.neurons[2].weights[0] = 20.0   # Strong positive weight from H1
-        self.neurons[2].weights[1] = 20.0   # Strong positive weight from H2
-        self.neurons[2].bias = -10.0        # Negative bias
-
-
-        # Use larger initialization range
-        scale = 5.0  # Start with larger weights
-
-        for i in range(3):
-            self.neurons[i].weights[0] = np.random.uniform(-scale, scale)
-            self.neurons[i].weights[1] = np.random.uniform(-scale, scale)
-            # Initialize biases closer to zero
-            self.neurons[i].bias = np.random.uniform(-0.1, 0.1)
-
-        # Increase learning rate
-        self.learning_rate = 0.1  # Or even higher like 0.5
-
-
+        self.initialize_neurons(3) #we will ignore neuron zero to make the numbers match up
         #self.normalizers = self.training_data.normalizers  # Output: [0.333, 0.666]
         #self.training_data.set_normalization_min_max()
 
         #Play with intial values
-        #self.neurons[0].weights[0]  = .1
-        #self.neurons[0].weights[1]  = .5
-        #self.neurons[1].weights[0]  = .25
-        #self.neurons[1].weights[1]  = .1
-        #self.neurons[2].weights[0]  = .2
-        #self.neurons[2].weights[1]  = .3
-        #self.neurons[0].bias        = 0
-        #self.neurons[1].bias        = 0
-        #self.neurons[2].bias        = 0
-        """
-        self.neurons[0].weights[0] = np.random.uniform(-1, 1)
-        self.neurons[0].weights[1] = np.random.uniform(-1, 1)
-        self.neurons[0].bias = np.random.uniform(-1, 1)
-        self.neurons[1].weights[0] = np.random.uniform(-1, 1)
-        self.neurons[1].weights[1] = np.random.uniform(-1, 1)
-        self.neurons[1].bias = np.random.uniform(-1, 1)
-        self.neurons[2].weights[0] = np.random.uniform(-1, 1)
-        self.neurons[2].weights[1] = np.random.uniform(-1, 1)
-        self.neurons[2].bias = np.random.uniform(-1, 1)
-        """
+        self.neurons[0].weights[0]  = .1
+        self.neurons[0].weights[1]  = .5
+        self.neurons[1].weights[0]  = .25
+        self.neurons[1].weights[1]  = .1
+        self.neurons[2].weights[0]  = .2
+        self.neurons[2].weights[1]  = .3
+        self.neurons[0].bias        = 0
+        self.neurons[1].bias        = 0
+        self.neurons[2].bias        = 0
+
         #Variables we need from forward prop to do back prop
         self.output_tanh            = 0
         self.hidden_1_output        = 0
@@ -93,16 +49,14 @@ class SuzukiHayabusa_XOR(Gladiator):
         input_2 = training_data[1]  # Second input
         target = training_data[-1]  # Target value
 
-        prediction = self.forward_pass(input_1, input_2)     #without step applied
-
+        prediction = self.forward_pass(input_1, input_2)
         # Step 5: Calculate the error and loss
         error = target - prediction
         loss = error ** 2  # Mean Squared Error Loss function
         print (f"Error and Loss        ******* Prediction:{prediction}\tTarget:{target}\tError={error}\tLoss={loss}")
         print()
         self.backwards_pass(error, input_1, input_2)
-        prediction_step =  1 if self.output_tanh > 0 else 0      # Apply step function
-        return  prediction_step
+        return  prediction
 
         """
         Steps to backprop
@@ -153,15 +107,13 @@ class SuzukiHayabusa_XOR(Gladiator):
         # For scalar outputs, the gradient reduces to a single derivative
         # as there's only one dimension of change to consider
         grad_loss_wrt_prediction = -2 * error
-        # Add gradient clipping to prevent vanishing gradients
-        grad_loss_wrt_prediction = np.clip(-2 * error, -1, 1)
-
 
         # Gradient of the output neuron's raw activation (pre-tanh) with respect to the loss
         # Combines grad_loss_wrt_prediction and the derivative of tanh at the current activation value
-        # Measures how much the raw output of the output neuron contributes to the loss
+        # Measures how much the raw output of the output neuron contributes to the loss        
         # This value is multiplied by the outputs of the hidden neurons to update the weights and bias of the output neuron
         grad_outputRaw_wrt_loss = grad_loss_wrt_prediction * (1 - self.output_tanh ** 2)
+
 
         # Backprop to Hidden Neurons  - Gradient for hidden neuron WRT to the loss  - Each connection from hidden to the output
         #hidden_neuron 1 goes to weight 0 on output neuron because we are using the chain rule to backprop through connection
@@ -216,12 +168,12 @@ class SuzukiHayabusa_XOR(Gladiator):
         output_raw      =(self.hidden_1_output * self.neurons[2].weights[0] + self.hidden_2_output * self.neurons[2].weights[1] + self.neurons[2].bias)
 
         self.output_tanh=  self.tanh(output_raw)              # Apply tahn function store in instance variable output_tanh for backprop
-        #output_tahn is the non stepped prediction
+        prediction_step =  1 if self.output_tanh > 0 else 0      # Apply step function
 
         print(f"output_raw===({self.hidden_1_output} * {self.neurons[2].weights[0]} + {self.hidden_2_output} * {self.neurons[2].weights[1]} + {self.neurons[2].bias} = {output_raw} <==DOES IT???)")
-        print (f"Tanh({output_raw})={self.output_tanh}\tprediction step not yet applied")
-        #print (f"FORWARD PASS complete!")
-        return  self.output_tanh
+        print (f"Tanh({output_raw})={self.output_tanh}\tprediction_step={prediction_step}")
+        print (f"FORWARD PASS complete!")
+        return prediction_step
 
 
 

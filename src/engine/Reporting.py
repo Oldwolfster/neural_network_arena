@@ -7,22 +7,27 @@ from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format
 from src.engine.Utils_DataClasses import Iteration
-
+from src.engine.graphs._GraphMaster import graph_master
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters):
     if hyper.display_neuron_report:
         neuron_report_launch(db)
-    #epoch_report_launch(db)
+    epoch_report_launch(db)
     summary_report_launch(db)
     print(training_data.get_list())
+    if hyper.display_graphs:
+        graph_master(db)
 
 def prep_RamDB():
     db=RamDB()
 
-    dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.0, prediction=0.0, loss=0.0,accuracy_threshold=0.0)
+    #Create dummy records to create table so we can create the view
+    dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, loss=0.1,accuracy_threshold=0.0)
     dummy_neuron = Neuron(0,1,0.0,0)
     db.add(dummy_iteration)
     db.add(dummy_neuron, model='dummy', epoch_n = 0, iteration_n = 0 )
     epoch_create_view_epochSummary(db)
+    db.execute("DELETE FROM Iteration")     #Delete dummy records
+    db.execute("DELETE FROM Neuron")        #Delete dummy records
     return db
 
 
@@ -46,9 +51,11 @@ def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
         ON S.model_id = I.model_id        
         """
     print("GLADIATOR COMPARISON ================================================")
-    db.query_print(SQL)
+    summary_overview = db.query_print(SQL)
+
 
 def epoch_report_launch(db: RamDB):
+    print("EPOCH SUMMARY ****************************************************")
     db.query_print("SELECT * FROM EpochSummary")
 
 def epoch_create_view_epochSummary(db: RamDB):

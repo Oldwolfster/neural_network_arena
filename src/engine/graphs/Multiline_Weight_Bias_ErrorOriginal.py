@@ -91,7 +91,7 @@ class WeightVisualizer:
 
         return fig, axes
 
-    def plot_normalized(self, summaries, figsize=(12, 8)):
+    def plot_normalizedNOTUSED(self, summaries, figsize=(12, 8)):
         """
         Create a normalized plot where all metrics are scaled to [0,1] range
         Useful for comparing patterns regardless of absolute values
