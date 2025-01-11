@@ -3,7 +3,7 @@ from src.engine.BaseGladiator import Gladiator
 
 class SuzukiHayabusa(Gladiator):
     """
-    A simple single input regression model
+    A simple regression model SLP = with two inputs.
     This version will utilize both weights
     """
 

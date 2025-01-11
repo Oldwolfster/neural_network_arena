@@ -3,6 +3,7 @@ import sqlite3
 from tabulate import tabulate
 
 from src.ArenaSettings import HyperParameters
+from src.NeuroForge.NeuroForge import NeuroForge
 from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format
@@ -16,6 +17,8 @@ def generate_reports(db : RamDB, training_data, hyper : HyperParameters):
     print(training_data.get_list())
     if hyper.display_graphs:
         graph_master(db)
+    if hyper.run_NeuroForge:
+        NeuroForge(db,training_data,hyper)
 
 def prep_RamDB():
     db=RamDB()

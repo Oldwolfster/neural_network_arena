@@ -14,11 +14,11 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 2         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 5         # Number of times training run will cycle through all training data
     training_set_size       :int    = 111       # Qty of training data
     min_no_epochs           :int    = 555        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
-    default_learning_rate   :float  = 2     # Affects magnitude of weight adjustments #.0001 Equalizer
+    default_learning_rate   :float  = .001     # Affects magnitude of weight adjustments #.0001 Equalizer
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
     accuracy_threshold      :float  = .1        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
@@ -34,7 +34,7 @@ class HyperParameters:
     #display_logs            :bool = True   # Display the logs at the end of the run
     detail_log_min          :int  = 0       # Which epochs to display detailed logs for(min)
     detail_log_max          :int  = 10000       # Which epochs to display detailed logs for(min)
-
+    run_NeuroForge          :bool = True
     ##############################################################
     # NEW REPORT Parameters are set here - GOING TO MULT NEURONS #
     ##############################################################
@@ -49,7 +49,7 @@ class HyperParameters:
 
 training_pit              = "Predict_Income_2_Inputs"
 #training_pit              = "Manual"
-training_pit                = "XOR"
+#training_pit                = "XOR"
 
 #training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
@@ -64,9 +64,9 @@ training_pit                = "XOR"
 gladiators = [
 
     #'Blackbird'
-    #'Hayabusa'
+    'Hayabusa'
     #'XOR'
-    'XORTutorial'
+    #'XORTutorial'
     #'GBS_XOR'
     #'HayabusaNormalizer'
     #'HayabusaTwoNeurons'
