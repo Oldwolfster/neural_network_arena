@@ -4,4 +4,5 @@ colorama
 torch
 numpy
 pandas
+pygame
 

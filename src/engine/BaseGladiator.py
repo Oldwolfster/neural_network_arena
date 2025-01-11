@@ -22,8 +22,7 @@ class Gladiator(ABC):
         self.neuron_count       = 0                         # Default value
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        #self.metrics_mgr        = MetricsMgr    (gladiator, self.hyper, self.training_data)
-        self.mgr_sql            = MgrSQL        (self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
+        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate
         self.number_of_epochs   = self.hyper.epochs_to_run
 
