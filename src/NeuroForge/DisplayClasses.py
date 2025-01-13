@@ -16,14 +16,18 @@ class DisplayModel(EZSurface):
 
     def initialize_with_model_info(self, model_info):
         self.model_id = model_info.model_id
-
+        # Create a modified architecture that excludes the input layer
+        modified_architecture = model_info.full_architecture[1:]
         # Calculate layer and neuron spacing
-        layer_spacing = self.width // len(model_info.full_architecture)
-        neuron_size, vertical_spacing = self.calculate_dynamic_neuron_layout(model_info.full_architecture, self.height)
+        layer_spacing = self.width // len(modified_architecture)
+        neuron_size, vertical_spacing = self.calculate_dynamic_neuron_layout(modified_architecture, self.height)
 
         self.neurons = []
-        for layer_index, neuron_count in enumerate(model_info.full_architecture):
+        for layer_index, neuron_count in enumerate(modified_architecture):  # Skip input layer
             layer_neurons = []
+
+            if len(modified_architecture) == 1:
+                layer_spacing = self.width // 2  # Center it horizontally
 
             # Horizontal position for the current layer
             layer_x = layer_spacing * layer_index + 20
@@ -48,7 +52,7 @@ class DisplayModel(EZSurface):
 
         # Create connections
         self.connections = []
-        for layer_index in range(len(model_info.full_architecture) - 1):
+        for layer_index in range(len(modified_architecture) - 1):
             current_layer = self.neurons[layer_index]
             next_layer = self.neurons[layer_index + 1]
             for from_neuron in current_layer:
@@ -65,9 +69,10 @@ class DisplayModel(EZSurface):
             for neuron in layer:  # Iterate through each neuron in the layer
                 neuron.draw_me(self.surface)
 
-    def update_me(self, db: RamDB, iteration : int, epoch : int):
-        for neuron in self.neurons:
-            neuron.update_me(db, iteration, epoch, self.id)
+    def update_me(self, db: RamDB, iteration : int, epoch : int, model_id: str):
+        for layer in self.neurons:  # Iterate through each layer
+            for neuron in layer:  # Iterate through each neuron in the layer
+                neuron.update_me(db, iteration, epoch, self.model_id)
 
     def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=5, max_neuron_size=1500, spacing_ratio=0.25):
         """
@@ -129,7 +134,7 @@ class DisplayNeuron:
         # Parameterized query with placeholders
         sql = """
             SELECT * FROM Neuron 
-            WHERE model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
+            -- WHERE model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
         """
         params = (model_id, iteration, epoch, self.nid)
 
@@ -138,7 +143,8 @@ class DisplayNeuron:
         print(f"Params: {params}")
 
         # Execute query
-        rs = db.query(sql, params)
+        #rs = db.query(sql, params)
+        rs = db.query(sql)
         print(f"Query result: {rs}")
 
         # Update attributes based on query result
@@ -217,12 +223,12 @@ class DisplayInputs(EZSurface):
         params = (epoch, iteration)
 
         # Debugging SQL and parameters
-        print(f"SQL in update_me for Inputs: {sql}")
-        print(f"Params: {params}")
+        #print(f"SQL in update_me for Inputs: {sql}")
+        #print(f"Params: {params}")
 
         # Execute query
         rs = db.query(sql, params)
-        print(f"Query result: {rs}")
+        #print(f"Query result: {rs}")
 
         # Update attributes based on query result
         if rs:

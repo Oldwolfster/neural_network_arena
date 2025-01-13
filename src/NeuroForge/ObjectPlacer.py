@@ -29,8 +29,10 @@ class ObjectPlacer:
                 # Fixed size for neurons, adjust as needed
         neuron_width = 12
         neuron_height = 12
-
+        print("Full architecture:", self.info.full_architecture)
+        print("Before adding neurons:", self.display_model.neurons)
         for layer_index, neuron_count in enumerate(self.info.full_architecture[1:], start=1):  # Skip input layer
+            print(f"Layer {layer_index}, Neuron Count {neuron_count}")
             layer_x = layer_spacing * layer_index
             for neuron_index in range(neuron_count):
                 # Create DisplayNeuron
@@ -44,6 +46,7 @@ class ObjectPlacer:
 
                 # Append to the DisplayModel's neurons list
                 self.display_model.neurons.append(neuron)
+        print("After adding neurons:", self.display_model.neurons)
 
     def calculate_connections(self):
         """
