@@ -25,10 +25,11 @@ class Gladiator(ABC):
         self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate
         self.number_of_epochs   = self.hyper.epochs_to_run
+        self.full_architecture  = None
 
     def train(self) -> str:
         if self.neuron_count == 0:
-            self.initialize_neurons(1) #Defaults to 1
+            self.initialize_neurons([1]) #Defaults to 1
             print(f"Warning: Defaulting to a single neuron in {self.__class__.__name__}")
 
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
@@ -37,8 +38,9 @@ class Gladiator(ABC):
                 print (f"Epoch: {epoch} for {self.gladiator} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
-                return convg_signal
-        return "Did not converge"                                         # When it does not converge still return metrics mgr
+                return convg_signal, self.full_architecture
+        print (f"FULL ARCHITECTURE DEFINITION={self.full_architecture}")
+        return "Did not converge", self.full_architecture       # When it does not converge still return metrics mgr
 
     def run_an_epoch(self, epoch_num: int) -> bool:             # Function to run single epoch
         for i, sample in enumerate(self.training_samples):         # Loop through all the training data
@@ -72,33 +74,38 @@ class Gladiator(ABC):
             self.mgr_sql.record_iteration(iteration_data)
         return self.mgr_sql.finish_epoch()
 
-
-    def initialize_neurons(self, neuron_count):
+    def initialize_neurons(self, architecture: list = None):
         """
-        SNIPER - NOT SHOTGUN
-        Spaced values (e.g., equally distributed across
-                −
-                𝜎
-                −σ to
-                +
-                𝜎
-                +σ).
-                Scaled eigenvectors of the input data covariance matrix.
-                A low-discrepancy sequence (e.g., Sobol or Halton) for quasi-random sampling.
+        Initializes neurons based on the specified architecture.
+
+        Args:
+            architecture (list): List of integers representing the number of neurons
+                                 in each hidden/output layer.
+                                 Example: [4, 3, 2, 1] for 4 neurons in the first hidden layer,
+                                 3 in the next, etc.
         """
-        self.neuron_init = True
-        self.neuron_count = neuron_count
-        for x in range(neuron_count):                           # Append new neurons to the existing list
-            self.neurons.append(Neuron(x, self.training_data.input_count, self.hyper.default_learning_rate))
+        # Ensure architecture is defined
+        if architecture is None:
+            architecture = [1]  # Default to a single neuron in a single layer
 
-        '''
-            self.neuron_init = True
-            self.neuron_count = neuron_count
-            self.neurons.clear()                                    # Clear the existing list to start fresh
-            for x in range(neuron_count):                           # Append new neurons to the existing list
-                self.neurons.append(Neuron(x, self.training_data.input_count, self.hyper.default_learning_rate))
-        '''
+        # Combine inputs and architecture into the full architecture
+        input_count = self.training_data.input_count
+        self.full_architecture = [input_count] + architecture  # Store the full architecture
 
+        # Initialize neurons for all layers except the input layer
+        self.neurons.clear()  # Clear any existing neurons
+        for layer_index, neuron_count in enumerate(architecture):
+            for neuron_index in range(neuron_count):
+                neuron = Neuron(
+                    neuron_index,
+                    self.full_architecture[layer_index],  # Number of inputs to this layer
+                    self.hyper.default_learning_rate
+                )
+                self.neurons.append(neuron)
+        self.neuron_count = len(self.neurons)
+        #print(f"IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
+        #for i, neuron in enumerate(self.neurons):
+        #    print(f"Neuron {i}: Weights = {neuron.weights}, Bias = {neuron.bias}")
 
     @property
     def weights(self):

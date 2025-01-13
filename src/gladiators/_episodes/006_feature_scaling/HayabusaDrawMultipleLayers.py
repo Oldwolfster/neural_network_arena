@@ -1,14 +1,14 @@
 from src.engine.BaseGladiator import Gladiator
 
 
-class SuzukiHayabusaTwoNeurons(Gladiator):
+class HayabusaDrawMultipleLayers(Gladiator):
     """
     This upgrade supports two neurons
     """
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([2])
+        self.initialize_neurons([2,3,4])
         self.normalizers = self.training_data.normalizers  # Output: [0.333, 0.666]
         #self.training_data.set_normalization_min_max()
 
@@ -22,7 +22,9 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
                     inp_1 * self.neurons[0].weights[1] +
                     self.neurons[0].bias)
 
-        print (f"NEURONS = {self.neurons}")
+        #print(f"Initialized Neurons: {len(self.neurons)}")
+        #for i, neuron in enumerate(self.neurons):
+        #    print(f"Neuron {i}: Weights = {neuron.weights}, Bias = {neuron.bias}")
 
         # Step 2: Compute the output of the second neuron
         output_1 = (inp_0 * self.neurons[1].weights[0] +
