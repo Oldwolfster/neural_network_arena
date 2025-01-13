@@ -5,6 +5,8 @@ from typing import List
 class ModelInfo:
     model_id: str
     seconds: float
+    cvg_condition: str
+    full_architecture: List[int]
 
 @dataclass
 class Iteration:

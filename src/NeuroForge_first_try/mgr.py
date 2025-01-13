@@ -11,7 +11,7 @@ epoch       = 1
 iteration   = 1
 layer       = 1
 neuron      = 1
-display_models = []
+
 # Colors
 white = (255, 255, 255)
 black = (0, 0, 0)

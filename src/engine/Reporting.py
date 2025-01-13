@@ -1,7 +1,8 @@
 import json
 import sqlite3
 from tabulate import tabulate
-
+from typing import List
+from src.engine.Utils_DataClasses import ModelInfo
 from src.ArenaSettings import HyperParameters
 from src.NeuroForge.NeuroForge import NeuroForge
 from src.engine.Neuron import Neuron
@@ -9,7 +10,7 @@ from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format
 from src.engine.Utils_DataClasses import Iteration
 from src.engine.graphs._GraphMaster import graph_master
-def generate_reports(db : RamDB, training_data, hyper : HyperParameters):
+def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):
     if hyper.display_neuron_report:
         neuron_report_launch(db)
     epoch_report_launch(db)
@@ -18,7 +19,7 @@ def generate_reports(db : RamDB, training_data, hyper : HyperParameters):
     if hyper.display_graphs:
         graph_master(db)
     if hyper.run_NeuroForge:
-        NeuroForge(db,training_data,hyper)
+        NeuroForge(db,training_data,hyper, model_info_list)
 
 def prep_RamDB():
     db=RamDB()
