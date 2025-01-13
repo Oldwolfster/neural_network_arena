@@ -25,7 +25,7 @@ class SuzukiHayabusa_XOR(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons(3)
+        self.initialize_neurons([3])
 
 
 

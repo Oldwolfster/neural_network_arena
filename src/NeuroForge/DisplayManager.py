@@ -45,7 +45,7 @@ class DisplayManager:
         """Render all components on the screen."""
                 # Render models
         for model in self.models:
-            model.draw_me()
+            model.update_me(db, iteration, epoch, model_id)
 
         # Render general components
         for component in self.components:
