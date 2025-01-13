@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import pygame
@@ -203,20 +204,20 @@ class DisplayInputs(EZSurface):
             self.surface.blit(label, (input_rect.x, input_rect.y - 20))
 
             # Render the value inside the box
-            value_text = font.render(self.input_values[i], True, (0, 0, 0))
+            #value_text = font.render(self.input_values[i], True, (0, 0, 0))
+            value_text = font.render(f"{self.input_values[i]:.3f}", True, (0, 0, 0))
             value_text_rect = value_text.get_rect(center=input_rect.center)  # Center text in the box
             self.surface.blit(value_text, value_text_rect)
 
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
-        # Parameterized query with placeholders
-        sql = """
-            SELECT * FROM Neuron 
-            WHERE model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
+        sql = """  
+            SELECT * FROM Iteration 
+            WHERE  epoch = ? AND iteration = ?  
         """
-        params = (model_id, iteration, epoch, self.nid)
+        params = (epoch, iteration)
 
         # Debugging SQL and parameters
-        print(f"SQL in update_me: {sql}")
+        print(f"SQL in update_me for Inputs: {sql}")
         print(f"Params: {params}")
 
         # Execute query
@@ -225,10 +226,16 @@ class DisplayInputs(EZSurface):
 
         # Update attributes based on query result
         if rs:
-            # Assuming rs is a dictionary or object with keys matching the database columns
-            self.activation_value = rs[0].get("activation_value", self.activation_value)
-            self.bias = rs[0].get("bias", self.bias)
+            # Extract the inputs value and parse it
+            raw_inputs = rs[0].get("inputs", self.input_values)
+            try:
+                # Try parsing as JSON
+                self.input_values = json.loads(raw_inputs)
+            except json.JSONDecodeError:
+                # Fallback to safely evaluating the string as a Python object
+                self.input_values = literal_eval(raw_inputs)
 
+            print(f"self.input_values= {self.input_values}")
 
 def update_all(db : RamDB, iteration : int, epoch: int, display_models : List[DisplayModel], screen : pygame.Surface):
     db.list_tables()
