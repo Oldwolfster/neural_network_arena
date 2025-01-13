@@ -21,7 +21,7 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     #screen_width, screen_height = pygame.display.get_surface().get_size()
 
     # Initialize tracking variables
-    last_iteration = mgr.iteration
+    last_iteration = mgr.iteration -1 # -1 makes it trigger it the first time.
     last_epoch = mgr.epoch
     update_all(db, mgr.iteration, mgr.epoch, display_models, mgr.screen)
     # Pygame main loop
@@ -43,10 +43,11 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
                 if event.key == pygame.K_h:
                     mgr.epoch -=1;
 
-
+        #print (f"mgr.epoch{mgr.epoch}\tmgr.iteration{mgr.iteration}\t")
         # Check if iteration or epoch has changed
         if mgr.iteration != last_iteration or mgr.epoch != last_epoch:
             # Query and update data
+            display_manager.update( db, mgr.iteration, mgr.epoch,'global no model')
             for model in display_models:
                 pass#model.update_data(db, mgr.iteration, mgr.epoch)
 

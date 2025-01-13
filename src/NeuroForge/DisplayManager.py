@@ -3,6 +3,7 @@ from typing import List
 import pygame
 
 from src.NeuroForge.DisplayClasses import DisplayInputs, DisplayModel
+from src.engine.RamDB import RamDB
 
 
 #from DisplayClasses import DisplayInputs  # Example: Your custom input class
@@ -37,10 +38,10 @@ class DisplayManager:
 
         # Render general components
         for component in self.components:
-            print (f"DEBUG IN DM - Component = {component}")
+            #print (f"DEBUG IN DM - Component = {component}")
             component.draw_me()
 
-    def update(self):
+    def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""
                 # Render models
         for model in self.models:
@@ -49,7 +50,7 @@ class DisplayManager:
         # Render general components
         for component in self.components:
             print (f"DEBUG IN DM - Component = {component}")
-            component.update()
+            component.update_me( db, iteration, epoch, model_id)
         self.render()
 
 
