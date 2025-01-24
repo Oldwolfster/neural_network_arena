@@ -8,7 +8,7 @@ from src.engine.RamDB import RamDB
 
 class DisplayModel(EZSurface):
     def __init__(self, screen, width_pct, height_pct, left_pct, top_pct, architecture=None):
-        print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
+        #print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
         super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(240, 240, 240))
         self.neurons = [[] for _ in range(len(architecture))] if architecture else []  # Nested list by layers
         self.connections = []  # List of connections between neurons
@@ -71,24 +71,25 @@ class DisplayModel(EZSurface):
 
         # Draw connections first (to avoid overlapping neurons)
         for connection in self.connections:
-            connection.draw_me(self.surface)
+            connection.draw_connection(self.surface)
 
         # Draw neurons
         for layer in self.neurons:
             for neuron in layer:
-                neuron.draw_me(self.surface)
+                neuron.draw_neuron(self.surface)
 
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """
         Update neuron and connection information based on the current state in the database.
         """
+        DisplayModel__Neuron.retrieve_inputs(db, iteration, epoch, model_id)
         for layer in self.neurons:
             for neuron in layer:
-                neuron.update_me(db, iteration, epoch, self.model_id)
+                neuron.update_neuron(db, iteration, epoch, self.model_id)
 
         # (Optional) If connections have dynamic properties, update them too
         for connection in self.connections:
-            connection.update_me()
+            connection.update_connection()
 
     def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=5, max_neuron_size=1500, spacing_ratio=0.25):
         """

@@ -1,4 +1,5 @@
 import json
+from ast import literal_eval
 from typing import List
 import pygame
 
@@ -10,6 +11,8 @@ from src.NeuroForge.mgr import * # Imports everything into the local namespace
 
 
 class DisplayModel__Neuron:
+
+    input_values = []   # Class variable to store inputs
     def __init__(self, nid:int, layer: int, position: int):
         #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
         self.location_left=0
@@ -31,7 +34,70 @@ class DisplayModel__Neuron:
         # Create EZPrint instance
         self.ez_printer = EZPrint(mgr.font, color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
 
-    def draw_me(self, screen):
+    @classmethod
+    def retrieve_inputs(cls, db: RamDB, iteration: int, epoch: int, modelID: str):
+        """
+        Retrieve inputs from the database and store in the class variable.
+        """
+        sql = """  
+            SELECT * FROM Iteration 
+            WHERE epoch = ? AND iteration = ?  
+        """
+        params = (epoch, iteration)
+
+        # Execute query
+        rs = db.query(sql, params)
+
+        # Parse and store inputs
+        if rs:
+            raw_inputs = rs[0].get("inputs", cls.input_values)
+            try:
+                cls.input_values = json.loads(raw_inputs)
+            except json.JSONDecodeError:
+                cls.input_values = literal_eval(raw_inputs)
+
+    def update_neuron(self, db: RamDB, iteration: int, epoch: int, model_id: str):
+        """
+        Update this neuron based on its layer type (input or hidden).
+        """
+        if self.layer == 0:  # Input layer neuron
+            self.update_input_neuron()
+        else:  # Hidden or output layer neuron
+            self.update_hidden_neuron(db, iteration, epoch, model_id)
+
+    def update_input_neuron(self):
+        """
+        Update an input neuron with its corresponding value.
+        """
+        if self.position < len(DisplayModel__Neuron.input_values):
+            value = DisplayModel__Neuron.input_values[self.position]
+            self.weight_text = f"Input: {value:.3f}"
+
+    def update_hidden_neuron(self, db: RamDB, iteration: int, epoch: int, model_id: str):
+        # Parameterized query with placeholders
+        SQL =   """
+            SELECT  *
+            FROM    Iteration I
+            JOIN    Neuron N
+            ON      I.model_id  = N.model 
+            AND     I.epoch     = N.epoch_n
+            AND     I.iteration = N.iteration_n
+            WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
+            ORDER BY epoch, iteration, model, nid 
+        """
+        params = (model_id, iteration, epoch, self.nid)
+        # print(f"SQL in update_me: {SQL}")
+        # print(f"Params: {params}")
+
+        rs = db.query(SQL, params) # Execute query
+        if rs:
+            self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
+        else:
+            self.weight_text = ""
+            #print(f"Query result: {rs}")
+            #print(f"PREDICTIONS: {self.weight_text}")
+
+    def draw_neuron(self, screen):
         # Define colors
         body_color = (0, 0, 255)  # Blue for the neuron body
         label_color = (70, 130, 180)  # Steel blue for the label strip
@@ -77,34 +143,6 @@ class DisplayModel__Neuron:
             y=body_text_y_start
         )
 
-
-    def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
-        # Parameterized query with placeholders
-        SQL =   """
-            SELECT  *
-            FROM    Iteration I
-            JOIN    Neuron N
-            ON      I.model_id  = N.model 
-            AND     I.epoch     = N.epoch_n
-            AND     I.iteration = N.iteration_n
-            WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
-            ORDER BY epoch, iteration, model, nid 
-        """
-        params = (model_id, iteration, epoch, self.nid)
-
-        # Debugging SQL and parameters
-        #print(f"SQL in update_me: {SQL}")
-        #print(f"Params: {params}")
-
-        # Execute query
-        rs = db.query(SQL, params)
-        #self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
-        self.weight_text=" coming soon"
-        #print(f"Query result: {rs}")
-        #print(f"PREDICTIONS: {self.weight_text}")
-
-
-
     def neuron_report_build_prediction_logic(self,row):
         """
         Build prediction logic for a single neuron (row).
@@ -114,22 +152,18 @@ class DisplayModel__Neuron:
         weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
         inputs = json.loads(row.get('inputs', '[]'))  # Deserialize inputs
 
-        # Validate lengths of weights and inputs
-        #if len(weights) != len(inputs):
-        #    raise ValueError(f"Mismatch in length of weights ({len(weights)}) and inputs ({len(inputs)})")
-
         # Generate prediction logic
         predictions = []
         self.raw_sum = 0
+        print(f"In DisplayModel__Neuron INPUTS:{inputs}")
+        print(f"In DisplayModel__Neuron WEIGHTS:{weights}")
+        #if len(weights) == len(inputs):         # Validate lengths of weights and inputs
         for i, (w, inp) in enumerate(zip(weights, inputs), start=1):
             #label = f"W{i}I{i}"  # Update label to match new specs
             linesum= (w*inp)
             calculation = f"{smart_format(w)} * {smart_format(inp)} = {smart_format(w * inp)}"
             predictions.append(calculation)
             self.raw_sum += linesum
-
-        # Combine multi-line predictions into a single string
-        #return "\n".join(predictions)
         return f"{'\n'.join(predictions)}\n{self.format_bias_and_raw_sum(row)}"
 
     def format_bias_and_raw_sum(self, row):
@@ -152,4 +186,6 @@ class DisplayModel__Neuron:
 
         # Combine them into a single string
         return f"{bias_str}\n{raw_sum_str}"
+
+
 
