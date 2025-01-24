@@ -3,9 +3,7 @@ import sys
 from src.ArenaSettings import HyperParameters
 from typing import List
 
-from src.NeuroForge.DisplayClasses import update_all
-from src.NeuroForge.DisplayManager import DisplayManager
-#from src.NeuroForge.ObjectPlacer import create_display_models
+from src.NeuroForge.Display_Mgr import DisplayManager
 from src.engine.Utils_DataClasses import ModelInfo
 
 from src.engine.RamDB import RamDB
@@ -23,7 +21,9 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     # Initialize tracking variables
     last_iteration = mgr.iteration -1 # -1 makes it trigger it the first time.
     last_epoch = mgr.epoch
-    update_all(db, mgr.iteration, mgr.epoch, display_models, mgr.screen)
+    #update_all(db, mgr.iteration, mgr.epoch, display_models, mgr.screen)
+
+    display_manager.update( db, mgr.iteration, mgr.epoch,'global no model')
     # Pygame main loop
     running = True
     while running:
@@ -58,9 +58,6 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
         # Render models
         mgr.screen.fill((255, 255, 255))  # Clear screen
         display_manager.render()
-        for model in display_models:
-            model.draw_me(mgr.screen)  # Draw each DisplayModel
-
         pygame.display.flip()
 
 
@@ -69,6 +66,6 @@ def neuro_forge_init():
     # Font Setup
     mgr.font = pygame.font.Font(None, 24)  # Default font, size 24
     # Screen Settings
-    screen_width, screen_height = 800, 600
+    screen_width, screen_height = 1200, 900
     mgr.screen = pygame.display.set_mode((screen_width, screen_height))
     pygame.display.set_caption("Neural Network Visualization")

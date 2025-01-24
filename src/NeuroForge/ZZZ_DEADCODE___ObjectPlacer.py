@@ -4,7 +4,7 @@ from src.NeuroForge.DisplayClasses import DisplayModel, DisplayNeuron, DisplayCo
 from src.engine.Utils_DataClasses import ModelInfo
 
 
-class ObjectPlacer:
+class ObjectPlacer2:
     def __init__(self, screen, info: ModelInfo, canvas_width=400, canvas_height=300):
         self.info = info
         self.canvas_width = canvas_width

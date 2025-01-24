@@ -1,13 +1,8 @@
-from typing import List
-
 import pygame
 
-from src.NeuroForge.DisplayClasses import DisplayInputs, DisplayModel
+from src.NeuroForge.DisplayInputs import DisplayInputs
+from src.NeuroForge.DisplayModel import DisplayModel
 from src.engine.RamDB import RamDB
-
-
-#from DisplayClasses import DisplayInputs  # Example: Your custom input class
-#from DisplayClasses import DisplayModel  # Example: Your model display class
 
 
 class DisplayManager:
@@ -49,7 +44,7 @@ class DisplayManager:
 
         # Render general components
         for component in self.components:
-            print (f"DEBUG IN DM - Component = {component}")
+            #print (f"DEBUG IN DM - Component = {component}")
             component.update_me( db, iteration, epoch, model_id)
         self.render()
 
