@@ -182,3 +182,11 @@ This documentation provides a high-level overview. For specific implementation d
 ## Questions or Feedback?
 Feel free to reach out with questions about this structure or suggestions for improvement!
 
+## Thoughts on interface components for point and click.
+
+Edit button brings up tools.
+Add/remove layers.
+add neurons to layers.
+Select neurons for mass change.
+activation function
+loss function

@@ -1,7 +1,11 @@
+import json
 import sqlite3
 from json import dumps
 from typing import List
 
+import numpy as np
+
+from .Neuron import Neuron
 from .RamDB import RamDB
 
 from src.ArenaSettings import HyperParameters
@@ -37,7 +41,35 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
             self._converge_detector = ConvergenceDetector(self.hyper, self.training_data, self)
         return self._converge_detector
     """
-    def record_iteration(self, iteration_data: Iteration):
+
+    def record_iteration(self, iteration_data: Iteration, layers: List[List[Neuron]]):
+        # Add the current iteration data to the database
+        self.db.add(iteration_data)
+        self.abs_error_for_epoch += abs(iteration_data.error)
+
+        # Iterate through the neurons and add their data to the database
+        for neuron in self.neurons:
+            # Assign neuron inputs for the current iteration
+            if neuron.layer_id == 0:
+                # Deserialize inputs and convert to NumPy array
+                raw_inputs = json.loads(iteration_data.inputs)  # Parse JSON string to list
+                print(f"storing neuron data Hidden1.  {iteration_data.epoch},{iteration_data.iteration}\tnid={neuron.nid}\tneuron.layer_id{neuron.layer_id}\traw_inputs{raw_inputs}")
+                neuron.neuron_inputs = np.array(raw_inputs, dtype=np.float64)
+            else:
+                # For subsequent layers, use the activations from the previous layer's neurons
+                previous_layer = layers[neuron.layer_id - 1]
+                neuron.neuron_inputs = np.array([prev.activation_value for prev in previous_layer], dtype=np.float64)
+                print(f"storing neuron data Hidden2+. {iteration_data.epoch},{iteration_data.iteration}\t nid={neuron.nid}\tneuron.layer_id{neuron.layer_id}\tneuron.neuron_inputs {neuron.neuron_inputs }")
+
+            # Add the neuron data to the database
+            epoch_num = iteration_data.epoch
+            iteration_num = iteration_data.iteration
+            self.db.add(neuron, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
+
+
+
+
+    def record_iterationold(self, iteration_data: Iteration):
         #print("****************************RECORDING ITERATION 2")
         #print(f"iteration_data.error={iteration_data.error}\titeration_data.absolute_error={iteration_data.absolute_error}")
 

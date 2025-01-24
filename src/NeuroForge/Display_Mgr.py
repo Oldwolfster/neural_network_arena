@@ -27,7 +27,7 @@ class DisplayManager:
 
     def render(self):
         """Render all components on the screen."""
-                # Render models
+        # Render models
         for model in self.models:
             model.draw_me()
 
@@ -38,7 +38,8 @@ class DisplayManager:
 
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""
-                # Render models
+        #db.list_tables()
+        # Render models
         for model in self.models:
             model.update_me(db, iteration, epoch, model_id)
 

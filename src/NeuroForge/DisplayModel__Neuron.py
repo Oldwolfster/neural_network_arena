@@ -32,7 +32,8 @@ class DisplayModel__Neuron:
         self.activation_value =0
         self.weight_text = ""
         # Create EZPrint instance
-        self.ez_printer = EZPrint(mgr.font, color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
+        self.ez_printer = EZPrint(pygame.font.Font(None, 20)
+                                  , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
 
     @classmethod
     def retrieve_inputs(cls, db: RamDB, iteration: int, epoch: int, modelID: str):
@@ -104,7 +105,7 @@ class DisplayModel__Neuron:
         text_color = (255, 255, 255)  # White for text on the label
 
         # Font setup
-        font = pygame.font.Font(None, 18)
+        font = pygame.font.Font(None, 24)
         if self.nid>=0:
             label_text = font.render(f"{self.label} (ID: {self.nid})", True, text_color)
         else:
@@ -150,7 +151,7 @@ class DisplayModel__Neuron:
         """
         nid = row.get('nid')  # Get neuron ID
         weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
-        inputs = json.loads(row.get('inputs', '[]'))  # Deserialize inputs
+        inputs = json.loads(row.get('neuron_inputs', '[]'))  # Deserialize inputs
 
         # Generate prediction logic
         predictions = []
