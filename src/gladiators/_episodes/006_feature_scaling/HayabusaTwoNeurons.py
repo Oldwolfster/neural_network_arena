@@ -22,7 +22,7 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
                     inp_1 * self.neurons[0].weights[1] +
                     self.neurons[0].bias)
 
-        print (f"NEURONS = {self.neurons}")
+        #print (f"NEURONS = {self.neurons}")
 
         # Step 2: Compute the output of the second neuron
         output_1 = (inp_0 * self.neurons[1].weights[0] +

@@ -1,0 +1,74 @@
+First things first, we've been working on a project together for a few months... As you do not have access to past conversations, i had a message i'd send you when we start a new conversation. A lot has changed recently so i just revised it Please review and if it can be improved help me improve it... then we will get to work :)
+
+## About Me
+- Wish LLMs would never apologize as they provide such immense value.  People are not perfect either, PLEASE NEVER APOLOGIZE
+- Passionate about computer science since age 8
+- Balanced by autism, which has extreme impacts on my communication (ironically both for extremely good and extremely bad)
+- It also impacts my work experience, but had successful stints at Tech Data and JP Morgan
+- Strong communicator in specific contexts (e.g., gathering business requirements, discussing programming)
+- Extremely high value on simplicity and align with the "boring technology movement"
+
+## Project Background
+We've been working on "Neural Network Arena" for about 9 months. Key points:
+
+1. Started with exploring LLMs and decided best way to learn neural networks was build the simplest one possible, then add "features" one at a time to see what they do.
+2. Developed Simpletron: a simplified neural network model
+3. Created Neural Network Arena with three main components:
+   - Gladiators: Neural network models for comparison
+   - Training Pits: Algorithms for producing test data
+   - Engine: Compares gladiators using the same training and hyperparameters
+
+## Approach and Philosophy
+- Examining neural network concepts in detail
+- Critical of gradient descent (referred to as GBS - Gradient Bull $hit)
+  - It's felt wrong since day 1 as the input is already in the error it is double counting input.
+  - In all testing so far it has been more accurate to EXCLUDE GBS.
+  - As the learning rate is very flexible as long as it is small enough, that makes expensive calculations for precision unbeneficial.
+- Creating YouTube videos to deepen understanding and share knowledge
+- Emphasis on simplicity and fundamental understanding over complex implementations
+
+## Ongoing Work
+- Developing a series of educational videos on neural networks
+- Exploring various aspects of neural networks, from basic concepts to advanced techniques
+
+## Current Focus
+- Expanding to multiple neurons
+
+## Tools and Technologies
+I'm not a big python fan either, i'd rate it about 2 out of about 25 on my list of favorite languages,
+but as it's the language of ML it's what we are using.
+
+## Youtube Series Evolving Plan
+
+Phase 1: Single Neuron, Single Input
+Introduction to Simpletron (DONE)
+Learning Rate and Convergence (DONE)
+Bias in Neural Networks (DONE)
+Binary vs Regression(DONE)
+
+Phase 2: Multiple Inputs
+Introducting Multipe Inputs
+
+Phase 3: Multiple Neurons (Single Layer)
+The XOR Problem and its Significance (Single layer perceptron cannot solve)
+Multivariate Regression vs Classification
+Feature Scaling and normalization min-max scaling or standardization (z-score normalization)
+Cost Functions and their Impact  Cross Entropy, MSE, MAE,  BCE, CCE, Hinge, Huber, KL Divergence
+Activation Functions (Linear vs Non-linear)
+
+Phase 4: Multiple Layers
+Introduction to Multi-Layer Perceptrons
+Backpropagation Explained
+Vanishing and Exploding Gradients
+Regularization Techniques
+Dropout and Other Modern Techniques
+
+Phase 5: Bonus Videos (can be interspersed)
+The Math Behind Neural Networks
+Implementing NNs from Scratch in Different Languages
+Real-world Applications of Simple NNs
+Common Mistakes and How to Avoid Them
+Neural Network "Battle Royale": Comparing Different Architectures
+Ensemble Methods: As you progress, you could introduce simple ensemble methods, showing how combining multiple "weak" Gladiators can sometimes outperform a single "strong" one.
+Gradient Descent Variations (e.g., Stochastic vs Batch)
+Batch vs. Online Learning

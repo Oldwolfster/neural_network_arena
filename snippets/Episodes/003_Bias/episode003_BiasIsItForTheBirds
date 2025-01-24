@@ -1,0 +1,25 @@
+Neural Network Arena: Bias, Is It For the Birds!
+Introduction
+Greetings and welcome to another episode of Neural Network Arena, where algorithms duke it out and only the fittest survive!
+I'm your boy, Simpleton, here to keep it simple with the Simpletron!
+Today, we're soaring into new heights with a battle that'll ruffle some feathers. We're talking about bias, and no, not the kind that'll get you canceled on Twitter!To really let us dig in to the impact, we will do a double header with two different types of training data.  This will really let us see exactly how bias impacts the results.
+In the left corner, streamlined and ready for action, we have Simpletron Blackbird!  Inspired by Lockheed’s supersonic jet and Honda’s record breaking motorcycle, this NN keeps it simple with no bias parameter.  Will less be more?  Let’s find out.
+In the right corner, meet Simpletron Hayabusa! Inspired by Suzuki’s speed demon this NN has a bias term.  Why did Suzuki name this bike Hayabusa?  I’ll give you a hint.  Blackbird is the favorite snack of the peregrine falcon, and as you may have guessed, Hayabusa is how you say “Peregrine Falcon” in japanese.
+Now when we say bias, we are not talking about prejudice or a preference.
+[next section will have animation of graph with linear separable data and an image of the decision bondary]
+If you recall from the earlier videos, the Simpletron is trying to find the "decision boundary" and because it only has one neuron it only gets to use a straight line.
+[next section shows animation of decision boundry changing slope and then changing y intercept]
+The "weight" changes the angle of that line, but without a bias it will always start at (0,0) also known as the origin.
+With a bias, we will be able to shift that line up and down, allowing our simple single neuron network to be effective for a broader range of solutions.
+So without further adu, let's bring our feathered gladiators to life! We'll start with our Simpletron template and make a crucial modification for Hayabusa.
+[Live coding where we create the two models]
+[Run them once using linear separable data where the
+
+Points to bring up during live code.
+
+
+Typical “gradient descent” is “sign locked” i.e. both pos or both negative
+My expectation was the data we are using passes through origin so won't have bias impact but if we skew it up or down it will.
+Typical linear separable is a line but requires 2 inputs for x and y
+1 input means it's  a line and decision boundary is a point on that line which can be represented by a weight alone with no bias..
+
