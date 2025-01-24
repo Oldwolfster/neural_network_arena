@@ -48,8 +48,6 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
         if mgr.iteration != last_iteration or mgr.epoch != last_epoch:
             # Query and update data
             display_manager.update( db, mgr.iteration, mgr.epoch,'global no model')
-            for model in display_models:
-                pass#model.update_data(db, mgr.iteration, mgr.epoch)
 
             # Update tracking variables
             last_iteration = mgr.iteration

@@ -90,6 +90,7 @@ class Gladiator(ABC):
 
         # Combine inputs and architecture into the full architecture
         input_count = self.training_data.input_count
+        print (f"********** in base gladiator input count={input_count}")
         self.full_architecture = [input_count] + architecture  # Store the full architecture
 
         # Initialize neurons for all layers except the input layer

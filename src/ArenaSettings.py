@@ -50,7 +50,7 @@ class HyperParameters:
 training_pit              = "Predict_Income_2_Inputs"
 #training_pit              = "Manual"
 #training_pit                = "XOR"
-
+training_pit                = "Predict_Income_3_Inputs"
 #training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
 ##training_pit              = "Salary2InputsNonlinear"

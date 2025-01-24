@@ -1,35 +1,36 @@
-import json
-from typing import List
 import pygame
-
-from src.NeuroForge.DisplayModel__Connection import DisplayConnection
-from src.NeuroForge.DisplayModel__Neuron import DisplayNeuron
+from typing import List
+from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
+from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
 
 class DisplayModel(EZSurface):
-    def __init__(self, screen, width_pct=60, height_pct=80, left_pct=10, top_pct=10):
+    def __init__(self, screen, width_pct, height_pct, left_pct, top_pct, architecture=None):
+        print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
         super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(240, 240, 240))
-        self.neurons = []
-        self.connections = []
+        self.neurons = [[] for _ in range(len(architecture))] if architecture else []  # Nested list by layers
+        self.connections = []  # List of connections between neurons
         self.model_id = None
+        self.architecture = architecture or []  # Architecture to define layers and neurons
 
     def initialize_with_model_info(self, model_info):
+        """
+        Populate neurons and connections based on the provided model information.
+        """
         self.model_id = model_info.model_id
-        # Create a modified architecture that excludes the input layer
-        modified_architecture = model_info.full_architecture[1:]
+        self.architecture = model_info.full_architecture
 
         # Calculate layer and neuron spacing
-        layer_spacing = self.width // len(modified_architecture)
-        neuron_size, vertical_spacing = self.calculate_dynamic_neuron_layout(modified_architecture, self.height)
+        layer_spacing = self.width // len(self.architecture)
+        neuron_size, vertical_spacing = self.calculate_dynamic_neuron_layout(self.architecture, self.height)
 
+        # Create neurons
         self.neurons = []
-        for layer_index, neuron_count in enumerate(modified_architecture):  # Skip input layer
+        nid = -1
+        for layer_index, neuron_count in enumerate(self.architecture):
             layer_neurons = []
-
-            if len(modified_architecture) == 1:
-                layer_spacing = self.width // 2  # Center it horizontally
 
             # Horizontal position for the current layer
             layer_x = layer_spacing * layer_index + 20
@@ -37,10 +38,11 @@ class DisplayModel(EZSurface):
             # Calculate vertical centering
             total_layer_height = (neuron_size + vertical_spacing) * neuron_count - vertical_spacing
             vertical_offset = (self.height - total_layer_height) // 2
-
             for neuron_index in range(neuron_count):
-                neuron = DisplayNeuron(nid=f"{layer_index}-{neuron_index}")
-                neuron.layer = layer_index
+                if layer_index > 0:
+                    nid += 1        #increment nid for all neurons that are not inputs
+                neuron = DisplayModel__Neuron(nid=nid , layer=layer_index, position=neuron_index)
+
 
                 # Set position and size
                 neuron.location_left = layer_x
@@ -51,32 +53,42 @@ class DisplayModel(EZSurface):
                 layer_neurons.append(neuron)
             self.neurons.append(layer_neurons)
 
-
         # Create connections
         self.connections = []
-        for layer_index in range(len(modified_architecture) - 1):
+        for layer_index in range(len(self.architecture) - 1):
             current_layer = self.neurons[layer_index]
             next_layer = self.neurons[layer_index + 1]
             for from_neuron in current_layer:
                 for to_neuron in next_layer:
-                    connection = DisplayConnection(from_neuron=from_neuron, to_neuron=to_neuron)
+                    connection = DisplayModel__Connection(from_neuron=from_neuron, to_neuron=to_neuron)
                     self.connections.append(connection)
 
     def render(self):
-        """Draw neurons and connections on the model's surface."""
+        """
+        Draw neurons and connections on the model's surface.
+        """
         self.clear()  # Clear the surface before rendering
+
+        # Draw connections first (to avoid overlapping neurons)
         for connection in self.connections:
             connection.draw_me(self.surface)
-        for layer in self.neurons:  # Iterate through each layer
-            for neuron in layer:  # Iterate through each neuron in the layer
+
+        # Draw neurons
+        for layer in self.neurons:
+            for neuron in layer:
                 neuron.draw_me(self.surface)
 
-    def update_me(self, db: RamDB, iteration : int, epoch : int, model_id: str):
-        print(f"Neuron structure: {self.neurons}")
-
-        for layer in self.neurons:  # Iterate through each layer
-            for neuron in layer:  # Iterate through each neuron in the layer
+    def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
+        """
+        Update neuron and connection information based on the current state in the database.
+        """
+        for layer in self.neurons:
+            for neuron in layer:
                 neuron.update_me(db, iteration, epoch, self.model_id)
+
+        # (Optional) If connections have dynamic properties, update them too
+        for connection in self.connections:
+            connection.update_me()
 
     def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=5, max_neuron_size=1500, spacing_ratio=0.25):
         """
