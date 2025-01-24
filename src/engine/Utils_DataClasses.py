@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import List
 
+import numpy as np
+
+
 @dataclass
 class ModelInfo:
     model_id: str
@@ -21,8 +24,14 @@ class Iteration:
     accuracy_threshold : float
 
     @property
-    def error(self) -> float:
-        return float(self.target - self.prediction)
+    def error(self):
+        if isinstance(self.prediction, (list, np.ndarray)):
+            # Handle multi-output case (e.g., sum of squared errors)
+            return float(np.sum((np.array(self.target) - np.array(self.prediction)) ** 2))
+        else:
+            # Single-output case
+            return float(self.target - self.prediction)
+
 
     @property
     def absolute_error(self) -> float:
