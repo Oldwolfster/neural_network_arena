@@ -19,6 +19,7 @@ class Gladiator(ABC):
         self.hyper              = args[1]
         self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.neurons            = []
+        self.layers             = []                        # Layered structure
         self.neuron_count       = 0                         # Default value
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
@@ -68,7 +69,6 @@ class Gladiator(ABC):
                 prediction=prediction,
                 loss=loss,
                 accuracy_threshold=self.hyper.accuracy_threshold
-
             )
             #print("****************************RECORDING ITERATION 1")
             self.mgr_sql.record_iteration(iteration_data)
@@ -95,14 +95,24 @@ class Gladiator(ABC):
 
         # Initialize neurons for all layers except the input layer
         self.neurons.clear()  # Clear any existing neurons
+        self.layers.clear()   # Clear any existing Layered structure
+        nid = -1
         for layer_index, neuron_count in enumerate(architecture):
+            layer_neurons = []  # Temporary list for current layer
+            num_of_weights = self.full_architecture[layer_index]
+            #print(f"in BaseGladiator layer_index = {layer_index}\tself.full_architecture = {self.full_architecture}\tnum_of_weights = {num_of_weights}")
+
             for neuron_index in range(neuron_count):
+                nid += 1
                 neuron = Neuron(
-                    neuron_index,
-                    self.full_architecture[layer_index],  # Number of inputs to this layer
-                    self.hyper.default_learning_rate
+                    nid=nid,
+                    num_of_weights=num_of_weights,
+                    learning_rate=self.hyper.default_learning_rate,
+                    layer_id=layer_index
                 )
-                self.neurons.append(neuron)
+                self.neurons.append(neuron)     # Add to flat list
+                layer_neurons.append(neuron)    # Add to current layer
+            self.layers.append(layer_neurons)   # Add current layer to layered structure
         self.neuron_count = len(self.neurons)
         #print(f"IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
         #for i, neuron in enumerate(self.neurons):

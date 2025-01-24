@@ -12,10 +12,10 @@ class DisplayModel__Connection:
         self.thickness = 1             # Line thickness, could vary by weight
         self.arrow_size = 10           # Size of the arrowhead
 
-    def update_me(self):
+    def update_connection(self):
         pass
 
-    def draw_me(self, screen):
+    def draw_connection(self, screen):
         # Calculate start and end points
         start_x = self.from_neuron.location_left + self.from_neuron.location_width
         start_y = self.from_neuron.location_top + self.from_neuron.location_height // 2

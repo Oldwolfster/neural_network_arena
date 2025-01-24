@@ -5,20 +5,19 @@ class Neuron:
     """
     Represents a single neuron with weights, bias, and an activation function.
     """
-    def __init__(self, nid: int, input_count: int, learning_rate: float, layer_id: int = 0):
+    def __init__(self, nid: int, num_of_weights: int, learning_rate: float, layer_id: int = 0):
         #print(f"creating neuron - nid={nid}")
         self.nid = nid
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
-        self.input_count = input_count
-
-
-        self.weights = np.array([(nid + 1) * 10 for _ in range(input_count)], dtype=np.float64)
+        self.num_of_weights = num_of_weights
+        self.weights = np.array([(nid + 1) * 10 for _ in range(num_of_weights)], dtype=np.float64)
         self.weights_before = self.weights.copy()       #Done so it's available to create view
         self.bias = float(nid * 0)                      # Explicitly set as float
         self.bias_before = self.bias                    #Done so it's available to create view
         self.learning_rate = learning_rate
         self.activation = "Linear"
         self.output = 0 #TODO need to populate this in child model???
+        print(f"INSTANTIATE NEURON nid={self.nid}\tself.num_of_weights{self.num_of_weights}")
 
         #Coming soon self.activation_function = activation_function
 
