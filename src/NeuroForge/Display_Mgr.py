@@ -1,6 +1,6 @@
 import pygame
 
-from src.NeuroForge.DisplayInputs import DisplayInputs
+
 from src.NeuroForge.DisplayModel import DisplayModel
 from src.engine.RamDB import RamDB
 
@@ -14,8 +14,8 @@ class DisplayManager:
     def initialize(self, model_info_list):
         """Initialize and configure all display components."""
         # Add inputs panel
-        inputs_panel = DisplayInputs(self.screen, width_pct=15, height_pct=80, left_pct=5, top_pct=10)
-        self.components.append(inputs_panel)
+        #inputs_panel = DisplayInputs(self.screen, width_pct=15, height_pct=80, left_pct=5, top_pct=10)
+        #self.components.append(inputs_panel)
 
         # Add global display panel
         #globals_panel = DisplayGlobals(self.screen, width_pct=100, height_pct=10, left_pct=0, top_pct=0)
@@ -64,7 +64,7 @@ def create_display_models(screen: pygame.Surface, model_info_list):
             screen=screen,
             width_pct=80,
             height_pct=80,
-            left_pct=20,
+            left_pct=2,
             top_pct=10
         )
         display_model.initialize_with_model_info(model_info)  # Populate model details

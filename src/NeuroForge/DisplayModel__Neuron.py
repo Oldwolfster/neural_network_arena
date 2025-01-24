@@ -9,15 +9,17 @@ from src.engine.Utils import smart_format
 from src.NeuroForge.mgr import * # Imports everything into the local namespace
 
 
-class DisplayNeuron:
-    def __init__(self, nid: int):
+class DisplayModel__Neuron:
+    def __init__(self, nid:int, layer: int, position: int):
+        #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
         self.location_left=0
         self.location_top=0
         self.location_width=0
         self.location_height = 0
-        self.nid = 0
-        self.label="" #need to define, try to use existing standard
-        self.layer = 0
+        self.nid = nid
+        self.layer = layer
+        self.position = position
+        self.label = f"{layer}-{position}" #need to define, try to use existing standard
         self.weights = []
         self.bias = 0
         self.weight_count = []
@@ -29,24 +31,51 @@ class DisplayNeuron:
         # Create EZPrint instance
         self.ez_printer = EZPrint(mgr.font, color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
 
-
     def draw_me(self, screen):
-        # Draw the neuron rectangle
+        # Define colors
+        body_color = (0, 0, 255)  # Blue for the neuron body
+        label_color = (70, 130, 180)  # Steel blue for the label strip
+        text_color = (255, 255, 255)  # White for text on the label
+
+        # Font setup
+        font = pygame.font.Font(None, 18)
+        if self.nid>=0:
+            label_text = font.render(f"{self.label} (ID: {self.nid})", True, text_color)
+        else:
+            label_text = font.render(f"{self.label} (Input #{self.position + 1})", True, text_color)
+
+        # Calculate label strip height based on text height
+        text_height = label_text.get_height()
+        label_strip_height = text_height + 8  # Add padding (e.g., 8 pixels for breathing room)
+
+        # Draw the label strip
         pygame.draw.rect(
             screen,
-            (0, 0, 255),  # Blue color
-            (self.location_left, self.location_top, self.location_width, self.location_height),
+            label_color,
+            (self.location_left, self.location_top, self.location_width, label_strip_height)
+        )
+
+        # Draw the label text in the label strip
+        screen.blit(label_text, (self.location_left + 5, self.location_top + (label_strip_height - text_height) // 2))
+
+        # Draw the neuron rectangle (body)
+        body_y_start = self.location_top + label_strip_height
+        body_height = self.location_height - label_strip_height
+        pygame.draw.rect(
+            screen,
+            body_color,
+            (self.location_left, body_y_start, self.location_width, body_height),
             3  # Border width
         )
 
-        #print(f"nid={self.nid}\tself.weight_text= {self.weight_text}")
-
-        # Draw the weight text in the top-left corner of the rectangle
-        if hasattr(self, "weight_text") and self.weight_text:  # Check if weight_text exists and is not empty
-            #font = pygame.font.Font(None, 18)  # Font and size
-            #rendered_text = mgr.font.render(self.weight_text, True, (0, 0, 0))  # Render text in black
-            #screen.blit(rendered_text, (self.location_left + 5, self.location_top + 5))  # Add slight padding
-            self.ez_printer.render(screen,text= self.weight_text,x=30,y=11)
+        # Render the neuron content below the label strip
+        body_text_y_start = body_y_start + 5
+        self.ez_printer.render(
+            screen,
+            text=self.weight_text,
+            x=self.location_left + 5,
+            y=body_text_y_start
+        )
 
 
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
@@ -69,7 +98,8 @@ class DisplayNeuron:
 
         # Execute query
         rs = db.query(SQL, params)
-        self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
+        #self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
+        self.weight_text=" coming soon"
         #print(f"Query result: {rs}")
         #print(f"PREDICTIONS: {self.weight_text}")
 
@@ -85,8 +115,8 @@ class DisplayNeuron:
         inputs = json.loads(row.get('inputs', '[]'))  # Deserialize inputs
 
         # Validate lengths of weights and inputs
-        if len(weights) != len(inputs):
-            raise ValueError(f"Mismatch in length of weights ({len(weights)}) and inputs ({len(inputs)})")
+        #if len(weights) != len(inputs):
+        #    raise ValueError(f"Mismatch in length of weights ({len(weights)}) and inputs ({len(inputs)})")
 
         # Generate prediction logic
         predictions = []

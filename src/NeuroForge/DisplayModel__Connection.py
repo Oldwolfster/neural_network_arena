@@ -3,7 +3,7 @@ import math
 import pygame
 
 
-class DisplayConnection:
+class DisplayModel__Connection:
     def __init__(self, from_neuron, to_neuron, weight=0):
         self.from_neuron = from_neuron  # Reference to DisplayNeuron
         self.to_neuron = to_neuron      # Reference to DisplayNeuron
@@ -11,6 +11,9 @@ class DisplayConnection:
         self.color = (0, 0, 0)          # Default to black, could be dynamic
         self.thickness = 1             # Line thickness, could vary by weight
         self.arrow_size = 10           # Size of the arrowhead
+
+    def update_me(self):
+        pass
 
     def draw_me(self, screen):
         # Calculate start and end points
