@@ -8,7 +8,7 @@ class HayabusaDrawMultipleLayers(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([1,2,3])
+        self.initialize_neurons([3,4,5])
         self.normalizers = self.training_data.normalizers  # Output: [0.333, 0.666]
         #self.training_data.set_normalization_min_max()
 

@@ -47,24 +47,25 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
 
-        # Iterate through the neurons and add their data to the database
-        for neuron in self.neurons:
-            # Assign neuron inputs for the current iteration
-            if neuron.layer_id == 0:
-                # Deserialize inputs and convert to NumPy array
-                raw_inputs = json.loads(iteration_data.inputs)  # Parse JSON string to list
-                print(f"storing neuron data Hidden1.  {iteration_data.epoch},{iteration_data.iteration}\tnid={neuron.nid}\tneuron.layer_id{neuron.layer_id}\traw_inputs{raw_inputs}")
-                neuron.neuron_inputs = np.array(raw_inputs, dtype=np.float64)
-            else:
-                # For subsequent layers, use the activations from the previous layer's neurons
-                previous_layer = layers[neuron.layer_id - 1]
-                neuron.neuron_inputs = np.array([prev.activation_value for prev in previous_layer], dtype=np.float64)
-                print(f"storing neuron data Hidden2+. {iteration_data.epoch},{iteration_data.iteration}\t nid={neuron.nid}\tneuron.layer_id{neuron.layer_id}\tneuron.neuron_inputs {neuron.neuron_inputs }")
-
-            # Add the neuron data to the database
-            epoch_num = iteration_data.epoch
-            iteration_num = iteration_data.iteration
-            self.db.add(neuron, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
+        # Iterate over layers and neurons
+        for layer_index, layer in enumerate(layers):
+            for neuron in layer:
+                if layer_index == 0:  # First hidden layer (takes raw sample inputs)
+                    raw_inputs = json.loads(iteration_data.inputs)  # Parse JSON string to list
+                    neuron.neuron_inputs = np.array(raw_inputs, dtype=np.float64)
+                    #print(f"storing neuron data First Hidden Layer (Layer 0). nid={neuron.nid}, inputs={neuron.neuron_inputs}")
+                else:   # All subsequent layers - NOTE: Output is not considered a layer in respect to these neurons
+                    previous_layer = layers[layer_index - 1]
+                    neuron.neuron_inputs = np.array(
+                        [prev.activation_value for prev in previous_layer], dtype=np.float64
+                    )
+                    #print(f"storing neuron data Hidden Layer {layer_index}. nid={neuron.nid}, inputs={neuron.neuron_inputs}")
+                    #for prev in previous_layer:
+                    #    print(f"prev.nid={prev.nid}\t{prev.activation_value}")
+                # Add the neuron data to the database
+                epoch_num = iteration_data.epoch
+                iteration_num = iteration_data.iteration
+                self.db.add(neuron, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
 
 
 

@@ -4,6 +4,8 @@ import sqlite3
 import numpy as np
 from tabulate import tabulate
 
+from src.engine.Utils import print_call_stack
+
 
 class RamDB:
     def __init__(self):
@@ -182,11 +184,14 @@ class RamDB:
 
 
 
-    def query_print(self, sql, as_dict=True):
+    def query_print(self, sql, as_dict=True, surpress_call_stack = False):
         data = self.query(sql)    # Fetch the data from the database
         if data:
             report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
-            print(f"PRINTING FROM RamDB queryprint")
+
+            if surpress_call_stack == False:
+                print(f"PRINTING FROM RamDB queryprint")
+                print_call_stack()
             print(report)
             return data
         else:

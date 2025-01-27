@@ -156,8 +156,8 @@ class DisplayModel__Neuron:
         # Generate prediction logic
         predictions = []
         self.raw_sum = 0
-        print(f"In DisplayModel__Neuron INPUTS:{inputs}")
-        print(f"In DisplayModel__Neuron WEIGHTS:{weights}")
+        #print(f"In DisplayModel__Neuron INPUTS:{inputs}")
+        #print(f"In DisplayModel__Neuron WEIGHTS:{weights}")
         #if len(weights) == len(inputs):         # Validate lengths of weights and inputs
         for i, (w, inp) in enumerate(zip(weights, inputs), start=1):
             #label = f"W{i}I{i}"  # Update label to match new specs

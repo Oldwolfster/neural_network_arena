@@ -20,7 +20,7 @@ class Neuron:
         self.activation_value = 0.0
         self.activation = "Linear"
         self.output = 0 #TODO need to populate this in child model???
-        print(f"INSTANTIATE NEURON nid={self.nid}\tself.num_of_weights{self.num_of_weights}")
+        #print(f"INSTANTIATE NEURON nid={self.nid}\tself.num_of_weights{self.num_of_weights}")
 
         #Coming soon self.activation_function = activation_function
 
