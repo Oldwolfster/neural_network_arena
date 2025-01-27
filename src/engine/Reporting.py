@@ -55,12 +55,12 @@ def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
         ON S.model_id = I.model_id        
         """
     print("GLADIATOR COMPARISON ================================================")
-    summary_overview = db.query_print(SQL)
+    summary_overview = db.query_print(SQL, surpress_call_stack=True)
 
 
 def epoch_report_launch(db: RamDB):
     print("EPOCH SUMMARY ****************************************************")
-    db.query_print("SELECT * FROM EpochSummary")
+    db.query_print("SELECT * FROM EpochSummary", surpress_call_stack=True)
 
 def epoch_create_view_epochSummary(db: RamDB):
     SQL = """
@@ -107,9 +107,7 @@ def epoch_create_view_epochSummary(db: RamDB):
         ORDER BY m.epoch;
     """
     try:
-        print("Epoch Summary ===============================================")
         db.execute(SQL)
-        db.query_print("SELECT * FROM EpochSummary")
     except Exception as e:
         print(f"An error occurred: {e}")
 

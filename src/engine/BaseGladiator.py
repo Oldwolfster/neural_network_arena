@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from json import dumps
+
+import numpy
 import numpy as np
 from numpy import ndarray
 from typing import Any
@@ -48,39 +50,14 @@ class Gladiator(ABC):
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
             target = sample[-1]
-
-            # Step 1: Update input layer neurons with the current sample
-            input_layer = self.layers[0]
-            for neuron, value in zip(input_layer, inputs):
-                neuron.activation_value = value  # Set activation to input value
-
-            # Step 2: Process each subsequent layer
-            for layer_index in range(1, len(self.layers)):  # Skip the input layer
-                prev_layer = self.layers[layer_index - 1]
-                current_layer = self.layers[layer_index]
-
-                for neuron in current_layer:
-                    # Capture "before" state for backpropagation or debugging
-                    neuron.weights_before = np.copy(neuron.weights)
-                    neuron.bias_before = neuron.bias
-
-                    # Compute weighted sum (z) and activation
-                    weighted_sum = sum(
-                        weight * prev_neuron.activation_value
-                        for weight, prev_neuron in zip(neuron.weights, prev_layer)
-                    ) + neuron.bias
-                    neuron.raw_sum = weighted_sum
-                    neuron.activation_value = weighted_sum
-                    print(f"Layer {layer_index}, Neuron {neuron.nid}, Weighted Sum: {weighted_sum}, Activation Value: {neuron.activation_value}")
-                    #TODO add activation function neuron.activation_value = self.activation_function(weighted_sum)  # Apply activation function
+            self.run_forward_pass(inputs)
 
             # Step 3: Capture output and compute loss
             output_layer = self.layers[-1]  # Final layer
-
-            predictions = [neuron.activation_value for neuron in output_layer]
-            prediction = predictions[0] if len(predictions) == 1 else predictions  # Handle single/multi-output
-
-            error = target - prediction
+            #predictions = [neuron.activation_value for neuron in output_layer]
+            #prediction = predictions[0] if len(predictions) == 1 else predictions  # Handle single/multi-output
+            predictions = np.array([neuron.activation_value for neuron in output_layer])
+            error = target - predictions
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
 
             # Step 4: Record iteration data
@@ -90,7 +67,7 @@ class Gladiator(ABC):
                 iteration=i + 1,
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
                 target=sample[-1],
-                prediction=prediction,
+                prediction=predictions,
                 loss=loss,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
@@ -99,36 +76,45 @@ class Gladiator(ABC):
         # Finish epoch and return convergence signal
         return self.mgr_sql.finish_epoch()
 
-    def run_an_epochOld(self, epoch_num: int) -> bool:             # Function to run single epoch
-        for i, sample in enumerate(self.training_samples):         # Loop through all the training data
-            sample = np.array(sample)  # Convert sample to a NumPy array
-            inputs = sample[:-1]
-            target = sample[-1]
+    def run_forward_pass(self, inputs: numpy.array):
+        """
+        Executes the forward propagation for one sample.
+        """
 
-            # Capture "before" state
-            for neuron in self.neurons:
+        # Step 1: Feed inputs into the first hidden layer
+        first_hidden_layer = self.layers[0]
+        for neuron in first_hidden_layer:
+            # Compute raw_sum as the weighted sum of inputs
+            neuron.raw_sum = sum(
+                weight * input_value for weight, input_value in zip(neuron.weights, inputs)
+            ) + neuron.bias  # Include bias
+            neuron.activation_value = neuron.raw_sum  # Linear activation (for now)
+        #print(f"DEBUG First Hidden Layer Activations: {[n.activation_value for n in first_hidden_layer]}")
+
+
+        # Step 2: Process each subsequent layer
+        for layer_index in range(1, len(self.layers)):  # Skip the input (first hidden layer is 0)
+            prev_layer = self.layers[layer_index - 1]
+            current_layer = self.layers[layer_index]
+
+            for neuron in current_layer:
+                # Capture "before" state for backpropagation or debugging
                 neuron.weights_before = np.copy(neuron.weights)
                 neuron.bias_before = neuron.bias
 
-            # Step 2: Delegate prediction to the child model
-            prediction              = self.training_iteration(sample)  # HERE IS WHERE IT PASSES CONTROL TO THE MODEL BEING TESTED
-            error                   = target - prediction
-            loss                    = error ** 2  # Example loss calculation
+                # Compute weighted sum (z) and activation
+                weighted_sum = sum(
+                    weight * prev_neuron.activation_value
+                    for weight, prev_neuron in zip(neuron.weights, prev_layer)
+                ) + neuron.bias
+                neuron.raw_sum = weighted_sum
+                neuron.activation_value = weighted_sum  # TODO: Add activation function
+                #print(f"Layer {layer_index}, Neuron {neuron.nid}: Weighted Sum = {weighted_sum}, Activation = {neuron.activation_value}")
 
-            # Added to support multiple neurons via SQLLite in ram db.
-            iteration_data = Iteration(
-                model_id=self.mgr_sql.model_id,
-                epoch=epoch_num + 1,
-                iteration=i + 1,
-                inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
-                target=sample[-1],
-                prediction=prediction,
-                loss=loss,
-                accuracy_threshold=self.hyper.accuracy_threshold
-            )
-            #print("****************************RECORDING ITERATION 1")
-            self.mgr_sql.record_iteration(iteration_data)
-        return self.mgr_sql.finish_epoch()
+        # Final debug: All layers' activations
+        #for layer_index, layer in enumerate(self.layers):
+        #    print(f"DEBUG Layer {layer_index} Activations: {[n.activation_value for n in layer]}")
+        #self.print_layer_debug_info()
 
     def initialize_neurons(self, architecture: list = None):
         """
@@ -146,7 +132,7 @@ class Gladiator(ABC):
 
         # Combine inputs and architecture into the full architecture
         input_count = self.training_data.input_count
-        print (f"********** in base gladiator input count={input_count}")
+        # print (f"********** in base gladiator input count={input_count}")
         self.full_architecture = [input_count] + architecture  # Store the full architecture
 
         # Initialize neurons for all layers except the input layer
@@ -170,9 +156,18 @@ class Gladiator(ABC):
                 layer_neurons.append(neuron)    # Add to current layer
             self.layers.append(layer_neurons)   # Add current layer to layered structure
         self.neuron_count = len(self.neurons)
-        #print(f"IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
+        #print(f"*******IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
         #for i, neuron in enumerate(self.neurons):
-        #    print(f"Neuron {i}: Weights = {neuron.weights}, Bias = {neuron.bias}")
+        #    print(f"Neuron i={i}\tnid={neuron.nid}: \tneuron.layer_id = {neuron.layer_id} Weights = {neuron.weights}, Bias = {neuron.bias}")
+        #self.print_layer_debug_info()
+    def print_layer_debug_info(self):
+        for layer_index in range(len(self.layers)):
+            print(f"layer ================== {layer_index}")
+            for neuron in self.layers[layer_index]:
+                print (f"nid={neuron.nid}\tweights={neuron.weights_before}\tinputs={neuron.neuron_inputs}")
+
+
+
 
     @property
     def weights(self):

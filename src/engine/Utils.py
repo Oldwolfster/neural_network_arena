@@ -1,12 +1,17 @@
 from dataclasses import dataclass, field
 import numpy as np
-
+import inspect
 def chunk_list(lst: list, chunk_size: int):
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i + chunk_size]
 
 
-import numpy as np
+
+
+def print_call_stack():
+    stack = inspect.stack()
+    for frame in stack:
+        print(f"Function: {frame.function}, Line: {frame.lineno}, File: {frame.filename}")
 
 def smart_format(number):
     # Define the formatting for a single number
