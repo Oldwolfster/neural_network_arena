@@ -216,8 +216,10 @@ def neuron_report_build_iteration_summary(rows_for_an_iteration):
     :param rows_for_an_iteration: List of dictionaries for a single Model, Epoch, and Iteration.
     :return: A single dictionary representing the summary row.
     """
+    #print(rows_for_an_iteration)
     # Use the first row to extract shared fields
     prediction  = smart_format(rows_for_an_iteration[0].get("prediction"))
+
     target      = smart_format(rows_for_an_iteration[0].get("target"))
     error       = smart_format(rows_for_an_iteration[0].get("prediction")-rows_for_an_iteration[0].get("target"))
     loss        = smart_format(rows_for_an_iteration[0].get("loss"))

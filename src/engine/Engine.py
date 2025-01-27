@@ -23,7 +23,8 @@ def run_a_match(gladiators, training_pit):
     training_data   =  get_training_data(hyper)
     db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     record_training_data(training_data.get_list())
-
+    print("TRAINING DATA:::::::::::::::::")
+    print(training_data.get_list())
     model_info_list = [] # Initialize an empty list to store ModelInfo objects
     for gladiator in gladiators:    # Loop through the NNs competing.
         print(f"Preparing to run model:{gladiator}")
@@ -33,7 +34,7 @@ def run_a_match(gladiators, training_pit):
         cvg_condition,full_architecture = nn.train()
         end_time = time.time()  # End timing
         run_time = end_time - start_time
-        model_details= ModelInfo(gladiator, run_time, cvg_condition, full_architecture )
+        model_details= ModelInfo(gladiator, run_time, cvg_condition, full_architecture, training_data.problem_type )
         db.add(model_details)
         model_info_list.append(model_details)
         print (f"{gladiator} completed in {run_time}")

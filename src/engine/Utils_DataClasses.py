@@ -10,6 +10,7 @@ class ModelInfo:
     seconds: float
     cvg_condition: str
     full_architecture: List[int]
+    problem_type : str
 
 @dataclass
 class Iteration:
