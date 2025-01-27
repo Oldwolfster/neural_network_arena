@@ -37,24 +37,7 @@ def smart_format(number):
         return format_single(number)
 
 
-def determine_problem_type(data):
-    """
-    Examine training data to determine if it's binary decision or regression
-    """
-    # Extract unique values from the second element of each tuple
-    unique_values = set(item[1] for item in data)
-    #print(f"determine{unique_values}")
-    # If there are only two unique values, it's likely a binary decision problem
-    if len(unique_values) == 2:
-        return "Binary Decision"
 
-    # If there are more than two unique values, it's likely a regression problem
-    elif len(unique_values) > 2:
-        return "Regression"
-
-    # If there's only one unique value or the list is empty, it's inconclusive
-    else:
-        return "Inconclusive"
 
 """DELETE ME 
 @dataclass

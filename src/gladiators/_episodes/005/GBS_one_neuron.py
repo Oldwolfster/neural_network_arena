@@ -13,6 +13,7 @@ class Regression_GBS_MultInputs(Gladiator):
         #self.bias = .5
 
     def training_iteration(self, training_data) -> float:
+
         inputs          = training_data[:-1]                        # All elements except the last (the inputs)
         target          = training_data[-1]                         # Last element is the target
         prediction      = np.dot(inputs, self.weights) + self.bias  # Calculate prediction as the dot product of inputs and weights plus bias

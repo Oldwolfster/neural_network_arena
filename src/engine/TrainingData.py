@@ -35,6 +35,21 @@ class TrainingData:
         self.td_min_max     = []   # List in case model request minmax
         self.td_current     = self.td_original      # pointer to the "selected list" defaults to original
         self._cache         = {}  # Private dictionary for caching values
+        self.problem_type   = self.determine_problem_type(data)
+
+
+    def determine_problem_type(self, data: List[Tuple[float, ...]]) -> str:
+        """
+        Examine training data to determine if it's binary decision or regression
+        """
+
+        unique_values = set(item[-1] for item in data)  # Use last element for targets
+        if len(unique_values) == 2:
+            return "Binary Decision"
+        elif len(unique_values) > 2:
+            return "Regression"
+        else:
+            return "Inconclusive"
 
     @property
     def sum_of_targets(self) -> int:

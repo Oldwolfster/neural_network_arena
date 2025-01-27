@@ -2,6 +2,7 @@ import pygame
 
 
 from src.NeuroForge.DisplayModel import DisplayModel
+from src.NeuroForge.DisplayOutput_Panel import DisplayOutput_Panel
 from src.engine.RamDB import RamDB
 
 
@@ -23,7 +24,12 @@ class DisplayManager:
 
         # Create and add models
         self.models = create_display_models(self.screen, model_info_list)
-        #print(f"Model list (in displaymanager==============={self.models[0].model_id}")
+        # Positioning is... width_pct=80, height_pct=80,  left_pct=0,           top_pct=10
+        #print(f"Model list (in displaymanager==============={ model_info_list[0].}")
+        problem_type = model_info_list[0].problem_type
+        # Add Output/Prediction panel
+        output_panel = DisplayOutput_Panel(self.screen,problem_type, width_pct=15, height_pct=80, left_pct=80, top_pct=10)
+        self.components.append(output_panel)
 
     def render(self):
         """Render all components on the screen."""

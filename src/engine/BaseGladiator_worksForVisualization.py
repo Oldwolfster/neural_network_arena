@@ -52,15 +52,12 @@ class Gladiator(ABC):
             target = sample[-1]
             self.run_forward_pass(inputs)
 
-            # Step 2: Delegate to the model's logic for forward propagation
-            prediction = self.training_iteration(sample)  # Call model-specific logic
-
             # Step 3: Capture output and compute loss
-            #output_layer = self.layers[-1]  # Final layer
+            output_layer = self.layers[-1]  # Final layer
             #predictions = [neuron.activation_value for neuron in output_layer]
             #prediction = predictions[0] if len(predictions) == 1 else predictions  # Handle single/multi-output
-            #predictions = np.array([neuron.activation_value for neuron in output_layer])
-            error = target - prediction
+            predictions = np.array([neuron.activation_value for neuron in output_layer])
+            error = target - predictions
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
 
             # Step 4: Record iteration data
@@ -70,7 +67,7 @@ class Gladiator(ABC):
                 iteration=i + 1,
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
                 target=sample[-1],
-                prediction=prediction,
+                prediction=predictions,
                 loss=loss,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
