@@ -49,9 +49,33 @@ def get_training_data(hyper):
     if len(run_previous_training_data) > 0:
         return retrieve_training_data(run_previous_training_data)
         #return [(3.0829800228956428, 4.48830093538644, 30.780635057213185), (19.394768240791976, 4.132484554096511, 99.9506658661515)]
-    # If still here, d  o a run with new training data
+    # If still here, do a run with new training data
+
+    #return TrainingData(arena.generate_training_data_with_or_without_labels())             # Place holder to do any needed analysis on training data
+    # Instantiate the arena and retrieve data
     arena = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
-    return TrainingData(arena.generate_training_data())             # Place holder to do any needed analysis on training data
+    #result = TrainingData(arena.generate_training_data_with_or_without_labels())             # Place holder to do any needed analysis on training data
+    result = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
+    #print(f"result={result}")
+    labels = []
+    if isinstance(result, tuple):
+        data, labels = result
+        td = TrainingData(data)  # Handle if training data has labels
+    else:
+        data = result
+        td = TrainingData(data)  # Handle if training data does not have labels
+
+        # Create default labels based on the length of a sample tuple
+        sample_length = len(data[0]) if data else 0
+        labels = [f"Input #{i + 1}" for i in range(sample_length - 1)]  # For inputs
+        if sample_length > 0:
+            labels.append("Target")  # For the target
+
+    # Assign the labels to hyperparameters
+    hyper.data_labels = labels
+    return td
+
+
 
 
 import os

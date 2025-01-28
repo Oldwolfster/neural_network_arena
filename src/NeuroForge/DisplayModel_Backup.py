@@ -1,6 +1,5 @@
 import pygame
 from typing import List
-
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
@@ -24,7 +23,6 @@ class DisplayModel(EZSurface):
         self.model_id = model_info.model_id
         self.architecture = model_info.full_architecture
 
-
         # Calculate layer and neuron spacing
         layer_spacing = self.width // len(self.architecture)
         neuron_size, vertical_spacing = self.calculate_dynamic_neuron_layout(self.architecture, self.height)
@@ -33,8 +31,6 @@ class DisplayModel(EZSurface):
         self.neurons = []
         nid = -1
         for layer_index, neuron_count in enumerate(self.architecture):
-            if layer_index == 0:
-                continue
             layer_neurons = []
 
             # Horizontal position for the current layer
@@ -60,14 +56,13 @@ class DisplayModel(EZSurface):
 
         # Create connections
         self.connections = []
-        for layer_index in range(1, len(self.architecture) - 1):  # Start from the first hidden layer
-            current_layer = self.neurons[layer_index - 1]  # Adjust to skip the input layer
-            next_layer = self.neurons[layer_index]
+        for layer_index in range(len(self.architecture) - 1):
+            current_layer = self.neurons[layer_index]
+            next_layer = self.neurons[layer_index + 1]
             for from_neuron in current_layer:
                 for to_neuron in next_layer:
                     connection = DisplayModel__Connection(from_neuron=from_neuron, to_neuron=to_neuron)
                     self.connections.append(connection)
-
 
     def render(self):
         """
@@ -75,7 +70,7 @@ class DisplayModel(EZSurface):
         """
         self.clear()  # Clear the surface before rendering
 
-        # Draw connections
+        # Draw connections first (to avoid overlapping neurons)
         for connection in self.connections:
             connection.draw_connection(self.surface)
 
@@ -83,10 +78,6 @@ class DisplayModel(EZSurface):
         for layer in self.neurons:
             for neuron in layer:
                 neuron.draw_neuron(self.surface)
-
-        # Draw the input box last
-        if hasattr(self, "input_box"):
-            self.input_box.render()
 
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """

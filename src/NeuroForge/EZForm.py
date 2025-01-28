@@ -11,6 +11,7 @@ class EZForm(EZSurface):
         self.banner_text = banner_text
         self.banner_color = banner_color
         self.font_color = font_color
+        self.bannerfont = pygame.font.Font(None, 36)  # Default font
         self.font = pygame.font.Font(None, 24)  # Default font
         self.spacing = 10  # Space between fields
 
@@ -19,13 +20,13 @@ class EZForm(EZSurface):
         self.clear()
         #print("Rendering EZForm")
         # Render the banner
-        label_text = self.font.render(self.banner_text, True, self.banner_color)
+        label_text = self.bannerfont.render(self.banner_text, True, self.banner_color)
         text_height = label_text.get_height()
         banner_height = text_height + 8  # Add padding
         banner_rect = pygame.Rect(0, 0, self.width, banner_height)
         pygame.draw.rect(self.surface, self.banner_color, banner_rect)
 
-        banner_surface = self.font.render(self.banner_text, True, (255, 255, 255))  # White text
+        banner_surface = self.bannerfont.render(self.banner_text, True, (255, 255, 255))  # White text
         banner_rect = banner_surface.get_rect(center=(self.width // 2, banner_height // 2))
         self.surface.blit(banner_surface, banner_rect)
 

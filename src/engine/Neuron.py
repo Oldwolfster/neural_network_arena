@@ -13,7 +13,7 @@ class Neuron:
         self.weights = np.array([(nid + 1) * 10 for _ in range(num_of_weights)], dtype=np.float64)
         self.neuron_inputs = np.zeros_like(self.weights)
         self.weights_before = self.weights.copy()       #Done so it's available to create view
-        self.bias = float(nid * 0)                      # Explicitly set as float
+        self.bias = float(nid +1)                      # Explicitly set as float
         self.bias_before = self.bias                    #Done so it's available to create view
         self.learning_rate = learning_rate
         self.raw_sum = 0.0
