@@ -289,6 +289,7 @@ def neuron_report_build_prediction_logic(row):
     Build prediction logic for a single neuron (row).
     Loops through weights and inputs, generating labeled calculations.
     """
+    return
     nid = row.get('nid')  # Get neuron ID
     weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
     inputs = json.loads(row.get('inputs', '[]'))  # Deserialize inputs

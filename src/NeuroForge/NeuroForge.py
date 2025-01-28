@@ -10,11 +10,11 @@ from src.engine.RamDB import RamDB
 #from src.NeuroForge.mgr import screen
 from src.NeuroForge.mgr import * # Imports everything into the local namespace
 from src.NeuroForge import mgr # Keeps the module reference for assignments
-
+import tkinter.messagebox as mb
 def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
     neuro_forge_init()
     #display_models = create_display_models(model_info_list)
-    display_manager = DisplayManager(mgr.screen)
+    display_manager = DisplayManager(mgr.screen, hyper, db)
     display_manager.initialize(model_info_list)  # Set up all components
     #screen_width, screen_height = pygame.display.get_surface().get_size()
 
@@ -31,17 +31,7 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_l:  # Advance frame
-                    mgr.iteration +=1;
-
-                if event.key == pygame.K_SEMICOLON:
-                    mgr.epoch +=1;
-
-                if event.key == pygame.K_j:  # reverse
-                    mgr.iteration -=1;
-
-                if event.key == pygame.K_h:
-                    mgr.epoch -=1;
+                respond_to_UI(event)
 
         #print (f"mgr.epoch{mgr.epoch}\tmgr.iteration{mgr.iteration}\t")
         # Check if iteration or epoch has changed
@@ -57,6 +47,29 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
         mgr.screen.fill((255, 255, 255))  # Clear screen
         display_manager.render()
         pygame.display.flip()
+
+def respond_to_UI(event):
+    if event.key == pygame.K_l:  # Advance frame
+        mgr.iteration += 1;
+    if mgr.iteration > mgr.max_iteration:
+        mgr.epoch += 1
+        mgr.iteration = 1
+    if event.key == pygame.K_j:  # reverse
+        mgr.iteration -= 1;
+        if mgr.iteration == 0:
+            mgr.epoch -= 1
+            mgr.iteration = mgr.max_iteration
+    #print(f"mgr.epoch ={mgr.epoch}\tmgr.iteration{mgr.iteration}")
+    if mgr.epoch == 0 : #check for if tried to move past beginning
+        mb.showinfo("Out of Range", "You cannot go past the first epoch!")
+        mgr.epoch = 1
+        mgr.iteration = 1
+
+    if mgr.epoch > mgr.max_epoch:
+        mgr.epoch == max_epoch
+        mgr.iteration == max_iteration
+        mb.showinfo("Out of Range",    "You are at the end!")
+    #print(f"mgr.epoch ={mgr.epoch}\tmgr.iteration{mgr.iteration}")
 
 
 def neuro_forge_init():

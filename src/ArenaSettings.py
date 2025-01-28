@@ -14,7 +14,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 2         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 3         # Number of times training run will cycle through all training data
     training_set_size       :int    = 2       # Qty of training data
     min_no_epochs           :int    = 555        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
@@ -22,6 +22,7 @@ class HyperParameters:
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
     accuracy_threshold      :float  = .1        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
+    data_labels                     = []        # List to hold the optional data labels
 
     ############################################################
     # REPORT Parameters are set here                           #
@@ -73,7 +74,7 @@ gladiators = [
     #'HayabusaDrawTwoNeurons'
     #'HayabusaDrawMultipleLayers'
     #'GBS_MultipleOutputNeurons'
-    #,'GBS_one_neuron'
+    #'GBS_one_neuron'
     #'_Template_Simpletron'
 
 ]

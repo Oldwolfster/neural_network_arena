@@ -18,7 +18,7 @@ class Regression_GBS_MultInputs(Gladiator):
         target          = training_data[-1]                         # Last element is the target
         prediction      = np.dot(inputs, self.weights) + self.bias  # Calculate prediction as the dot product of inputs and weights plus bias
         error           = target - prediction                       # Calculate error
-
+        print(f"PREDICTION in GBS_ONE_NEURON{prediction}\tself.bias={self.bias}")
         """
         print(f"weights dtype: {self.weights.dtype}")
         print(f"learning_rate type: {type(self.learning_rate)}, value: {self.learning_rate}")

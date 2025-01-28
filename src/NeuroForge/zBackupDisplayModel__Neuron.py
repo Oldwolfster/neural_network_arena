@@ -57,6 +57,24 @@ class DisplayModel__Neuron:
                 cls.input_values = literal_eval(raw_inputs)
 
     def update_neuron(self, db: RamDB, iteration: int, epoch: int, model_id: str):
+        """
+        Update this neuron based on its layer type (input or hidden).
+        """
+        print(f"self.layer={self.layer}")
+        if self.layer == 0:  # Input layer neuron
+            self.update_input_neuron()
+        else:  # Hidden or output layer neuron
+            self.update_hidden_neuron(db, iteration, epoch, model_id)
+
+    def update_input_neuron(self):
+        """
+        Update an input neuron with its corresponding value.
+        """
+        if self.position < len(DisplayModel__Neuron.input_values):
+            value = DisplayModel__Neuron.input_values[self.position]
+            self.weight_text = f"Input: {value:.3f}"
+
+    def update_hidden_neuron(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         # Parameterized query with placeholders
         SQL =   """
             SELECT  *
@@ -77,8 +95,8 @@ class DisplayModel__Neuron:
             self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
         else:
             self.weight_text = ""
-        print(f"Query result: {rs}")
-        print(f"PREDICTIONS: {self.weight_text}")
+            #print(f"Query result: {rs}")
+            #print(f"PREDICTIONS: {self.weight_text}")
 
     def draw_neuron(self, screen):
         # Define colors
