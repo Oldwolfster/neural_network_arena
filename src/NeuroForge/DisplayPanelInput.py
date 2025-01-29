@@ -18,11 +18,14 @@ class DisplayPanelInput(EZForm):
 
         # Dynamically create fields for all input labels
         fields = {}
+
+
+
         for label in data_labels[:-1]:  # Exclude the last label (assuming it's the target)
             fields[label] = "0.000"  # Default value for each input
-
         # Add the target field explicitly
-        fields["Target"] = "0.000"
+        fields["Target"] = data_labels[-1]
+
 
         # Initialize the parent class with dynamically created fields
         super().__init__(
@@ -53,8 +56,8 @@ class DisplayPanelInput(EZForm):
                 self.fields[label] = "N/A"  # Set to "N/A" if no input exists
 
         # Update the target explicitly
-        target = rs.get("target", 0.0)
-        self.fields["Target"] = smart_format(float(target))
+        #target = rs.get("target", 0.0)
+        #self.fields["Target"] = smart_format(float(target))
 
         # Debugging
         #print(f"Updated Input Panel: {self.fields}")

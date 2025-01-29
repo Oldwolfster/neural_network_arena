@@ -38,7 +38,7 @@ class DisplayPanelOutput(EZForm):
                 height_pct=height_pct,
                 left_pct=left_pct,
                 top_pct=top_pct,
-                banner_text="Output",
+                banner_text="Prediction",
                 banner_color=(0, 0, 255),  # Matching neuron colors
                 bg_color=(240, 240, 240),
                 font_color=(0, 0, 0)

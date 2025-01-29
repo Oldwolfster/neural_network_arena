@@ -29,4 +29,4 @@ class Salary2InputsLinear(BaseArena):
             salary      = (base_salary + (coeff_exp * years_exp)
                                        + (coeff_col * college) + noise)
             training_data.append((years_exp, college, salary))
-        return training_data
+        return training_data, ["Years on Job","Years College","Salary"]

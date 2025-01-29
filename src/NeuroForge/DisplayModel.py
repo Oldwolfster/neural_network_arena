@@ -10,7 +10,7 @@ from src.engine.RamDB import RamDB
 class DisplayModel(EZSurface):
     def __init__(self, screen, data_labels, width_pct, height_pct, left_pct, top_pct, architecture=None):
         #print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
-        super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(240, 240, 240))
+        super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(222, 222, 222))
         self.neurons = [[] for _ in range(len(architecture))] if architecture else []  # Nested list by layers
         self.connections = []  # List of connections between neurons
         self.model_id = None
@@ -23,7 +23,6 @@ class DisplayModel(EZSurface):
         """
         self.model_id = model_info.model_id
         self.architecture = model_info.full_architecture
-
 
         # Calculate layer and neuron spacing
         layer_spacing = self.width // len(self.architecture)
@@ -38,7 +37,7 @@ class DisplayModel(EZSurface):
             layer_neurons = []
 
             # Horizontal position for the current layer
-            layer_x = layer_spacing * layer_index + 20
+            layer_x = layer_spacing * layer_index - neuron_size / 2
 
             # Calculate vertical centering
             total_layer_height = (neuron_size + vertical_spacing) * neuron_count - vertical_spacing
@@ -68,12 +67,40 @@ class DisplayModel(EZSurface):
                     connection = DisplayModel__Connection(from_neuron=from_neuron, to_neuron=to_neuron)
                     self.connections.append(connection)
 
+        # *** Add Input-to-First-Hidden-Layer Connections ***
+        self.add_input_connections()
+
+    def add_input_connections(self):
+        """
+        Creates connections from a single fixed point on the left edge of the model area
+        to the first hidden layer neurons.
+        """
+        if not self.neurons or len(self.neurons) == 0:
+            return  # No hidden layers exist
+
+        first_hidden_layer = self.neurons[0]  # First hidden layer
+        if not first_hidden_layer:
+            return  # Edge case: No neurons in first hidden layer
+
+        # 🔹 Fixed single origin point (Middle of the left edge of grey box)
+        origin_x = self.left  # Left edge of the grey box
+        origin_y = self.top + self.height // 2  # Vertical center of the grey box
+
+        # Create a virtual input source **at a single fixed point**
+        virtual_input = DisplayModel__Neuron(nid=-1, layer=-1, position=0)
+        virtual_input.location_left = origin_x  # Fixed at left boundary
+        virtual_input.location_top = origin_y  # Fixed vertical middle
+
+        for neuron in first_hidden_layer:
+            # Connect from the single origin point to each neuron in the first hidden layer
+            self.connections.append(DisplayModel__Connection(from_neuron=virtual_input, to_neuron=neuron))
 
     def render(self):
         """
         Draw neurons and connections on the model's surface.
         """
         self.clear()  # Clear the surface before rendering
+
 
         # Draw connections
         for connection in self.connections:
@@ -101,7 +128,7 @@ class DisplayModel(EZSurface):
         for connection in self.connections:
             connection.update_connection()
 
-    def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=5, max_neuron_size=1500, spacing_ratio=0.25):
+    def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=1, max_neuron_size=1500, spacing_ratio=0.03):
         """
         Calculate neuron size and spacing to fit within the surface height.
 
