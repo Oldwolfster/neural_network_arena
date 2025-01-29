@@ -82,18 +82,15 @@ class DisplayModel(EZSurface):
         if not first_hidden_layer:
             return  # Edge case: No neurons in first hidden layer
 
-        # 🔹 Fixed single origin point (Middle of the left edge of grey box)
-        origin_x = self.left  # Left edge of the grey box
-        origin_y = self.top + self.height // 2  # Vertical center of the grey box
-
-        # Create a virtual input source **at a single fixed point**
-        virtual_input = DisplayModel__Neuron(nid=-1, layer=-1, position=0)
-        virtual_input.location_left = origin_x  # Fixed at left boundary
-        virtual_input.location_top = origin_y  # Fixed vertical middle
-
+        # 🔹 Fixed single origin point (Middle of the left edge of the grey box)
+        origin_x = self.left
+        origin_x = 0        # Left edge of the grey box
+        origin_y =  self.height // 2  # Vertical center of the grey box
+        origin_point = (origin_x, origin_y)  # Define as coordinate tuple
+        #print(f"origin_point = {origin_point}")
         for neuron in first_hidden_layer:
             # Connect from the single origin point to each neuron in the first hidden layer
-            self.connections.append(DisplayModel__Connection(from_neuron=virtual_input, to_neuron=neuron))
+            self.connections.append(DisplayModel__Connection(from_neuron=origin_point, to_neuron=neuron))
 
     def render(self):
         """
@@ -128,7 +125,7 @@ class DisplayModel(EZSurface):
         for connection in self.connections:
             connection.update_connection()
 
-    def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=1, max_neuron_size=1500, spacing_ratio=0.03):
+    def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=1, max_neuron_size=1500, spacing_ratio=1):
         """
         Calculate neuron size and spacing to fit within the surface height.
 

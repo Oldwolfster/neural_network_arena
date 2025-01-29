@@ -14,7 +14,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 22         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 5         # Number of times training run will cycle through all training data
     training_set_size       :int    = 20       # Qty of training data
     min_no_epochs           :int    = 555        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
@@ -48,9 +48,9 @@ class HyperParameters:
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
 
-training_pit              = "Predict_Income_2_Inputs"
+#training_pit              = "Predict_Income_2_Inputs"
 
-#training_pit                = "XOR"
+training_pit                = "XOR"
 #training_pit                = "Predict_Income_3_Inputs"
 #training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
@@ -65,8 +65,8 @@ training_pit              = "Predict_Income_2_Inputs"
 gladiators = [
 
     #'Blackbird'
-    'Hayabusa'
-    #'XOR'
+    #'Hayabusa'
+    'XOR'
     #'XORTutorial'
     #'GBS_XOR'
     #'HayabusaNormalizer'

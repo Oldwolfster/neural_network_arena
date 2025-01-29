@@ -59,6 +59,7 @@ class DisplayManager:
         # Render models
         for model in self.models:
             model.update_me(db, iteration, epoch, model_id)
+        # db.query_print("SELECT typeof(target), target FROM Iteration LIMIT 5;")
 
         # Render general components
         for component in self.components:
@@ -68,6 +69,8 @@ class DisplayManager:
 
     def get_iteration_dict(self, db: RamDB, epoch: int, iteration: int) -> dict:
         """Retrieve iteration data from the database."""
+        #print("ITERATION SQL Data")
+        #db.query_print("PRAGMA table_info(Iteration);")
         sql = """  
             SELECT * FROM Iteration 
             WHERE epoch = ? AND iteration = ?
@@ -75,6 +78,7 @@ class DisplayManager:
         params = (epoch, iteration)
         rs = db.query(sql, params)
 
+        # print(f"Full Dict={rs}")
         if rs:
             #print(f"Retrieved iteration data: {rs[0]}")
             return rs[0]  # Return the first row as a dictionary
@@ -86,7 +90,7 @@ class DisplayManager:
         """Retrieve highest epoch."""
         sql = "SELECT MAX(epoch) as max_epoch FROM Iteration"
         rs = db.query(sql)
-        print(f"Max epoch{rs}")
+        #print(f"Max epoch{rs}")
         return rs[0].get("max_epoch")
 
     def get_max_iteration(self, db: RamDB) -> int:

@@ -44,6 +44,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
     def record_iteration(self, iteration_data: Iteration, layers: List[List[Neuron]]):
         # Add the current iteration data to the database
+        print(f"iteration_data.target={iteration_data.target}")
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
 

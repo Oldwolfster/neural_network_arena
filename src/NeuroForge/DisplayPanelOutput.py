@@ -22,6 +22,7 @@ class DisplayPanelOutput(EZForm):
                 "Target": "0.000",
                 "Prediction": "0.000",
                 "Error (Target-Pred)": "0.000",
+                "Relative Error" : "0.000",
                 "Step Function": "N/A",
                 "Step Result": "N/A",
                 "Loss Function": "MSE",
@@ -47,14 +48,26 @@ class DisplayPanelOutput(EZForm):
     def update_me(self, rs: dict):
         # Extract data from query result
         prediction = float(rs.get("prediction", 0.0))
-        target = float(rs.get("target", 0.0))
+        #print(f"Full dictionary = {rs}")
+        #print(f'rs.get("target", 0.0)={rs.get("target", 0.0)}')
+        #print(f"Raw target: {rs.get('target', 0.0)} (Type: {type(rs.get('target', 0.0))})")
+        #if isinstance(rs.get("target", 0.0), bytes):
+        target = rs.get("target", 0.0)
+        #print (f"type(target)={type(target)}")
+        # If it's stored as BLOB, try decoding it
         error = float(rs.get("error", 0.0))
-        loss_result = float(rs.get("loss", 0.0))
+        if target == 0: #can't divide by zero
+            rel_error = 0
+        else:
+            rel_error = error/target*100
+        loss_result = rs.get("loss", 0.0)
 
         # Update the form fields
         self.fields["Prediction"] = smart_format(prediction)
         self.fields["Error (Target-Pred)"] = smart_format(error)
-        self.fields["Loss Result"] = smart_format(loss_result)
+        self.fields["Relative Error"] = f'{rel_error:4.2f}%'
+
+        self.fields["Loss Result"] = smart_format(rel_error)
         self.fields["Target"] = smart_format(target)
 
         if self.problem_type == "Binary Decision":
