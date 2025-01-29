@@ -81,43 +81,28 @@ class Gladiator(ABC):
 
     def run_forward_pass(self, inputs: numpy.array):
         """
-        Executes the forward propagation for one sample.
+        Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
         """
 
-        # Step 1: Feed inputs into the first hidden layer
-        first_hidden_layer = self.layers[0]
-        for neuron in first_hidden_layer:
-            # Compute raw_sum as the weighted sum of inputs
-            neuron.raw_sum = sum(
-                weight * input_value for weight, input_value in zip(neuron.weights, inputs)
-            ) + neuron.bias  # Include bias
-            neuron.activation_value = neuron.raw_sum  # Linear activation (for now)
-        #print(f"DEBUG First Hidden Layer Activations: {[n.activation_value for n in first_hidden_layer]}")
-
-
-        # Step 2: Process each subsequent layer
-        for layer_index in range(1, len(self.layers)):  # Skip the input (first hidden layer is 0)
-            prev_layer = self.layers[layer_index - 1]
-            current_layer = self.layers[layer_index]
+        for layer_index, current_layer in enumerate(self.layers):
+            if layer_index == 0:
+                # First hidden layer: Takes inputs directly from the sample
+                prev_values = inputs
+            else:
+                # Subsequent layers: Takes inputs from previous layer's activations
+                prev_values = [neuron.activation_value for neuron in self.layers[layer_index - 1]]
 
             for neuron in current_layer:
-                # Capture "before" state for backpropagation or debugging
+                # Capture "before" state for debugging and backpropagation
                 neuron.weights_before = np.copy(neuron.weights)
                 neuron.bias_before = neuron.bias
 
-                # Compute weighted sum (z) and activation
-                weighted_sum = sum(
-                    weight * prev_neuron.activation_value
-                    for weight, prev_neuron in zip(neuron.weights, prev_layer)
-                ) + neuron.bias
-                neuron.raw_sum = weighted_sum
-                neuron.activation_value = weighted_sum  # TODO: Add activation function
-                #print(f"Layer {layer_index}, Neuron {neuron.nid}: Weighted Sum = {weighted_sum}, Activation = {neuron.activation_value}")
+                # Compute weighted sum and activation
+                neuron.raw_sum = sum(weight * value for weight, value in zip(neuron.weights, prev_values)) + neuron.bias
+                neuron.activation_value = neuron.raw_sum  # TODO: Apply activation function
 
-        # Final debug: All layers' activations
-        #for layer_index, layer in enumerate(self.layers):
-        #    print(f"DEBUG Layer {layer_index} Activations: {[n.activation_value for n in layer]}")
-        #self.print_layer_debug_info()
+            # Debugging
+            # print(f"DEBUG Layer {layer_index} Activations: {[n.activation_value for n in current_layer]}")
 
     def initialize_neurons(self, architecture: list = None):
         """

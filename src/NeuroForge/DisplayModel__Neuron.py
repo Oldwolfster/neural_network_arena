@@ -77,8 +77,8 @@ class DisplayModel__Neuron:
             self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
         else:
             self.weight_text = ""
-        print(f"Query result: {rs}")
-        print(f"PREDICTIONS: {self.weight_text}")
+        #print(f"Query result: {rs}")
+        #print(f"PREDICTIONS: {self.weight_text}")
 
     def draw_neuron(self, screen):
         # Define colors
