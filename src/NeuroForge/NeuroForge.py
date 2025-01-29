@@ -50,27 +50,35 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
 
 def respond_to_UI(event):
     if event.key == pygame.K_l:  # Advance frame
-        mgr.iteration += 1;
-    if mgr.iteration > mgr.max_iteration:
-        mgr.epoch += 1
-        mgr.iteration = 1
-    if event.key == pygame.K_j:  # reverse
-        mgr.iteration -= 1;
+        mgr.iteration += 1
+        if mgr.iteration > mgr.max_iteration:
+            mgr.epoch += 1
+            mgr.iteration = 1
+
+    if event.key == pygame.K_j:  # Reverse frame
+        mgr.iteration -= 1
         if mgr.iteration == 0:
             mgr.epoch -= 1
             mgr.iteration = mgr.max_iteration
-    #print(f"mgr.epoch ={mgr.epoch}\tmgr.iteration{mgr.iteration}")
-    if mgr.epoch == 0 : #check for if tried to move past beginning
+
+    if event.key == pygame.K_o:  # Advance epoch
+        mgr.epoch += 1
+        mgr.iteration = 1  # Reset to the first iteration of the new epoch
+
+    if event.key == pygame.K_u:  # Reverse epoch
+        mgr.epoch -= 1
+        mgr.iteration = 1  # Reset to the first iteration of the new epoch
+
+    # Check for out of range conditions
+    if mgr.epoch < 1:  # Check if trying to move past the beginning
         mb.showinfo("Out of Range", "You cannot go past the first epoch!")
         mgr.epoch = 1
         mgr.iteration = 1
 
-    if mgr.epoch > mgr.max_epoch:
-        mgr.epoch == max_epoch
-        mgr.iteration == max_iteration
-        mb.showinfo("Out of Range",    "You are at the end!")
-    #print(f"mgr.epoch ={mgr.epoch}\tmgr.iteration{mgr.iteration}")
-
+    if mgr.epoch > mgr.max_epoch:  # Check if trying to move past the end
+        mb.showinfo("Out of Range", "You are at the end!")
+        mgr.epoch = mgr.max_epoch
+        mgr.iteration = mgr.max_iteration
 
 def neuro_forge_init():
     pygame.init()

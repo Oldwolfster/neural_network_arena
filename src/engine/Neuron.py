@@ -1,11 +1,14 @@
 import numpy as np
 
+from src.engine.ActivationFunction import *
+
 
 class Neuron:
     """
     Represents a single neuron with weights, bias, and an activation function.
     """
-    def __init__(self, nid: int, num_of_weights: int, learning_rate: float, layer_id: int = 0):
+    layers = []  # Shared across all Gladiators, needs resetting per run
+    def __init__(self, nid: int, num_of_weights: int, learning_rate: float, layer_id: int = 0, activation = None):
         #print(f"creating neuron - nid={nid}")
         self.nid = nid
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
@@ -18,14 +21,27 @@ class Neuron:
         self.learning_rate = learning_rate
         self.raw_sum = 0.0
         self.activation_value = 0.0
-        self.activation = "Linear"
+        self.activation =  "todo" # activation or Linear
         self.output = 0 #TODO need to populate this in child model???
         #print(f"INSTANTIATE NEURON nid={self.nid}\tself.num_of_weights{self.num_of_weights}")
 
         #Coming soon self.activation_function = activation_function
 
+    def activate(self):
+        """Applies the activation function."""
+        self.activation_value = self.activation(self.raw_sum)
 
+    def set_activation(self, activation_function):
+        """Dynamically update the activation function."""
+        self.activation = activation_function
 
+    def compute_gradient(self):
+        """Use the derivative for backpropagation."""
+        return self.activation.apply_derivative(self.activation_value)
+    @classmethod
+    def reset_layers(cls):
+        """ Clears layers before starting a new Gladiator. """
+        cls.layers = []
 
     """
     the below methods restrict experimenting to much.

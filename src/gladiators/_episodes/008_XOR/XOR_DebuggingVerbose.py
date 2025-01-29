@@ -27,7 +27,8 @@ class SuzukiHayabusa_XOR(Gladiator):
         super().__init__(*args)
         self.initialize_neurons([2,1])
 
-        """ Below is example of weights that make the model work right away
+
+
         # Hidden Layer 1
         self.neurons[0].weights[0] = 20.0  # Strong positive weight for first input
         self.neurons[0].weights[1] = 20.0  # Strong positive weight for second input
@@ -42,25 +43,45 @@ class SuzukiHayabusa_XOR(Gladiator):
         self.neurons[2].weights[0] = 20.0   # Strong positive weight from H1
         self.neurons[2].weights[1] = 20.0   # Strong positive weight from H2
         self.neurons[2].bias = -10.0        # Negative bias
-        """
 
-        # Initialize weights with small, non-symmetric values
-        self.neurons[0].weights[0] = 0.1
-        self.neurons[0].weights[1] = 0.2
-        self.neurons[0].bias = 0.1
 
-        self.neurons[1].weights[0] = 0.3
-        self.neurons[1].weights[1] = 0.4
-        self.neurons[1].bias = 0.2
+        # Use larger initialization range
+        scale = 5.0  # Start with larger weights
 
-        self.neurons[2].weights[0] = 0.5
-        self.neurons[2].weights[1] = 0.6
-        self.neurons[2].bias = 0.3
+        for i in range(3):
+            self.neurons[i].weights[0] = np.random.uniform(-scale, scale)
+            self.neurons[i].weights[1] = np.random.uniform(-scale, scale)
+            # Initialize biases closer to zero
+            self.neurons[i].bias = np.random.uniform(-0.1, 0.1)
 
         # Increase learning rate
         self.learning_rate = 0.1  # Or even higher like 0.5
 
 
+        #self.normalizers = self.training_data.normalizers  # Output: [0.333, 0.666]
+        #self.training_data.set_normalization_min_max()
+
+        #Play with intial values
+        #self.neurons[0].weights[0]  = .1
+        #self.neurons[0].weights[1]  = .5
+        #self.neurons[1].weights[0]  = .25
+        #self.neurons[1].weights[1]  = .1
+        #self.neurons[2].weights[0]  = .2
+        #self.neurons[2].weights[1]  = .3
+        #self.neurons[0].bias        = 0
+        #self.neurons[1].bias        = 0
+        #self.neurons[2].bias        = 0
+        """
+        self.neurons[0].weights[0] = np.random.uniform(-1, 1)
+        self.neurons[0].weights[1] = np.random.uniform(-1, 1)
+        self.neurons[0].bias = np.random.uniform(-1, 1)
+        self.neurons[1].weights[0] = np.random.uniform(-1, 1)
+        self.neurons[1].weights[1] = np.random.uniform(-1, 1)
+        self.neurons[1].bias = np.random.uniform(-1, 1)
+        self.neurons[2].weights[0] = np.random.uniform(-1, 1)
+        self.neurons[2].weights[1] = np.random.uniform(-1, 1)
+        self.neurons[2].bias = np.random.uniform(-1, 1)
+        """
         #Variables we need from forward prop to do back prop
         self.output_tanh            = 0
         self.hidden_1_output        = 0
@@ -173,14 +194,23 @@ class SuzukiHayabusa_XOR(Gladiator):
         :return prediction
         Hello MLP world!
         """
+        print (f"FORWARD PASS STARTING+++******************************************* input_1 = {input_1}\tinput_2 = {input_2} ********************++++++++++++*")
+        print (f"Weights:  N0W1 = {self.neurons[0].weights[0]}\tN1W2 = {self.neurons[0].weights[1]}\tbias = {self.neurons[0].bias}\t")
+        print (f"Weights:  N1W1 = {self.neurons[1].weights[0]}\tN2W2 = {self.neurons[1].weights[1]}\tbias = {self.neurons[1].bias}\t")
+        print (f"Weights:  OutW1 = {self.neurons[2].weights[0]}\tOutW2 = {self.neurons[2].weights[1]}\tbias = {self.neurons[2].bias}\t")
         # Step 1: Compute the output of the first hidden neuron
         hidden_1_raw    =( input_1 * self.neurons[0].weights[0] + input_2 * self.neurons[0].weights[1] + self.neurons[0].bias)
         self.hidden_1_output =  self.tanh(hidden_1_raw)
 
+        print(f"hidden_0_raw===( {input_1} * {self.neurons[0].weights[0]} + {input_2} * {self.neurons[0].weights[1]} + {self.neurons[0].bias} = {hidden_1_raw} <==DOES IT???)")
+        print (f"Tanh({hidden_1_raw})={self.hidden_1_output}")
 
         # Step 2: Compute the output of the second hidden neuron
         hidden_2_raw    =( input_1 * self.neurons[1].weights[0] +input_2 * self.neurons[1].weights[1] +                           self.neurons[1].bias)
         self.hidden_2_output =  self.tanh(hidden_2_raw)
+
+        print(f"hidden_1_raw===({input_1} * {self.neurons[1].weights[0]} + {input_2} * {self.neurons[1].weights[1]} + {self.neurons[1].bias} = {hidden_2_raw} <==DOES IT???)")
+        print (f"Tanh({hidden_2_raw})={self.hidden_2_output}")
 
         # Step 3: Compute the output of the output neuron - that is the predicton
         output_raw      =(self.hidden_1_output * self.neurons[2].weights[0] + self.hidden_2_output * self.neurons[2].weights[1] + self.neurons[2].bias)
@@ -188,6 +218,9 @@ class SuzukiHayabusa_XOR(Gladiator):
         self.output_tanh=  self.tanh(output_raw)              # Apply tahn function store in instance variable output_tanh for backprop
         #output_tahn is the non stepped prediction
 
+        print(f"output_raw===({self.hidden_1_output} * {self.neurons[2].weights[0]} + {self.hidden_2_output} * {self.neurons[2].weights[1]} + {self.neurons[2].bias} = {output_raw} <==DOES IT???)")
+        print (f"Tanh({output_raw})={self.output_tanh}\tprediction step not yet applied")
+        #print (f"FORWARD PASS complete!")
         return  self.output_tanh
 
 

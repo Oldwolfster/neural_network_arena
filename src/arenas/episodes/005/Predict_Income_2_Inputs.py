@@ -3,7 +3,7 @@ from typing import List, Tuple
 from src.engine.BaseArena import BaseArena
 
 
-class Salary2InputsLinear(BaseArena):
+class Predict_Income_2_Inputs(BaseArena):
     """
     Generates regression training data with a linear relationship between inputs and salary.
     This makes it solvable by a single neuron perceptron without adding extra inputs.

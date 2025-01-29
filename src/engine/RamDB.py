@@ -107,6 +107,13 @@ class RamDB:
             elif isinstance(value, (list, dict)):
                 data[key] = json.dumps(value)
 
+        # Convert numpy types to Python native types
+        for key, value in data.items():
+            if isinstance(value, (np.int64, np.int32, np.int16, np.int8)):
+                data[key] = int(value)  # Convert numpy integers to Python int
+            elif isinstance(value, (np.float64, np.float32, np.float16)):
+                data[key] = float(value)  # Convert numpy floats to Python float
+
         # Debugging: Print the final data being inserted
         #print("Prepared data for insertion:", data)
 

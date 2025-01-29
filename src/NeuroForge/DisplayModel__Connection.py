@@ -1,26 +1,38 @@
 import math
-
 import pygame
-
 
 class DisplayModel__Connection:
     def __init__(self, from_neuron, to_neuron, weight=0):
-        self.from_neuron = from_neuron  # Reference to DisplayNeuron
+        self.from_neuron = from_neuron  # Can be a neuron or (x, y) coordinates
         self.to_neuron = to_neuron      # Reference to DisplayNeuron
         self.weight = weight
         self.color = (0, 0, 0)          # Default to black, could be dynamic
-        self.thickness = 1             # Line thickness, could vary by weight
-        self.arrow_size = 10           # Size of the arrowhead
+        self.thickness = 1              # Line thickness, could vary by weight
+        self.arrow_size = 10            # Size of the arrowhead
 
     def update_connection(self):
         pass
 
-    def draw_connection(self, screen):
-        # Calculate start and end points
-        start_x = self.from_neuron.location_left + self.from_neuron.location_width
-        start_y = self.from_neuron.location_top + self.from_neuron.location_height // 2
+    def _get_start_point(self):
+        # If from_neuron is a tuple, assume it's (x, y) coordinates
+        if isinstance(self.from_neuron, tuple):
+            return self.from_neuron
+        # Otherwise, assume it's a neuron object
+        else:
+            start_x = self.from_neuron.location_left + self.from_neuron.location_width
+            start_y = self.from_neuron.location_top + self.from_neuron.location_height // 2
+            return (start_x, start_y)
+
+    def _get_end_point(self):
+        # Always assume to_neuron is a neuron object
         end_x = self.to_neuron.location_left
         end_y = self.to_neuron.location_top + self.to_neuron.location_height // 2
+        return (end_x, end_y)
+
+    def draw_connection(self, screen):
+        # Get start and end points
+        start_x, start_y = self._get_start_point()
+        end_x, end_y = self._get_end_point()
 
         # Draw the main connection line
         pygame.draw.line(screen, self.color, (start_x, start_y), (end_x, end_y), self.thickness)

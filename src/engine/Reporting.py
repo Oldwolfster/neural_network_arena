@@ -32,6 +32,9 @@ def prep_RamDB():
     epoch_create_view_epochSummary(db)
     db.execute("DELETE FROM Iteration")     #Delete dummy records
     db.execute("DELETE FROM Neuron")        #Delete dummy records
+
+    #db.query_print("PRAGMA table_info(Iteration);")
+
     return db
 
 
