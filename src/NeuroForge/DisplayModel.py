@@ -10,7 +10,7 @@ from src.engine.RamDB import RamDB
 class DisplayModel(EZSurface):
     def __init__(self, screen, data_labels, width_pct, height_pct, left_pct, top_pct, architecture=None):
         #print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
-        super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(222, 222, 222))
+        super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(244, 244, 244))
         self.neurons = [[] for _ in range(len(architecture))] if architecture else []  # Nested list by layers
         self.connections = []  # List of connections between neurons
         self.model_id = None
