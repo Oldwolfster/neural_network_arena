@@ -19,19 +19,15 @@ class Iteration:
     iteration: int
     inputs: str  # Serialized as JSON
     target: float
-    prediction: float
+    prediction: float   #After threshold(step function) is applied
+    prediction_raw: float
     loss: float
     # error: float
     accuracy_threshold : float
 
     @property
     def error(self):
-        if isinstance(self.prediction, (list, np.ndarray)):
-            # Handle multi-output case (e.g., sum of squared errors)
-            return float(np.sum((np.array(self.target) - np.array(self.prediction)) ** 2))
-        else:
-            # Single-output case
-            return float(self.target - self.prediction)
+        return float(self.target - self.prediction_raw)
 
 
     @property

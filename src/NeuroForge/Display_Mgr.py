@@ -56,6 +56,8 @@ class DisplayManager:
         """Render all components on the screen."""
         #db.list_tables()
         iteration_dict = self.get_iteration_dict(db, epoch, iteration)
+        #db.query_print("Select * from iteration")
+        #print(f"iteration_dict:::{iteration_dict}")
         # Render models
         for model in self.models:
             model.update_me(db, iteration, epoch, model_id)

@@ -1,9 +1,10 @@
 import numpy as np
 
+from src.engine.ActivationFunction import Tanh, Sigmoid
 from src.engine.BaseGladiator import Gladiator
 import math
 
-class SuzukiHayabusa_XOR(Gladiator):
+class XOR_TheLongWay(Gladiator):
     """
     This is my foray into MLP (Multi-Layer Perceptron) by solving the XOR problem,
     which cannot be linearly separated; hence, an SLP (Single-Layer Perceptron) just won't do.
@@ -25,7 +26,7 @@ class SuzukiHayabusa_XOR(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([2,1])
+        self.initialize_neurons([2])
 
         """ Below is example of weights that make the model work right away
         # Hidden Layer 1
@@ -47,41 +48,85 @@ class SuzukiHayabusa_XOR(Gladiator):
         # Initialize weights with small, non-symmetric values
         self.neurons[0].weights[0] = 0.1
         self.neurons[0].weights[1] = 0.2
-        self.neurons[0].bias = 0.1
+        self.neurons[0].bias = 1
 
         self.neurons[1].weights[0] = 0.3
         self.neurons[1].weights[1] = 0.4
-        self.neurons[1].bias = 0.2
+        self.neurons[1].bias = 2
 
         self.neurons[2].weights[0] = 0.5
         self.neurons[2].weights[1] = 0.6
-        self.neurons[2].bias = 0.3
+        self.neurons[2].bias = 3
 
-        # Increase learning rate
-        self.learning_rate = 0.1  # Or even higher like 0.5
-
-
-        #Variables we need from forward prop to do back prop
-        self.output_tanh            = 0
-        self.hidden_1_output        = 0
-        self.hidden_2_output        = 0
-
+        self.learning_rate = 0.1                # Or even higher like 0.5
+        self.output_tanh            = 0         # Variables we need from forward prop to do back prop
+        self.hidden_1_output        = 0         # Variables we need from forward prop to do back prop
+        self.hidden_2_output        = 0         # Variables we need from forward prop to do back prop
+        self.neurons[0].set_activation(Tanh)        # Set activation to Tanh on neuron 1,0
+        self.neurons[1].set_activation(Tanh)        # Set activation to Tanh on neuron 1,1
+        self.neurons[2].set_activation(Sigmoid)     # Set activation to Sig on neuron 2,0
 
     def training_iteration(self, training_data) -> float:
-        input_1 = training_data[0]  # First input
-        input_2 = training_data[1]  # Second input
+        input_0 = training_data[0]  # First input
+        input_1 = training_data[1]  # Second input
         target = training_data[-1]  # Target value
 
-        prediction = self.forward_pass(input_1, input_2)     #without step applied
+        prediction = self.forward_pass(input_0, input_1)     #without step applied
 
         # Step 5: Calculate the error and loss
         error = target - prediction
         loss = error ** 2  # Mean Squared Error Loss function
         print (f"Error and Loss        ******* Prediction:{prediction}\tTarget:{target}\tError={error}\tLoss={loss}")
         print()
-        self.backwards_pass(error, input_1, input_2)
+        self.backwards_pass(error, input_0, input_1)
         prediction_step =  1 if self.output_tanh > 0 else 0      # Apply step function
-        return  prediction_step
+        #return  prediction_step
+
+    def forward_pass(self, input_0, input_1) -> float:
+        """
+        Manually computes forward pass for each neuron in the XOR MLP.
+
+        :param input_0: First input feature
+        :param input_1: Second input feature
+        :return: prediction (final output of the network)
+        """
+
+        # 🔹 Inputs are explicitly provided
+        input_values = [input_0, input_1]
+
+        # 🚀 Compute raw sums + activations for first hidden layer (2 neurons)
+        self.neurons[0].raw_sum = (
+            (input_values[0] * self.neurons[0].weights[0]) +
+            (input_values[1] * self.neurons[0].weights[1]) +
+            self.neurons[0].bias
+        )
+        self.neurons[0].activate()
+
+        self.neurons[1].raw_sum = (
+            (input_values[0] * self.neurons[1].weights[0]) +
+            (input_values[1] * self.neurons[1].weights[1]) +
+            self.neurons[1].bias
+        )
+        self.neurons[1].activate()
+
+        # 🚀 Compute raw sum + activation for Output neuron (Sigmoid)
+        self.neurons[2].raw_sum = (
+            (self.neurons[0].activation_value * self.neurons[2].weights[0]) +
+            (self.neurons[1].activation_value * self.neurons[2].weights[1]) +
+            self.neurons[2].bias
+        )
+        self.neurons[2].activate()
+
+        # DEBUGGING:
+        print(f"Hidden Neuron 0: raw_sum={self.neurons[0].raw_sum}, activation_value={self.neurons[0].activation_value}")
+        print(f"Hidden Neuron 1: raw_sum={self.neurons[1].raw_sum}, activation_value={self.neurons[1].activation_value}")
+        output_raw =  self.neurons[0].activation_value  * self.neurons[2].weights[0]  + self.neurons[1].activation_value * self.neurons[2].weights[1] + self.neurons[2].bias
+        print(f"output_raw===({self.neurons[0].activation_value} * {self.neurons[2].weights[0]} + {self.neurons[1].activation_value} * {self.neurons[2].weights[1]} + {self.neurons[2].bias} = {output_raw} <==DOES IT???)")
+        print(f"Output Neuron: raw_sum={self.neurons[2].raw_sum}, activation_value={self.neurons[2].activation_value}")
+
+        return self.neurons[2].activation_value  # 🚀 Final prediction
+
+
 
         """
         Steps to backprop
@@ -113,14 +158,14 @@ class SuzukiHayabusa_XOR(Gladiator):
                 4) Finally adjust the weights of hidden neurons by
                 ... LR* gradient(same for all weights within neuron)  different between neurons * input that goes with that weight.
         """
-    def backwards_pass(self, error: float, input_1: float, input_2: float) -> None:
+    def backwards_pass(self, error: float, input_0: float, input_1: float) -> None:
         """
         Performs the backward pass (backpropagation) to update weights and biases.
 
         Parameters:
             error (float): The difference between target and prediction (target - prediction)
-            input_1 (float): First input to the network
-            input_2 (float): Second input to the network
+            input_0 (float): First input to the network
+            input_1 (float): Second input to the network
 
         neurons[0] = first neuron of hidden layer
         neurons[1] = 2nd neuron of hidden layer
@@ -158,64 +203,11 @@ class SuzukiHayabusa_XOR(Gladiator):
         #       and input is the input to that particular weight (either the original inputs or hidden layer outputs)
 
         # Hidden neuron 1
-        self.neurons[0].weights[0] += self.learning_rate * grad_h1_raw_wrt_loss * input_1
-        self.neurons[0].weights[1] += self.learning_rate * grad_h1_raw_wrt_loss * input_2
+        self.neurons[0].weights[0] += self.learning_rate * grad_h1_raw_wrt_loss * input_0
+        self.neurons[0].weights[1] += self.learning_rate * grad_h1_raw_wrt_loss * input_1
         self.neurons[0].bias += self.learning_rate * grad_h1_raw_wrt_loss
 
         # Hidden neuron H2
-        self.neurons[1].weights[0] += self.learning_rate * grad_h2_raw_wrt_loss * input_1
-        self.neurons[1].weights[1] += self.learning_rate * grad_h2_raw_wrt_loss * input_2
+        self.neurons[1].weights[0] += self.learning_rate * grad_h2_raw_wrt_loss * input_0
+        self.neurons[1].weights[1] += self.learning_rate * grad_h2_raw_wrt_loss * input_1
         self.neurons[1].bias += self.learning_rate * grad_h2_raw_wrt_loss
-
-    def forward_pass(self, input_1, input_2) -> float:
-        """
-        :param inputs from I1 and I2
-        :return prediction
-        Hello MLP world!
-        """
-        # Step 1: Compute the output of the first hidden neuron
-        hidden_1_raw    =( input_1 * self.neurons[0].weights[0] + input_2 * self.neurons[0].weights[1] + self.neurons[0].bias)
-        self.hidden_1_output =  self.tanh(hidden_1_raw)
-
-
-        # Step 2: Compute the output of the second hidden neuron
-        hidden_2_raw    =( input_1 * self.neurons[1].weights[0] +input_2 * self.neurons[1].weights[1] +                           self.neurons[1].bias)
-        self.hidden_2_output =  self.tanh(hidden_2_raw)
-
-        # Step 3: Compute the output of the output neuron - that is the predicton
-        output_raw      =(self.hidden_1_output * self.neurons[2].weights[0] + self.hidden_2_output * self.neurons[2].weights[1] + self.neurons[2].bias)
-
-        self.output_tanh=  self.tanh(output_raw)              # Apply tahn function store in instance variable output_tanh for backprop
-        #output_tahn is the non stepped prediction
-
-        return  self.output_tanh
-
-
-
-
-    def tanh(self,x: float):
-        """
-        Compute the hyperbolic tangent of x.
-
-        Args:
-            x (float): The input value.
-
-        Returns:
-            float: The hyperbolic tangent of the input.
-        """
-        # Logic - but not optimized ==>return (math.exp(x) - math.exp(-x)) / (math.exp(x) + math.exp(-x))
-        return math.tanh(x)
-
-        # SLP for updating neurons
-        #print(f"in hayabusatwoneurontron Before: self.neurons[0].weights[0]={self.neurons[0].weights[0]}\tself.neurons[0].weights[1]={self.neurons[0].weights[1]}" )
-        # Step 3: Update weights and biases for the first neuron
-        #self.neurons[0].weights[0] += error * self.learning_rate * self.normalizers[0]
-        #self.neurons[0].weights[1] += error * self.learning_rate * self.normalizers[1]
-        #self.neurons[0].bias += error * self.learning_rate
-
-        # Step 4: Update weights and biases for the first neuron
-        #self.neurons[1].weights[0] += error * self.learning_rate * self.normalizers[0]
-        #self.neurons[1].weights[1] += error * self.learning_rate * self.normalizers[1]
-        #self.neurons[1].bias += error * self.learning_rate
-        #print(f"in hayabusatwoneurontron AFTER: self.neurons[0].weights[0]={self.neurons[0].weights[0]}\tself.neurons[0].weights[1]={self.neurons[0].weights[1]}" )
-        # (Second neuron deliberately ignored)

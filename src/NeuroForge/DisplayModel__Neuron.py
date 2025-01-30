@@ -73,6 +73,8 @@ class DisplayModel__Neuron:
         # print(f"Params: {params}")
 
         rs = db.query(SQL, params) # Execute query
+        #print(f"NEURON DATA:::{rs}")
+
         if rs:
             self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
         else:
@@ -126,10 +128,11 @@ class DisplayModel__Neuron:
             y=body_text_y_start
         )
 
-    def neuron_report_build_prediction_logic(self,row):
+    def neuron_report_build_prediction_logic(self, row):
         """
         Build prediction logic for a single neuron (row).
         Loops through weights and inputs, generating labeled calculations.
+        Includes activation function and value in the display.
         """
         nid = row.get('nid')  # Get neuron ID
         weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
@@ -138,37 +141,36 @@ class DisplayModel__Neuron:
         # Generate prediction logic
         predictions = []
         self.raw_sum = 0
-        #print(f"In DisplayModel__Neuron INPUTS:{inputs}")
-        #print(f"In DisplayModel__Neuron WEIGHTS:{weights}")
-        #if len(weights) == len(inputs):         # Validate lengths of weights and inputs
+
         for i, (w, inp) in enumerate(zip(weights, inputs), start=1):
-            #label = f"W{i}I{i}"  # Update label to match new specs
-            linesum= (w*inp)
-            calculation = f"{smart_format(w)} * {smart_format(inp)} = {smart_format(w * inp)}"
+            linesum = (w * inp)
+            calculation = f"{smart_format(inp)} * {smart_format(w)} = {smart_format(linesum)}"
             predictions.append(calculation)
-            self.raw_sum += linesum
-        return f"{'\n'.join(predictions)}\n{self.format_bias_and_raw_sum(row)}"
+            self.raw_sum += linesum  # Accumulate weighted sum
+
+        # Get the formatted bias, raw sum, and activation details
+        bias_activation_info = self.format_bias_and_raw_sum(row)
+
+        return f"{'\n'.join(predictions)}\n{bias_activation_info}"
+
 
     def format_bias_and_raw_sum(self, row):
         """
-        Format the bias and raw sum for display.
-
-        Args:
-            row (dict): A dictionary representing a single neuron instance.
-
-        Returns:
-            str: Nicely formatted string with bias and raw sum.
+        Format the bias, raw sum, and activation function for display.
         """
-        # Extract bias and raw sum from the dictionary
         bias = row.get('bias_before', 0)
-        self.raw_sum +=bias
+        self.raw_sum += bias
 
-        # Format the values
+        # Activation function details
+        activation_name = row.get('activation_name', 'Unknown')
+        activation_value = row.get('activation_value', None)
+
+        # Format strings
         bias_str = f"Bias: {smart_format(bias)}"
-        raw_sum_str = f"Raw Sum (z): {smart_format(self.raw_sum)}"
+        raw_sum_str = f"Raw Sum: {smart_format(self.raw_sum)}"
 
-        # Combine them into a single string
-        return f"{bias_str}\n{raw_sum_str}"
+        activation_str = f"{activation_name}: {smart_format(activation_value)}" if activation_value is not None else ""
 
-
+        # Combine into a final formatted string
+        return f"{bias_str}\n{raw_sum_str}\n{activation_str}"
 

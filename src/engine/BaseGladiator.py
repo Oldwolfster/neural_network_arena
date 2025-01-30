@@ -21,7 +21,7 @@ class Gladiator(ABC):
         self.hyper              = args[1]
         self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.neurons            = []
-        self.layers             = []                        # Layered structure
+        #self.layers             = []                        # Layered structure
         self.neuron_count       = 0                         # Default value
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
@@ -32,7 +32,7 @@ class Gladiator(ABC):
 
     def train(self) -> str:
         if self.neuron_count == 0:
-            self.initialize_neurons([1]) #Defaults to 1
+            self.initialize_neurons([]) #Defaults to 1 when it adds the output
             print(f"Warning: Defaulting to a single neuron in {self.__class__.__name__}")
 
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
@@ -60,9 +60,13 @@ class Gladiator(ABC):
             #predictions = [neuron.activation_value for neuron in output_layer]
             #prediction = predictions[0] if len(predictions) == 1 else predictions  # Handle single/multi-output
             #predictions = np.array([neuron.activation_value for neuron in output_layer])
-            error = target - prediction
+            prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
+            error = target - prediction_raw
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
+            prediction =  1 if prediction_raw > .5 else 0      # Apply threshold function
 
+
+            print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
             # Step 4: Record iteration data
             iteration_data = Iteration(
                 model_id=self.mgr_sql.model_id,
@@ -71,10 +75,11 @@ class Gladiator(ABC):
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
                 target=sample[-1],
                 prediction=prediction,
+                prediction_raw=prediction_raw,
                 loss=loss,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
-            self.mgr_sql.record_iteration(iteration_data, self.layers)
+            self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
 
         # Finish epoch and return convergence signal
         return self.mgr_sql.finish_epoch()
@@ -84,13 +89,13 @@ class Gladiator(ABC):
         Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
         """
 
-        for layer_index, current_layer in enumerate(self.layers):
+        for layer_index, current_layer in enumerate(Neuron.layers):
             if layer_index == 0:
                 # First hidden layer: Takes inputs directly from the sample
                 prev_values = inputs
             else:
                 # Subsequent layers: Takes inputs from previous layer's activations
-                prev_values = [neuron.activation_value for neuron in self.layers[layer_index - 1]]
+                prev_values = [neuron.activation_value for neuron in Neuron.layers[layer_index - 1]]
 
             for neuron in current_layer:
                 # Capture "before" state for debugging and backpropagation
@@ -110,22 +115,20 @@ class Gladiator(ABC):
 
         Args:
             architecture (list): List of integers representing the number of neurons
-                                 in each hidden/output layer.
-                                 Example: [4, 3, 2, 1] for 4 neurons in the first hidden layer,
-                                 3 in the next, etc.
+                                 in each hidden layer.
+                                 Example: [4, 3, 2] for 4 neurons in the first hidden layer,
+                                 3 in the next, and 2 in the final hidden layer.
+                                 The output neuron is automatically added.
         """
-        # Ensure architecture is defined
         if architecture is None:
-            architecture = [1]  # Default to a single neuron in a single layer
-
-        # Combine inputs and architecture into the full architecture
+            architecture = []  # Default to no hidden layers, just a single output neuron
+        architecture.append(1)  # Append output neuron (force single-output)
         input_count = self.training_data.input_count
-        # print (f"********** in base gladiator input count={input_count}")
-        self.full_architecture = [input_count] + architecture  # Store the full architecture
+        self.full_architecture = [input_count] + architecture # Store the full architecture
 
         # Initialize neurons for all layers except the input layer
         self.neurons.clear()  # Clear any existing neurons
-        self.layers.clear()   # Clear any existing Layered structure
+        Neuron.layers.clear()   # Clear any existing Layered structure
         nid = -1
         for layer_index, neuron_count in enumerate(architecture):
             layer_neurons = []  # Temporary list for current layer
@@ -142,7 +145,7 @@ class Gladiator(ABC):
                 )
                 self.neurons.append(neuron)     # Add to flat list
                 layer_neurons.append(neuron)    # Add to current layer
-            self.layers.append(layer_neurons)   # Add current layer to layered structure
+            Neuron.layers.append(layer_neurons)   # Add current layer to layered structure
         self.neuron_count = len(self.neurons)
         #print(f"*******IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
         #for i, neuron in enumerate(self.neurons):
