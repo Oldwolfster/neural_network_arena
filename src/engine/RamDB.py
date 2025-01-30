@@ -72,7 +72,7 @@ class RamDB:
         self.cursor.execute(sql)
         self.tables[table_name] = schema  # Track schema
 
-    def add(self, obj, **context):
+    def add(self, obj, exclude_keys=None, **context):
         """
         Add an object to the database with any number of context fields.
         Automatically creates the table if it does not exist.
@@ -84,25 +84,29 @@ class RamDB:
         if table_name not in self.tables:
             self.create_table(table_name, obj, context)
 
-        # Merge object attributes, computed properties, and context fields
-        data = {**context, **vars(obj)}  # Context fields first
+        # Merge context fields and properties of the object
+        if exclude_keys is None:
+            data = {**context, **vars(obj)}                 # Context fields first
+        else:
+            data =  {
+                        key: value for key, value in {**context, **vars(obj)}.items()
+                        if key not in exclude_keys  # ✅ Exclude specified keys
+                    }
 
-        # Dynamically add computed properties
-        computed_fields = {
+        computed_fields = {                             # Dynamically add computed properties
             attr: getattr(obj, attr)
             for attr in dir(obj)
             if isinstance(getattr(type(obj), attr, None), property)
         }
         data.update(computed_fields)
 
-        # Convert booleans to integers
         for key, value in data.items():
-            if isinstance(value, (bool, np.bool_)):  # Handle booleans
+            if isinstance(value, (bool, np.bool_)):  # Convert booleans to integers
                 data[key] = int(value)
 
-        # Serialize fields (e.g., numpy arrays, lists) into JSON-friendly formats
+
         for key, value in data.items():
-            if isinstance(value, np.ndarray):
+            if isinstance(value, np.ndarray):               # Serialize fields (e.g., numpy arrays, lists) into JSON-friendly formats
                 data[key] = json.dumps(value.tolist())
             elif isinstance(value, (list, dict)):
                 data[key] = json.dumps(value)
@@ -226,6 +230,59 @@ class RamDB:
             print(tabulate(self.tables, headers="keys", tablefmt="fancy_grid"))
         if detail_level==1:
             print(tabulate([{"Table Name": table_name} for table_name in self.tables.keys()], headers="keys", tablefmt="fancy_grid"))
+
+    def reconstruct_objects(self, table_name, cls, where_clause=""):
+        """
+        Reconstructs objects from the database based on a WHERE clause.
+
+        Args:
+            table_name (str): The name of the table (usually class name).
+            cls (type): The class to instantiate objects.
+            where_clause (str, optional): A SQL WHERE clause (e.g., "epoch=2 AND iteration=10").
+
+        Returns:
+            List of instantiated objects.
+        """
+        # Build the SQL query
+        sql = f"SELECT * FROM {table_name}"
+        if where_clause:
+            sql += f" WHERE {where_clause}"
+
+        # Query the database
+        records = self.query(sql, as_dict=True)
+
+        # Handle missing records
+        if not records:
+            print(f"No records found for {table_name} with condition: {where_clause}")
+            return []
+
+        # Get the class constructor arguments dynamically
+        init_params = cls.__init__.__code__.co_varnames[1:]  # Exclude 'self'
+
+        # Reconstruct objects
+        objects = []
+        for record in records:
+            # Convert JSON fields back to objects
+            for key, value in record.items():
+                if isinstance(value, str):  # Deserialize JSON-like fields
+                    try:
+                        record[key] = json.loads(value)
+                    except json.JSONDecodeError:
+                        pass  # Not a JSON-encoded string
+
+            # Handle special cases (e.g., delegate functions)
+            if cls.__name__ == "Neuron" and "activation" in record:
+                activation_name = record["activation"]
+                record["activation"] = ActivationFunction.get_by_name(activation_name)
+
+            # Extract only the parameters that match the class constructor
+            filtered_params = {k: v for k, v in record.items() if k in init_params}
+
+            # Instantiate the object
+            obj = cls(**filtered_params)
+            objects.append(obj)
+
+        return objects
 
 
 

@@ -66,7 +66,9 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 # Add the neuron data to the database
                 epoch_num = iteration_data.epoch
                 iteration_num = iteration_data.iteration
-                self.db.add(neuron, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
+                self.db.add(neuron, exclude_keys={"activation"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
+                #print("NEURON DATA ADDED")
+                #self.db.query_print("Select * from Neuron")
 
 
 

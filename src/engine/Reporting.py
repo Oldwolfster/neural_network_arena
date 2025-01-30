@@ -25,10 +25,10 @@ def prep_RamDB():
     db=RamDB()
 
     #Create dummy records to create table so we can create the view
-    dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, loss=0.1,accuracy_threshold=0.0)
+    dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, prediction_raw=0.1, loss=0.1,accuracy_threshold=0.0)
     dummy_neuron = Neuron(0,1,0.0,0)
     db.add(dummy_iteration)
-    db.add(dummy_neuron, model='dummy', epoch_n = 0, iteration_n = 0 )
+    db.add(dummy_neuron,exclude_keys={"activation"}, model='dummy', epoch_n = 0, iteration_n = 0 )
     epoch_create_view_epochSummary(db)
     db.execute("DELETE FROM Iteration")     #Delete dummy records
     db.execute("DELETE FROM Neuron")        #Delete dummy records

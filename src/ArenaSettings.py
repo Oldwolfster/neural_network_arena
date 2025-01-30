@@ -14,7 +14,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 5         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 1         # Number of times training run will cycle through all training data
     training_set_size       :int    = 20       # Qty of training data
     min_no_epochs           :int    = 555        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
@@ -65,8 +65,9 @@ training_pit                = "XOR"
 gladiators = [
 
     #'Blackbird'
+
     #'Hayabusa'
-    'XOR'
+    'XOR_TheLongWay'
     #'XORTutorial'
     #'GBS_XOR'
     #'HayabusaNormalizer'

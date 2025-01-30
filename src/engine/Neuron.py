@@ -21,11 +21,11 @@ class Neuron:
         self.learning_rate = learning_rate
         self.raw_sum = 0.0
         self.activation_value = 0.0
-        self.activation =  "todo" # activation or Linear
-        self.output = 0 #TODO need to populate this in child model???
-        #print(f"INSTANTIATE NEURON nid={self.nid}\tself.num_of_weights{self.num_of_weights}")
+        self.activation =  activation or Linear
 
-        #Coming soon self.activation_function = activation_function
+        # ✅ Ensure activation is never None
+        self.activation = activation if activation is not None else Linear
+        self.activation_name = self.activation.name  # ✅ No more AttributeError
 
     def activate(self):
         """Applies the activation function."""
@@ -34,6 +34,7 @@ class Neuron:
     def set_activation(self, activation_function):
         """Dynamically update the activation function."""
         self.activation = activation_function
+        self.activation_name = activation_function.name
 
     def compute_gradient(self):
         """Use the derivative for backpropagation."""
