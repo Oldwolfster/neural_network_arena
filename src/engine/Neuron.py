@@ -21,15 +21,28 @@ class Neuron:
         self.learning_rate = learning_rate
         self.raw_sum = 0.0
         self.activation_value = 0.0
-        self.activation =  activation or Linear
+        self.activation =  activation or Linear         # function
+        self.activation_gradient = 0.0  # Store activation gradient from forward pass
+        self.error_signal = 6969.69
+        self.weight_adjustments = ""
 
         # ✅ Ensure activation is never None
         self.activation = activation if activation is not None else Linear
         self.activation_name = self.activation.name  # ✅ No more AttributeError
 
+        # Ensure layers list is large enough to accommodate this layer_id
+        while len(Neuron.layers) <= layer_id:
+            Neuron.layers.append([])
+
+        # Add neuron to the appropriate layer and set its position
+        Neuron.layers[layer_id].append(self)
+        self.position = len(Neuron.layers[layer_id]) - 1  # Zero-based position within layer
+
+
     def activate(self):
         """Applies the activation function."""
         self.activation_value = self.activation(self.raw_sum)
+        self.activation_gradient = self.activation.apply_derivative(self.activation_value)  # Store gradient!
 
     def set_activation(self, activation_function):
         """Dynamically update the activation function."""

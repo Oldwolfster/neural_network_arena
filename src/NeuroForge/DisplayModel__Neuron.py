@@ -130,15 +130,28 @@ class DisplayModel__Neuron:
 
     def neuron_report_build_prediction_logic(self, row):
         """
-        Build prediction logic for a single neuron (row).
-        Loops through weights and inputs, generating labeled calculations.
-        Includes activation function and value in the display.
+        Generate a formatted report for a single neuron.
+        Includes weighted sum calculations, bias, activation details,
+        and backpropagation details (activation gradient, error signal).
+        """
+        prediction_logic = self.build_prediction_logic(row)
+        bias_activation_info = self.format_bias_and_activation(row)
+        backprop_details = self.format_backpropagation_details(row)  # 🔥 New Function!
+        #print(row)
+        weight_adjustments =  row.get('weight_adjustments')
+        return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}\n{weight_adjustments}"
+
+    # ---------------------- Existing Functions ---------------------- #
+
+    def build_prediction_logic(self, row):
+        """
+        Compute weighted sum calculations and format them.
         """
         nid = row.get('nid')  # Get neuron ID
         weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
         inputs = json.loads(row.get('neuron_inputs', '[]'))  # Deserialize inputs
 
-        # Generate prediction logic
+        # Generate weighted sum calculations
         predictions = []
         self.raw_sum = 0
 
@@ -148,13 +161,9 @@ class DisplayModel__Neuron:
             predictions.append(calculation)
             self.raw_sum += linesum  # Accumulate weighted sum
 
-        # Get the formatted bias, raw sum, and activation details
-        bias_activation_info = self.format_bias_and_raw_sum(row)
+        return '\n'.join(predictions)
 
-        return f"{'\n'.join(predictions)}\n{bias_activation_info}"
-
-
-    def format_bias_and_raw_sum(self, row):
+    def format_bias_and_activation(self, row):
         """
         Format the bias, raw sum, and activation function for display.
         """
@@ -168,9 +177,23 @@ class DisplayModel__Neuron:
         # Format strings
         bias_str = f"Bias: {smart_format(bias)}"
         raw_sum_str = f"Raw Sum: {smart_format(self.raw_sum)}"
-
         activation_str = f"{activation_name}: {smart_format(activation_value)}" if activation_value is not None else ""
 
-        # Combine into a final formatted string
         return f"{bias_str}\n{raw_sum_str}\n{activation_str}"
 
+    # ---------------------- 🔥 New Function! 🔥 ---------------------- #
+
+    def format_backpropagation_details(self, row):
+        """
+        Format and display backpropagation details:
+        - Activation Gradient (A')
+        - Error Signal (δ)
+        """
+        activation_gradient = row.get('activation_gradient', None)  # From neuron
+        error_signal = row.get('error_signal', None)  # From neuron
+        # print(f"error_signal={error_signal}")
+        # Format only if values exist
+        gradient_str = f"Activation Gradient: {smart_format(activation_gradient)}" if activation_gradient is not None else ""
+        error_signal = f"Error Signal (δ): {smart_format(error_signal)}"
+
+        return f"{gradient_str}\n{error_signal}"

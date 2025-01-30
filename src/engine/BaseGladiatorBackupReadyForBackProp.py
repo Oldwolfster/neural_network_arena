@@ -26,7 +26,7 @@ class Gladiator(ABC):
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
-        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
+        self._learning_rate     = self.hyper.default_learning_rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self.full_architecture  = None
 
@@ -50,25 +50,23 @@ class Gladiator(ABC):
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
             target = sample[-1]
-            #self.run_forward_pass(inputs)
-            self.update_weights_before_and_more(inputs)
-            # Step 2: Delegate to the model's logic for forward propagation
-            self.forward_pass(sample)  # Call model-specific logic
+            self.run_forward_pass(inputs)
 
-            # Step 3: Validate_pass :)
+            # Step 2: Delegate to the model's logic for forward propagation
+            prediction = self.training_iteration(sample)  # Call model-specific logic
+
+            # Step 3: Capture output and compute loss
+            #output_layer = self.layers[-1]  # Final layer
+            #predictions = [neuron.activation_value for neuron in output_layer]
+            #prediction = predictions[0] if len(predictions) == 1 else predictions  # Handle single/multi-output
+            #predictions = np.array([neuron.activation_value for neuron in output_layer])
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             error = target - prediction_raw
-            loss = error ** 2  # Example loss calculation (MSE for a single sample)
-            prediction =  1 if prediction_raw > 0 else 0      # Apply step function
-            loss_gradient = error #For MSE it is linear.
+            loss = .5 * (error ** 2)  # Example loss calculation (MSE for a single sample)
+            prediction =  1 if prediction_raw > .5 else 0      # Apply threshold function
 
 
-            self.back_pass(sample, loss_gradient)  # Call model-specific logic
-
-            # Step 4: Delegate to models logic for backporop.
-            #self.backwards_pass(sample)  # Call model-specific logic
-
-            #print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
+            print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
             # Step 4: Record iteration data
             iteration_data = Iteration(
                 model_id=self.mgr_sql.model_id,
@@ -79,7 +77,6 @@ class Gladiator(ABC):
                 prediction=prediction,
                 prediction_raw=prediction_raw,
                 loss=loss,
-                loss_gradient=loss_gradient,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
@@ -87,7 +84,7 @@ class Gladiator(ABC):
         # Finish epoch and return convergence signal
         return self.mgr_sql.finish_epoch()
 
-    def update_weights_before_and_more(self, inputs: numpy.array):
+    def run_forward_pass(self, inputs: numpy.array):
         """
         Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
         """
@@ -147,8 +144,8 @@ class Gladiator(ABC):
                     layer_id=layer_index
                 )
                 self.neurons.append(neuron)     # Add to flat list
-                #layer_neurons.append(neuron)    # Add to current layer
-            #Neuron.layers.append(layer_neurons)   # Add current layer to layered structure
+                layer_neurons.append(neuron)    # Add to current layer
+            Neuron.layers.append(layer_neurons)   # Add current layer to layered structure
         self.neuron_count = len(self.neurons)
         #print(f"*******IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
         #for i, neuron in enumerate(self.neurons):

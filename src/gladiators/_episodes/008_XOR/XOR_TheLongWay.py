@@ -4,6 +4,10 @@ from src.engine.ActivationFunction import Tanh, Sigmoid
 from src.engine.BaseGladiator import Gladiator
 import math
 
+from src.engine.Neuron import Neuron
+from src.engine.Utils import smart_format
+
+
 class XOR_TheLongWay(Gladiator):
     """
     This is my foray into MLP (Multi-Layer Perceptron) by solving the XOR problem,
@@ -66,23 +70,88 @@ class XOR_TheLongWay(Gladiator):
         self.neurons[1].set_activation(Tanh)        # Set activation to Tanh on neuron 1,1
         self.neurons[2].set_activation(Sigmoid)     # Set activation to Sig on neuron 2,0
 
-    def training_iteration(self, training_data) -> float:
-        input_0 = training_data[0]  # First input
-        input_1 = training_data[1]  # Second input
-        target = training_data[-1]  # Target value
+    def back_pass(self, training_sample, loss_gradient: float):
+        input_0 = training_sample[0]  # First input
+        input_1 = training_sample[1]  # Second input
+        target  = training_sample[-1]  # Target value
+        output_neuron = Neuron.layers[-1][0]
 
-        prediction = self.forward_pass(input_0, input_1)     #without step applied
+        # Step 1: Compute error signal for output neuron
+        self.back_pass__error_signal_for_output(loss_gradient)
 
-        # Step 5: Calculate the error and loss
-        error = target - prediction
-        loss = error ** 2  # Mean Squared Error Loss function
-        print (f"Error and Loss        ******* Prediction:{prediction}\tTarget:{target}\tError={error}\tLoss={loss}")
-        print()
-        self.backwards_pass(error, input_0, input_1)
-        prediction_step =  1 if self.output_tanh > 0 else 0      # Apply step function
-        #return  prediction_step
+        # Step 2: Compute error signals for hidden neurons
+        for hidden_neuron in Neuron.layers[0]:  # Iterate over first hidden layer
+            self.back_pass__error_signal_for_hidden(output_neuron, hidden_neuron)
 
-    def forward_pass(self, input_0, input_1) -> float:
+        # Step 3: Adjust weights for the output neuron
+        prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
+        self.back_pass_distribute_error(output_neuron, prev_layer_activations)
+
+        # Step 4: Adjust weights for the hidden neurons (⬅️ Last step we need)
+        for layer_index in range(len(Neuron.layers) - 1, 0, -1):  # Iterate backwards (excluding input layer)
+            prev_layer_activations = [n.activation_value for n in Neuron.layers[layer_index - 1]]
+            for neuron in Neuron.layers[layer_index]:
+                self.back_pass_distribute_error(neuron, prev_layer_activations)
+
+        for neuron in Neuron.layers[0]:  # First hidden layer
+            self.back_pass_distribute_error(neuron, training_sample[:-1])  # Use raw inputs
+
+
+
+    def back_pass__error_signal_for_hidden(self, from_neuron : Neuron, to_neuron: Neuron):
+        # Formula -> Activation gradient * Sum(Next Layer weight * Next neuron  Error signal)
+        # NOTE from_neuron is to the right because it's going backwards
+        #In the case of single output there is only one value to sum, the output neuron
+
+        print(f"\n🔄 Propagating Error Signal from Layer {from_neuron.layer_id} to Layer {to_neuron.layer_id}, Neuron ID: {to_neuron.nid}")
+
+        activation_gradient = to_neuron.activation_gradient
+        weight_index = to_neuron.position
+        from_neuron_weight = from_neuron.weights_before[weight_index]
+        from_neuron_error_signal = from_neuron.error_signal
+        to_neuron.error_signal = activation_gradient * from_neuron_weight * from_neuron_error_signal
+        print(f"calculating error_signal for neuron: {to_neuron.layer_id}, {to_neuron.position}\n"
+              f"activation_gradient\t{activation_gradient}\n"
+              f"from neuron weight\t{from_neuron_weight}\n"
+              f"from neuron err sig\t{from_neuron_error_signal}\n"
+              f"equals {to_neuron.error_signal}")
+
+
+
+    def back_pass__error_signal_for_output(self, loss_gradient: float):
+        output_neuron = Neuron.layers[-1][0]
+        activation_gradient = output_neuron.activation_gradient
+        error_signal = loss_gradient * activation_gradient
+        output_neuron.error_signal = error_signal
+
+    def back_pass_distribute_error(self, neuron: Neuron, prev_layer_values):
+        """
+        Updates weights for a neuron based on error signal.
+
+        - First hidden layer uses inputs from training data.
+        - All other neurons use activations from the previous layer.
+        """
+        weights = neuron.weights_before  # Get pre-update weights
+        learning_rate = neuron.learning_rate
+        error_signal = neuron.error_signal
+
+        weight_formulas = []
+
+        # FORMULA: weight_new = weight_old + (learning_rate * error_signal * previous_layer_value)
+        for i, (w, prev_value) in enumerate(zip(weights, prev_layer_values)):
+            weights[i] += learning_rate * error_signal * prev_value
+            calculation = f"w{i} = {smart_format(w)} + {smart_format(learning_rate)} * {smart_format(error_signal)} * {smart_format(prev_value)}"
+            weight_formulas.append(calculation)
+
+        # Bias update
+        neuron.bias += learning_rate * error_signal
+        weight_formulas.append(f"B = {smart_format(neuron.bias)} + {smart_format(learning_rate)} * {smart_format(error_signal)}")
+
+        neuron.weight_adjustments = '\n'.join(weight_formulas)
+
+
+
+    def forward_pass(self, training_sample):
         """
         Manually computes forward pass for each neuron in the XOR MLP.
 
@@ -90,6 +159,9 @@ class XOR_TheLongWay(Gladiator):
         :param input_1: Second input feature
         :return: prediction (final output of the network)
         """
+        input_0 = training_sample[0]  # First input
+        input_1 = training_sample[1]  # Second input
+        target  = training_sample[-1]  # Target value
 
         # 🔹 Inputs are explicitly provided
         input_values = [input_0, input_1]

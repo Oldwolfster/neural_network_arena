@@ -15,7 +15,7 @@ class EZPrint:
         self.font = font
         self.color = color
         self.max_width = max_width
-        self.max_height = max_height
+        self.max_height = max_height * 3
         self.sentinel_char = sentinel_char
 
     def render(self, surface: pygame.Surface, text: str, x: int, y: int):
