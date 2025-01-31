@@ -1,6 +1,10 @@
 from dataclasses import dataclass, field
 import numpy as np
 import inspect
+
+import pygame
+
+
 def chunk_list(lst: list, chunk_size: int):
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i + chunk_size]
@@ -35,6 +39,15 @@ def smart_format(number):
     else:
         # If it's a single number, just format it
         return format_single(number)
+
+def draw_gradient_rect( surface, rect, color1, color2):
+    for i in range(rect.height):
+        ratio = i / rect.height
+        blended_color = [
+            int(color1[j] * (1 - ratio) + color2[j] * ratio) for j in range(3)
+        ]
+        pygame.draw.line(surface, blended_color, (rect.x, rect.y + i), (rect.x + rect.width, rect.y + i))
+
 
 
 

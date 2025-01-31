@@ -22,40 +22,10 @@ class DisplayModel(EZSurface):
         Populate neurons and connections based on the provided model information.
         """
         self.model_id = model_info.model_id
-        self.architecture = model_info.full_architecture
-
-        # Calculate layer and neuron spacing
-        layer_spacing = self.width // len(self.architecture)
-        neuron_size, vertical_spacing = self.calculate_dynamic_neuron_layout(self.architecture, self.height)
-
-        # Create neurons
-        self.neurons = []
-        nid = -1
-        for layer_index, neuron_count in enumerate(self.architecture):
-            if layer_index == 0:
-                continue
-            layer_neurons = []
-
-            # Horizontal position for the current layer
-            layer_x = layer_spacing * layer_index - neuron_size / 2
-
-            # Calculate vertical centering
-            total_layer_height = (neuron_size + vertical_spacing) * neuron_count - vertical_spacing
-            vertical_offset = (self.height - total_layer_height) // 2
-            for neuron_index in range(neuron_count):
-                if layer_index > 0:
-                    nid += 1        #increment nid for all neurons that are not inputs
-                neuron = DisplayModel__Neuron(nid=nid , layer=layer_index, position=neuron_index)
+        self.architecture = model_info.full_architecture[1:]
 
 
-                # Set position and size
-                neuron.location_left = layer_x
-                neuron.location_top = vertical_offset + (neuron_size + vertical_spacing) * neuron_index
-                neuron.location_width = neuron_size
-                neuron.location_height = neuron_size
-
-                layer_neurons.append(neuron)
-            self.neurons.append(layer_neurons)
+        self.create_neurons()
 
         # Create connections
         self.connections = []
@@ -108,9 +78,7 @@ class DisplayModel(EZSurface):
             for neuron in layer:
                 neuron.draw_neuron(self.surface)
 
-        # Draw the input box last
-        if hasattr(self, "input_box"):
-            self.input_box.render()
+
 
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """
@@ -125,30 +93,93 @@ class DisplayModel(EZSurface):
         for connection in self.connections:
             connection.update_connection()
 
-    def calculate_dynamic_neuron_layout(self, architecture, surface_height, margin=1, max_neuron_size=1500, spacing_ratio=1):
+
+    def calculate_neuron_size(self, margin, gap, max_neuron_size):
         """
-        Calculate neuron size and spacing to fit within the surface height.
+        Calculate the largest neuron size possible while ensuring all neurons fit
+        within the given surface dimensions.
 
         Parameters:
-            architecture (list[int]): Number of neurons in each layer.
-            surface_height (int): Height of the surface in pixels.
-            margin (int): Margin around the edges of the surface.
-            max_neuron_size (int): Maximum size of a single neuron.
-            spacing_ratio (float): Ratio of spacing to neuron size (e.g., 0.5 means spacing is half the size).
+
+            margin (int): Space around the entire neuron visualization.
+            gap (int): Minimum space between neurons (both horizontally & vertically).
+            max_neuron_size (int): Max allowable size per neuron.
 
         Returns:
-            tuple: (neuron_size, vertical_spacing)
+            int: Optimized neuron size.
         """
-        max_neurons = max(architecture)
-        available_height = surface_height - (2 * margin)  # Deduct margins
+        max_neurons = max(self.architecture)  # Determine the layer with the most neurons
+        max_layers = len(self.architecture)  # Total number of layers
+        print(f"max_neurons={max_neurons}\tmax_layers{max_layers}\tself.architecture={self.architecture}")
+        # 🔹 Compute maximum available height and width
+        available_height = self.height - (2 * margin)   - ( max_neurons - 1) * gap
+        available_width = self.width - (2 * margin)        - ( max_layers - 1) * gap
+        print(f"available_width ={available_width}")
+        width_per_cell = available_width // max_layers
+        print (f"width_per_cell={width_per_cell}")
+        height_per_cell = available_height // max_neurons
+        # 🔹 Take the minimum size that fits both width and height constraints
+        optimal_neuron_size = min(width_per_cell, height_per_cell, max_neuron_size)
+        print (f"optimal_neuron_size={optimal_neuron_size}")
+        return optimal_neuron_size
 
-        # Calculate tentative neuron size
-        tentative_neuron_size = available_height // (max_neurons + (max_neurons - 1) * spacing_ratio)
+    def create_neurons(self, margin=20, gap=30, max_neuron_size=200):
+        """
+        Create neuron objects, dynamically positioning them based on architecture.
 
-        # Clamp neuron size to the maximum allowed
-        neuron_size = min(tentative_neuron_size, max_neuron_size)
+        Parameters:
+            margin (int): Space around the entire neuron visualization.
+            gap (int): Minimum space between neurons (both horizontally and vertically).
+            max_neuron_size (int): Maximum allowed size for a single neuron.
+        """
+        # 🔹 Compute neuron size and spacing
+        size = self.calculate_neuron_size( margin, gap, max_neuron_size)
 
-        # Calculate spacing based on the neuron size
-        vertical_spacing = int(neuron_size * spacing_ratio)
+        max_neurons = max(self.architecture)  # Determine the layer with the most neurons
+        max_layers = len(self.architecture)  # Total number of layers
 
-        return neuron_size, vertical_spacing
+
+        width_needed = size * max_layers + (max_layers -1) * gap + margin * 2
+        extra_width = self.width - width_needed
+        extra_width_to_center = extra_width / 2
+
+        #print(f"height_needed={height_needed}\tself.height={self.height}\textra_height={extra_height}\textra_height_to_center={extra_height_to_center}")
+        # 🔹 Compute the horizontal centering offset (adjust for EZSurface width)
+        offset = (self.screen_width - self.width)
+        #print(f"self.screen_width={self.screen_width}\tself.width={self.width}\toffset={offset}")
+        # 🔹 Compute horizontal spacing between layers
+        num_layers = len(self.architecture)
+
+        # 🔹 Create neurons
+        self.neurons = []
+        nid = -1
+
+        for layer_index, neuron_count in enumerate(self.architecture):
+            layer_neurons = []
+
+            # 🔹 Compute X coordinate for neurons in this layer
+            x_coord = size * layer_index + layer_index * gap  + margin + extra_width_to_center
+
+
+            for neuron_index in range(neuron_count):
+                nid += 1  # Increment neuron ID
+                height_needed = size * neuron_count + (neuron_count -1) * gap
+                extra_height = self.height - height_needed
+                extra_height_to_center = extra_height  / 2
+
+
+                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index)
+                y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
+
+                # 🔹 Assign calculated position & size
+                print(f"size= {size}\tcoord = {x_coord},{y_coord}")
+                neuron.location_left = x_coord   # Add offset for full screen centering
+                neuron.location_top = y_coord
+                neuron.location_width = size
+                neuron.location_height = size
+
+                layer_neurons.append(neuron)
+
+            self.neurons.append(layer_neurons)
+
+

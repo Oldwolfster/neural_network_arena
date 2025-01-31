@@ -6,6 +6,7 @@ from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayModel import DisplayModel
 from src.NeuroForge.DisplayPanelOutput import DisplayPanelOutput
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
+from src.NeuroForge.DisplayUI_Reports import DisplayUI_Reports
 from src.engine.RamDB import RamDB
 
 
@@ -15,6 +16,7 @@ class DisplayManager:
         self.hyper = hyper
         self.data_labels = hyper.data_labels
         self.components = []  # List for general EZSurface-based components
+        self.event_runners = []
         self.models = []  # List specifically for display models
         mgr.max_epoch = self.get_max_epoch(db)
         mgr.max_iteration = self.get_max_iteration(db)
@@ -24,13 +26,18 @@ class DisplayManager:
 
         #print(f"Model list (in displaymanager==============={ model_info_list[0].}")
         # Create and add models
-        self.models = self.create_display_models(72,80,   14,10, self.screen, self.hyper.data_labels, model_info_list)
+        self.models = self.create_display_models(72,90,   14,5, self.screen, self.hyper.data_labels, model_info_list)
 
 
         # Add Banner for EPoch and Iteration
         problem_type = model_info_list[0].problem_type
         banner = DisplayBanner(self.screen, problem_type,  mgr.max_epoch, mgr.max_iteration,96,4,2,0)
         self.components.append(banner)
+
+        #Add Report Dropdown
+        reports = DisplayUI_Reports(self.screen,   mgr.max_epoch, mgr.max_iteration,17,4,80,0)
+        self.components.append(reports)
+        self.event_runners.append(reports)
 
         #Add Input Panel
         # Create the input box for the first layer
@@ -57,7 +64,7 @@ class DisplayManager:
         #db.list_tables()
         iteration_dict = self.get_iteration_dict(db, epoch, iteration)
         #db.query_print("Select * from iteration")
-        #print(f"iteration_dict:::{iteration_dict}")
+        print(f"iteration_dict:::{iteration_dict}")
         # Render models
         for model in self.models:
             model.update_me(db, iteration, epoch, model_id)
