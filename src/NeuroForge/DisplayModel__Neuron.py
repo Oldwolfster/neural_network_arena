@@ -6,7 +6,7 @@ import pygame
 from src.NeuroForge import mgr
 from src.NeuroForge.EZPrint import EZPrint
 from src.engine.RamDB import RamDB
-from src.engine.Utils import smart_format
+from src.engine.Utils import smart_format, draw_gradient_rect
 from src.NeuroForge.mgr import * # Imports everything into the local namespace
 
 
@@ -30,8 +30,9 @@ class DisplayModel__Neuron:
         self.activation_function = ""
         self.activation_value =0
         self.weight_text = ""
+        self.banner_text = ""
         # Create EZPrint instance
-        self.ez_printer = EZPrint(pygame.font.Font(None, 20)
+        self.ez_printer = EZPrint(pygame.font.Font(None, 24)
                                   , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
 
     @classmethod
@@ -73,59 +74,67 @@ class DisplayModel__Neuron:
         # print(f"Params: {params}")
 
         rs = db.query(SQL, params) # Execute query
-        #print(f"NEURON DATA:::{rs}")
-
-        if rs:
-            self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
-        else:
-            self.weight_text = ""
+        self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
+        self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
         #print(f"Query result: {rs}")
         #print(f"PREDICTIONS: {self.weight_text}")
 
     def draw_neuron(self, screen):
         # Define colors
         body_color = (0, 0, 255)  # Blue for the neuron body
-        label_color = (70, 130, 180)  # Steel blue for the label strip
+        #label_color = (70, 130, 180)  # Steel blue for the label strip
         text_color = (255, 255, 255)  # White for text on the label
 
         # Font setup
         font = pygame.font.Font(None, 24)
-        if self.nid>=0:
-            label_text = font.render(f"{self.label} (ID: {self.nid})", True, text_color)
-        else:
-            label_text = font.render(f"{self.label} (Input #{self.position + 1})", True, text_color)
 
-        # Calculate label strip height based on text height
-        text_height = label_text.get_height()
-        label_strip_height = text_height + 8  # Add padding (e.g., 8 pixels for breathing room)
+        # **Split banner text into two parts:**
+        label_text = f"ID: {self.label}"  # Left side (Neuron ID)
+        output_text = f"{smart_format(self.activation_value)}"  # Right side
 
-        # Draw the label strip
-        pygame.draw.rect(
-            screen,
-            label_color,
-            (self.location_left, self.location_top, self.location_width, label_strip_height)
-        )
+        # Render both texts separately
+        label_surface = font.render(label_text, True, text_color)
+        output_surface = font.render(output_text, True, text_color)
 
-        # Draw the label text in the label strip
-        screen.blit(label_text, (self.location_left + 5, self.location_top + (label_strip_height - text_height) // 2))
+        # Get text dimensions
+        text_height = label_surface.get_height()
+        label_strip_height = text_height + 8  # Padding (8px)
 
-        # Draw the neuron rectangle (body)
+        # Draw the banner
+        #pygame.draw.rect(
+        #    screen,
+        #    label_color,
+        #    (self.location_left, self.location_top, self.location_width, label_strip_height)
+        #)
+
+
+        # Draw the neuron body below the label
         body_y_start = self.location_top + label_strip_height
         body_height = self.location_height - label_strip_height
         pygame.draw.rect(
             screen,
             body_color,
             (self.location_left, body_y_start, self.location_width, body_height),
-            3  # Border width
+            border_radius=6,
+            width= 3  # Border width
+
         )
 
-        # Render the neuron content below the label strip
+        # Draw neuron banner
+        banner_rect = pygame.Rect(self.location_left, self.location_top+4, self.location_width, label_strip_height)
+        draw_gradient_rect(screen, banner_rect, (70, 130, 180), (25, 25, 112))
+        text_height -= 6
+        screen.blit(label_surface, (self.location_left + 5, self.location_top + (label_strip_height - text_height) // 2)) # **Blit Label on the Left**
+        right_x = self.location_left + self.location_width - output_surface.get_width() - 5  # Align to right  # **Blit Output on the Right**
+        screen.blit(output_surface, (right_x, self.location_top + (label_strip_height - text_height) // 2))
+
+        # Render neuron details inside the body
         body_text_y_start = body_y_start + 5
         self.ez_printer.render(
             screen,
             text=self.weight_text,
-            x=self.location_left + 5,
-            y=body_text_y_start
+            x=self.location_left + 11,
+            y=body_text_y_start + 7
         )
 
     def neuron_report_build_prediction_logic(self, row):
@@ -172,13 +181,14 @@ class DisplayModel__Neuron:
 
         # Activation function details
         activation_name = row.get('activation_name', 'Unknown')
-        activation_value = row.get('activation_value', None)
+        self.activation_value = row.get('activation_value', None)        #THE OUTPUT
+        activation_gradient = row.get('activation_gradient', None)  # From neuron
 
         # Format strings
         bias_str = f"Bias: {smart_format(bias)}"
         raw_sum_str = f"Raw Sum: {smart_format(self.raw_sum)}"
-        activation_str = f"{activation_name}: {smart_format(activation_value)}" if activation_value is not None else ""
-
+        #activation_str = f"{activation_name}: {smart_format(activation_value)}" if activation_value is not None else ""
+        activation_str = f"{activation_name} Gradient: {smart_format(activation_gradient)}"
         return f"{bias_str}\n{raw_sum_str}\n{activation_str}"
 
     # ---------------------- 🔥 New Function! 🔥 ---------------------- #
@@ -189,11 +199,10 @@ class DisplayModel__Neuron:
         - Activation Gradient (A')
         - Error Signal (δ)
         """
-        activation_gradient = row.get('activation_gradient', None)  # From neuron
+
         error_signal = row.get('error_signal', None)  # From neuron
-        # print(f"error_signal={error_signal}")
-        # Format only if values exist
-        gradient_str = f"Activation Gradient: {smart_format(activation_gradient)}" if activation_gradient is not None else ""
+
+
         error_signal = f"Error Signal (δ): {smart_format(error_signal)}"
 
-        return f"{gradient_str}\n{error_signal}"
+        return f"{error_signal}"

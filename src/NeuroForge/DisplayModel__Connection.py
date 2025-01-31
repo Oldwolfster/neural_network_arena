@@ -7,8 +7,8 @@ class DisplayModel__Connection:
         self.to_neuron = to_neuron      # Reference to DisplayNeuron
         self.weight = weight
         self.color = (0, 0, 0)          # Default to black, could be dynamic
-        self.thickness = 1              # Line thickness, could vary by weight
-        self.arrow_size = 10            # Size of the arrowhead
+        self.thickness = 2              # Line thickness, could vary by weight
+        self.arrow_size = 18            # Size of the arrowhead
 
     def update_connection(self):
         pass
@@ -20,8 +20,10 @@ class DisplayModel__Connection:
         # Otherwise, assume it's a neuron object
         else:
             start_x = self.from_neuron.location_left + self.from_neuron.location_width
-            start_y = self.from_neuron.location_top + self.from_neuron.location_height // 2
+            banner_height = self.from_neuron.location_height * 0.2  # Assume banner is 20% of neuron height
+            start_y = self.from_neuron.location_top + (banner_height * 0.5)  # Place in middle of banner
             return (start_x, start_y)
+
 
     def _get_end_point(self):
         # Always assume to_neuron is a neuron object

@@ -73,3 +73,41 @@ class Neuron:
         self.weights += self.learning_rate * error * inputs
         self.bias += self.learning_rate * error
 """
+
+import numpy as np
+
+
+
+
+
+# 1. Uniform Random Initialization (between -1 and 1)
+def initialize_uniform_random(neurons):
+    for neuron in neurons:
+        neuron.weights = np.random.uniform(-1, 1, size=len(neuron.weights))
+        neuron.bias = np.random.uniform(-1, 1)
+
+# 2. Normal Distribution Initialization (mean=0, std=1)
+def initialize_normal_random(neurons):
+    for neuron in neurons:
+        neuron.weights = np.random.normal(0, 1, size=len(neuron.weights))
+        neuron.bias = np.random.normal(0, 1)
+
+# 3. Xavier/Glorot Initialization (good for sigmoid/tanh activations)
+def initialize_xavier(neurons):
+    for neuron in neurons:
+        limit = np.sqrt(6 / (len(neuron.weights) + 1))  # +1 for bias
+        neuron.weights = np.random.uniform(-limit, limit, size=len(neuron.weights))
+        neuron.bias = np.random.uniform(-limit, limit)
+
+# 4. He Initialization (good for ReLU activations)
+def initialize_he(neurons):
+    for neuron in neurons:
+        limit = np.sqrt(2 / len(neuron.weights))
+        neuron.weights = np.random.normal(0, limit, size=len(neuron.weights))
+        neuron.bias = np.random.normal(0, limit)
+
+# 5. Small Random Values (close to zero)
+def initialize_small_random(neurons):
+    for neuron in neurons:
+        neuron.weights = np.random.randn(len(neuron.weights)) * 0.01
+        neuron.bias = np.random.randn() * 0.01

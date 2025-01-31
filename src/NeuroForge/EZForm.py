@@ -26,6 +26,7 @@ class EZForm(EZSurface):
         banner_rect = pygame.Rect(0, 0, self.width, banner_height)
         pygame.draw.rect(self.surface, self.banner_color, banner_rect)
 
+
         banner_surface = self.bannerfont.render(self.banner_text, True, (255, 255, 255))  # White text
         banner_rect = banner_surface.get_rect(center=(self.width // 2, banner_height // 2))
         self.surface.blit(banner_surface, banner_rect)

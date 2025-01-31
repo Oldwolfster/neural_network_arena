@@ -32,7 +32,7 @@ class XOR_TheLongWay(Gladiator):
         super().__init__(*args)
         self.initialize_neurons([2])
 
-        """ Below is example of weights that make the model work right away
+        #Below is example of weights that make the model work right away
         # Hidden Layer 1
         self.neurons[0].weights[0] = 20.0  # Strong positive weight for first input
         self.neurons[0].weights[1] = 20.0  # Strong positive weight for second input
@@ -62,14 +62,14 @@ class XOR_TheLongWay(Gladiator):
         self.neurons[2].weights[1] = 0.6
         self.neurons[2].bias = 3
 
-        self.learning_rate = 0.1                # Or even higher like 0.5
+        self.learning_rate = 11                # Or even higher like 0.5
         self.output_tanh            = 0         # Variables we need from forward prop to do back prop
         self.hidden_1_output        = 0         # Variables we need from forward prop to do back prop
         self.hidden_2_output        = 0         # Variables we need from forward prop to do back prop
         self.neurons[0].set_activation(Tanh)        # Set activation to Tanh on neuron 1,0
         self.neurons[1].set_activation(Tanh)        # Set activation to Tanh on neuron 1,1
         self.neurons[2].set_activation(Sigmoid)     # Set activation to Sig on neuron 2,0
-
+        """
     def back_pass(self, training_sample, loss_gradient: float):
         input_0 = training_sample[0]  # First input
         input_1 = training_sample[1]  # Second input
@@ -103,18 +103,18 @@ class XOR_TheLongWay(Gladiator):
         # NOTE from_neuron is to the right because it's going backwards
         #In the case of single output there is only one value to sum, the output neuron
 
-        print(f"\n🔄 Propagating Error Signal from Layer {from_neuron.layer_id} to Layer {to_neuron.layer_id}, Neuron ID: {to_neuron.nid}")
+        #print(f"\n🔄 Propagating Error Signal from Layer {from_neuron.layer_id} to Layer {to_neuron.layer_id}, Neuron ID: {to_neuron.nid}")
 
         activation_gradient = to_neuron.activation_gradient
         weight_index = to_neuron.position
         from_neuron_weight = from_neuron.weights_before[weight_index]
         from_neuron_error_signal = from_neuron.error_signal
         to_neuron.error_signal = activation_gradient * from_neuron_weight * from_neuron_error_signal
-        print(f"calculating error_signal for neuron: {to_neuron.layer_id}, {to_neuron.position}\n"
-              f"activation_gradient\t{activation_gradient}\n"
-              f"from neuron weight\t{from_neuron_weight}\n"
-              f"from neuron err sig\t{from_neuron_error_signal}\n"
-              f"equals {to_neuron.error_signal}")
+        #print(f"calculating error_signal for neuron: {to_neuron.layer_id}, {to_neuron.position}\n"
+        #      f"activation_gradient\t{activation_gradient}\n"
+        #      f"from neuron weight\t{from_neuron_weight}\n"
+        #      f"from neuron err sig\t{from_neuron_error_signal}\n"
+        #      f"equals {to_neuron.error_signal}")
 
 
 
@@ -190,11 +190,11 @@ class XOR_TheLongWay(Gladiator):
         self.neurons[2].activate()
 
         # DEBUGGING:
-        print(f"Hidden Neuron 0: raw_sum={self.neurons[0].raw_sum}, activation_value={self.neurons[0].activation_value}")
-        print(f"Hidden Neuron 1: raw_sum={self.neurons[1].raw_sum}, activation_value={self.neurons[1].activation_value}")
+        #print(f"Hidden Neuron 0: raw_sum={self.neurons[0].raw_sum}, activation_value={self.neurons[0].activation_value}")
+        #print(f"Hidden Neuron 1: raw_sum={self.neurons[1].raw_sum}, activation_value={self.neurons[1].activation_value}")
         output_raw =  self.neurons[0].activation_value  * self.neurons[2].weights[0]  + self.neurons[1].activation_value * self.neurons[2].weights[1] + self.neurons[2].bias
-        print(f"output_raw===({self.neurons[0].activation_value} * {self.neurons[2].weights[0]} + {self.neurons[1].activation_value} * {self.neurons[2].weights[1]} + {self.neurons[2].bias} = {output_raw} <==DOES IT???)")
-        print(f"Output Neuron: raw_sum={self.neurons[2].raw_sum}, activation_value={self.neurons[2].activation_value}")
+        #print(f"output_raw===({self.neurons[0].activation_value} * {self.neurons[2].weights[0]} + {self.neurons[1].activation_value} * {self.neurons[2].weights[1]} + {self.neurons[2].bias} = {output_raw} <==DOES IT???)")
+        #print(f"Output Neuron: raw_sum={self.neurons[2].raw_sum}, activation_value={self.neurons[2].activation_value}")
 
         return self.neurons[2].activation_value  # 🚀 Final prediction
 

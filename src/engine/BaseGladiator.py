@@ -193,14 +193,15 @@ class Gladiator(ABC):
 
     @property
     def learning_rate(self):
-        """Compatibility attribute pointing to neurons[0].learning_rate."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].learning_rate
+        """ Getter for learning rate. """
+        return self._learning_rate
 
     @learning_rate.setter
-    def learning_rate(self, value):
-        """Set learning rate for neurons[0]."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        self.neurons[0].learning_rate = value
+    def learning_rate(self, new_learning_rate: float):
+        """
+        Updates the learning rate for the Gladiator
+        and ensures all neurons reflect the change.
+        """
+        self._learning_rate = new_learning_rate
+        for neuron in self.neurons:
+            neuron.learning_rate = new_learning_rate
