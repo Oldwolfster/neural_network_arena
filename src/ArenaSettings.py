@@ -67,8 +67,8 @@ gladiators = [
     #'Blackbird'
 
     #'Hayabusa'
-    #'XOR_TheLongWay'
-    'MLP_Standard'
+    'XOR_TheLongWay'
+    #'MLP_Standard'
     #'XORTutorial'
     #'GBS_XOR'
     #'HayabusaNormalizer'

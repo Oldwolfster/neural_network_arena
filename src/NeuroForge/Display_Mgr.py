@@ -26,8 +26,6 @@ class DisplayManager:
         """Initialize and configure all display components."""
 
         #print(f"Model list (in displaymanager==============={ model_info_list[0].}")
-        # Create and add models
-        self.models = self.create_display_models(72,90,   14,5, self.screen, self.hyper.data_labels, model_info_list)
 
 
         # Add Banner for EPoch and Iteration
@@ -49,22 +47,22 @@ class DisplayManager:
         output_panel = DisplayPanelOutput(self.screen,problem_type               , width_pct=12, height_pct=80, left_pct=86, top_pct=10)
         self.components.append(output_panel)
 
+        # Create and add models
+        self.models = self.create_display_models(72,90,   14,5, self.screen, self.hyper.data_labels, model_info_list)
+
+
 
 
     def render(self):
         """Render all components on the screen."""
-        # Render models
-        for model in self.models:
-            model.draw_me()
-
         # Render general components
         for component in self.components:
             #print (f"DEBUG IN DM - Component = {component}")
             component.draw_me()
 
-
-
-
+        # Render models
+        for model in self.models:
+            model.draw_me()
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""
         #db.list_tables()
@@ -72,8 +70,6 @@ class DisplayManager:
         #db.query_print("Select * from iteration")
         print(f"iteration_dict:::{iteration_dict}")
         # Render models
-        for model in self.models:
-            model.update_me(db, iteration, epoch, model_id)
         # db.query_print("SELECT typeof(target), target FROM Iteration LIMIT 5;")
 
         # Render general components
@@ -81,6 +77,10 @@ class DisplayManager:
             #print (f"DEBUG IN DM - Component = {component}")
             component.update_me( iteration_dict )
         self.render()
+
+        for model in self.models:
+            model.update_me(db, iteration, epoch, model_id)
+
 
     def get_iteration_dict(self, db: RamDB, epoch: int, iteration: int) -> dict:
         """Retrieve iteration data from the database."""
