@@ -43,7 +43,7 @@ class EZPrint:
             # Check if the rendered line exceeds max_width
             if self.max_width:
                 line_width = rendered_line.get_width()
-                if line_width > self.max_width:
+                if line_width > self.max_width * 1.3:
                     # Split line further to fit within max_width
                     words = line.split()
                     wrapped_line = ""

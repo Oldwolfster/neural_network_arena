@@ -30,8 +30,10 @@ class XOR_TheLongWay(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([2])
+        architecture = []  # Default: Single hidden layer with 2 neurons, 1 output
+        self.initialize_neurons(architecture)
 
+        """
         #Below is example of weights that make the model work right away
         # Hidden Layer 1
         self.neurons[0].weights[0] = 20.0  # Strong positive weight for first input
@@ -69,7 +71,7 @@ class XOR_TheLongWay(Gladiator):
         self.neurons[0].set_activation(Tanh)        # Set activation to Tanh on neuron 1,0
         self.neurons[1].set_activation(Tanh)        # Set activation to Tanh on neuron 1,1
         self.neurons[2].set_activation(Sigmoid)     # Set activation to Sig on neuron 2,0
-        """
+
     def back_pass(self, training_sample, loss_gradient: float):
         input_0 = training_sample[0]  # First input
         input_1 = training_sample[1]  # Second input
