@@ -29,6 +29,7 @@ class DisplayModel__Neuron:
         self.raw_sum = 0
         self.activation_function = ""
         self.activation_value =0
+        self.activation_gradient = 0
         self.weight_text = ""
         self.banner_text = ""
         self.mouse_x = 0
@@ -193,13 +194,13 @@ class DisplayModel__Neuron:
         # Activation function details
         self.activation_function = row.get('activation_name', 'Unknown')
         self.activation_value = row.get('activation_value', None)        #THE OUTPUT
-        activation_gradient = row.get('activation_gradient', None)  # From neuron
+        self.activation_gradient = row.get('activation_gradient', None)  # From neuron
 
         # Format strings
         bias_str = f"Bias: {smart_format(self.bias)}"
         raw_sum_str = f"Raw Sum: {smart_format(self.raw_sum)}"
         #activation_str = f"{activation_name}: {smart_format(activation_value)}" if activation_value is not None else ""
-        activation_str = f"{self.activation_function} Gradient: {smart_format(activation_gradient)}"
+        activation_str = f"{self.activation_function} Gradient: {smart_format(self.activation_gradient)}"
         return f"{bias_str}\n{raw_sum_str}\n{activation_str}"
 
     # ---------------------- 🔥 New Function! 🔥 ---------------------- #
@@ -260,19 +261,19 @@ class DisplayModel__Neuron:
 
     def tooltip_generate_text(self):
         self.tooltip_columns.clear()
-        self.tooltip_col_1_to_4()
+        self.tooltip_columns_for_forward_pass()
         self.tooltip_columns_for_backprop()
     def tooltip_columns_for_backprop(self):
         temp_list = [""]    #Blank column dividing forward and back
 
         self.tooltip_columns.append(temp_list)
-        temp_list = ["L Rate"]
+        temp_list = ["Input"]
         self.tooltip_columns.append(temp_list)
         temp_list = ["Err Sgl"]
         self.tooltip_columns.append(temp_list)
-        temp_list = ["Input"]
+        temp_list = ["L Rate"]
         self.tooltip_columns.append(temp_list)
-        temp_list = ["ADJ WT"]
+        temp_list = ["ADJ"]
         self.tooltip_columns.append(temp_list)
         temp_list = ["Old Wt"]
         self.tooltip_columns.append(temp_list)
@@ -282,26 +283,22 @@ class DisplayModel__Neuron:
         bp_info = self.parse_weight_adjustments (self.weight_adjustments)
         #self.tooltip_columns[3].extend(bp_info[0]) # Paramter name i.e.WW1,W2, B
 
-        self.tooltip_columns[4].extend(bp_info[2]) # LR
+        self.tooltip_columns[4].extend(bp_info[4]) # LR
         self.tooltip_columns[5].extend(bp_info[3]) # Err sig
-        self.tooltip_columns[6].extend(bp_info[4]) # Input Magnitude
+        self.tooltip_columns[6].extend(bp_info[2]) # Input Magnitude
         self.tooltip_columns[7].extend(bp_info[5]) # Adjustment
         self.tooltip_columns[8].extend(bp_info[1]) # original Weight
         self.tooltip_columns[9].extend(bp_info[6]) # new Weight
-        #print("*****************")
-        #print(self.tooltip_columns)
+        self.tooltip_columns[4].extend(["Input * Error Signal * Learning Rate = Adjustment","",f"Activation Gradient = {smart_format(self.activation_gradient)}"])
+        self.tooltip_columns[4].extend(["(How much 'Raw Sum' contributes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
 
-
-
-    def tooltip_col_1_to_4(self):
+    def tooltip_columns_for_forward_pass(self):
         temp_list = ["Input"]
         self.tooltip_columns.append(temp_list)
         temp_list = ["* Weight"]
         self.tooltip_columns.append(temp_list)
         temp_list = [""]
         self.tooltip_columns.append(temp_list)
-        #temp_list = ["weights"]
-        #self.tooltip_columns.append(temp_list)
         self.raw_sum = 0
         for i, (w, inp) in enumerate(zip(self.weights, self.neuron_inputs), start=1):
             linesum = (w * inp)
@@ -323,12 +320,12 @@ class DisplayModel__Neuron:
         self.tooltip_columns[2].append("")
         self.tooltip_columns[0].append(f"Act Function")
         self.tooltip_columns[1].append("")
-        self.tooltip_columns[2].append(f"= {self.activation_function[:4]}")
+        self.tooltip_columns[2].append(f"= {self.activation_function}")
         self.tooltip_columns[0].append(f"OUTPUT")
         self.tooltip_columns[1].append("")
         self.tooltip_columns[2].append(f"= {smart_format(self.activation_value)}")
     def render_tooltip(self, screen):   #"""Render the tooltip with neuron details."""
-        tooltip_width = 600
+        tooltip_width = 619
         tooltip_height = 300
         tooltip_x = self.mouse_x + 10
         tooltip_y = self.mouse_y + 10
@@ -343,17 +340,39 @@ class DisplayModel__Neuron:
         pygame.draw.rect(screen, (255, 255, 200), (tooltip_x, tooltip_y, tooltip_width, tooltip_height))
         pygame.draw.rect(screen, (0, 0, 0), (tooltip_x, tooltip_y, tooltip_width, tooltip_height), 2)
 
+        #Header
+        default_color = (0,0,0)
+        pos_color = (34,139,34)
+        neg_color = (220,20,60) #crimson
+        font2 = pygame.font.Font(None, 40)
+        head1 = font2.render("Forward Prop       Back Prop", True, default_color)
+        screen.blit(head1 , (tooltip_x + 5, tooltip_y + 5))
+
         # Font setup
         font = pygame.font.Font(None, 22)
         self.tooltip_generate_text()
-        # Render text inside tooltip
-        #for i, text in enumerate(info_lines):
-        #    label = font.render(text, True, (255, 0, 0))
-        #    screen.blit(label, (tooltip_x + 5, tooltip_y + 5 + i * 20))  # Draw text on screen
         col_size = 60
-        for x, text_col in enumerate(self.tooltip_columns): #loop through columns
-            for y , text_cell in enumerate(text_col):
+        header_spac = 39
+        for x, text_col in enumerate(self.tooltip_columns):  # loop through columns
+            for y, text_cell in enumerate(text_col):
+                # Set a default color. You might define a normal_color if needed.
+                this_color = default_color  # or some default color
+
                 print(f"x={x}\ty={y}\ttext_cell='{text_cell}'")
-                label = font.render(text_cell, True, (255, 0, 0))
-                screen.blit(label, (tooltip_x + x * col_size + 5, tooltip_y + 5 + y * 20))  # Draw text on screen
-                #screen.blit(label, (tooltip_x + 5, tooltip_y + 5 + i * 20))  # Draw text on screen
+
+                if x == 7 and y > 0 and len(text_cell) > 0:  # Adjustment column
+                            try:
+                                # Attempt to convert the text_cell to a float
+                                val = float(text_cell)
+                                this_color = pos_color if val >= 0 else neg_color
+                            except ValueError as e:
+                                print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
+                                # Optionally, set this_color to a fallback (here normal_color) if conversion fails
+                                this_color = default_color
+
+                label = font.render(text_cell, True, this_color)
+                screen.blit(label, (tooltip_x + x * col_size + 5,
+                                     header_spac + (tooltip_y + 5 + y * 20)))
+
+
+

@@ -11,6 +11,8 @@ from src.engine.RamDB import RamDB
 
 
 class DisplayManager:
+
+
     def __init__(self, screen: pygame.Surface, hyper: HyperParameters, db : RamDB):
         self.screen = screen
         self.hyper = hyper
@@ -56,6 +58,7 @@ class DisplayManager:
     def render(self):
         """Render all components on the screen."""
         # Render general components
+
         for component in self.components:
             #print (f"DEBUG IN DM - Component = {component}")
             component.draw_me()
@@ -63,6 +66,10 @@ class DisplayManager:
         # Render models
         for model in self.models:
             model.draw_me()
+
+        if mgr.tool_tip is not None:
+            mgr.tool_tip.render_tooltip(self.screen)
+            mgr.tool_tip = None
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""
         #db.list_tables()

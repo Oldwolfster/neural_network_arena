@@ -1,10 +1,12 @@
 import pygame
 from typing import List
+from src.NeuroForge import mgr
 
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
+
 
 
 class DisplayModel(EZSurface):
@@ -76,13 +78,15 @@ class DisplayModel(EZSurface):
         for connection in self.connections:
             connection.draw_connection(self.surface)
 
+        neuron_for_tooltip = None
         # Draw neurons
         for layer in self.neurons:
             for neuron in layer:
                 neuron.draw_neuron(self.surface)
                 #print(f"self.left={self.left}self.screen.size={self.screen.size}")
                 if neuron.is_hovered  (self.left, self.top):
-                    neuron.render_tooltip(self.surface)
+                    mgr.tool_tip = neuron
+                    #print(f"{mgr.tool_tip}")
 
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """

@@ -48,7 +48,7 @@ class HyperParameters:
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
 
-#training_pit              = "Predict_Income_2_Inputs"
+training_pit              = "Predict_Income_2_Inputs"
 
 training_pit                = "XOR"
 #training_pit                = "Predict_Income_3_Inputs"
@@ -67,6 +67,7 @@ gladiators = [
     #'Blackbird'
 
     #'Hayabusa'
+
     'XOR_TheLongWay'
     #'MLP_Standard'
     #'XORTutorial'

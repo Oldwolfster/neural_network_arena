@@ -3,7 +3,7 @@ import sys
 from src.ArenaSettings import HyperParameters
 from typing import List
 
-from src.NeuroForge.Display_Mgr import DisplayManager
+from src.NeuroForge.DisplayManager import DisplayManager
 from src.engine.Utils_DataClasses import ModelInfo
 
 from src.engine.RamDB import RamDB

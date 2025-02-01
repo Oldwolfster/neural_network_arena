@@ -54,17 +54,29 @@ class Gladiator(ABC):
             #self.run_forward_pass(inputs)
             self.update_weights_before_and_more(inputs)
             # Step 2: Delegate to the model's logic for forward propagation
-            self.forward_pass(sample)  # Call model-specific logic
+            model_style=""
+            if hasattr(self, 'training_iteration') and callable(self.training_iteration):
+                model_style="Old"
+            elif hasattr(self, 'forward_pass') and callable(self.forward_pass):
+                model_style="New"
+            else:
+                raise NotImplementedError("Subclass must implement either run_iteration or run_forward_pass")
+            prediction_raw = 0.0
+            if model_style == "Old":
+                prediction_raw = self.training_iteration(sample)
+            else:
+                self.forward_pass(sample)  # Call model-specific logic
+                # Step 3: Validate_pass :)
+                prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
 
-            # Step 3: Validate_pass :)
-            prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             error = target - prediction_raw
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
             prediction =  1 if prediction_raw > 0 else 0      # Apply step function
             loss_gradient = error #For MSE it is linear.
             self.last_lost = loss
 
-            self.back_pass(sample, loss_gradient)  # Call model-specific logic
+            if model_style=="New":
+                self.back_pass(sample, loss_gradient)  # Call model-specific logic
 
             # Step 4: Delegate to models logic for backporop.
             #self.backwards_pass(sample)  # Call model-specific logic
