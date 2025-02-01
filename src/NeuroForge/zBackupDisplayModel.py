@@ -84,6 +84,32 @@ class DisplayModel(EZSurface):
                 if neuron.is_hovered  (self.left, self.top):
                     neuron.render_tooltip(self.surface)
 
+
+        
+
+
+    def DELETEME_render_neurons_with_hover(self,   screen, neurons):
+        """Render neurons and check for hover interaction."""
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        mouse_x2 = mouse_x -  self.left
+
+        print(f"self.screen_width={self.screen_width}\tself.width={self.width}\tmouse_x={mouse_x}\tmouse_x2={mouse_x2}")
+        hovered_neuron = None
+
+        for layer in neurons:
+            for neuron in layer:
+                pygame.draw.rect(screen, (0, 0, 255),
+                                 (neuron.location_left, neuron.location_top, neuron.location_width, neuron.location_height),
+                                 3)  # Draw neuron
+
+                # Check if mouse is hovering over this neuron
+                if neuron.is_hovered(mouse_x, mouse_y):
+                    neuron.render_tooltip()
+
+
+
+
+
     def update_me(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """
         Update neuron and connection information based on the current state in the database.
@@ -128,7 +154,7 @@ class DisplayModel(EZSurface):
         #print (f"optimal_neuron_size={optimal_neuron_size}")
         return optimal_neuron_size
 
-    def create_neurons(self, margin=20, gap=60, max_neuron_size=400):
+    def create_neurons(self, margin=20, gap=60, max_neuron_size=200):
     #def create_neurons(self, margin=00, gap=0, max_neuron_size=2000):
         """
         Create neuron objects, dynamically positioning them based on architecture.

@@ -23,9 +23,9 @@ class DisplayModel__Neuron:
         self.position = position
         self.label = f"{layer}-{position}" #need to define, try to use existing standard
         self.weights = []
-        self.neuron_inputs = []
         self.bias = 0
         self.weight_count = []
+        self.weight_formula_txt = ""
         self.raw_sum = 0
         self.activation_function = ""
         self.activation_value =0
@@ -33,8 +33,6 @@ class DisplayModel__Neuron:
         self.banner_text = ""
         self.mouse_x = 0
         self.mouse_y = 0
-        self.tooltip_columns = []
-        self.weight_adjustments = ""
         # Create EZPrint instance
         self.ez_printer = EZPrint(pygame.font.Font(None, 24)
                                   , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
@@ -85,7 +83,7 @@ class DisplayModel__Neuron:
         # print(f"Params: {params}")
 
         rs = db.query(SQL, params) # Execute query
-        self.weight_text = self.neuron_build_text(rs[0])
+        self.weight_text = self.neuron_report_build_prediction_logic(rs[0])
         self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
         #print(f"Query result: {rs}")
         #print(f"PREDICTIONS: {self.weight_text}")
@@ -148,7 +146,7 @@ class DisplayModel__Neuron:
             y=body_text_y_start + 7
         )
 
-    def neuron_build_text(self, row):
+    def neuron_report_build_prediction_logic(self, row):
         """
         Generate a formatted report for a single neuron.
         Includes weighted sum calculations, bias, activation details,
@@ -158,8 +156,8 @@ class DisplayModel__Neuron:
         bias_activation_info = self.format_bias_and_activation(row)
         backprop_details = self.format_backpropagation_details(row)  # 🔥 New Function!
         #print(row)
-        self.weight_adjustments =  row.get('weight_adjustments')
-        return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}\n{self.weight_adjustments}"
+        weight_adjustments =  row.get('weight_adjustments')
+        return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}\n{weight_adjustments}"
 
     # ---------------------- Existing Functions ---------------------- #
 
@@ -168,14 +166,14 @@ class DisplayModel__Neuron:
         Compute weighted sum calculations and format them.
         """
         nid = row.get('nid')  # Get neuron ID
-        self.weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
-        self.neuron_inputs = json.loads(row.get('neuron_inputs', '[]'))  # Deserialize inputs
+        weights = json.loads(row.get('weights_before', '[]'))  # Deserialize weights
+        inputs = json.loads(row.get('neuron_inputs', '[]'))  # Deserialize inputs
 
         # Generate weighted sum calculations
         predictions = []
         self.raw_sum = 0
 
-        for i, (w, inp) in enumerate(zip(self.weights, self.neuron_inputs), start=1):
+        for i, (w, inp) in enumerate(zip(weights, inputs), start=1):
             linesum = (w * inp)
             calculation = f"{smart_format(inp)} * {smart_format(w)} = {smart_format(linesum)}"
             predictions.append(calculation)
@@ -187,19 +185,19 @@ class DisplayModel__Neuron:
         """
         Format the bias, raw sum, and activation function for display.
         """
-        self.bias = row.get('bias_before', 0)
-        self.raw_sum += self.bias
+        bias = row.get('bias_before', 0)
+        self.raw_sum += bias
 
         # Activation function details
-        self.activation_function = row.get('activation_name', 'Unknown')
+        activation_name = row.get('activation_name', 'Unknown')
         self.activation_value = row.get('activation_value', None)        #THE OUTPUT
         activation_gradient = row.get('activation_gradient', None)  # From neuron
 
         # Format strings
-        bias_str = f"Bias: {smart_format(self.bias)}"
+        bias_str = f"Bias: {smart_format(bias)}"
         raw_sum_str = f"Raw Sum: {smart_format(self.raw_sum)}"
         #activation_str = f"{activation_name}: {smart_format(activation_value)}" if activation_value is not None else ""
-        activation_str = f"{self.activation_function} Gradient: {smart_format(activation_gradient)}"
+        activation_str = f"{activation_name} Gradient: {smart_format(activation_gradient)}"
         return f"{bias_str}\n{raw_sum_str}\n{activation_str}"
 
     # ---------------------- 🔥 New Function! 🔥 ---------------------- #
@@ -218,118 +216,10 @@ class DisplayModel__Neuron:
 
         return f"{error_signal}"
 
-    def parse_weight_adjustments(self,text: str):
-        lines = text.strip().splitlines()
-        parameters = []
-        weights = []
-        learning_rates = []
-        error_signals = []
-        inputs = []
-        adjustments = []
-        new_weights = []
 
-        for line in lines:
-            # Split on '=' to separate the parameter name from the rest.
-            param_part, rest = line.split('=', 1)
-            parameters.append(param_part.strip())
-            weight_float=0.0
-            # Split on '+' to isolate the weight.
-            if '+' in rest:
-                weight_str, rest = rest.split('+', 1)
-                weights.append(weight_str.strip())
-
-            else:
-                weights.append(rest.strip())
-                rest = ""
-
-            # Now, the rest should contain the learning rate, error signal, and possibly the input.
-            parts = [part.strip() for part in rest.split('*') if part.strip()]
-            learning_rates.append(parts[0] if len(parts) >= 1 else "")
-            error_signals.append(parts[1] if len(parts) >= 2 else "")
-            inputs.append(parts[2] if len(parts) >= 3 else "")
-
-            if len(parts) >= 3:
-                adjustments.append(  smart_format( float(parts[0]) * float(parts[1]) * float(parts[2])))
-            else:
-                adjustments.append(smart_format(float(parts[0]) * float(parts[1])))
-
-            new_weights.append(smart_format(float(adjustments[-1]) + float(weights[-1])))
-        backprop_data = [parameters, weights, learning_rates, error_signals, inputs, adjustments, new_weights]
-
-        return backprop_data
-
-    def tooltip_generate_text(self):
-        self.tooltip_columns.clear()
-        self.tooltip_col_1_to_4()
-        self.tooltip_columns_for_backprop()
-    def tooltip_columns_for_backprop(self):
-        temp_list = [""]    #Blank column dividing forward and back
-
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["L Rate"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["Err Sgl"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["Input"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["ADJ WT"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["Old Wt"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["New Wt"]
-        self.tooltip_columns.append(temp_list)
-        #names = list(map(lambda name: "hi " + name, names))
-        bp_info = self.parse_weight_adjustments (self.weight_adjustments)
-        #self.tooltip_columns[3].extend(bp_info[0]) # Paramter name i.e.WW1,W2, B
-
-        self.tooltip_columns[4].extend(bp_info[2]) # LR
-        self.tooltip_columns[5].extend(bp_info[3]) # Err sig
-        self.tooltip_columns[6].extend(bp_info[4]) # Input Magnitude
-        self.tooltip_columns[7].extend(bp_info[5]) # Adjustment
-        self.tooltip_columns[8].extend(bp_info[1]) # original Weight
-        self.tooltip_columns[9].extend(bp_info[6]) # new Weight
-        #print("*****************")
-        #print(self.tooltip_columns)
-
-
-
-    def tooltip_col_1_to_4(self):
-        temp_list = ["Input"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["* Weight"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = [""]
-        self.tooltip_columns.append(temp_list)
-        #temp_list = ["weights"]
-        #self.tooltip_columns.append(temp_list)
-        self.raw_sum = 0
-        for i, (w, inp) in enumerate(zip(self.weights, self.neuron_inputs), start=1):
-            linesum = (w * inp)
-            self.tooltip_columns[0].append(f"{smart_format(inp)}")
-            #self.col_1.append(f"#{i}: {smart_format(inp)}")
-            self.tooltip_columns[1].append(f"* {smart_format(w)}")
-            self.tooltip_columns[2].append(f"= {smart_format(linesum)}")
-            self.raw_sum += linesum  # Accumulate weighted sum
-        self.raw_sum += self.bias
-        self.tooltip_columns[0].append("Add Bias")
-        self.tooltip_columns[1].append("")
-        self.tooltip_columns[2].append(f"+ {smart_format(self.bias)}")
-
-        self.tooltip_columns[0].append(f"Raw Sum")
-        self.tooltip_columns[1].append("")
-        self.tooltip_columns[2].append(f"= {smart_format(self.raw_sum)}")
-        self.tooltip_columns[0].append("")
-        self.tooltip_columns[1].append("")
-        self.tooltip_columns[2].append("")
-        self.tooltip_columns[0].append(f"Act Function")
-        self.tooltip_columns[1].append("")
-        self.tooltip_columns[2].append(f"= {self.activation_function[:4]}")
-        self.tooltip_columns[0].append(f"OUTPUT")
-        self.tooltip_columns[1].append("")
-        self.tooltip_columns[2].append(f"= {smart_format(self.activation_value)}")
     def render_tooltip(self, screen):   #"""Render the tooltip with neuron details."""
-        tooltip_width = 600
-        tooltip_height = 300
+        tooltip_width = 250
+        tooltip_height = 140
         tooltip_x = self.mouse_x + 10
         tooltip_y = self.mouse_y + 10
 
@@ -345,15 +235,16 @@ class DisplayModel__Neuron:
 
         # Font setup
         font = pygame.font.Font(None, 22)
-        self.tooltip_generate_text()
+
+        # Define tooltip content
+        info_lines = [
+            f"{self.label}",
+            f"Activation: {self.activation_value:.4f}",
+            f"Raw Sum: {self.raw_sum:.4f}",
+            f"Bias: {self.bias:.4f}",
+        ]
+
         # Render text inside tooltip
-        #for i, text in enumerate(info_lines):
-        #    label = font.render(text, True, (255, 0, 0))
-        #    screen.blit(label, (tooltip_x + 5, tooltip_y + 5 + i * 20))  # Draw text on screen
-        col_size = 60
-        for x, text_col in enumerate(self.tooltip_columns): #loop through columns
-            for y , text_cell in enumerate(text_col):
-                print(f"x={x}\ty={y}\ttext_cell='{text_cell}'")
-                label = font.render(text_cell, True, (255, 0, 0))
-                screen.blit(label, (tooltip_x + x * col_size + 5, tooltip_y + 5 + y * 20))  # Draw text on screen
-                #screen.blit(label, (tooltip_x + 5, tooltip_y + 5 + i * 20))  # Draw text on screen
+        for i, text in enumerate(info_lines):
+            label = font.render(text, True, (255, 0, 0))
+            screen.blit(label, (tooltip_x + 5, tooltip_y + 5 + i * 20))  # Draw text on screen

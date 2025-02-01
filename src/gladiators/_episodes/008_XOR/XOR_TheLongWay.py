@@ -30,7 +30,7 @@ class XOR_TheLongWay(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        architecture = []  # Default: Single hidden layer with 2 neurons, 1 output
+        architecture = [2]  # Default: Single hidden layer with 2 neurons, 1 output
         self.initialize_neurons(architecture)
 
         """
