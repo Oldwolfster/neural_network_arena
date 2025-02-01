@@ -14,18 +14,26 @@ class DisplayModel__Connection:
         pass
 
     def _get_start_point(self):
-        # If from_neuron is a tuple, assume it's (x, y) coordinates
-        if isinstance(self.from_neuron, tuple):
+
+        if isinstance(self.from_neuron, tuple): # If from_neuron is a tuple, assume it's (x, y) coordinates
             return self.from_neuron
         # Otherwise, assume it's a neuron object
-        else:
-            start_x = self.from_neuron.location_left + self.from_neuron.location_width
-            banner_height = self.from_neuron.location_height * 0.2  # Assume banner is 20% of neuron height
-            start_y = self.from_neuron.location_top + (banner_height * 0.5)  # Place in middle of banner
-            return (start_x, start_y)
-
+        start_x = self.from_neuron.location_left + self.from_neuron.location_width
+        banner_height = self.from_neuron.location_height * 0.2  # Assume banner is 20% of neuron height
+        start_y = self.from_neuron.location_top + (banner_height * 0.5)  # Place in middle of banner
+        return (start_x, start_y)
 
     def _get_end_point(self):
+
+        if isinstance(self.to_neuron, tuple):   # If from_neuron is a tuple, assume it's (x, y) coordinates
+            return self.to_neuron
+        # Otherwise assume to_neuron is a neuron object
+        end_x = self.to_neuron.location_left
+        end_y = self.to_neuron.location_top + self.to_neuron.location_height // 2
+        return (end_x, end_y)
+
+
+    def _get_end_point_old(self):
         # Always assume to_neuron is a neuron object
         end_x = self.to_neuron.location_left
         end_y = self.to_neuron.location_top + self.to_neuron.location_height // 2

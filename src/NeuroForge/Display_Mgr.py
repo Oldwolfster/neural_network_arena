@@ -20,6 +20,7 @@ class DisplayManager:
         self.models = []  # List specifically for display models
         mgr.max_epoch = self.get_max_epoch(db)
         mgr.max_iteration = self.get_max_iteration(db)
+        self.neurons = None
 
     def initialize(self, model_info_list):
         """Initialize and configure all display components."""
@@ -48,6 +49,8 @@ class DisplayManager:
         output_panel = DisplayPanelOutput(self.screen,problem_type               , width_pct=12, height_pct=80, left_pct=86, top_pct=10)
         self.components.append(output_panel)
 
+
+
     def render(self):
         """Render all components on the screen."""
         # Render models
@@ -58,6 +61,9 @@ class DisplayManager:
         for component in self.components:
             #print (f"DEBUG IN DM - Component = {component}")
             component.draw_me()
+
+
+
 
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""

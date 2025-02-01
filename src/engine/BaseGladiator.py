@@ -29,6 +29,7 @@ class Gladiator(ABC):
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self.full_architecture  = None
+        self.last_lost          = 0
 
     def train(self) -> str:
         if self.neuron_count == 0:
@@ -38,7 +39,7 @@ class Gladiator(ABC):
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             if epoch % 100 == 0:
-                print (f"Epoch: {epoch} for {self.gladiator} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                print (f"Epoch: {epoch} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
                 return convg_signal, self.full_architecture
@@ -61,7 +62,7 @@ class Gladiator(ABC):
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
             prediction =  1 if prediction_raw > 0 else 0      # Apply step function
             loss_gradient = error #For MSE it is linear.
-
+            self.last_lost = loss
 
             self.back_pass(sample, loss_gradient)  # Call model-specific logic
 

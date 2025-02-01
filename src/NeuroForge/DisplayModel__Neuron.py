@@ -31,9 +31,56 @@ class DisplayModel__Neuron:
         self.activation_value =0
         self.weight_text = ""
         self.banner_text = ""
+        self.mouse_x = 0
+        self.mouse_y = 0
         # Create EZPrint instance
         self.ez_printer = EZPrint(pygame.font.Font(None, 24)
                                   , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
+    def is_hovered(self, offset_x : int, offset_y : int):
+        """Check if the mouse is over this neuron."""
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        self.mouse_x =  mouse_x-offset_x
+        self.mouse_y = mouse_y - offset_y
+
+        print(f"left={self.location_left}\twidth={self.location_left + self.location_width  }\tmouse={mouse_x}tmouse2={self.mouse_x}")
+
+
+        return (self.location_left <= self.mouse_x <= self.location_left + self.location_width and
+                self.location_top <= self.mouse_y <= self.location_top + self.location_height)
+
+    def render_tooltip(self, screen):
+
+        """Render the tooltip with neuron details."""
+        tooltip_width = 250
+        tooltip_height = 140
+        tooltip_x = self.mouse_x + 10
+        tooltip_y = self.mouse_y + 10
+
+        # Ensure tooltip doesn't go off screen
+        if tooltip_x + tooltip_width > screen.get_width():
+            tooltip_x -= tooltip_width + 20
+        if tooltip_y + tooltip_height > screen.get_height():
+            tooltip_y -= tooltip_height + 20
+
+        # Draw background box
+        pygame.draw.rect(screen, (255, 255, 200), (tooltip_x, tooltip_y, tooltip_width, tooltip_height))
+        pygame.draw.rect(screen, (0, 0, 0), (tooltip_x, tooltip_y, tooltip_width, tooltip_height), 2)
+
+        # Font setup
+        font = pygame.font.Font(None, 22)
+
+        # Define tooltip content
+        info_lines = [
+            f"{self.label}",
+            f"Activation: {self.activation_value:.4f}",
+            f"Raw Sum: {self.raw_sum:.4f}",
+            f"Bias: {self.bias:.4f}",
+        ]
+
+        # Render text inside tooltip
+        for i, text in enumerate(info_lines):
+            label = font.render(text, True, (0, 0, 0))
+
 
     @classmethod
     def retrieve_inputs(cls, db: RamDB, iteration: int, epoch: int, modelID: str):
