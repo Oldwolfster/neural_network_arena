@@ -8,11 +8,12 @@ class SuzukiHayabusaTwoNeurons(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([2])
+        self.initialize_neurons([1])
         self.normalizers = self.training_data.normalizers  # Output: [0.333, 0.666]
         #self.training_data.set_normalization_min_max()
 
-    def training_iteration(self, training_data) -> float:
+
+    def forward_pass(self, training_data) -> float:
         inp_0 = training_data[0]  # First input
         inp_1 = training_data[1]  # Second input
         target = training_data[-1]  # Target value

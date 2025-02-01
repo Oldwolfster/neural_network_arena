@@ -4,6 +4,8 @@
 
 #Pygame objects
 screen = None
+tool_tip = None
+
 font            = None
 time_scale      = 'Iteration'
 epoch           = 1
