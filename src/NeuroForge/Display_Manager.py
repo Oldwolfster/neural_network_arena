@@ -4,8 +4,10 @@ from src.ArenaSettings import HyperParameters
 from src.NeuroForge import mgr
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayModel import DisplayModel
-from src.NeuroForge.DisplayPanelOutput import DisplayPanelOutput
+
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
+from src.NeuroForge.DisplayPanelLoss import DisplayPanelLoss
+from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
 from src.NeuroForge.DisplayUI_Reports import DisplayUI_Reports
 from src.engine.RamDB import RamDB
 
@@ -45,9 +47,16 @@ class DisplayManager:
         input_panel = DisplayPanelInput(self.screen, data_labels=self.data_labels, width_pct=12,height_pct=80, left_pct=2, top_pct=10  )
         self.components.append(input_panel)
 
-        # Add Output/Prediction panel
-        output_panel = DisplayPanelOutput(self.screen,problem_type               , width_pct=12, height_pct=80, left_pct=86, top_pct=10)
-        self.components.append(output_panel)
+        # Add Prediction panel
+        prediction_panel = DisplayPanelPrediction(self.screen,problem_type
+            , width_pct=12, height_pct=38, left_pct=86, top_pct=10)
+        self.components.append(prediction_panel)
+
+        # Add Loss breakdown panel
+        loss_panel = DisplayPanelLoss(self.screen,problem_type
+            , width_pct=12, height_pct=38, left_pct=86, top_pct=55)
+        self.components.append(loss_panel)
+
 
         # Create and add models
         self.models = self.create_display_models(72,90,   14,5, self.screen, self.hyper.data_labels, model_info_list)

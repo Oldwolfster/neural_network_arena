@@ -52,7 +52,7 @@ class Gladiator(ABC):
             inputs = sample[:-1]
             target = sample[-1]
             #self.run_forward_pass(inputs)
-            self.update_weights_before_and_more(inputs)
+            self.snapshot_weights_as_weights_before(inputs)
             # Step 2: Delegate to the model's logic for forward propagation
             model_style=""
             if hasattr(self, 'training_iteration') and callable(self.training_iteration):
@@ -95,12 +95,13 @@ class Gladiator(ABC):
                 loss_gradient=loss_gradient,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
+
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
 
         # Finish epoch and return convergence signal
         return self.mgr_sql.finish_epoch()
 
-    def update_weights_before_and_more(self, inputs: numpy.array):
+    def snapshot_weights_as_weights_before(self, inputs: numpy.array):
         """
         Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
         """
