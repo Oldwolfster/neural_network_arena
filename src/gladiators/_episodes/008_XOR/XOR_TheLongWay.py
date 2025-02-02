@@ -1,3 +1,5 @@
+import traceback
+
 import numpy as np
 
 from src.engine.ActivationFunction import Tanh, Sigmoid
@@ -5,7 +7,7 @@ from src.engine.BaseGladiator import Gladiator
 import math
 
 from src.engine.Neuron import Neuron
-from src.engine.Utils import smart_format
+from src.engine.Utils import smart_format, print_call_stack
 
 
 class XOR_TheLongWay(Gladiator):
@@ -89,8 +91,9 @@ class XOR_TheLongWay(Gladiator):
         prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
         self.back_pass_distribute_error(output_neuron, prev_layer_activations)
 
+
         # Step 4: Adjust weights for the hidden neurons (⬅️ Last step we need)
-        for layer_index in range(len(Neuron.layers) - 1, 0, -1):  # Iterate backwards (excluding input layer)
+        for layer_index in range(len(Neuron.layers)       - 2, 0, -1):  # Iterate backwards (excluding input layer)
             prev_layer_activations = [n.activation_value for n in Neuron.layers[layer_index - 1]]
             for neuron in Neuron.layers[layer_index]:
                 self.back_pass_distribute_error(neuron, prev_layer_activations)
@@ -133,20 +136,26 @@ class XOR_TheLongWay(Gladiator):
         - First hidden layer uses inputs from training data.
         - All other neurons use activations from the previous layer.
         """
-        weights = neuron.weights_before  # Get pre-update weights
+
         learning_rate = neuron.learning_rate
         error_signal = neuron.error_signal
 
         weight_formulas = []
 
         # FORMULA: weight_new = weight_old + (learning_rate * error_signal * previous_layer_value)
-        for i, (w, prev_value) in enumerate(zip(weights, prev_layer_values)):
-            weights[i] += learning_rate * error_signal * prev_value
-            calculation = f"w{i} = {smart_format(w)} + {smart_format(learning_rate)} * {smart_format(error_signal)} * {smart_format(prev_value)}"
+        #print(f"Weights{neuron.weights}\tprev_layer_values{prev_layer_values}")
+
+        #print(f"Weights_before (before building weight formula) { Neuron.layers[1][0].weights_before}")
+        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
+            neuron.weights[i] += learning_rate * error_signal * prev_value
+            neuron_id = f"{neuron.layer_id},{neuron.position}"
+            calculation = f"w{i} Neuron ID{neuron_id} = {smart_format(w)} + {smart_format(learning_rate)} * {smart_format(error_signal)} * {smart_format(prev_value)}"
+            #print(f"Weight update formula:{calculation}")
             weight_formulas.append(calculation)
 
         # Bias update
         neuron.bias += learning_rate * error_signal
+
         weight_formulas.append(f"B = {smart_format(neuron.bias)} + {smart_format(learning_rate)} * {smart_format(error_signal)}")
 
         neuron.weight_adjustments = '\n'.join(weight_formulas)

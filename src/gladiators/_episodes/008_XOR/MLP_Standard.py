@@ -14,7 +14,7 @@ class MLP_Standard(Gladiator):
     def __init__(self, *args, architecture=None):
         super().__init__(*args)
         if architecture is None:
-            architecture = []  # Default: Single hidden layer with 2 neurons, 1 output
+            architecture = [2]  # Default: Single hidden layer with 2 neurons, 1 output
         self.initialize_neurons(architecture)
 
         # Assign activation functions (Tanh for hidden layers, Sigmoid for output)

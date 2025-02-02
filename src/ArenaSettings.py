@@ -14,11 +14,11 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 2         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 333         # Number of times training run will cycle through all training data
     training_set_size       :int    = 111       # Qty of training data
     min_no_epochs           :int    = 555        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it
-    default_learning_rate   :float  = .001     # Affects magnitude of weight adjustments #.0001 Equalizer
+    default_learning_rate   :float  = 1     # Affects magnitude of weight adjustments #.0001 Equalizer
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
     accuracy_threshold      :float  = .1        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision

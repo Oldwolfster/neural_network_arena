@@ -13,9 +13,9 @@ class Neuron:
         self.nid = nid
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
         self.num_of_weights = num_of_weights
-        self.weights = np.array([(nid + 1) * 10 for _ in range(num_of_weights)], dtype=np.float64)
+        self.weights_before = np.array([(nid + 1) * 10 for _ in range(num_of_weights)], dtype=np.float64)
+        self.weights = self.weights_before.copy()       #Done so it's available to create view
         self.neuron_inputs = np.zeros_like(self.weights)
-        self.weights_before = self.weights.copy()       #Done so it's available to create view
         self.bias = float(nid +1)                      # Explicitly set as float
         self.bias_before = self.bias                    #Done so it's available to create view
         self.learning_rate = learning_rate

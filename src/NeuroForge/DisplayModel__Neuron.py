@@ -81,6 +81,8 @@ class DisplayModel__Neuron:
             WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
             ORDER BY epoch, iteration, model, nid 
         """
+
+
         params = (model_id, iteration, epoch, self.nid)
         # print(f"SQL in update_me: {SQL}")
         # print(f"Params: {params}")
@@ -341,11 +343,8 @@ class DisplayModel__Neuron:
         pygame.draw.rect(screen, (0, 0, 0), (tooltip_x, tooltip_y, tooltip_width, tooltip_height), 2)
 
         #Header
-        default_color = (0,0,0)
-        pos_color = (34,139,34)
-        neg_color = (220,20,60) #crimson
         font2 = pygame.font.Font(None, 40)
-        head1 = font2.render("Forward Prop       Back Prop", True, default_color)
+        head1 = font2.render("Forward Prop       Back Prop", True, mgr.color_black)
         screen.blit(head1 , (tooltip_x + 5, tooltip_y + 5))
 
         # Font setup
@@ -354,25 +353,20 @@ class DisplayModel__Neuron:
         col_size = 60
         header_spac = 39
         for x, text_col in enumerate(self.tooltip_columns):  # loop through columns
-            for y, text_cell in enumerate(text_col):
+            for y, text_cell in enumerate(text_col): #print(f"x={x}\ty={y}\ttext_cell='{text_cell}'")
                 # Set a default color. You might define a normal_color if needed.
-                this_color = default_color  # or some default color
-
-                print(f"x={x}\ty={y}\ttext_cell='{text_cell}'")
-
+                this_color = mgr.color_black  # or some default color
                 if x == 7 and y > 0 and len(text_cell) > 0:  # Adjustment column
-                            try:
-                                # Attempt to convert the text_cell to a float
-                                val = float(text_cell)
-                                this_color = pos_color if val >= 0 else neg_color
-                            except ValueError as e:
-                                print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
-                                # Optionally, set this_color to a fallback (here normal_color) if conversion fails
-                                this_color = default_color
-
+                    try:
+                        # Attempt to convert the text_cell to a float
+                        val = float(text_cell)
+                        this_color = mgr.color_greenforest if val >= 0 else mgr.color_crimson
+                    except ValueError as e:
+                       # print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
+                        # Optionally, set this_color to a fallback (here normal_color) if conversion fails
+                        this_color = mgr.color_black
                 label = font.render(text_cell, True, this_color)
-                screen.blit(label, (tooltip_x + x * col_size + 5,
-                                     header_spac + (tooltip_y + 5 + y * 20)))
+                screen.blit(label, (tooltip_x + x * col_size + 5,  header_spac + (tooltip_y + 5 + y * 20)))
 
 
 

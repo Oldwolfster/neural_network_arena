@@ -22,9 +22,9 @@ class Predict_Income_2_Inputs(BaseArena):
         for _ in range(self.num_samples):
             years_exp   = random.uniform(0, 40)
             college     = random.uniform(0, 8)
-            base_salary = 24000
-            coeff_exp   = 22000
-            coeff_col   = 2000
+            base_salary = 50000
+            coeff_exp   = 1000
+            coeff_col   = 5000
             noise       = random.gauss(0, 0000)  # Add some noise for variance
             salary      = (base_salary + (coeff_exp * years_exp)
                                        + (coeff_col * college) + noise)

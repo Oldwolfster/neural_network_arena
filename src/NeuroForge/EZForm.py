@@ -40,14 +40,14 @@ class EZForm(EZSurface):
         )
 
         # Adjust starting Y position for fields (below the banner)
-        field_start_y = banner_height + self.spacing
+        field_start_y = banner_height + self.spacing + 10
         total_fields = len(self.fields)
-        field_spacing = (self.height - field_start_y) // (total_fields + 1)  # Space between fields, vertically
+        field_spacing = (self.height - field_start_y) // (total_fields)  # Space between fields, vertically
 
         for i, (label, value) in enumerate(self.fields.items()):
             # Calculate positions for the label and value
             y_pos_label = field_start_y + (i * field_spacing)
-            y_pos_value = y_pos_label + 30  # Value box below label
+            y_pos_value = y_pos_label + 25  # Value box below label
 
             # Render label
             label_surface = self.font.render(label, True, self.font_color)
