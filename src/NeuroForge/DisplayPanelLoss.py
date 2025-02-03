@@ -12,7 +12,7 @@ class DisplayPanelLoss(EZForm):
                 "Loss Value": "Who cares?",
                 "Gradient Factor":"2",
                 "Gradient Formula" : "Factor * Error",
-                "Gradient Value": "0.0"
+                "Loss Gradient": "0.0"
             }
             self.screen = screen
             # Pass the calculated absolute dimensions to the parent class
@@ -21,6 +21,6 @@ class DisplayPanelLoss(EZForm):
     def update_me(self, rs: dict):
         gradient = float(rs.get("loss_gradient", 0.0))
         # Update the form fields
-        self.fields["Gradient Value"] = smart_format(gradient)
+        self.fields["Loss Gradient"] = smart_format(gradient)
 
 

@@ -85,7 +85,7 @@ class XOR_TheLongWay(Gladiator):
 
         # Step 2: Compute error signals for hidden neurons
         for hidden_neuron in Neuron.layers[0]:  # Iterate over first hidden layer
-            self.back_pass__error_signal_for_hidden(output_neuron, hidden_neuron)
+            self.back_pass__error_signal_for_hidden( hidden_neuron)
 
         # Step 3: Adjust weights for the output neuron
         prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
@@ -101,9 +101,29 @@ class XOR_TheLongWay(Gladiator):
         for neuron in Neuron.layers[0]:  # First hidden layer
             self.back_pass_distribute_error(neuron, training_sample[:-1])  # Use raw inputs
 
+    def back_pass__error_signal_for_hidden(self, to_neuron: Neuron):
+        """
+        Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
+        """
+        activation_gradient = to_neuron.activation_gradient
+        total_backprop_error = 0  # Sum of (next neuron error * connecting weight)
+        to_neuron.error_signal_calcs=""
+
+        #print(f"Calculating error signal epoch/iter:{self.epoch}/{self.iteration} for neuron {to_neuron.layer_id},{to_neuron.position}")
+        # 🔄 Loop through each neuron in the next layer
+        for next_neuron in Neuron.layers[to_neuron.layer_id + 1]:  # Next layer neurons
+            #print (f"getting weight and error from {to_neuron.layer_id},{to_neuron.position}")
+            weight_to_next = next_neuron.weights_before[to_neuron.position]  # Connection weight
+            error_from_next = next_neuron.error_signal  # Next neuron’s error signal
+            total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
+            to_neuron.error_signal_calcs= to_neuron.error_signal_calcs + f"{smart_format( weight_to_next)}!{smart_format( error_from_next)}@"
+
+        #print (f"yoooo{to_neuron.error_signal_calcs}")
+        # 🔥 Compute final error signal for this hidden neuron
+        to_neuron.error_signal = activation_gradient * total_backprop_error
 
 
-    def back_pass__error_signal_for_hidden(self, from_neuron : Neuron, to_neuron: Neuron):
+    def back_pass__error_signal_for_hiddenOld(self, from_neuron : Neuron, to_neuron: Neuron):
         # Formula -> Activation gradient * Sum(Next Layer weight * Next neuron  Error signal)
         # NOTE from_neuron is to the right because it's going backwards
         #In the case of single output there is only one value to sum, the output neuron
@@ -155,10 +175,9 @@ class XOR_TheLongWay(Gladiator):
 
         # Bias update
         neuron.bias += learning_rate * error_signal
-
-        weight_formulas.append(f"B = {smart_format(neuron.bias)} + {smart_format(learning_rate)} * {smart_format(error_signal)}")
-
+        weight_formulas.append(f"B = {smart_format(neuron.bias_before)} + {smart_format(learning_rate)} * {smart_format(error_signal)}")
         neuron.weight_adjustments = '\n'.join(weight_formulas)
+
 
 
 
