@@ -13,7 +13,7 @@ from src.NeuroForge.mgr import * # Imports everything into the local namespace
 
 class DisplayModel__Neuron:
     input_values = []   # Class variable to store inputs
-    def __init__(self, nid:int, layer: int, position: int, output_layer: int):
+    def __init__(self, nid:int, layer: int, position: int):
         #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
         self.location_left=0
         self.location_top=0
@@ -22,8 +22,6 @@ class DisplayModel__Neuron:
         self.nid = nid
         self.layer = layer
         self.position = position
-        self.output_layer = output_layer
-        print(f"OUTPUT LAYER{output_layer}")
         self.label = f"{layer}-{position}" #need to define, try to use existing standard
         self.weights = []
         self.neuron_inputs = []
@@ -265,7 +263,7 @@ class DisplayModel__Neuron:
 
         return backprop_data
 
-    def parse_error_signal(self, input_string):
+    def parse_error_signal(input_string):
         """
         this input  "0.1!-0.01@0.2!-0.02@0.3!0.03@"
         should generate [[0.1, 0.2, 0.3], [-0.01, -0.02, 0.03]]
@@ -274,18 +272,19 @@ class DisplayModel__Neuron:
         pairs = input_string.strip('@').split('@')
 
         # Initialize two empty lists to store the first and second numbers of each pair
-        err_sigs = []
-        weights = []
+        first_numbers = []
+        second_numbers = []
 
         # Iterate through each pair
         for pair in pairs:
             # Split the pair into two numbers using '!' as the delimiter
             num1, num2 = pair.split('!')
             # Convert the strings to floats and append to the respective lists
-            weights.append(float(num1))
-            err_sigs.append(float(num2))
-        contributions = [w * e for w, e in zip(weights, err_sigs)]
-        return [weights, err_sigs, contributions] # Return the three lists as a list of lists
+            first_numbers.append(float(num1))
+            second_numbers.append(float(num2))
+
+        # Return the two lists as a list of lists
+        return [first_numbers, second_numbers]
 
     def tooltip_generate_text(self):
         self.tooltip_columns.clear()
@@ -293,45 +292,13 @@ class DisplayModel__Neuron:
         self.tooltip_columns_for_backprop()
 
 
-    def tooltip_columns_for_error_sig(self):
-        if self.layer == self.output_layer: # This is an output neuron
-            self.tooltip_columns_for_error_sig_outputlayer()
-        else:
-            self.tooltip_columns_for_error_sig_hiddenlayer()
-
-    def tooltip_columns_for_error_sig_outputlayer(self):
-        self.tooltip_columns[4].extend(["Error Signal = Loss Gradient * Activation Gradient"])
-        self.tooltip_columns[4].extend([f"Error Signal = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
-
-    def tooltip_columns_for_error_sig_hiddenlayer(self):
-        weights, err_sig, contributions = self.parse_error_signal(self.error_signal_calcs)
-        from_neurons = self.generate_from_neuron_labels(len(weights), self.layer + 1) #the +1 gets the next layer
-        string_ver_weights = [str(w) for w in weights]
-        string_ver_err_sig = [str(w) for w in err_sig]
-        string_ver_contributions = [str(w) for w in contributions]
-
-
-        self.tooltip_columns[4].extend(["Neuron"] + from_neurons + ["Total Sum:", "Err Signal: Sum * Act Gradient ="]   )
-        self.tooltip_columns[5].extend(["", "", "Wt Val"] + string_ver_weights )
-        self.tooltip_columns[6].extend(["", "", "Err Sig"] + string_ver_err_sig)
-        self.tooltip_columns[7].extend(["", "", "Weighted Contribution"])
-        self.tooltip_columns[8].extend(["", "", "", *string_ver_contributions, smart_format(sum(contributions)), smart_format(sum(contributions)* self.activation_gradient)]) # +  + sum(contributions))
-
-
-
-        #print(f"{self.tooltip_columns[5]}")
-
-    def generate_from_neuron_labels(self, num_of_neurons: int, layer_id: int):
-        # Generate a list of neuron labels in the format "layer_id,neuron_index"
-        return [f"{layer_id},{i}" for i in range(num_of_neurons)]
-
     def tooltip_columns_for_backprop(self):
         temp_list = [""]    #Blank column dividing forward and back
 
         self.tooltip_columns.append(temp_list)
         temp_list = ["Input"]
         self.tooltip_columns.append(temp_list)
-        temp_list = ["Err Sig"]
+        temp_list = ["Err Sgl"]
         self.tooltip_columns.append(temp_list)
         temp_list = ["L Rate"]
         self.tooltip_columns.append(temp_list)
@@ -352,7 +319,10 @@ class DisplayModel__Neuron:
         self.tooltip_columns[8].extend(bp_info[1]) # original Weight
         self.tooltip_columns[9].extend(bp_info[6]) # new Weight
         self.tooltip_columns[4].extend(["Input * Error Signal * Learning Rate = Adjustment",""]) #Includes blank line
-        self.tooltip_columns_for_error_sig()
+
+        self.tooltip_columns[4].extend(["Error Signal = Loss Gradient * Activation Gradient"])
+        self.tooltip_columns[4].extend([f"Error Signal = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+
 
     def tooltip_columns_for_forward_pass(self):
         temp_list = ["Input"]
@@ -392,7 +362,7 @@ class DisplayModel__Neuron:
         self.tooltip_columns[0].append(f"Act Gradient")
         self.tooltip_columns[2].append(f"= {smart_format(self.activation_gradient)}")
         self.tooltip_columns[0].append( get_activation_derivative_formula(f"{self.activation_function}"))
-        self.tooltip_columns[0].extend(["(How much 'Raw Sum' contri-","butes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
+        self.tooltip_columns[0].extend(["(How much 'Raw Sum' contributes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
 
     def render_tooltip(self, screen):   #"""Render the tooltip with neuron details."""
         tooltip_width = 619

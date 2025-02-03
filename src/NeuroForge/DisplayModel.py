@@ -180,7 +180,7 @@ class DisplayModel(EZSurface):
                 extra_height_to_center = extra_height  / 2
 
 
-                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index)
+                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(architecture)-1)
                 y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
 
                 # 🔹 Assign calculated position & size

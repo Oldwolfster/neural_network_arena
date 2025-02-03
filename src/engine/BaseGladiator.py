@@ -30,6 +30,8 @@ class Gladiator(ABC):
         self.number_of_epochs   = self.hyper.epochs_to_run
         self.full_architecture  = None
         self.last_lost          = 0
+        self.iteration          = 0
+        self.epoch              = 0
 
     def train(self) -> str:
         if self.neuron_count == 0:
@@ -38,6 +40,7 @@ class Gladiator(ABC):
 
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
+            self.epoch = epoch      # Set so the model has access
             if epoch % 100 == 0:
                 print (f"Epoch: {epoch} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
@@ -48,6 +51,7 @@ class Gladiator(ABC):
 
     def run_an_epoch(self, epoch_num: int) -> bool:
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
+            self.iteration = i      # Set so the model has access
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
             target = sample[-1]
@@ -72,7 +76,7 @@ class Gladiator(ABC):
             error = target - prediction_raw
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
             prediction =  1 if prediction_raw > 0 else 0      # Apply step function
-            loss_gradient = error #For MSE it is linear.
+            loss_gradient = error * 2 #For MSE it is linear.
             self.last_lost = loss
 
             if model_style=="New":
