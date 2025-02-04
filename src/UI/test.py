@@ -1,110 +1,110 @@
 import pygame
-import pygame_menu
+import pygame_gui
 
-# Initialize Pygame
-pygame.init()
+def create_report_parameters_form(window_surface, manager):
+    # Create a panel to hold the form elements
+    panel_rect = pygame.Rect(50, 50, 400, 500)
+    panel = pygame_gui.elements.UIPanel(relative_rect=panel_rect,
+                                        manager=manager)
 
-# Screen dimensions
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pygame Menu Example")
+    # Text Entry Field
+    text_entry_rect = pygame.Rect(10, 10, 380, 40)
+    text_entry = pygame_gui.elements.UITextEntryLine(relative_rect=text_entry_rect,
+                                                     manager=manager,
+                                                     container=panel,
+                                                     placeholder_text="Enter Report Name")
 
-# A simple callback to use for the menu items
-def some_callback():
-    print("Callback executed!")
+    # Drop-down Menu
+    drop_down_rect = pygame.Rect(10, 60, 380, 40)
+    drop_down = pygame_gui.elements.UIDropDownMenu(options_list=['Option 1', 'Option 2', 'Option 3'],
+                                                   starting_option='Option 1',
+                                                   relative_rect=drop_down_rect,
+                                                   manager=manager,
+                                                   container=panel)
 
-# Function to create and return the menu
-def create_menu(WIDTH, HEIGHT):
-    # Create the main menu
-    menu = pygame_menu.Menu('Main Menu', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
+    # Slider
+    slider_rect = pygame.Rect(10, 120, 380, 40)
+    slider = pygame_gui.elements.UIHorizontalSlider(relative_rect=slider_rect,
+                                                    start_value=50,
+                                                    value_range=(0, 100),
+                                                    manager=manager,
+                                                    container=panel)
 
-    # --- Submenu: The Forge ---
-    forge_menu = pygame_menu.Menu('The Forge', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-    forge_menu.add.button('New Model', some_callback)
-    forge_menu.add.button('Load Template', some_callback)
-    forge_menu.add.button('Edit Existing', some_callback)
-    forge_menu.add.button('Export/Save', some_callback)
-    forge_menu.add.button('Back', pygame_menu.events.BACK)
 
-    # --- Submenu: Gladiators ---
-    gladiators_menu = pygame_menu.Menu('Gladiators', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-    gladiators_menu.add.button('Train a Gladiator', some_callback)
-    gladiators_menu.add.button('View Gladiators', some_callback)
-    gladiators_menu.add.button('Compare Gladiators', some_callback)
-    gladiators_menu.add.button('Fine-tune Training', some_callback)
-    gladiators_menu.add.button('Back', pygame_menu.events.BACK)
 
-    # --- Submenu: Arenas ---
-    arenas_menu = pygame_menu.Menu('Arenas', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-    arenas_menu.add.button('Choose Arena', some_callback)
-    arenas_menu.add.button('Create Custom Arena', some_callback)
-    arenas_menu.add.button('Modify Arena', some_callback)
-    arenas_menu.add.button('Test Gladiators in Arena', some_callback)
-    arenas_menu.add.button('Back', pygame_menu.events.BACK)
+    # Radio Button Group
+    radio_button_rect1 = pygame.Rect(10, 240, 380, 40)
+    radio_button1 = pygame_gui.elements.UIButton(relative_rect=radio_button_rect1,
+                                                 text="Option A",
+                                                 manager=manager,
+                                                 container=panel,
+                                                 object_id="#option_a")
 
-    # --- Submenu: Reporting ---
-    reporting_menu = pygame_menu.Menu('Reporting', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-    reporting_menu.add.button('Training History', some_callback)
-    reporting_menu.add.button('Visual Debugger', some_callback)
-    reporting_menu.add.button('Performance Charts', some_callback)
-    reporting_menu.add.button('Export Reports', some_callback)
-    reporting_menu.add.button('Back', pygame_menu.events.BACK)
+    radio_button_rect2 = pygame.Rect(10, 290, 380, 40)
+    radio_button2 = pygame_gui.elements.UIButton(relative_rect=radio_button_rect2,
+                                                 text="Option B",
+                                                 manager=manager,
+                                                 container=panel,
+                                                 object_id="#option_b")
 
-    # --- Submenu: Settings ---
-    settings_menu = pygame_menu.Menu('Settings', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-    settings_menu.add.button('Appearance', some_callback)
-    settings_menu.add.button('Computation', some_callback)
-    settings_menu.add.button('Data & Storage', some_callback)
-    settings_menu.add.button('Developer Mode', some_callback)
-    settings_menu.add.button('Back', pygame_menu.events.BACK)
+    radio_button_rect2 = pygame.Rect(10, 340, 380, 40)
+    radio_button2 = pygame_gui.elements.UIButton(relative_rect=radio_button_rect3,
+                                                 text="Option C",
+                                                 manager=manager,
+                                                 container=panel,
+                                                 object_id="#option_b")
 
-    # Add main menu items linking to each submenu
-    menu.add.button('The Forge', forge_menu)
-    menu.add.button('Gladiators', gladiators_menu)
-    menu.add.button('Arenas', arenas_menu)
-    menu.add.button('Reporting', reporting_menu)
-    menu.add.button('Settings', settings_menu)
-    menu.add.button('Quit', pygame_menu.events.EXIT)
+    # Submit Button
+    submit_button_rect = pygame.Rect(10, 350, 380, 40)
+    submit_button = pygame_gui.elements.UIButton(relative_rect=submit_button_rect,
+                                                 text="Generate Report",
+                                                 manager=manager,
+                                                 container=panel)
 
-    return menu
+    return panel, text_entry, drop_down, slider,  radio_button1, radio_button2, submit_button
 
-# Create the menu
-menu = create_menu(WIDTH, HEIGHT)
+def main():
+    pygame.init()
 
-# Main game loop
-running = True
-show_menu = False  # Controls whether the menu is displayed
+    # Set up the window and UI manager
+    window_surface = pygame.display.set_mode((800, 600))
+    manager = pygame_gui.UIManager((800, 600))
 
-while running:
-    # Handle Pygame events
-    events = pygame.event.get()
-    for event in events:
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:  # Toggle menu on ESC key
-                show_menu = not show_menu
+    # Create the form
+    form_elements = create_report_parameters_form(window_surface, manager)
 
-    # Clear the screen
-    screen.fill((0, 0, 0))
+    clock = pygame.time.Clock()
+    is_running = True
 
-    # Draw your game here (if not showing the menu)
-    if not show_menu:
-        # Example: Draw something on the screen
-        pygame.draw.rect(screen, (255, 0, 0), (100, 100, 200, 200))
+    while is_running:
+        time_delta = clock.tick(60) / 1000.0
 
-    # Update the menu if it's visible
-    if show_menu:
-        # Update the menu and check if it should close
-        menu.update(events)
-        menu.draw(screen)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                is_running = False
 
-        # Check if the menu is requesting to close (e.g., via the close button or "Quit" option)
-        if menu.is_enabled() and not menu.is_active():
-            show_menu = False  # Hide the menu
+            if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                if event.ui_element == form_elements[-1]:  # Submit button
+                    print("Report Parameters:")
+                    print(f"Report Name: {form_elements[1].get_text()}")
+                    print(f"Selected Option: {form_elements[2].selected_option}")
+                    print(f"Slider Value: {form_elements[3].get_current_value()}")
+                    print(f"Feature Enabled: {form_elements[4].checked}")
+                    if form_elements[5].check_pressed():
+                        print("Selected Option: A")
+                    elif form_elements[6].check_pressed():
+                        print("Selected Option: B")
 
-    # Update the display
-    pygame.display.flip()
+            manager.process_events(event)
 
-# Quit Pygame
-pygame.quit()
+        manager.update(time_delta)
+
+        window_surface.fill((255, 255, 255))
+        manager.draw_ui(window_surface)
+
+        pygame.display.update()
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,8 @@
 import pygame
 import pygame_menu
 from src.NeuroForge import mgr
+from src.engine.RamDB import RamDB
+
 # A simple callback to use for the menu items
 show_menu = False
 
@@ -10,7 +12,7 @@ def close_menu():
     mgr.menu_active = False
 
 
-def create_menu(WIDTH, HEIGHT):
+def create_menu(WIDTH : int, HEIGHT : int, db: RamDB):
     # Create the main menu
     menu = pygame_menu.Menu('Main Menu', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
 
@@ -39,12 +41,8 @@ def create_menu(WIDTH, HEIGHT):
     arenas_menu.add.button('Back', pygame_menu.events.BACK)
 
     # --- Submenu: Reporting ---
-    reporting_menu = pygame_menu.Menu('Reporting', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
-    reporting_menu.add.button('Training History', some_callback)
-    reporting_menu.add.button('Visual Debugger', some_callback)
-    reporting_menu.add.button('Performance Charts', some_callback)
-    reporting_menu.add.button('Export Reports', some_callback)
-    reporting_menu.add.button('Back', pygame_menu.events.BACK)
+    # Use the separate function to generate the dynamic reporting menu
+    reporting_menu = create_reporting_menu(WIDTH, HEIGHT, db)
 
     # --- Submenu: Settings ---
     settings_menu = pygame_menu.Menu('Settings', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
@@ -61,78 +59,60 @@ def create_menu(WIDTH, HEIGHT):
     menu.add.button('Reporting', reporting_menu)
     menu.add.button('Settings', settings_menu)
     menu.add.button('Quit', close_menu )
-
     return menu
 
+from src.engine.Utils import dynamic_instantiate
+def load_report(report_name, db: RamDB):
+    """Callback function for opening a report.
 
-
-""" Below code does bring up the damn menu
-def draw_button(screen):    # Draw the "Open Menu" button
-    WHITE = (255, 255, 255)
-    BLUE = (50, 50, 255)
-    top = 40
-    width = 150
-    left = 40
-    height = 40
-    menu_button_rect = pygame.Rect(left,top, width,  height)
-    pygame.draw.rect( screen, BLUE, menu_button_rect)
-    font = pygame.font.SysFont(None, 36)
-    text_surface = font.render("Open Menu", True, WHITE)
-    text_rect = text_surface.get_rect(center=menu_button_rect.center)
+    The closure happens in the lambda function that captures `db` and `report_name`
+    when creating the menu buttons.
+    """
+    print(f"Loading report: {report_name}")
+    report = dynamic_instantiate(report_name, "Reports", db)
+    report.run_report() # db is now inside the report instance (from the constructor)
 
 
 
-def pygame_loop():
-    menu = None
-    pygame.init()
-    WIDTH, HEIGHT = 800, 600
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Pygame Menu Standalone Test")
-    clock = pygame.time.Clock()
+def create_reporting_menu(WIDTH: int, HEIGHT: int, db : RamDB):
+    """Creates the Reporting menu dynamically based on available reports."""
+    reporting_menu = pygame_menu.Menu('Reporting', WIDTH, HEIGHT, theme=pygame_menu.themes.THEME_DARK)
 
-    running = True
-    while running:
-        events = pygame.event.get()
-        for event in events:
-            if event.type == pygame.QUIT:
-                running = False
-            # Toggle the menu with the 'M' key
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_m:
-                    print("M has been pressed")
-                    if menu is None:
-                        menu =create_menu(400,400)
-                        print("Here 2")
-                        print(f"menu.is_enabled()={menu.is_enabled()}")
-                    else:
-                        if menu.is_enabled():
-                            print("Here 3")
-                            print(f"menu.is_enabled()={menu.is_enabled()}")
-                            menu.disable()
-                        else:
-                            menu.enable()
-                            print("Here 4")
-                            print(f"menu.is_enabled()={menu.is_enabled()}")
+    reports = list_reports("Reports")  # Scan the reports folder
 
-        # Clear the screen
-        screen.fill((0, 0, 0))
-        draw_button(screen)
-        # If the menu is enabled, update and draw it on top of the screen.
-        if menu and menu.is_enabled():
-            menu.update(events)
-            menu.draw(screen)
-        else:
-            # Optionally, display instructions when the menu is not active.
-            font = pygame.font.SysFont(None, 36)
-            text_surface = font.render("Press M to open the menu", True, (255, 255, 255))
-            screen.blit(text_surface, (50, 50))
+    if reports:
+        for report in reports:
+            reporting_menu.add.button(report, lambda r=report: load_report(r, db))
+    else:
+        reporting_menu.add.label("No Reports Found")
 
-        pygame.display.flip()
-        clock.tick(60)
+    reporting_menu.add.button('Back', pygame_menu.events.BACK)
 
-    pygame.quit()
+    return reporting_menu
 
-if __name__ == '__main__':
-    pygame_loop()
+import os
 
-"""
+def list_reports(directory="reports"):
+    """Returns a list of valid report files (.py) from the reports folder (one level up from UI)."""
+
+    # Navigate up one level (from UI to src)
+    base_dir = os.path.dirname(__file__)  # Current directory (UI/)
+    search_directory = os.path.join(os.path.dirname(base_dir), directory)  # Moves up to src/, then into reports/
+
+    reports = []
+
+    if os.path.exists(search_directory):
+        print(f"Searching directory: {search_directory}")  # Debugging output
+
+        for file in os.listdir(search_directory):
+            print(f"Found file: {file}")  # Debugging output
+
+            if file.endswith(".py") and not file.startswith("_"):  # Only .py files, ignore _ prefixed
+                reports.append(file[:-3])
+                print(f"Added to report list: {file}")  # Debugging output
+
+    else:
+        print(f"Directory not found: {search_directory}")  # Debugging output
+
+    print(f"Final reports list: {reports}")  # Debugging output
+    return reports
