@@ -4,6 +4,10 @@ import inspect
 
 import pygame
 
+from src.Reports._BaseReport import BaseReport
+from src.engine.BaseArena import BaseArena
+from src.engine.BaseGladiator import Gladiator
+
 
 def chunk_list(lst: list, chunk_size: int):
     for i in range(0, len(lst), chunk_size):
@@ -68,6 +72,63 @@ def draw_gradient_rect( surface, rect, color1, color2):
             int(color1[j] * (1 - ratio) + color2[j] * ratio) for j in range(3)
         ]
         pygame.draw.line(surface, blended_color, (rect.x, rect.y + i), (rect.x + rect.width, rect.y + i))
+import os
+import importlib
+import inspect
+
+def dynamic_instantiate(class_name, base_path='arenas', *args):
+    """
+    Dynamically instantiate an object of any class inheriting from BaseArena
+    or BaseGladiator in the specified file, avoiding class name mismatches.
+
+    Args:
+        class_name (str): The name of the file to search within (file must end in .py).
+        base_path (str): The base module path to search within.
+        *args: Arguments to pass to the class constructor.
+
+    Returns:
+        object: An instance of the specified class.
+
+    Raises:
+        ImportError: If the file or class is not found.
+        ValueError: If the same file is found in multiple subdirectories or no matching class found.
+    """
+    # Set up the directory to search
+    search_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), base_path.replace('.', os.sep))
+    matched_module = None
+
+    # Walk through directories to find the file
+    for root, dirs, files in os.walk(search_directory):
+        for file in files:
+            if file == f"{class_name}.py":
+                # Calculate relative path from src folder and clean it up
+                relative_path = os.path.relpath(root, os.path.dirname(os.path.dirname(__file__)))
+                # Clean up extra ".." and slashes for importlib
+                relative_path = relative_path.strip(os.sep).replace(os.sep, '.')
+                module_path = f"{relative_path}.{class_name}"
+
+                # Debugging output to verify paths
+                print(f"Found file: {file}")
+                print(f"Module path: {module_path}")
+
+                # Check for duplicates
+                if matched_module:
+                    raise ValueError(f"Duplicate module found for {class_name}: {matched_module} and {module_path}")
+
+                # Set matched module path
+                matched_module = module_path
+
+    if not matched_module:
+        raise ImportError(f"Module {class_name} not found in {base_path} or any subdirectories.")
+
+    # Import module and instantiate class
+    module = importlib.import_module(matched_module)
+    for _, obj in inspect.getmembers(module, inspect.isclass):
+        if (issubclass(obj, BaseReport) or issubclass(obj, BaseArena) or issubclass(obj, Gladiator)) and obj.__module__ == module.__name__:
+            return obj(*args)
+
+    raise ImportError(f"No class inheriting from BaseArena or BaseGladiator found in {class_name}.py")
+
 
 
 

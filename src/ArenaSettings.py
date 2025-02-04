@@ -14,7 +14,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 2         # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 333         # Number of times training run will cycle through all training data
     training_set_size       :int    = 111       # Qty of training data
     min_no_epochs           :int    = 555        # run for at least this many epochs
     default_neuron_weight   :float  = .0        # Any initial value works as the training data will adjust it

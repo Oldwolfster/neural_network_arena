@@ -23,7 +23,7 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     last_iteration = mgr.iteration -1 # -1 makes it trigger it the first time.
     last_epoch = mgr.epoch
     menu_button_rect= create_menu_button_rect()
-    menu = create_menu(mgr.screen_width, mgr.screen_height)
+    menu = create_menu(mgr.screen_width, mgr.screen_height, db)
 
     # Pygame main loop
     running = True
@@ -45,7 +45,7 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
         mgr.screen.fill((255, 255, 255))  # Clear screen
         display_manager.render() # Render models
         draw_button(menu_button_rect)
-        if mgr.menu_active :
+        if mgr.menu_active and menu.is_enabled() :
             menu.update(events)
             menu.draw(mgr.screen)
 

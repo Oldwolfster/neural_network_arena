@@ -4,7 +4,7 @@ import sqlite3
 import numpy as np
 from tabulate import tabulate
 
-from src.engine.Utils import print_call_stack
+
 
 
 class RamDB:
@@ -53,7 +53,7 @@ class RamDB:
         return schema
 
 
-    def _create_table(self, table_name, schema):
+    def _create_table(self, table_name, schema): #I think this is being ignored due to another version lower
         """
         Create a SQLite table dynamically with context fields prioritized and a composite primary key.
         """
