@@ -47,13 +47,13 @@ class Iteration:
     def is_true(self) -> int:
         if self.accuracy_threshold == -696:
             raise ValueError("accuracy_threshold has not been set!")
+        if self.target == 0:
+            return self.prediction == 0
         return int(self.relative_error <= self.accuracy_threshold)
 
     @property
     def is_false(self) -> int:
-        if self.accuracy_threshold == -696:
-            raise ValueError("accuracy_threshold has not been set!")
-        return int(self.relative_error > self.accuracy_threshold)
+        return not self.is_true
 
     @property
     def is_true_positive(self) -> int:

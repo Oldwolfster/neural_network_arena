@@ -7,7 +7,7 @@ from src.engine.BaseGladiator import Gladiator
 import math
 
 from src.engine.Neuron import Neuron
-from src.engine.Utils import smart_format, print_call_stack
+from src.engine.Utils import smart_format, print_call_stack, store_num
 
 
 class XOR_TheLongWay(Gladiator):
@@ -35,7 +35,7 @@ class XOR_TheLongWay(Gladiator):
         architecture = [2]  # Default: Single hidden layer with 2 neurons, 1 output
         self.initialize_neurons(architecture)
 
-        """
+
         #Below is example of weights that make the model work right away
         # Hidden Layer 1
         self.neurons[0].weights[0] = 20.0  # Strong positive weight for first input
@@ -52,7 +52,7 @@ class XOR_TheLongWay(Gladiator):
         self.neurons[2].weights[1] = 20.0   # Strong positive weight from H2
         self.neurons[2].bias = -10.0        # Negative bias
         """
-
+        """
         # Initialize weights with small, non-symmetric values
         self.neurons[0].weights[0] = 0.1
         self.neurons[0].weights[1] = 0.2
@@ -169,15 +169,14 @@ class XOR_TheLongWay(Gladiator):
         for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
             neuron.weights[i] += learning_rate * error_signal * prev_value
             neuron_id = f"{neuron.layer_id},{neuron.position}"
-            calculation = f"w{i} Neuron ID{neuron_id} = {smart_format(w)} + {smart_format(learning_rate)} * {smart_format(error_signal)} * {smart_format(prev_value)}"
-            #print(f"Weight update formula:{calculation}")
+            #calculation = f"w{i} Neuron ID{neuron_id} = {smart_format(w)} + {smart_format(learning_rate)} * {smart_format(error_signal)} * {smart_format(prev_value)}"
+            calculation = f"w{i} Neuron ID{neuron_id} = {store_num(w)} + {store_num(learning_rate)} * {store_num(error_signal)} * {store_num(prev_value)}"
             weight_formulas.append(calculation)
 
         # Bias update
         neuron.bias += learning_rate * error_signal
-        weight_formulas.append(f"B = {smart_format(neuron.bias_before)} + {smart_format(learning_rate)} * {smart_format(error_signal)}")
+        weight_formulas.append(f"B = {store_num(neuron.bias_before)} + {store_num(learning_rate)} * {store_num(error_signal)}")
         neuron.weight_adjustments = '\n'.join(weight_formulas)
-
 
 
 

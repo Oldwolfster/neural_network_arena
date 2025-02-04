@@ -31,6 +31,7 @@ class DisplayBanner(EZSurface):
         self.surface.blit(label, label_rect)
 
 
+
     def update_me(self,  data : dict):
         iteration           = data.get("iteration", "N/A")
         epoch               = data.get("epoch", "N/A")
