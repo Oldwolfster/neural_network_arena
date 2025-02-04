@@ -94,7 +94,7 @@ class DisplayModel__Neuron:
         self.weight_text = self.neuron_build_text(rs[0])
         self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
         self.error_signal_calcs = rs[0].get("error_signal_calcs")
-        print(f"calcsforerror{self.error_signal_calcs}")
+        #print(f"calcsforerror{self.error_signal_calcs}")
         self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
         #print(f"Query result: {rs}")
         #print(f"PREDICTIONS: {self.weight_text}")

@@ -2,19 +2,21 @@ import pygame
 import sys
 from src.ArenaSettings import HyperParameters
 from typing import List
+
 from src.NeuroForge.Display_Manager import DisplayManager
 from src.UI.Menus import create_menu
 
+
 from src.engine.Utils_DataClasses import ModelInfo
+
 from src.engine.RamDB import RamDB
 #from src.NeuroForge.mgr import screen
 from src.NeuroForge.mgr import * # Imports everything into the local namespace
 from src.NeuroForge import mgr # Keeps the module reference for assignments
 import tkinter.messagebox as mb
-
-
+active_menu = None
 def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
-
+    global active_menu
     neuro_forge_init()
     display_manager = DisplayManager(mgr.screen, hyper, db)
     display_manager.initialize(model_info_list)  # Set up all components
@@ -22,7 +24,6 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     # Initialize tracking variables
     last_iteration = mgr.iteration -1 # -1 makes it trigger it the first time.
     last_epoch = mgr.epoch
-    menu_button_rect= create_menu_button_rect()
     menu = create_menu(mgr.screen_width, mgr.screen_height)
 
     # Pygame main loop
@@ -30,33 +31,45 @@ def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     while running:
         events = pygame.event.get()
         for event in events:
-            check_menu_button(event, menu_button_rect)
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
                 respond_to_UI(event)
+            check_menu_button(event)
+        # Update the menu if it's visible
+        if active_menu:
+            menu.update(events)
+            menu.draw(screen)
+
 
         # Check if iteration or epoch has changed
         if mgr.iteration != last_iteration or mgr.epoch != last_epoch:
-            display_manager.update( db, mgr.iteration, mgr.epoch,'global no model') # Query and update data
-            last_iteration = mgr.iteration  # Update tracking variables
-            last_epoch = mgr.epoch          # Update tracking variables
-        # finish pygame tasks
-        mgr.screen.fill((255, 255, 255))  # Clear screen
-        display_manager.render() # Render models
-        draw_button(menu_button_rect)
-        if mgr.menu_active :
-            menu.update(events)
-            menu.draw(mgr.screen)
+            # Query and update data
+            display_manager.update( db, mgr.iteration, mgr.epoch,'global no model')
 
+            # Update tracking variables
+            last_iteration = mgr.iteration
+            last_epoch = mgr.epoch
+
+        # Render models
+        mgr.screen.fill((255, 255, 255))  # Clear screen
+        display_manager.render()
+        draw_button()
         pygame.display.flip()
 
-def check_menu_button(event, menu_button_rect):
+def check_menu_button(event):
+    global active_menu
+
+
     if event.type == pygame.MOUSEBUTTONDOWN:
         if menu_button_rect.collidepoint(event.pos):
-            print(f"I've been clicked,{mgr.menu_active} ")
-            mgr.menu_active = True
-
+            active_menu = True
+            #run_menu(mgr.screen_width, mgr.screen_height,mgr.screen)
+            #show_menu = True
+            # Only create the menu if one isn’t already active
+            #if active_menu is None:
+            #    active_menu = get_menu(mgr.screen_width, mgr.screen_height)
+            #    active_menu.enable()  # Ensure the menu is active
 
 def respond_to_UI(event):
     if event.key == pygame.K_l:  # Advance frame
@@ -90,18 +103,18 @@ def respond_to_UI(event):
         mgr.epoch = mgr.max_epoch
         mgr.iteration = mgr.max_iteration
 
-def create_menu_button_rect():
-    top = 40
-    width = 150
-    left = mgr.screen_width - 30 - width
-    height = 40
-    menu_button_rect = pygame.Rect(left,top, width,  height)
-    return menu_button_rect
+WHITE = (255, 255, 255)
+BLUE = (50, 50, 255)
+top = 40
+width = 150
+left = mgr.screen_width - 30 - width
+height = 40
+menu_button_rect = pygame.Rect(left,top, width,  height)
 
-def draw_button(menu_button_rect):    # Draw the "Open Menu" button
-    pygame.draw.rect(mgr.screen ,mgr.color_greenforest, menu_button_rect)
+def draw_button():    # Draw the "Open Menu" button
+    pygame.draw.rect(mgr.screen , BLUE, menu_button_rect)
     font = pygame.font.SysFont(None, 36)
-    text_surface = font.render("Open Menu", True, mgr.white)
+    text_surface = font.render("Open Menu", True, WHITE)
     text_rect = text_surface.get_rect(center=menu_button_rect.center)
     mgr.screen.blit(text_surface, text_rect)
 

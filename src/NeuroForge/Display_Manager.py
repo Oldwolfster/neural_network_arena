@@ -76,6 +76,9 @@ class DisplayManager:
         for model in self.models:
             model.draw_me()
 
+
+
+
         if mgr.tool_tip is not None:
             mgr.tool_tip.render_tooltip(self.screen)
             mgr.tool_tip = None
@@ -149,6 +152,7 @@ class DisplayManager:
             models.append(display_model)
 
         return models
+
 
 
 

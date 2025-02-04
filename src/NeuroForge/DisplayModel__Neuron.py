@@ -96,7 +96,7 @@ class DisplayModel__Neuron:
         self.weight_text = self.neuron_build_text(rs[0])
         self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
         self.error_signal_calcs = rs[0].get("error_signal_calcs")
-        print(f"calcsforerror{self.error_signal_calcs}")
+        #print(f"calcsforerror{self.error_signal_calcs}")
         self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
         #print(f"Query result: {rs}")
         #print(f"PREDICTIONS: {self.weight_text}")
@@ -170,7 +170,8 @@ class DisplayModel__Neuron:
         backprop_details = self.format_backpropagation_details(row)  # 🔥 New Function!
         #print(row)
         self.weight_adjustments =  row.get('weight_adjustments')
-        return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}\n{self.weight_adjustments}"
+        #return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}\n{self.weight_adjustments}"
+        return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}"
 
     # ---------------------- Existing Functions ---------------------- #
 
@@ -243,17 +244,17 @@ class DisplayModel__Neuron:
             # Split on '+' to isolate the weight.
             if '+' in rest:
                 weight_str, rest = rest.split('+', 1)
-                weights.append(weight_str.strip())
+                weights.append(smart_format(float(weight_str.strip())))
 
             else:
-                weights.append(rest.strip())
+                weights.append(smart_format(float(rest.strip())))
                 rest = ""
 
             # Now, the rest should contain the learning rate, error signal, and possibly the input.
             parts = [part.strip() for part in rest.split('*') if part.strip()]
-            learning_rates.append(parts[0] if len(parts) >= 1 else "")
-            error_signals.append(parts[1] if len(parts) >= 2 else "")
-            inputs.append(parts[2] if len(parts) >= 3 else "")
+            learning_rates.append(smart_format(float( parts[0])) if len(parts) >= 1 else "")
+            error_signals.append(smart_format(float( parts[1])) if len(parts) >= 2 else "")
+            inputs.append(smart_format(float(parts[2])) if len(parts) >= 3 else "")
 
             if len(parts) >= 3:
                 adjustments.append(  smart_format( float(parts[0]) * float(parts[1]) * float(parts[2])))

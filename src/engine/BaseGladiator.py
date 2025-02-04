@@ -75,7 +75,7 @@ class Gladiator(ABC):
 
             error = target - prediction_raw
             loss = error ** 2  # Example loss calculation (MSE for a single sample)
-            prediction =  1 if prediction_raw > 0 else 0      # Apply step function
+            prediction =  1 if prediction_raw > .5 else 0      # Apply step function
             loss_gradient = error * 2 #For MSE it is linear.
             self.last_lost = loss
 

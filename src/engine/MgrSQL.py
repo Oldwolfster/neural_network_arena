@@ -44,7 +44,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
     def record_iteration(self, iteration_data: Iteration, layers: List[List[Neuron]]):
         # Add the current iteration data to the database
-        #print(f"iteration_data.target={iteration_data.target}")
+        #print(f"iteration_data={iteration_data}")
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
 
@@ -68,7 +68,8 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 iteration_num = iteration_data.iteration
                 self.db.add(neuron, exclude_keys={"activation"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
                 #print("NEURON DATA ADDED")
-                #self.db.query_print("Select * from Neuron")
+        #if epoch_num ==2 and iteration_num ==4  :
+        #    self.db.query_print("Select * from Neuron WHERE nid   = 0")
 
 
 
