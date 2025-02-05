@@ -10,7 +10,7 @@ def run_tutorial():
     nn = NeuralNetwork([2, 2, 1], alpha=.5)
     print("BEFORE WEIGHTS:")
     nn.print_weights()
-    nn.fit(X, y, epochs=20000)
+    nn.fit(X, y, epochs=2)
     print("After WEIGHTS:")
     nn.print_weights()
     # now that our network is trained, loop over the XOR data points

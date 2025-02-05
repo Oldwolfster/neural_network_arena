@@ -26,9 +26,12 @@ class Gladiator(ABC):
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
-        self._learning_rate     = self.hyper.default_learning_rate
+        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self.full_architecture  = None
+        self.last_lost          = 0
+        self.iteration          = 0
+        self.epoch              = 0
 
     def train(self) -> str:
         if self.neuron_count == 0:
@@ -37,8 +40,9 @@ class Gladiator(ABC):
 
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
+            self.epoch = epoch      # Set so the model has access
             if epoch % 100 == 0:
-                print (f"Epoch: {epoch} for {self.gladiator} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                print (f"Epoch: {epoch} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
                 return convg_signal, self.full_architecture
@@ -47,26 +51,41 @@ class Gladiator(ABC):
 
     def run_an_epoch(self, epoch_num: int) -> bool:
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
+            self.iteration = i      # Set so the model has access
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
             target = sample[-1]
-            self.run_forward_pass(inputs)
-
+            #self.run_forward_pass(inputs)
+            self.snapshot_weights_as_weights_before(inputs)
             # Step 2: Delegate to the model's logic for forward propagation
-            prediction = self.training_iteration(sample)  # Call model-specific logic
+            model_style=""
+            if hasattr(self, 'training_iteration') and callable(self.training_iteration):
+                model_style="Old"
+            elif hasattr(self, 'forward_pass') and callable(self.forward_pass):
+                model_style="New"
+            else:
+                raise NotImplementedError("Subclass must implement either run_iteration or run_forward_pass")
+            prediction_raw = 0.0
+            if model_style == "Old":
+                prediction_raw = self.training_iteration(sample)
+            else:
+                self.forward_pass(sample)  # Call model-specific logic
+                # Step 3: Validate_pass :)
+                prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
 
-            # Step 3: Capture output and compute loss
-            #output_layer = self.layers[-1]  # Final layer
-            #predictions = [neuron.activation_value for neuron in output_layer]
-            #prediction = predictions[0] if len(predictions) == 1 else predictions  # Handle single/multi-output
-            #predictions = np.array([neuron.activation_value for neuron in output_layer])
-            prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             error = target - prediction_raw
-            loss = .5 * (error ** 2)  # Example loss calculation (MSE for a single sample)
-            prediction =  1 if prediction_raw > .5 else 0      # Apply threshold function
+            loss = error ** 2  # Example loss calculation (MSE for a single sample)
+            prediction =  1 if prediction_raw > .5 else 0      # Apply step function
+            loss_gradient = error * 2 #For MSE it is linear.
+            self.last_lost = loss
 
+            if model_style=="New":
+                self.back_pass(sample, loss_gradient)  # Call model-specific logic
 
-            print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
+            # Step 4: Delegate to models logic for backporop.
+            #self.backwards_pass(sample)  # Call model-specific logic
+
+            #print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
             # Step 4: Record iteration data
             iteration_data = Iteration(
                 model_id=self.mgr_sql.model_id,
@@ -77,14 +96,16 @@ class Gladiator(ABC):
                 prediction=prediction,
                 prediction_raw=prediction_raw,
                 loss=loss,
+                loss_gradient=loss_gradient,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
+
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
 
         # Finish epoch and return convergence signal
         return self.mgr_sql.finish_epoch()
 
-    def run_forward_pass(self, inputs: numpy.array):
+    def snapshot_weights_as_weights_before(self, inputs: numpy.array):
         """
         Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
         """
@@ -144,8 +165,8 @@ class Gladiator(ABC):
                     layer_id=layer_index
                 )
                 self.neurons.append(neuron)     # Add to flat list
-                layer_neurons.append(neuron)    # Add to current layer
-            Neuron.layers.append(layer_neurons)   # Add current layer to layered structure
+                #layer_neurons.append(neuron)    # Add to current layer
+            #Neuron.layers.append(layer_neurons)   # Add current layer to layered structure
         self.neuron_count = len(self.neurons)
         #print(f"*******IN initialize_neurons Neurons: {len(self.neurons)} architecture = {architecture}")
         #for i, neuron in enumerate(self.neurons):
@@ -190,14 +211,15 @@ class Gladiator(ABC):
 
     @property
     def learning_rate(self):
-        """Compatibility attribute pointing to neurons[0].learning_rate."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].learning_rate
+        """ Getter for learning rate. """
+        return self._learning_rate
 
     @learning_rate.setter
-    def learning_rate(self, value):
-        """Set learning rate for neurons[0]."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        self.neurons[0].learning_rate = value
+    def learning_rate(self, new_learning_rate: float):
+        """
+        Updates the learning rate for the Gladiator
+        and ensures all neurons reflect the change.
+        """
+        self._learning_rate = new_learning_rate
+        for neuron in self.neurons:
+            neuron.learning_rate = new_learning_rate

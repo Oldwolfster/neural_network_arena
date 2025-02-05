@@ -13,6 +13,11 @@ class Neuron:
         self.nid = nid
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
         self.num_of_weights = num_of_weights
+        self.weights_before = np.array([(nid + 1) * 10 for _ in range(num_of_weights)], dtype=np.float64)
+        self.weights = self.weights_before.copy()
+        self.neuron_inputs = np.zeros_like(self.weights)
+        self.bias = float(nid +1)                      # Explicitly set as float
+        self.bias_before = self.bias                    #Done so it's available to create view
         self.learning_rate = learning_rate
         self.raw_sum = 0.0
         self.activation_value = 0.0
@@ -22,10 +27,6 @@ class Neuron:
         self.weight_adjustments = ""
         self.error_signal_calcs = ""
 
-        # ✅ Apply weight initializer strategy
-        #self.weight_initializer = weight_initializer  # Store the strategy
-        self.initialize_weights(weight_initializer)
-        self.neuron_inputs = np.zeros_like(self.weights)
 
         # ✅ Ensure activation is never None
         self.activation = activation if activation is not None else Linear
@@ -39,17 +40,6 @@ class Neuron:
         Neuron.layers[layer_id].append(self)
         self.position = len(Neuron.layers[layer_id]) - 1  # Zero-based position within layer
 
-
-    def initialize_weights(self, weight_initializer):
-
-        self.weights, self.bias = weight_initializer((self.num_of_weights,))
-        self.weights_before = self.weights.copy()
-        self.bias_before = self.bias
-
-    def reinitialize(self, new_initializer):
-        """Reinitialize weights & bias using a different strategy."""
-        #self.weight_initializer = new_initializer
-        self.initialize_weights(new_initializer)
 
     def activate(self):
         """Applies the activation function."""

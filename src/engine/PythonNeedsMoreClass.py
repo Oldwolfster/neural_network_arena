@@ -6,6 +6,7 @@ class MoreClass:
     Introducing ClassAct: In a world where Python lets classes go wild with arbitrary
     attributes, one class decided to bring order. This is not your average class—
     it’s strictly for those who demand structure, integrity, and yes... a little class.
+    #I'm not sure but i think this was a way around all the self. needed in a class
     """
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

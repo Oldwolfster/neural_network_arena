@@ -12,7 +12,9 @@ from src.NeuroForge.mgr import * # Imports everything into the local namespace
 from src.NeuroForge import mgr # Keeps the module reference for assignments
 import tkinter.messagebox as mb
 
-
+#def minimize_window():
+#    hwnd = pygame.display.get_wm_info()["window"]  # Get the window handle
+#    ctypes.windll.user32.ShowWindow(hwnd, 6)  # 6 is the command for minimizing the window
 def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
 
     neuro_forge_init()
