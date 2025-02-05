@@ -95,7 +95,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.abs_error_for_epoch = 0 # Reset for next epoch
         epoch_metrics = self.get_metrics_from_ramdb()
         #print(f"MgrSQL ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
-        return ""
+        epoch_metrics
         return self.converge_detector.check_convergence(epoch_metrics)
 
     def get_metrics_from_ramdb(self) -> Dict[str, float]:

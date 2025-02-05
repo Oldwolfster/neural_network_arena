@@ -9,26 +9,27 @@ from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format
 from src.engine.Utils_DataClasses import Iteration
-from src.engine.graphs._GraphMaster import graph_master
+from src.engine.WeightInitializer import *
+
+
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):
-    if hyper.display_neuron_report:
-        neuron_report_launch(db)
-    epoch_report_launch(db)
     summary_report_launch(db)
     print(training_data.get_list())
-    if hyper.display_graphs:
-        graph_master(db)
-    if hyper.run_NeuroForge:
-        NeuroForge(db,training_data,hyper, model_info_list)
+
 
 def prep_RamDB():
     db=RamDB()
 
     #Create dummy records to create table so we can create the view
     dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, prediction_raw=0.1, loss=0.1, loss_gradient=0.1, accuracy_threshold=0.0)
-    dummy_neuron = Neuron(0,1,0.0,0)
+    dummy_neuron = Neuron(0,1,0.0,Initializer_Tiny ,0)
     db.add(dummy_iteration)
     db.add(dummy_neuron,exclude_keys={"activation"}, model='dummy', epoch_n = 0, iteration_n = 0 )
+    #db.execute("CREATE INDEX idx_model_epoch_iteration ON Neuron (model, epoch_n, iteration_n);")
+    db.execute("CREATE INDEX idx_epoch_iteration ON Neuron (epoch_n, iteration_n);")
+    db.execute("CREATE INDEX idx__iteration ON Iteration (iteration);")
+
+
     epoch_create_view_epochSummary(db)
     db.execute("DELETE FROM Iteration")     #Delete dummy records
     db.execute("DELETE FROM Neuron")        #Delete dummy records
@@ -46,7 +47,7 @@ def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
         SELECT  S.model_id as [Gladiator\nComparison], ROUND(I.seconds, 2) AS [Run\nTime],
                 S.epoch[Epoch of\nConv], s.correct[Correct], s.wrong[Wrong], 
                 Accuracy,
-                s.mean_absolute_error[Mean\nAbs Err], s.root_mean_squared_error[RMSE], s.weights[Weights, s.biases[Biases] 
+                s.mean_absolute_error[Mean\nAbs Err], s.root_mean_squared_error[RMSE], s.weights[Weights], s.biases[Biases] 
         FROM EpochSummary S
         JOIN (
             Select model_id,max(epoch) LastEpoch

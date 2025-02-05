@@ -23,7 +23,7 @@ class DisplayModel__Neuron:
         self.layer = layer
         self.position = position
         self.output_layer = output_layer
-        print(f"OUTPUT LAYER{output_layer}")
+        #print(f"OUTPUT LAYER{output_layer}")
         self.label = f"{layer}-{position}" #need to define, try to use existing standard
         self.weights = []
         self.neuron_inputs = []
@@ -281,7 +281,13 @@ class DisplayModel__Neuron:
         # Iterate through each pair
         for pair in pairs:
             # Split the pair into two numbers using '!' as the delimiter
-            num1, num2 = pair.split('!')
+            print(f"Pair={pair}")
+            try:
+                num1, num2 = pair.split('!')
+            except:
+                print(f"Pair2={pair}")
+                raise
+
             # Convert the strings to floats and append to the respective lists
             weights.append(float(num1))
             err_sigs.append(float(num2))

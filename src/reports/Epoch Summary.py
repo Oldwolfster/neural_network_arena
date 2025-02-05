@@ -4,8 +4,9 @@ from src.engine.RamDB import RamDB
 class ReportingMadeEasy(BaseReport):
     def __init__(self, *args):
         super().__init__(*args)
-        self.dbRam = args[0]
-    def run_report(self):
+
+
+    def report_logic(self, *args):
         """
         This method is invoked when user selects this report from Report Menu
         """

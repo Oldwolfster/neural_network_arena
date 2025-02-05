@@ -108,8 +108,8 @@ def dynamic_instantiate(class_name, base_path='arenas', *args):
                 module_path = f"{relative_path}.{class_name}"
 
                 # Debugging output to verify paths
-                print(f"Found file: {file}")
-                print(f"Module path: {module_path}")
+                #print(f"Found file: {file}")
+                #print(f"Module path: {module_path}")
 
                 # Check for duplicates
                 if matched_module:
@@ -128,6 +128,18 @@ def dynamic_instantiate(class_name, base_path='arenas', *args):
             return obj(*args)
 
     raise ImportError(f"No class inheriting from BaseArena or BaseGladiator found in {class_name}.py")
+
+def clean_multiline_string(input_string):
+    # Split the input string into lines
+    lines = input_string.splitlines()
+
+    # Strip leading and trailing spaces from each line
+    cleaned_lines = [line.strip() for line in lines]
+
+    # Join the cleaned lines back together with newlines
+    cleaned_string = '\n'.join(cleaned_lines)
+
+    return cleaned_string
 
 
 

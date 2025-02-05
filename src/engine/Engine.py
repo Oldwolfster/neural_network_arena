@@ -17,10 +17,25 @@ from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
 from .Utils_DataClasses import ModelInfo
+from ..NeuroForge.NeuroForge import NeuroForge
+import random
+
+def set_seed(seed) -> int:
+    """ Sets random seed for numpy & Python's random module.
+        If hyperparameters has seed value uses it for repeatabilty.
+        IF not, generates randomly
+    """
+    if seed == 0:
+        seed = random.randint(1, 999999)
+    np.random.seed(seed)
+    random.seed(seed)
+    return  seed
 
 
 def run_a_match(gladiators, training_pit):
     hyper           = HyperParameters()
+    seed            = set_seed(hyper.random_seed)
+    print(f"🛠️ Using Random Seed: {seed}")
     training_data   =  get_training_data(hyper)
     db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     record_training_data(training_data.get_list())
@@ -28,6 +43,7 @@ def run_a_match(gladiators, training_pit):
     print(training_data.get_list())
     model_info_list = [] # Initialize an empty list to store ModelInfo objects
     for gladiator in gladiators:    # Loop through the NNs competing.
+        set_seed(seed)      #reset for each gladiator
         print(f"Preparing to run model:{gladiator}")
         nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
 
@@ -41,7 +57,9 @@ def run_a_match(gladiators, training_pit):
         print (f"{gladiator} completed in {run_time}")
 
     generate_reports(db, training_data, hyper, model_info_list)
-
+    print(f"🛠️ Using Random Seed: {seed}")
+    if hyper.run_NeuroForge:
+        NeuroForge(db,training_data,hyper, model_info_list)
 
 
 

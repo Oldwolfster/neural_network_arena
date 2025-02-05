@@ -2,6 +2,7 @@ from typing import List
 
 from src.ArenaSettings import HyperParameters
 from src.engine.TrainingData import TrainingData
+from src.engine.convergence.Signal_PerfectAccuracy import Signal_PerfectAccuracy
 from src.engine.convergence.Signal_StableAccuracy import Signal_StableAccuracy
 from src.engine.convergence.Signal_UnderMeanThreshold_ShortTerm import Signal_UnderMeanThreshold_ShortTerm
 
@@ -36,8 +37,9 @@ class ConvergenceDetector:
     """
     def create_signals(self):
         return [
-            Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.metrics),
-            Signal_StableAccuracy(self.hyper.accuracy_threshold, self.metrics)
+            #Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.metrics),
+            #Signal_StableAccuracy(self.hyper.accuracy_threshold, self.metrics),
+            Signal_PerfectAccuracy (self.hyper.accuracy_threshold, self.metrics)
             #,Signal_UnderMeanThreshold_LongTerm (self.mgr, self.relative_threshold)
         ]
 
@@ -47,7 +49,7 @@ class ConvergenceDetector:
         Returns:
             List[str]: Signal Names that triggered convergence
         """
-
+        #print(f"epoch metrics={epoch_metrics}")
         self.metrics.append(epoch_metrics)
         if len(self.metrics) < self.hyper.min_no_epochs:
             return ""   # Has not yet met minimum no of epochs per hyper paramater setting

@@ -18,8 +18,6 @@ class ActivationFunction:
 
 
 # Standard activations as objects
-
-# Standard activations as objects
 Linear = ActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,

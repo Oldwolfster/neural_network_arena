@@ -53,10 +53,10 @@ def create_menu(WIDTH : int, HEIGHT : int, db: RamDB):
     settings_menu.add.button('Back', lambda: menu.disable())
 
     # Add main menu items linking to each submenu
+    menu.add.button('Reporting', reporting_menu)
     menu.add.button('The Forge', forge_menu)
     menu.add.button('Gladiators', gladiators_menu)
     menu.add.button('Arenas', arenas_menu)
-    menu.add.button('Reporting', reporting_menu)
     menu.add.button('Settings', settings_menu)
     menu.add.button('Quit', close_menu )
     return menu
@@ -68,7 +68,7 @@ def load_report(report_name, db: RamDB):
     The closure happens in the lambda function that captures `db` and `report_name`
     when creating the menu buttons.
     """
-    print(f"Loading report: {report_name}")
+    #print(f"Loading report: {report_name}")
     report = dynamic_instantiate(report_name, "Reports", db)
     report.run_report() # db is now inside the report instance (from the constructor)
 
@@ -102,17 +102,17 @@ def list_reports(directory="reports"):
     reports = []
 
     if os.path.exists(search_directory):
-        print(f"Searching directory: {search_directory}")  # Debugging output
+        #print(f"Searching directory: {search_directory}")  # Debugging output
 
         for file in os.listdir(search_directory):
-            print(f"Found file: {file}")  # Debugging output
+            #print(f"Found file: {file}")  # Debugging output
 
             if file.endswith(".py") and not file.startswith("_"):  # Only .py files, ignore _ prefixed
                 reports.append(file[:-3])
-                print(f"Added to report list: {file}")  # Debugging output
+                #print(f"Added to report list: {file}")  # Debugging output
 
     else:
         print(f"Directory not found: {search_directory}")  # Debugging output
 
-    print(f"Final reports list: {reports}")  # Debugging output
+    #print(f"Final reports list: {reports}")  # Debugging output
     return reports
