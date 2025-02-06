@@ -1,7 +1,7 @@
-# NeuroForge Documentation
+# neuroForge Documentation
 
 ## Overview
-The **NeuroForge** module is the core visualization and management system for the Neural Network Arena (NNA). It handles the representation of models, neurons, connections, and inputs in a way that is both visually clear and dynamically adjustable. The goal is to make neural networks more intuitive to understand and debug by providing a flexible and modular structure for visualization.
+The **neuroForge** module is the core visualization and management system for the Neural Network Arena (NNA). It handles the representation of models, neurons, connections, and inputs in a way that is both visually clear and dynamically adjustable. The goal is to make neural networks more intuitive to understand and debug by providing a flexible and modular structure for visualization.
 
 ### Key Features:
 - **Visualization Framework:** Displays neurons, connections, inputs, and activations using Pygame.
@@ -28,7 +28,7 @@ The **NeuroForge** module is the core visualization and management system for th
   - update_me
 
 ## File Structure and Responsibilities
-The following sections outline the roles of each file in the `NeuroForge` module:
+The following sections outline the roles of each file in the `neuroForge` module:
 
 ### 1. **`Display_Mgr.py`**
 - **Purpose:** Manages all display components and orchestrates rendering.
@@ -129,8 +129,8 @@ The following sections outline the roles of each file in the `NeuroForge` module
 
 ---
 
-### 9. **`NeuroForge.py`**
-- **Purpose:** The entry point for the NeuroForge visualization system.
+### 9. **`neuroForge.py`**
+- **Purpose:** The entry point for the neuroForge visualization system.
 - **Key Responsibilities:**
   - Initializes Pygame.
   - Manages the main event loop.
@@ -153,7 +153,7 @@ The following sections outline the roles of each file in the `NeuroForge` module
 ---
 
 ## Example Workflow
-### 1. Initialize NeuroForge
+### 1. Initialize neuroForge
 - Call `neuro_forge_init` to initialize Pygame and set up the display.
 
 ### 2. Add Models and Inputs

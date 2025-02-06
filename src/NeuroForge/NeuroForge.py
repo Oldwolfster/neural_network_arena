@@ -2,20 +2,20 @@ import pygame
 import sys
 from src.ArenaSettings import HyperParameters
 from typing import List
-from src.NeuroForge.Display_Manager import DisplayManager
+from src.neuroForge.Display_Manager import DisplayManager
 from src.UI.Menus import create_menu
 
 from src.engine.Utils_DataClasses import ModelInfo
 from src.engine.RamDB import RamDB
-#from src.NeuroForge.mgr import screen
-from src.NeuroForge.mgr import * # Imports everything into the local namespace
-from src.NeuroForge import mgr # Keeps the module reference for assignments
+#from src.neuroForge.mgr import screen
+from src.neuroForge.mgr import * # Imports everything into the local namespace
+from src.neuroForge import mgr # Keeps the module reference for assignments
 import tkinter.messagebox as mb
 
 #def minimize_window():
 #    hwnd = pygame.display.get_wm_info()["window"]  # Get the window handle
 #    ctypes.windll.user32.ShowWindow(hwnd, 6)  # 6 is the command for minimizing the window
-def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
+def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
 
     neuro_forge_init()
     display_manager = DisplayManager(mgr.screen, hyper, db)
@@ -94,18 +94,31 @@ def respond_to_UI(event):
 
 def create_menu_button_rect():
     top = 40
-    width = 150
+    width = 140
     left = mgr.screen_width - 30 - width
     height = 40
     menu_button_rect = pygame.Rect(left,top, width,  height)
     return menu_button_rect
 
 def draw_button(menu_button_rect):    # Draw the "Open Menu" button
-    pygame.draw.rect(mgr.screen ,mgr.color_greenforest, menu_button_rect)
-    font = pygame.font.SysFont(None, 36)
+    main_button_color = ( 0, 0, 255)
+    border_radius = 10  # Adjust for roundness
+    shadow_offset = 4  # Depth effect
+
+    # Draw shadow
+    shadow_color = (30, 30, 100)  # Darker red for depth
+    shadow_rect = menu_button_rect.move(shadow_offset, shadow_offset)
+    pygame.draw.rect(mgr.screen, shadow_color, shadow_rect, border_radius=border_radius)
+
+    # Draw main button
+    pygame.draw.rect(mgr.screen, main_button_color, menu_button_rect, border_radius=border_radius)
+
+    # Draw text
+    font = pygame.font.SysFont(None, 32)
     text_surface = font.render("Open Menu", True, mgr.white)
     text_rect = text_surface.get_rect(center=menu_button_rect.center)
     mgr.screen.blit(text_surface, text_rect)
+
 
 def neuro_forge_init():
     pygame.init()

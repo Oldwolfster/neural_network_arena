@@ -34,7 +34,7 @@ class XOR_TheLongWay(Gladiator):
     def __init__(self, *args):
         super().__init__(*args)
         #self.set_random_seed(280312)   #Reuse an existing seed (to compare to past run)
-        architecture = [2]  # Default: Single hidden layer with 2 neurons, 1 output
+        architecture = [2,3]  # Default: Single hidden layer with 2 neurons, 1 output
 
         self.initialize_neurons(architecture, [Initializer_Xavier])
         #self.learning_rate = 1 #must come after initialize_neurons

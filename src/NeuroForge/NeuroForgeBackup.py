@@ -3,19 +3,19 @@ import sys
 from src.ArenaSettings import HyperParameters
 from typing import List
 
-from src.NeuroForge.Display_Manager import DisplayManager
+from src.neuroForge.Display_Manager import DisplayManager
 from src.UI.Menus import create_menu
 
 
 from src.engine.Utils_DataClasses import ModelInfo
 
 from src.engine.RamDB import RamDB
-#from src.NeuroForge.mgr import screen
-from src.NeuroForge.mgr import * # Imports everything into the local namespace
-from src.NeuroForge import mgr # Keeps the module reference for assignments
+#from src.neuroForge.mgr import screen
+from src.neuroForge.mgr import * # Imports everything into the local namespace
+from src.neuroForge import mgr # Keeps the module reference for assignments
 import tkinter.messagebox as mb
 active_menu = None
-def NeuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
+def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
     global active_menu
     neuro_forge_init()
     display_manager = DisplayManager(mgr.screen, hyper, db)

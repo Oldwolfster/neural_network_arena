@@ -25,3 +25,4 @@ sky_blue            = (135, 206, 235)
 color_crimson       = (220,20,60) #crimson
 color_greenforest   = (34,139,34) #forest Green
 color_blue = (50, 50, 255)
+banner_color = (0,0,255)

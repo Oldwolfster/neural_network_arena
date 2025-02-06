@@ -9,4 +9,4 @@ class XOR(BaseArena):
     def __init__(self,num_samples: int):
         self.num_samples = num_samples
     def generate_training_data(self) -> List[Tuple[float, float]]:
-        return [(0, 0, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0)], ["Val 1","Val 2", "XOR Result"]
+        return [(0, 0, 0), (0, 1, 1), (1, 0, 1), (1, 1, 0)], ["XOR Input #1","XOR Input #2", "XOR Result"]

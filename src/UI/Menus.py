@@ -1,6 +1,6 @@
 import pygame
 import pygame_menu
-from src.NeuroForge import mgr
+from src.neuroForge import mgr
 from src.engine.RamDB import RamDB
 
 # A simple callback to use for the menu items
@@ -69,7 +69,7 @@ def load_report(report_name, db: RamDB):
     when creating the menu buttons.
     """
     #print(f"Loading report: {report_name}")
-    report = dynamic_instantiate(report_name, "Reports", db)
+    report = dynamic_instantiate(report_name, "reports", db)
     report.run_report() # db is now inside the report instance (from the constructor)
 
 

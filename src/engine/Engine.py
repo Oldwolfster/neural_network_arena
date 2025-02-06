@@ -17,7 +17,7 @@ from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
 from .Utils_DataClasses import ModelInfo
-from ..NeuroForge.NeuroForge import NeuroForge
+from ..neuroForge.NeuroForge import neuroForge
 import random
 
 def set_seed(seed) -> int:
@@ -58,8 +58,8 @@ def run_a_match(gladiators, training_pit):
 
     generate_reports(db, training_data, hyper, model_info_list)
     print(f"🛠️ Using Random Seed: {seed}")
-    if hyper.run_NeuroForge:
-        NeuroForge(db,training_data,hyper, model_info_list)
+    if hyper.run_neuroForge:
+        neuroForge(db,training_data,hyper, model_info_list)
 
 
 

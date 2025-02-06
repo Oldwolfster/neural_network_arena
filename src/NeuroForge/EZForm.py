@@ -1,6 +1,6 @@
 from typing import Dict, Any
 import pygame
-from src.NeuroForge.EZSurface import EZSurface
+from src.neuroForge.EZSurface import EZSurface
 
 
 class EZForm(EZSurface):
@@ -24,8 +24,7 @@ class EZForm(EZSurface):
         text_height = label_text.get_height()
         banner_height = text_height + 8  # Add padding
         banner_rect = pygame.Rect(0, 0, self.width, banner_height)
-        pygame.draw.rect(self.surface, self.banner_color, banner_rect)
-
+        pygame.draw.rect(self.surface, self.banner_color, banner_rect, border_radius = 4)
 
         banner_surface = self.bannerfont.render(self.banner_text, True, (255, 255, 255))  # White text
         banner_rect = banner_surface.get_rect(center=(self.width // 2, banner_height // 2))
@@ -35,8 +34,9 @@ class EZForm(EZSurface):
         pygame.draw.rect(
             self.surface,
             self.banner_color,  # Blue border
-            (0, 0, self.width, self.height),
+            (0, 0, self.width, self.height, ),
             3  # Border width
+            ,border_radius = 4,
         )
 
         # Adjust starting Y position for fields (below the banner)
@@ -65,8 +65,3 @@ class EZForm(EZSurface):
             value_surface = self.font.render(value, True, self.font_color)
             value_rect = value_surface.get_rect(center=value_box_rect.center)
             self.surface.blit(value_surface, value_rect)
-
-    def updateDELETEME(self, updates: Dict[str, Any]):
-        """Update field values dynamically."""
-        self.fields.update(updates)
-        print("Updating fields:", updates)

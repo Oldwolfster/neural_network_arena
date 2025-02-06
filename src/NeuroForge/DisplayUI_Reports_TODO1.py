@@ -1,10 +1,10 @@
 import pygame
 import pygame_gui
 
-from src.NeuroForge.EZSurface import EZSurface
+from src.neuroForge.EZSurface import EZSurface
 
 
-class DisplayUI_Reports(EZSurface):
+class DisplayUI_Reports(EZSurface): # !!!WOULD BE NICE TO GIVE QUICKER ACCESS TO REPORTS
     def __init__(self, screen : pygame.Surface,  max_epoch : int, max_iteration : int, width_pct  , height_pct, left_pct, top_pct):
         super().__init__    (screen, width_pct, height_pct, left_pct, top_pct, bg_color=(0, 0, 0))
         self.banner_text    = "Loading..."

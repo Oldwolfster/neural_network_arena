@@ -1,14 +1,15 @@
 import pygame
 
 from src.ArenaSettings import HyperParameters
-from src.NeuroForge import mgr
-from src.NeuroForge.DisplayBanner import DisplayBanner
-from src.NeuroForge.DisplayModel import DisplayModel
+from src.neuroForge import mgr
+from src.neuroForge.DisplayBanner import DisplayBanner
+from src.neuroForge.DisplayModel import DisplayModel
+from src.neuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 
-from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
-from src.NeuroForge.DisplayPanelLoss import DisplayPanelLoss
-from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
-from src.NeuroForge.DisplayUI_Reports import DisplayUI_Reports
+from src.neuroForge.DisplayPanelInput import DisplayPanelInput
+from src.neuroForge.DisplayPanelLoss import DisplayPanelLoss
+from src.neuroForge.DisplayPanelPrediction import DisplayPanelPrediction
+
 from src.engine.RamDB import RamDB
 
 
@@ -26,40 +27,48 @@ class DisplayManager:
         mgr.max_iteration = self.get_max_iteration(db)
         self.neurons = None
 
+
+
     def initialize(self, model_info_list):
         """Initialize and configure all display components."""
 
         #print(f"Model list (in displaymanager==============={ model_info_list[0].}")
 
-
+# Create UI manager
+        ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT))
         # Add Banner for EPoch and Iteration
         problem_type = model_info_list[0].problem_type
         banner = DisplayBanner(self.screen, problem_type,  mgr.max_epoch, mgr.max_iteration,96,4,2,0)
         self.components.append(banner)
 
         #Add Report Dropdown
-        reports = DisplayUI_Reports(self.screen,   mgr.max_epoch, mgr.max_iteration,17,4,80,0)
-        self.components.append(reports)
-        self.event_runners.append(reports)
+        #reports = DisplayUI_Reports(self.screen,   mgr.max_epoch, mgr.max_iteration,17,4,80,0)
+        #self.components.append(reports)
+        #self.event_runners.append(reports)
 
         #Add Input Panel
-        # Create the input box for the first layer
-        input_panel = DisplayPanelInput(self.screen, data_labels=self.data_labels, width_pct=12,height_pct=80, left_pct=2, top_pct=10  )
+        input_panel = DisplayPanelInput(self.screen, data_labels=self.data_labels
+                                        , width_pct=12,height_pct=42, left_pct=2, top_pct=10  )
+        self.components.append(input_panel)
+
+        #Add Control Panel
+        panel = DisplayPanelCtrl(self.screen, data_labels=self.data_labels
+                                        , width_pct=12,height_pct=42, left_pct=2, top_pct=54  )
         self.components.append(input_panel)
 
         # Add Prediction panel
         prediction_panel = DisplayPanelPrediction(self.screen,problem_type
-            , width_pct=12, height_pct=38, left_pct=86, top_pct=10)
+            , width_pct=12, height_pct=42, left_pct=86, top_pct=10)
         self.components.append(prediction_panel)
 
         # Add Loss breakdown panel
         loss_panel = DisplayPanelLoss(self.screen,problem_type
-            , width_pct=12, height_pct=38, left_pct=86, top_pct=55)
+            , width_pct=12, height_pct=42, left_pct=86, top_pct=54)
         self.components.append(loss_panel)
 
 
         # Create and add models
-        self.models = self.create_display_models(72,90,   14,5, self.screen, self.hyper.data_labels, model_info_list)
+        self.models = self.create_display_models(72,91,   14,5, self.screen, self.hyper.data_labels, model_info_list)
 
 
 
