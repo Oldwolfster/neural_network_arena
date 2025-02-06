@@ -13,7 +13,7 @@ from src.neuroForge.mgr import * # Imports everything into the local namespace
 
 class DisplayModel__Neuron:
     input_values = []   # Class variable to store inputs
-    def __init__(self, nid:int, layer: int, position: int, output_layer: int):
+    def __init__(self, nid:int, layer: int, position: int, output_layer: int, text_version: str):
         #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
         self.location_left=0
         self.location_top=0
@@ -27,6 +27,7 @@ class DisplayModel__Neuron:
         self.label = f"{layer}-{position}" #need to define, try to use existing standard
         self.weights = []
         self.neuron_inputs = []
+        self.error_signal = 1
         self.bias = 0
         self.weight_count = []
         self.raw_sum = 0
@@ -40,7 +41,9 @@ class DisplayModel__Neuron:
         self.tooltip_columns = []
         self.weight_adjustments = ""
         self.error_signal_calcs = ""
+        self.avg_err_sig_for_epoch = 0.0
         self.loss_gradient = 0.0    #Same for all neurons
+        self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
         # Create EZPrint instance
         self.ez_printer = EZPrint(pygame.font.Font(None, 24)
                                   , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
@@ -75,6 +78,7 @@ class DisplayModel__Neuron:
                 cls.input_values = literal_eval(raw_inputs)
 
     def update_neuron(self, db: RamDB, iteration: int, epoch: int, model_id: str):
+        self.update_avg_error(db, iteration, epoch, model_id)
         # Parameterized query with placeholders
         SQL =   """
             SELECT  *
@@ -101,11 +105,42 @@ class DisplayModel__Neuron:
         #print(f"Query result: {rs}")
         #print(f"PREDICTIONS: {self.weight_text}")
 
+    def update_avg_error(self, db: RamDB, iteration: int, epoch: int, model_id: str):
+        #print(f"model_id======={model_id}")
+        SQL ="""
+        SELECT AVG(ABS(error_signal)) AS avg_error_signal            
+        FROM Neuron
+        WHERE 
+        model   = ? and
+        epoch_n = ? and  -- Replace with the current epoch(ChatGPT is trolling us)
+        nid     = ?        
+        """
+        params = (model_id,  epoch, self.nid)
+        rs = db.query(SQL, params) # Execute query
+        self.avg_err_sig_for_epoch =  float(rs[0].get("avg_error_signal", 0.0))
+
+    def get_color_gradient(self, error_signal, max_error : float):
+        """Maps an absolute error signal to a color gradient from red (high) to green (low)."""
+
+        #print(f"error_signal={error_signal} and max_error={max_error} and {mgr.max_error}")
+        if max_error != 0:
+            norm_error = min(abs(error_signal) / max_error, 1)  # Normalize to [0, 1]
+            red = int(255 * norm_error)   # High error → More red
+            green = int(255 * (1 - norm_error))  # Low error → More green
+        else:
+            red =255
+            green = 0
+        return (red, green, 0)  # RGB format
+
+
     def draw_neuron(self, screen):
         # Define colors
         body_color = (0, 0, 255)  # Blue for the neuron body
         #label_color = (70, 130, 180)  # Steel blue for the label strip
         text_color = (255, 255, 255)  # White for text on the label
+
+        if color_neurons:
+            body_color = self.get_color_gradient(self.avg_err_sig_for_epoch,mgr.max_error)
 
         # Font setup
         font = pygame.font.Font(None, 24)
@@ -122,12 +157,13 @@ class DisplayModel__Neuron:
         text_height = label_surface.get_height()
         label_strip_height = text_height + 8  # Padding (8px)
 
-        # Draw the banner
-        #pygame.draw.rect(
-        #    screen,
-        #    label_color,
-        #    (self.location_left, self.location_top, self.location_width, label_strip_height)
-        #)
+        # Draw neuron banner
+        banner_rect = pygame.Rect(self.location_left, self.location_top+4, self.location_width, label_strip_height)
+        draw_gradient_rect(screen, banner_rect, (25, 25, 112), (70, 130, 180))
+        text_height -= 6
+        screen.blit(label_surface, (self.location_left + 5, self.location_top + (label_strip_height - text_height) // 2)) # **Blit Label on the Left**
+        right_x = self.location_left + self.location_width - output_surface.get_width() - 5  # Align to right  # **Blit Output on the Right**
+        screen.blit(output_surface, (right_x, self.location_top + (label_strip_height - text_height) // 2))
 
 
         # Draw the neuron body below the label
@@ -138,17 +174,9 @@ class DisplayModel__Neuron:
             body_color,
             (self.location_left, body_y_start, self.location_width, body_height),
             border_radius=6,
-            width= 3  # Border width
-
+            width= 5  # Border width
         )
 
-        # Draw neuron banner
-        banner_rect = pygame.Rect(self.location_left, self.location_top+4, self.location_width, label_strip_height)
-        draw_gradient_rect(screen, banner_rect, (70, 130, 180), (25, 25, 112))
-        text_height -= 6
-        screen.blit(label_surface, (self.location_left + 5, self.location_top + (label_strip_height - text_height) // 2)) # **Blit Label on the Left**
-        right_x = self.location_left + self.location_width - output_surface.get_width() - 5  # Align to right  # **Blit Output on the Right**
-        screen.blit(output_surface, (right_x, self.location_top + (label_strip_height - text_height) // 2))
 
         # Render neuron details inside the body
         body_text_y_start = body_y_start + 5
@@ -159,7 +187,12 @@ class DisplayModel__Neuron:
             y=body_text_y_start + 7
         )
 
-    def neuron_build_text(self, row):
+    def neuron_build_text_small(self, row): #less info so it still fits
+        self.neuron_build_text_large(row) # Ensures values are saved for the pop up window.
+        error_signal = row.get('error_signal', None)  # From neuron
+        return f"{smart_format(self.activation_value)}\n{self.activation_function}\nδ={smart_format(error_signal)}"
+
+    def neuron_build_text_large(self, row): #lots of info
         """
         Generate a formatted report for a single neuron.
         Includes weighted sum calculations, bias, activation details,
@@ -173,7 +206,7 @@ class DisplayModel__Neuron:
         #return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}\n{self.weight_adjustments}"
         return f"{prediction_logic}\n{bias_activation_info}\n{backprop_details}"
 
-    # ---------------------- Existing Functions ---------------------- #
+    # ---------------------- Logic around metrics ---------------------- #
 
     def build_prediction_logic(self, row):
         """
@@ -222,9 +255,9 @@ class DisplayModel__Neuron:
         - Activation Gradient (A')
         - Error Signal (δ)
         """
-        error_signal = row.get('error_signal', None)  # From neuron
-        error_signal = f"Error Signal (δ): {smart_format(error_signal)}"
-        return f"{error_signal}"
+        self.error_signal = row.get('error_signal', None)  # From neuron
+        error_signal_str = f"Error Signal (δ): {smart_format(self.error_signal)}"
+        return f"{error_signal_str}"
 
     def parse_weight_adjustments(self,text: str):
         lines = text.strip().splitlines()

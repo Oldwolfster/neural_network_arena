@@ -33,7 +33,7 @@ class MLP_Hayabusa(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([2,4,2,5,5], [Initializer_Xavier], Tanh)
+        self.initialize_neurons([3,4], [Initializer_Xavier], Tanh)
         #self.initialize_neurons([2,4,2,5,2], [Initializer_Xavier], Tanh) #doesn't converge on seed 12345
     def forward_pass(self, training_sample):
             """

@@ -1,5 +1,8 @@
 import pygame
 import sys
+
+import pygame_gui
+
 from src.ArenaSettings import HyperParameters
 from typing import List
 from src.neuroForge.Display_Manager import DisplayManager
@@ -18,25 +21,22 @@ import tkinter.messagebox as mb
 def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
 
     neuro_forge_init()
-    display_manager = DisplayManager(mgr.screen, hyper, db)
-    display_manager.initialize(model_info_list)  # Set up all components
+    ui_manager = pygame_gui.UIManager((mgr.screen.get_width(), mgr.screen.get_height()))
+    display_manager = DisplayManager(mgr.screen, hyper, db, model_info_list, ui_manager)
+    #display_manager.initialize(model_info_list)  # Set up all components
 
     # Initialize tracking variables
     last_iteration = mgr.iteration -1 # -1 makes it trigger it the first time.
     last_epoch = mgr.epoch
     menu_button_rect= create_menu_button_rect()
     menu = create_menu(mgr.screen_width, mgr.screen_height, db)
+    clock = pygame.time.Clock()
 
     # Pygame main loop
     running = True
     while running:
-        events = pygame.event.get()
-        for event in events:
-            check_menu_button(event, menu_button_rect)
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN:
-                respond_to_UI(event)
+        time_delta = clock.tick(60) / 1000.0  # Convert to seconds
+        events=handle_events(menu_button_rect, display_manager, ui_manager)
 
         # Check if iteration or epoch has changed
         if mgr.iteration != last_iteration or mgr.epoch != last_epoch:
@@ -44,14 +44,29 @@ def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
             last_iteration = mgr.iteration  # Update tracking variables
             last_epoch = mgr.epoch          # Update tracking variables
         # finish pygame tasks
+        ui_manager.update(time_delta)  # ✅ Ensure pygame_gui updates every frame
         mgr.screen.fill((255, 255, 255))  # Clear screen
         display_manager.render() # Render models
         draw_button(menu_button_rect)
+        ui_manager.draw_ui(mgr.screen)
         if mgr.menu_active and menu.is_enabled() :
             menu.update(events)
             menu.draw(mgr.screen)
 
         pygame.display.flip()
+
+
+def handle_events(menu_button_rect, display_manager, ui_manager):
+    events = pygame.event.get()
+    for event in events:
+        ui_manager.process_events(event)  # ✅ Fix: Ensure pygame_gui gets events
+        check_menu_button(event, menu_button_rect)
+        display_manager.process_events(event)
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            respond_to_UI(event)
+    return events
 
 def check_menu_button(event, menu_button_rect):
     if event.type == pygame.MOUSEBUTTONDOWN:
@@ -80,7 +95,8 @@ def respond_to_UI(event):
     if event.key == pygame.K_u:  # Reverse epoch
         mgr.epoch -= 1
         mgr.iteration = 1  # Reset to the first iteration of the new epoch
-
+    validate_epoch_change() # Check for out of range conditions
+"""
     # Check for out of range conditions
     if mgr.epoch < 1:  # Check if trying to move past the beginning
         mb.showinfo("Out of Range", "You cannot go past the first epoch!")
@@ -91,7 +107,7 @@ def respond_to_UI(event):
         mb.showinfo("Out of Range", "You are at the end!")
         mgr.epoch = mgr.max_epoch
         mgr.iteration = mgr.max_iteration
-
+"""
 def create_menu_button_rect():
     top = 40
     width = 140

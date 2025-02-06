@@ -19,7 +19,7 @@ class DisplayPanelPrediction(EZForm):
                     "Target": "0.000"
                 }
             self.screen = screen
-            # Pass the calculated absolute dimensions to the parent class
+
             super().__init__(screen=self.screen, fields=fields,width_pct=width_pct,height_pct=height_pct,left_pct=left_pct,top_pct=top_pct,banner_text="Prediction",banner_color=(0, 0, 255))  # Matching neuron colorsbg_color=(240, 240, 240),font_color=(0, 0, 0)        )
 
     def update_me(self, rs: dict):

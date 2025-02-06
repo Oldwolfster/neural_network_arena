@@ -150,8 +150,7 @@ class DisplayModel(EZSurface):
 
         max_neurons = max(architecture)  # Determine the layer with the most neurons
         max_layers = len(architecture)  # Total number of layers
-
-
+        text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
         width_needed = size * max_layers + (max_layers -1) * gap + margin * 2
         extra_width = self.width - width_needed
         extra_width_to_center = extra_width / 2
@@ -180,7 +179,7 @@ class DisplayModel(EZSurface):
                 extra_height = self.height - height_needed
                 extra_height_to_center = extra_height  / 2
 
-                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(architecture)-1)
+                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(architecture)-1, text_version=text_version)
                 y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
 
                 # 🔹 Assign calculated position & size
@@ -192,5 +191,6 @@ class DisplayModel(EZSurface):
                 layer_neurons.append(neuron)
 
             self.neurons.append(layer_neurons)
+
 
 
