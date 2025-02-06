@@ -4,11 +4,11 @@ from typing import List
 import pygame
 
 from src.engine.ActivationFunction import get_activation_derivative_formula
-from src.NeuroForge import mgr
-from src.NeuroForge.EZPrint import EZPrint
+from src.neuroForge import mgr
+from src.neuroForge.EZPrint import EZPrint
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format, draw_gradient_rect
-from src.NeuroForge.mgr import * # Imports everything into the local namespace
+from src.neuroForge.mgr import * # Imports everything into the local namespace
 
 
 class DisplayModel__Neuron:
@@ -277,16 +277,28 @@ class DisplayModel__Neuron:
         # Initialize two empty lists to store the first and second numbers of each pair
         err_sigs = []
         weights = []
-
-        # Iterate through each pair
         for pair in pairs:
-            # Split the pair into two numbers using '!' as the delimiter
-            print(f"Pair={pair}")
+            if not pair or '!' not in pair:
+                print(f"⚠️ Skipping invalid pair: {repr(pair)}", flush=True)
+                continue  # Skip this iteration
+
+            #print(f"Pair={pair}", flush=True)
             try:
                 num1, num2 = pair.split('!')
-            except:
-                print(f"Pair2={pair}")
+            except Exception as e:
+                print(f"Error while splitting {repr(pair)}", flush=True)
                 raise
+
+
+        # Iterate through each pair
+        #for pair in pairs:
+            # Split the pair into two numbers using '!' as the delimiter
+        #    print(f"Pair={pair}")
+        #    try:
+        #        num1, num2 = pair.split('!')
+        #    except:
+        #        print(f"Pair2={pair}")
+        #        raise
 
             # Convert the strings to floats and append to the respective lists
             weights.append(float(num1))

@@ -18,7 +18,7 @@ class Neuron:
         self.activation_value = 0.0
         self.activation =  activation or Linear         # function
         self.activation_gradient = 0.0  # Store activation gradient from forward pass
-        self.error_signal = 6969.69
+        self.error_signal = 1111.11
         self.weight_adjustments = ""
         self.error_signal_calcs = ""
 

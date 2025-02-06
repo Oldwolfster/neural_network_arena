@@ -1,4 +1,4 @@
-from src.Reports._BaseReport import BaseReport
+from src.reports._BaseReport import BaseReport
 class GladiatorComparision(BaseReport):
     def get_parameters():
         print("Get parameters")

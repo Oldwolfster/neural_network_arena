@@ -3,6 +3,9 @@ from src.engine.Engine import run_a_match
 from engine.SQL import list_runs
 
 
+import cProfile
+
+
 def main():
     if instead_of_run_show_past_runs and len(run_previous_training_data) == 0:
         list_runs()
@@ -13,4 +16,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main() #Normal run
+    #cProfile.run('main()', sort='cumulative') #for profiling

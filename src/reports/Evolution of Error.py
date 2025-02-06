@@ -1,6 +1,6 @@
 import re
 
-from src.Reports._BaseReport import BaseReport
+from src.reports._BaseReport import BaseReport
 from src.engine.RamDB import RamDB
 import matplotlib.pyplot as plt
 

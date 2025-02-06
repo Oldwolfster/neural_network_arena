@@ -1,9 +1,9 @@
 import pygame
 from typing import List
 
-from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
-from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
-from src.NeuroForge.EZSurface import EZSurface
+from src.neuroForge.DisplayModel__Neuron import DisplayModel__Neuron
+from src.neuroForge.DisplayModel__Connection import DisplayModel__Connection
+from src.neuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
 
@@ -22,7 +22,7 @@ class DisplayModel(EZSurface):
         Populate neurons and connections based on the provided model information.
         """
         self.model_id = model_info.model_id
-        self.architecture = model_info.full_architecture
+        self.architecture = model_info._full_architecture
         self.create_neurons()
 
         # Create connections

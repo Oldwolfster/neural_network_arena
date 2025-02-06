@@ -5,6 +5,8 @@ import numpy
 from numpy import ndarray
 from typing import Any
 from numpy import array
+
+from src.engine.ActivationFunction import *
 from src.engine.MgrSQL import MgrSQL
 from src.engine.Neuron import Neuron
 from src.engine.TrainingData import TrainingData
@@ -27,7 +29,7 @@ class Gladiator(ABC):
         self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
-        self.full_architecture  = None
+        self._full_architecture  = None
         self.last_lost          = 0
         self.iteration          = 0
         self.epoch              = 0
@@ -46,22 +48,18 @@ class Gladiator(ABC):
     def train(self) -> str:
         if self.neuron_count == 0:
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
-            print(f"Warning: Defaulting to a single neuron in {self.__class__.__name__}")
 
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
-            self.epoch = epoch      # Set so the model has access
-            if epoch % 100 == 0:
-                print (f"Epoch: {epoch} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
-                print(f"🛠️ Using Random Seed: {self.random_seed}")
-                return convg_signal, self.full_architecture
-
-
-        return "Did not converge", self.full_architecture       # When it does not converge still return metrics mgr
+                return convg_signal, self._full_architecture
+        return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
 
     def run_an_epoch(self, epoch_num: int) -> bool:
+        self.epoch = epoch_num      # Set so the child model has access
+        if epoch_num % 100 == 0:
+                print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
             self.iteration = i      # Set so the model has access
             sample = np.array(sample)  # Convert sample to NumPy array
@@ -104,6 +102,15 @@ class Gladiator(ABC):
         return self.mgr_sql.finish_epoch()
 
     def snapshot_weights_as_weights_before(self, inputs: numpy.array):
+        """        Copies weights and bias        """
+        for layer_index, current_layer in enumerate(Neuron.layers):
+            for neuron in current_layer:
+                # Capture "before" state for debugging and backpropagation
+                neuron.weights_before = np.copy(neuron.weights)
+                neuron.bias_before = neuron.bias
+
+
+    def snapshot_weights_as_weights_before_doing_way_to_muchDeleteMe(self, inputs: numpy.array):
         """
         Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
         """
@@ -128,6 +135,7 @@ class Gladiator(ABC):
             # Debugging
             # print(f"DEBUG Layer {layer_index} Activations: {[n.activation_value for n in current_layer]}")
 
+
     def get_flat_initializers(self, architecture: List[int], initializers: List[WeightInitializer]) -> List[WeightInitializer]:
         """
         Returns a flat list of weight initializers, ensuring compatibility with the number of neurons.
@@ -151,7 +159,7 @@ class Gladiator(ABC):
         # Default to Xavier if not set
         #if not self.neuron_initializers:
         if not initializers:
-            initializers = [Xavier] * total_neurons
+            initializers = [Initializer_Xavier] * total_neurons
 
         # If already correct, return as-is
         if len(initializers) == total_neurons:
@@ -175,12 +183,13 @@ class Gladiator(ABC):
         raise ValueError(f"Incompatible number of initializers ({len(self.neuron_initializers)}) "
                          f"for total neurons ({total_neurons})")
 
-    def initialize_neurons(self, architecture: List[int] = None, initializers: List[WeightInitializer] = None):
+    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, default_AF: ActivationFunction = Tanh):
         """
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
 
         Args:
             architecture (List[int]): Number of neurons per hidden layer.
+            default_AF (Activation Function): Sets AF for all neurons except output layer
         """
         if architecture is None:
             architecture = []  # Default to no hidden layers
@@ -190,69 +199,35 @@ class Gladiator(ABC):
         flat_initializers = self.get_flat_initializers(architecture, initializers)
 
         input_count = self.training_data.input_count
-        self.full_architecture = [input_count] + architecture  # Store the full architecture
+        self._full_architecture = [input_count] + architecture  # Store the full architecture
 
         self.neurons.clear()
         Neuron.layers.clear()
         nid = -1
+        output_af = Sigmoid #Assume binary decision
+        if self.training_data.problem_type !="Binary Decision":
+            output_af = Linear
 
         for layer_index, neuron_count in enumerate(architecture):
-            num_of_weights = self.full_architecture[layer_index]
+            num_of_weights = self._full_architecture[layer_index]
             for neuron_index in range(neuron_count):
                 nid += 1
+
+                activation = output_af if layer_index==len(architecture)-1 else default_AF
+                print(f"Creating Neuron {nid}  in layer{layer_index}  len(architecture)={len(architecture)} - Act = {activation.name}")
                 neuron = Neuron(
                     nid=nid,
                     num_of_weights=num_of_weights,
                     learning_rate=self.hyper.default_learning_rate,
                     weight_initializer=flat_initializers[nid],  # Assign correct initializer
                     layer_id=layer_index,
+                    activation=activation
                 )
                 self.neurons.append(neuron)
-
         self.neuron_count = len(self.neurons)
 
 
-    def initialize_neuronsOLD(self, architecture: list = None):
-        """
-        Initializes neurons based on the specified architecture.
 
-        Args:
-            architecture (list): List of integers representing the number of neurons
-                                 in each hidden layer.
-                                 Example: [4, 3, 2] for 4 neurons in the first hidden layer,
-                                 3 in the next, and 2 in the final hidden layer.
-                                 The output neuron is automatically added.
-        """
-        if architecture is None:
-            architecture = []  # Default to no hidden layers, just a single output neuron
-        architecture.append(1)  # Append output neuron (force single-output)
-
-        input_count = self.training_data.input_count
-        self.full_architecture = [input_count] + architecture # Store the full architecture
-
-        # Initialize neurons for all layers except the input layer - layer mgmt happens automatically in Neuron
-        self.neurons.clear()  # Clear any existing neurons
-        Neuron.layers.clear()   # Clear any existing Layered structure
-        nid = -1
-        for layer_index, neuron_count in enumerate(architecture):
-            num_of_weights = self.full_architecture[layer_index]
-            for neuron_index in range(neuron_count):
-                nid += 1
-                neuron = Neuron(
-                    nid=nid,
-                    num_of_weights=num_of_weights,
-                    learning_rate=self.hyper.default_learning_rate,
-                    layer_id=layer_index
-                )
-                self.neurons.append(neuron)     # Add to flat list - layers handled automatically within Neuron
-        self.neuron_count = len(self.neurons)
-        #self.print_layer_debug_info()
-
-    def print_layer_debug_info(self):
-        for layer_index in range(len(self.layers)):
-            print(f"layer ================== {layer_index}")
-            for neuron in self.layers[layer_index]:
-                print (f"nid={neuron.nid}\tweights={neuron.weights_before}\tinputs={neuron.neuron_inputs}")
     """
         def training_iteration(self):
             model_style=""
@@ -263,8 +238,6 @@ class Gladiator(ABC):
             else:
                 raise NotImplementedError("Subclass must implement either run_iteration or run_forward_pass")
     """
-
-
 
     @property
     def weights(self):

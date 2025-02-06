@@ -1,10 +1,10 @@
 import pygame
 from typing import List
-from src.NeuroForge import mgr
+from src.neuroForge import mgr
 
-from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
-from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
-from src.NeuroForge.EZSurface import EZSurface
+from src.neuroForge.DisplayModel__Neuron import DisplayModel__Neuron
+from src.neuroForge.DisplayModel__Connection import DisplayModel__Connection
+from src.neuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
 
@@ -12,7 +12,8 @@ from src.engine.RamDB import RamDB
 class DisplayModel(EZSurface):
     def __init__(self, screen, data_labels, width_pct, height_pct, left_pct, top_pct, architecture=None):
         #print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
-        super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(244, 244, 244))
+        #chg below bg color to do bo
+        super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(255, 255, 255))
         self.neurons = [[] for _ in range(len(architecture))] if architecture else []  # Nested list by layers
         self.connections = []  # List of connections between neurons
         self.model_id = None
@@ -179,7 +180,6 @@ class DisplayModel(EZSurface):
                 extra_height = self.height - height_needed
                 extra_height_to_center = extra_height  / 2
 
-
                 neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(architecture)-1)
                 y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
 
@@ -189,7 +189,6 @@ class DisplayModel(EZSurface):
                 neuron.location_top = y_coord
                 neuron.location_width = size
                 neuron.location_height = size
-
                 layer_neurons.append(neuron)
 
             self.neurons.append(layer_neurons)

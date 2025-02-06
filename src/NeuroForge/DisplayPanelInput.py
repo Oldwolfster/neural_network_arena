@@ -3,11 +3,11 @@ from typing import List
 
 import pygame
 
-from src.NeuroForge.EZSurface import EZSurface
+from src.neuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
 
-from src.NeuroForge.EZForm import EZForm
+from src.neuroForge.EZForm import EZForm
 from src.engine.Utils import smart_format
 
 
@@ -18,8 +18,6 @@ class DisplayPanelInput(EZForm):
 
         # Dynamically create fields for all input labels
         fields = {}
-
-
 
         for label in data_labels[:-1]:  # Exclude the last label (assuming it's the target)
             fields[label] = "0.000"  # Default value for each input

@@ -1,7 +1,6 @@
 import pygame
-from src.NeuroForge.EZForm import EZForm
+from src.neuroForge.EZForm import EZForm
 from src.engine.Utils import smart_format
-
 
 class DisplayPanelPrediction(EZForm):
     def __init__(self, screen: pygame.Surface,problem_type: str, width_pct, height_pct, left_pct, top_pct):
@@ -12,9 +11,7 @@ class DisplayPanelPrediction(EZForm):
                     "Prediction(Raw)": "0.000",
                     "With Threshold" : "0.000",
                     "Target": "0.000",
-                    "Error (Targ-Raw)": "0.000"
-
-                }
+                    "Error (Targ-Raw)": "0.000"                }
             else:
                 fields = {
                     "Prediction(Raw)": "0.000",
@@ -38,11 +35,6 @@ class DisplayPanelPrediction(EZForm):
         if self.problem_type == "Binary Decision":
             prediction_thd = 1 if prediction > .5 else 0
             self.banner_text = "Correct" if abs(prediction_thd - target) <.000001 else "Wrong" #Handle fp errors
-            #if prediction>= .5:
-            #    prediction_thd = 1
-            #else:
-            #    prediction_thd = 0
-
 
         # Compute Relative Error (Avoid divide by zero)
         rel_error = 0 if target == 0 else (error / target) * 100
@@ -54,4 +46,3 @@ class DisplayPanelPrediction(EZForm):
         #self.fields["Relative Error"] = f'{rel_error:4.2f}%'
         if self.problem_type == "Binary Decision":
             self.fields["With Threshold"] = smart_format(prediction_thd)
-

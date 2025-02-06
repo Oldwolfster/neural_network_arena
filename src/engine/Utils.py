@@ -4,7 +4,7 @@ import inspect
 
 import pygame
 
-from src.Reports._BaseReport import BaseReport
+from src.reports._BaseReport import BaseReport
 from src.engine.BaseArena import BaseArena
 from src.engine.BaseGladiator import Gladiator
 

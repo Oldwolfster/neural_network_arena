@@ -1,5 +1,5 @@
 import pygame
-from src.NeuroForge.EZForm import EZForm
+from src.neuroForge.EZForm import EZForm
 from src.engine.Utils import smart_format
 
 

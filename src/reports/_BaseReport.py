@@ -1,8 +1,8 @@
 import sqlite3
 from abc import abstractmethod
-from src.NeuroForge import mgr
+from src.neuroForge import mgr
 from tabulate import tabulate
-from src.Reports._ReportUtils import clean_multiline_string
+from src.reports._ReportUtils import clean_multiline_string
 
 class BaseReport:
     """Base class for SQL-driven reports with reusable query execution and tabulation."""
