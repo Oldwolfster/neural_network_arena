@@ -37,7 +37,7 @@ def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     while running:
         time_delta = clock.tick(60) / 1000.0  # Convert to seconds
         events=handle_events(menu_button_rect, display_manager, ui_manager)
-
+        display_manager.gameloop_hook()
         # Check if iteration or epoch has changed
         if mgr.iteration != last_iteration or mgr.epoch != last_epoch:
             display_manager.update( db, mgr.iteration, mgr.epoch,'global no model') # Query and update data

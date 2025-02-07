@@ -1,6 +1,6 @@
 import pygame
 import pygame_gui
-
+import time
 from src.ArenaSettings import HyperParameters
 from src.neuroForge import mgr
 from src.neuroForge.DisplayBanner import DisplayBanner
@@ -12,6 +12,7 @@ from src.neuroForge.DisplayPanelLoss import DisplayPanelLoss
 from src.neuroForge.DisplayPanelPrediction import DisplayPanelPrediction
 
 from src.engine.RamDB import RamDB
+
 
 
 class DisplayManager:
@@ -30,8 +31,8 @@ class DisplayManager:
         mgr.max_error   = self.get_max_error(db)
         mgr.color_neurons   = hyper.color_neurons
         self.neurons        = None
+        self.vcr            = None
         self.initialize_components(model_info_list, ui_manager)
-
 
     def initialize_components(self, model_info_list, ui_manager):
         """Initialize and configure all display components."""
@@ -85,12 +86,65 @@ class DisplayManager:
             mgr.tool_tip.render_tooltip(self.screen)
             mgr.tool_tip = None
 
+
+
+
+    def vcr_move_tape(self):
+        """Advances or rewinds the simulation based on vcr_rate, ensuring consistent timing."""
+
+        speed_multiplier = 10
+        # Ensure vcr_rate is not zero (paused)
+        if mgr.vcr_rate == 0:
+            return
+
+        # Store last update time inside the function (persistent across calls)
+        if not hasattr(self, "last_update_time"):
+            self.last_update_time = time.monotonic()
+
+        # Define the frame delay (inverse of speed)
+        seconds_per_frame = 1.0 / abs(mgr.vcr_rate) / speed_multiplier  # E.g., 3 FPS → 1/3 sec per frame
+
+        current_time = time.monotonic()
+
+        # Check if enough time has passed to advance/reverse a frame
+        if current_time - self.last_update_time >= seconds_per_frame:
+            # Move forward or backward in training playback
+            if mgr.vcr_rate > 0:
+                mgr.iteration += 1
+                if mgr.iteration > mgr.max_iteration:
+                    mgr.epoch += 1
+                    mgr.iteration = 1
+            else:  # Reverse playback
+                mgr.iteration -= 1
+                if mgr.iteration == 0:
+                    mgr.epoch -= 1
+                    mgr.iteration = mgr.max_iteration
+
+            # Update the last update time to current
+            self.last_update_time = current_time
+
+            # Debugging output
+            #print(f"VCR moved: Epoch {mgr.epoch}, Iteration {mgr.iteration}, Speed {mgr.vcr_rate} FPS")
+
+
+    def vcr_move_tapeNotworking(self):
+        """
+        Serves as delegate that scheduler will call when it's time to advance frame
+        """
+        print(f"vcr_move_tape before iteration = {mgr.iteration}\t{mgr.epoch}")
+        mgr.iteration +=1
+
+        mgr.validate_epoch_change()
+        #print(f"vcr_move_tape after validate{mgr.iteration}")
+
+
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""
         # db.list_tables()
+
         iteration_dict = self.get_iteration_dict(db, epoch, iteration)
         # db.query_print("Select * from iteration")
-        print(f"iteration_dict:::{iteration_dict}")
+        #print(f"iteration_dict:::{iteration_dict}")
         # Render models
         # db.query_print("SELECT typeof(target), target FROM Iteration LIMIT 5;")
 
@@ -101,6 +155,11 @@ class DisplayManager:
 
         for model in self.models:
             model.update_me(db, iteration, epoch, model_id)
+    def gameloop_hook(self):
+        #mgr.scheduler.schedule("vcr", mgr.vcr_rate , self.vcr_move_tape())
+        self.vcr_move_tape()
+        #print(f"moving{mgr.vcr_rate}")
+
 
     def process_events(self, event):
 
