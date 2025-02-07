@@ -142,6 +142,49 @@ def clean_multiline_string(input_string):
     return cleaned_string
 
 
+import time
+
+class PlaybackController:
+    def __init__(self):
+        """Initialize a dictionary to store playback states for different keys."""
+        self.playback_states = {}  # {key: {"rate": int, "last_update": float}}
+
+    def move_tape(self, key: str, rate: int, step_function):
+        """
+        Controls playback speed and frame advancement for any process.
+
+        Args:
+            key (str): Unique identifier for the process being controlled.
+            rate (int): Playback speed (e.g., 3 = forward 3 FPS, -2 = reverse 2 FPS, 0 = paused).
+            step_function (callable): Function to execute each step.
+        """
+
+        if rate == 0:
+            return  # No movement if playback is paused
+
+        # Ensure we have a state record for this key
+        if key not in self.playback_states:
+            self.playback_states[key] = {"rate": rate, "last_update": time.monotonic()}
+
+        state = self.playback_states[key]
+
+        # If the rate has changed, update it
+        if state["rate"] != rate:
+            state["rate"] = rate
+
+        # Time-based stepping logic
+        seconds_per_frame = 1.0 / abs(rate)  # Convert FPS to step interval
+        current_time = time.monotonic()
+
+        if current_time - state["last_update"] >= seconds_per_frame:
+            step_function(1 if rate > 0 else -1)  # Execute step in the correct direction
+            state["last_update"] = current_time  # Update time record
+
+            print(f"[{key}] Moved at {rate} FPS")  # Debug output
+
+
+
+
 
 
 

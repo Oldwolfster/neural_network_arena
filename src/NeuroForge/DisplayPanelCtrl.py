@@ -163,4 +163,15 @@ class DisplayPanelCtrl(EZForm):
         Args:
             speed (str): The selected speed (e.g., "1x", "2x").
         """
-        print(f"Setting playback speed to {speed}")  # Replace with actual logic
+        try:
+            if isinstance(speed, tuple):
+                speed = speed[0]  # ✅ Extract first element if tuple
+            remove_x = speed.replace("x", "")  # ✅ Remove 'x' safely
+            new_speed = int(remove_x)  # ✅ Check if it's a valid number
+            mgr.vcr_rate = new_speed # 🔥 Set rate to selected speed
+            self.epoch_input.set_text("")  # ✅ Clear text box after processing
+
+        except ValueError:
+            pass
+            #mgr.jump_to_epoch = -1  # 🚨 Handle non-numeric input - will happen in main loop
+

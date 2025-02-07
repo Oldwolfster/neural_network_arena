@@ -77,8 +77,10 @@ class DisplayModel__Neuron:
             except json.JSONDecodeError:
                 cls.input_values = literal_eval(raw_inputs)
 
+
     def update_neuron(self, db: RamDB, iteration: int, epoch: int, model_id: str):
-        self.update_avg_error(db, iteration, epoch, model_id)
+        if not self.update_avg_error(db, iteration, epoch, model_id):
+            return #no record found so exit early
         # Parameterized query with placeholders
         SQL =   """
             SELECT  *
@@ -97,13 +99,16 @@ class DisplayModel__Neuron:
         # print(f"Params: {params}")
 
         rs = db.query(SQL, params) # Execute query
-        self.weight_text = self.neuron_build_text(rs[0])
-        self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
-        self.error_signal_calcs = rs[0].get("error_signal_calcs")
-        #print(f"calcsforerror{self.error_signal_calcs}")
-        self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
-        #print(f"Query result: {rs}")
-        #print(f"PREDICTIONS: {self.weight_text}")
+        try:
+            self.weight_text = self.neuron_build_text(rs[0])
+            self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
+            self.error_signal_calcs = rs[0].get("error_signal_calcs")
+            #print(f"calcsforerror{self.error_signal_calcs}")
+            self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
+            #print(f"Query result: {rs}")
+            #print(f"PREDICTIONS: {self.weight_text}")
+        except:
+            pass
 
     def update_avg_error(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         #print(f"model_id======={model_id}")
@@ -116,8 +121,18 @@ class DisplayModel__Neuron:
         nid     = ?        
         """
         params = (model_id,  epoch, self.nid)
-        rs = db.query(SQL, params) # Execute query
-        self.avg_err_sig_for_epoch =  float(rs[0].get("avg_error_signal", 0.0))
+        rs = db.query(SQL, params)  # Execute query
+
+        # ✅ Check if `rs` is empty before accessing `rs[0]`
+        if not rs:
+            #print("in update_avg_error returning false")
+            return False  # No results found
+
+        # ✅ Ensure `None` does not cause an error
+        self.avg_err_sig_for_epoch = float(rs[0].get("avg_error_signal") or 0.0)
+        #print("in update_avg_error returning TRUE")
+        return True
+
 
     def get_color_gradient(self, error_signal, max_error : float):
         """Maps an absolute error signal to a color gradient from red (high) to green (low)."""

@@ -72,24 +72,6 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         #    self.db.query_print("Select * from Neuron WHERE nid   = 0")
 
 
-
-
-    def record_iterationold(self, iteration_data: Iteration):
-        #print("****************************RECORDING ITERATION 2")
-        #print(f"iteration_data.error={iteration_data.error}\titeration_data.absolute_error={iteration_data.absolute_error}")
-
-        self.db.add(iteration_data)
-        #self.db.query_print("Select * from Iteration")
-        #print(f"error: {iteration_data.error} (type: {type(iteration_data.error)})")
-        #print(f"absolute_error: {iteration_data.absolute_error} (type: {type(iteration_data.absolute_error)})")
-        #self.db.query_print("PRAGMA table_info(Iteration);")
-        self.abs_error_for_epoch += abs(iteration_data.error)   #TODO This shuold be using RamDB
-
-        for neuron in self.neurons:
-            epoch_num=iteration_data.epoch
-            iteration_num=iteration_data.iteration
-            self.db.add(neuron, model=self.model_id, epoch_n = epoch_num, iteration_n = iteration_num )
-
     def finish_epoch(self):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
         self.abs_error_for_epoch = 0 # Reset for next epoch

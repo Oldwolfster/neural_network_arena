@@ -15,11 +15,11 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
 
-    epochs_to_run           :int    = 33      # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 22      # Number of times training run will cycle through all training data
     training_set_size       :int    = 111      # Qty of training data
     default_learning_rate   :float  = 1        # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
-    random_seed             :int    = 12345    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
+    random_seed             :int    = 0    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
     accuracy_threshold      :float  = .1        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision

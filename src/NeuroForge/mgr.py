@@ -1,4 +1,5 @@
 import tkinter.messagebox as mb
+from datetime import time
 
 # mgr.py
 # manages resources such as variables, fonts, etc.
@@ -21,6 +22,9 @@ layer           = 1
 neuron          = 1
 display_models  = []
 
+vcr_rate       = 1  #0 means paused
+vcr_direction   = 1
+
 screen_width=1200
 screen_height=900
 menu_active = False
@@ -42,6 +46,12 @@ def validate_epoch_change():
     if jump_to_epoch !=0:
         epoch = jump_to_epoch
         jump_to_epoch = 0
+    #print (f"in epoch validate: iteration = {iteration}")
+
+    if iteration > max_iteration:
+        epoch += 1
+        iteration = 1
+
 
     # Check for out of range conditions
     if epoch == -1:
@@ -52,6 +62,9 @@ def validate_epoch_change():
         iteration = 1
 
     if epoch > max_epoch:  # Check if trying to move past the end
+        #DELETE MEmgr.scheduler.schedule("vcr", mgr.vcr_rate ,0)
         mb.showinfo("Out of Range", "You are at the end!")
         epoch = max_epoch
         iteration = max_iteration
+
+    #print (f"end of epoch validate iteration={iteration}")
