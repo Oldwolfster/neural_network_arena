@@ -32,7 +32,7 @@ class DisplayBanner(EZSurface):
 
 
 
-    def update_me(self,  data : dict):
+    def update_me(self,  data : dict, epoch_data: dict):
         iteration           = data.get("iteration", "N/A")
         epoch               = data.get("epoch", "N/A")
         self.banner_text    = f"{self.problem_type}    Epoch: {epoch}/{self.max_epoch}    Iteration: {iteration}/{self.max_iteration}"

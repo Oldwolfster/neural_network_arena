@@ -8,6 +8,7 @@ class EZSurface(ABC):
         self.screen_width = screen.get_width()
         self.screen_height = screen.get_height()
 
+        self.left_pct = left_pct
         # Calculate dimensions and position based on percentages
         self.width = int(self.screen_width * (width_pct / 100))
         self.height = int(self.screen_height * (height_pct / 100))

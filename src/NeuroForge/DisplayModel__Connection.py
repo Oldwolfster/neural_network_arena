@@ -25,7 +25,7 @@ class DisplayModel__Connection:
             weight_ratio = abs(self.weight) / mgr.max_weight  # Normalize weight
 
         # 🔹 Adjust thickness (minimum 1, max 8 for visibility)
-        self.thickness = max(1, int(1 + weight_ratio * 17))     #Scale thickness here!!!
+        self.thickness = max(1, int(1 + weight_ratio * 12))     #Scale thickness here!!!
         #print(f"mgr.max_weight = {self.thickness}\tmgr.max_weight = {mgr.max_weight}\tself.thickness = {self.thickness}")
         # 🔹 Adjust color based on weight sign
         base_intensity = int(255 * weight_ratio)  # Scale color by magnitude
