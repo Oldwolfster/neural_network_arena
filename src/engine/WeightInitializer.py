@@ -16,6 +16,9 @@ class WeightInitializer:
         weights = self.method(shape)  # Generate weights
         bias = self.bias_method()  # Generate bias using the selected method
         return weights, bias
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return f"WeightInitializer(name={self.name})"
 
 # 🔹 **1. Uniform Random Initialization (Default)**
 Initializer_Uniform = WeightInitializer(
