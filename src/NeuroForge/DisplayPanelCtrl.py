@@ -13,147 +13,51 @@ class DisplayPanelCtrl(EZForm):
     UI Control Panel for managing playback, jumping to epochs, and speed control.
     Inherits from EZForm to maintain consistent UI styling.
     """
-    def __init__(self, screen: pygame.Surface, ui_manager: pygame_gui.ui_manager, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
-        self.ui_manager = ui_manager
-        # Define UI fields for display purposes
-        fields = {
-            "Playback Speed": "1x",
-            "Jump to Epoch": "",
-            "Current Mode": "Paused"
-        }
-
-        # Initialize the parent class (EZForm) to maintain styling
+    def __init__(self, screen: pygame.Surface, ui_manager: pygame_gui.ui_manager,  width_pct: int, height_pct: int, left_pct: int, top_pct: int):
+        fields = {            "Playback Speed": "1x",            "Jump to Epoch": "",            "Current Mode": "Playing"        }
         super().__init__(screen,  fields, width_pct, height_pct, left_pct, top_pct, banner_text="Controls")
+        self.ui_manager = ui_manager
 
         # Create interactive UI elements
         self.play_button = None
-        self.pause_button = None
+        self.reverse_button = None
+        self.step_forward = None
+        self.step_back = None
         self.epoch_input = None
         self.speed_dropdown = None
         self.create_ui_elements()
 
-    def create_ui_elements(self):
-        """
-        Initializes the UI elements (buttons, text boxes, dropdowns) inside the control panel.
-        """
-        panel_x, panel_y = self.left, self.top  # Panel's position on screen
-
-        # Play button
-        self.play_button = UIButton(
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 100), (68, 30)),
-            text="Play",
-            manager=self.ui_manager
-        )
-
-        # Pause button
-        self.pause_button = UIButton(
-            relative_rect=pygame.Rect((panel_x + 71, panel_y + 100), (68, 30)),
-            text="Pause",
-            manager=self.ui_manager
-        )
-
-        # Epoch Jump Input Box
-        self.epoch_input = UITextEntryLine(
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 169), (138, 36)),
-            manager=self.ui_manager
-        )
-
-        # Speed Dropdown (1x, 2x, 4x, etc.)
-        self.speed_dropdown = UIDropDownMenu(
-            options_list=["0.5x", "1x", "2x", "4x", "10x"],
-            starting_option="1x",
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 62), (138, 36)),
-            manager=self.ui_manager
-        )
-
-    def update_me(self, rs: dict):
-        """
-        Updates the display panel UI fields dynamically.
-        """
-        # Example of updating displayed values dynamically
-        #self.fields["Playback Speed"] = self.speed_dropdown.selected_option
-        #self.fields["Current Mode"] = "Playing" if self.is_playing() else "Paused"
-
-    def process_an_event(self, event: pygame.event.Event):
-        """
-        Processes UI events (button clicks, text entry, dropdown selection).
-        Also ensures pygame_gui receives events.
-        """
-        #print(f"in process_an_event, event={event}")
-
-
+    def process_an_event(self, event):
+        """Handles UI events and sends commands to VNR_Controller.
+        Also ensures pygame_gui receives events."""
         self.handle_enter_key(event)
-
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == self.play_button:
-                self.toggle_playback(True)
-            elif event.ui_element == self.pause_button:
-                self.toggle_playback(False)
+                self.toggle_playback()
+            elif event.ui_element == self.reverse_button:
+                self.toggle_reverse()
+            elif event.ui_element == self.step_forward:
+                mgr.VCR.step_x_iteration(1)
+            elif event.ui_element == self.step_back:
+                mgr.VCR.step_x_iteration(-1)
+            elif event.ui_element == self.step_forward_big:
+                mgr.VCR.step_x_epochs(100)
+            elif event.ui_element == self.step_back_big:
+                mgr.VCR.step_x_epochs(-100)
 
-        elif event.type == pygame_gui.UI_TEXT_ENTRY_CHANGED and event.ui_element == self.epoch_input:
-            print(f"Text Changed: {self.epoch_input.get_text()}")  # Debugging
 
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == self.speed_dropdown:
             self.set_playback_speed(self.speed_dropdown.selected_option)
 
-    def handle_enter_key(self, event: pygame.event.Event):
-        """
-        Handles 'Enter' key press for the epoch input box.
-        - If empty: Moves focus to the input box.
-        - If valid number: Jumps to that epoch.
-        - If invalid: Displays an error message.
-        """
-        #check if enter key was pressed
-        #if not (event.type == pygame_gui.UI_TEXT_ENTRY_FINISHED and event.ui_element == self.epoch_input):
-        if not(event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN):
-            return      #
-        epoch_text = self.epoch_input.get_text().strip()  # Get text from input box
-
-        if epoch_text == "":
-            print("Text box is empty. Moving focus to input box.")
-            self.epoch_input.focus()  # ✅ Move focus to text box (no clicking needed!)
-            return
-
-        try:
-            epoch_number = int(epoch_text)  # ✅ Check if it's a valid number
-            #print(f"Jumping to epoch {epoch_number}")
-            self.jump_to_epoch() # 🔥 Jump to epoch
-            self.epoch_input.set_text("")  # ✅ Clear text box after processing
-
-        except ValueError:
-            mgr.jump_to_epoch = -1  # 🚨 Handle non-numeric input - will happen in main loop
-
-    def jump_to_epoch(self):
-        """
-        Reads the epoch number from the input box and jumps to that epoch.
-        """
-        try:
-            mgr.jump_to_epoch = int(self.epoch_input.get_text())
-        except ValueError:
-            pass
 
 
-    def toggle_playback(self, play: bool):
-            """
-            Toggles between play and pause modes.
-
-            Args:
-                play (bool): If True, play; otherwise, pause.
-            """
-            self.fields["Current Mode"] = "Playing" if play else "Paused"
-            # Implement logic to control playback in DisplayManager
-
-
-    def toggle_playback(self, play: bool):
-        """
-        Toggles between play and pause modes.
-
-        Args:
-            play (bool): If True, play; otherwise, pause.
-        """
-        self.fields["Current Mode"] = "Playing" if play else "Paused"
-        # Implement logic to control playback in DisplayManager
-
+    def toggle_reverse(self):
+        if self.reverse_button.text == "Reverse":
+            mgr.VCR.reverse()  # Start playing
+            self.reverse_button.set_text("Forward")  # Update button text
+        else:
+            mgr.VCR.reverse()  # Pause playback
+            self.reverse_button.set_text("Reverse")  # Update button text
 
 
     def set_playback_speed(self, speed: str):
@@ -165,13 +69,112 @@ class DisplayPanelCtrl(EZForm):
         """
         try:
             if isinstance(speed, tuple):
-                speed = speed[0]  # ✅ Extract first element if tuple
-            remove_x = speed.replace("x", "")  # ✅ Remove 'x' safely
-            new_speed = int(remove_x)  # ✅ Check if it's a valid number
-            mgr.vcr_rate = new_speed # 🔥 Set rate to selected speed
-            self.epoch_input.set_text("")  # ✅ Clear text box after processing
-
+                speed = speed[0]                            # ✅ Extract first element if tuple
+                remove_x = speed.replace("x", "")           # ✅ Remove 'x' safely
+                new_speed = int(remove_x)                   # ✅ Check if it's a valid number
+            mgr.VCR.set_speed(new_speed)                   #  🔥 Set rate to selected speed)
+            self.epoch_input.set_text("")                   # ✅ Clear text box after processing
         except ValueError:
             pass
-            #mgr.jump_to_epoch = -1  # 🚨 Handle non-numeric input - will happen in main loop
 
+    def handle_enter_key(self, event: pygame.event.Event):
+        """
+        Handles 'Enter' key press for the epoch input box.
+        - If empty: Moves focus to the input box.
+        - If valid number: Jumps to that epoch.
+        """
+        #check if enter key was pressed
+        if not(event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN):
+            return      #
+        epoch_text = self.epoch_input.get_text().strip()  # Get text from input box
+
+        if epoch_text == "":
+            self.epoch_input.focus()  # ✅ Move focus to text box (no clicking needed!)
+        else:
+            print(f"Jumping to epoch {epoch_text}")
+            self.epoch_input.set_text("")  # ✅ Clear text box after processing
+            mgr.VCR.jump_to_epoch(epoch_text) # 🔥 Jump to epoch
+
+    def toggle_playback(self):
+        """
+        Toggles between play and pause modes.
+
+        Args:
+            play (bool): If True, play; otherwise, pause.
+        """
+        if self.play_button.text == "Play":
+            mgr.VCR.play()  # Start playing
+            self.play_button.set_text("Pause")  # Update button text
+            self.fields["Current Mode"] = "Playing"
+        else:
+            mgr.VCR.pause()  # Pause playback
+            self.play_button.set_text("Play")  # Update button text
+            self.fields["Current Mode"] = "Paused"
+
+    def create_ui_elements(self):#Initializes the UI elements (buttons, text boxes, dropdowns) inside the control panel.
+        panel_x, panel_y = self.left, self.top  # Panel's position on screen
+
+        # Speed Dropdown (1x, 2x, 4x, etc.)
+        self.speed_dropdown = UIDropDownMenu(
+            options_list=["0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
+            starting_option="1x",
+            relative_rect=pygame.Rect((panel_x + 4,  panel_y + 62), (138, 30)),
+            manager=self.ui_manager
+        )
+
+        # Play button
+        self.play_button = UIButton(
+            relative_rect=pygame.Rect((panel_x + 4, panel_y + 90), (68, 25)),
+            text="Pause",
+            manager=self.ui_manager
+        )
+
+        # Pause button
+        self.reverse_button = UIButton(
+            relative_rect=pygame.Rect((panel_x + 71, panel_y + 90), (68, 25)),
+            text="Reverse",
+            manager=self.ui_manager
+        )
+
+        # 'Step Forward' button
+        self.step_forward = UIButton(
+            relative_rect=pygame.Rect((panel_x + 71, panel_y + 117), (68, 26)),
+            text=">",
+            manager=self.ui_manager
+        )
+
+        # 'Step back' button
+        self.step_back = UIButton(
+            relative_rect=pygame.Rect((panel_x + 4, panel_y + 117), (68, 26)),
+            text="<",
+            manager=self.ui_manager
+        )
+
+        # 'Step Forward BIG' button
+        self.step_forward_big = UIButton(
+            relative_rect=pygame.Rect((panel_x + 71, panel_y + 146), (68, 26)),
+            text=">>>>",
+            manager=self.ui_manager
+        )
+
+        # 'Step back BIG' button
+        self.step_back_big = UIButton(
+            relative_rect=pygame.Rect((panel_x + 4, panel_y + 146), (68, 26)),
+            text="<<<<",
+            manager=self.ui_manager
+        )
+
+        # Epoch Jump Input Box
+        self.epoch_input = UITextEntryLine(
+            relative_rect=pygame.Rect((panel_x + 4, panel_y + 169), (138, 36)),
+            manager=self.ui_manager
+        )
+
+
+    def update_me(self, rs: dict, epoch_data: dict):
+        """
+        Updates the display panel UI fields dynamically.
+        """
+        # Example of updating displayed values dynamically
+        #self.fields["Playback Speed"] = self.speed_dropdown.selected_option
+        #self.fields["Current Mode"] = "Playing" if self.is_playing() else "Paused"

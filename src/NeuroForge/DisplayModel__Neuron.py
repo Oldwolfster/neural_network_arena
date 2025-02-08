@@ -55,6 +55,48 @@ class DisplayModel__Neuron:
 
 
 
+    def get_contrasting_text_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+        """
+        Given a background RGB color, this function returns an RGB tuple for either black or white text,
+        whichever offers better readability.
+
+        The brightness is computed using the formula:
+            brightness = (R * 299 + G * 587 + B * 114) / 1000
+        which is a standard formula for perceived brightness. If the brightness is greater than 128,
+        the background is considered light and black text is returned; otherwise, white text is returned.
+
+        Parameters:
+            rgb (tuple[int, int, int]): A tuple representing the background color (R, G, B).
+
+        Returns:
+            tuple[int, int, int]: An RGB tuple for the text color (either (0, 0, 0) for black or (255, 255, 255) for white).
+        """
+        r, g, b = rgb
+        # Calculate the perceived brightness of the background color.
+        brightness = (r * 299 + g * 587 + b * 114) / 1000
+
+        # Choose black text for light backgrounds and white text for dark backgrounds.
+        if brightness > 128:
+            return (0, 0, 0)  # Black text for lighter backgrounds.
+        else:
+            return (255, 255, 255)  # White text for darker backgrounds.
+
+    """
+    # Example usage:
+    if __name__ == "__main__":
+        # Example background colors:
+        examples = [
+            (255, 255, 255),  # white background -> should use black text
+            (0, 0, 0),        # black background -> should use white text
+            (100, 150, 200)   # medium background -> decision based on brightness
+        ]
+        
+        for bg in examples:
+            text_color = get_contrasting_text_color(bg)
+            print(f"Background color {bg} -> Contrasting text color {text_color}")
+    """
+
+
     @classmethod
     def retrieve_inputs(cls, db: RamDB, iteration: int, epoch: int, modelID: str):
         """
@@ -133,6 +175,43 @@ class DisplayModel__Neuron:
         #print("in update_avg_error returning TRUE")
         return True
 
+
+    def get_color_gradient(self, error_signal, max_error: float, gamma: float = 2.0):
+        """
+        Maps an absolute error signal to a color gradient from red (high error) to green (low error)
+        using gamma correction to better utilize the color spectrum. This is a variant of get_color_gradient
+        that increases sensitivity in the lower error range.
+
+        Parameters:
+            error_signal (float): The error signal for the neuron.
+            max_error (float): The maximum error signal used for normalization.
+            gamma (float): Gamma correction factor. A value > 1 will enhance differences at the low end.
+
+        Returns:
+            tuple: An (R, G, B) color where red intensity increases with error.
+        """
+        if max_error != 0:
+            norm_error = min(abs(error_signal) / max_error, 1)  # Normalize to [0, 1]
+            # Apply gamma correction to increase sensitivity for lower error values.
+            # With gamma > 1, even small errors get amplified.
+            norm_error = norm_error ** (1 / gamma)
+            red = int(255 * norm_error)          # High error → More red
+            green = int(255 * (1 - norm_error))    # Low error → More green
+        else:
+            red = 255
+            green = 0
+        return (red, green, 0)  # RGB format
+
+    def get_color_gradient_shows1_red(self, error_signal, max_error: float, gamma: float = 2.0):
+        if max_error != 0:
+            norm_error = min(abs(error_signal) / max_error, 1)
+            norm_error = norm_error ** (1/gamma)  # Apply gamma correction
+            red = int(255 * norm_error)
+            green = int(255 * (1 - norm_error))
+        else:
+            red = 255
+            green = 0
+        return (red, green, 0)
 
     def get_color_gradient(self, error_signal, max_error : float):
         """Maps an absolute error signal to a color gradient from red (high) to green (low)."""

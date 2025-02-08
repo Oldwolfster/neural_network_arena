@@ -39,7 +39,7 @@ class DisplayPanelInput(EZForm):
             font_color=(0, 0, 0)
         )
 
-    def update_me(self, rs: dict):
+    def update_me(self, rs: dict, epoch_data: dict):
         """Update the form fields using values from the provided dictionary."""
         # Update input fields dynamically based on the keys in the dictionary
         raw_inputs = rs.get("inputs", "[]")  # Retrieve raw inputs as a JSON-like string

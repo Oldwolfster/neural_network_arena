@@ -21,6 +21,8 @@ import tkinter.messagebox as mb
 def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list: List[ModelInfo]):
 
     neuro_forge_init()
+    #TODO get thm working
+    #ui_manager = pygame_gui.UIManager((mgr.screen.get_width(), mgr.screen.get_height()),"ui_theme.json")
     ui_manager = pygame_gui.UIManager((mgr.screen.get_width(), mgr.screen.get_height()))
     display_manager = DisplayManager(mgr.screen, hyper, db, model_info_list, ui_manager)
     #display_manager.initialize(model_info_list)  # Set up all components
@@ -28,8 +30,11 @@ def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
     # Initialize tracking variables
     last_iteration = mgr.iteration -1 # -1 makes it trigger it the first time.
     last_epoch = mgr.epoch
-    menu_button_rect= create_menu_button_rect()
+    menu_button_rect = create_menu_button_rect()
+    colr_button_rect = create_colr_button_rect()
     menu = create_menu(mgr.screen_width, mgr.screen_height, db)
+    #colr = create_colr(mgr.screen_width, mgr.screen_height, db)
+
     clock = pygame.time.Clock()
 
     # Pygame main loop
@@ -47,7 +52,8 @@ def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
         ui_manager.update(time_delta)  # ✅ Ensure pygame_gui updates every frame
         mgr.screen.fill((255, 255, 255))  # Clear screen
         display_manager.render() # Render models
-        draw_button(menu_button_rect)
+        draw_button(menu_button_rect, "Menu", 5)
+        draw_button(colr_button_rect, "Colors", -5)
         ui_manager.draw_ui(mgr.screen)
         if mgr.menu_active and menu.is_enabled() :
             menu.update(events)
@@ -68,11 +74,7 @@ def handle_events(menu_button_rect, display_manager, ui_manager):
             respond_to_UI(event)
     return events
 
-def check_menu_button(event, menu_button_rect):
-    if event.type == pygame.MOUSEBUTTONDOWN:
-        if menu_button_rect.collidepoint(event.pos):
-            print(f"I've been clicked,{mgr.menu_active} ")
-            mgr.menu_active = True
+
 
 
 def respond_to_UI(event):
@@ -95,7 +97,7 @@ def respond_to_UI(event):
     if event.key == pygame.K_u:  # Reverse epoch
         mgr.epoch -= 1
         mgr.iteration = 1  # Reset to the first iteration of the new epoch
-    validate_epoch_change() # Check for out of range conditions
+    #validate_epoch_change() # Check for out of range conditions
 """
     # Check for out of range conditions
     if mgr.epoch < 1:  # Check if trying to move past the beginning
@@ -116,14 +118,26 @@ def create_menu_button_rect():
     menu_button_rect = pygame.Rect(left,top, width,  height)
     return menu_button_rect
 
-def draw_button(menu_button_rect):    # Draw the "Open Menu" button
+def create_colr_button_rect():
+    top = 40
+    width = 140
+    left = 30  # mgr.screen_width - 30 - width
+    height = 40
+    colors_button_rect = pygame.Rect(left,top, width,  height)
+    return colors_button_rect
+def check_menu_button(event, menu_button_rect):
+    if event.type == pygame.MOUSEBUTTONDOWN:
+        if menu_button_rect.collidepoint(event.pos):
+            #print(f"I've been clicked,{mgr.menu_active} ")
+            mgr.menu_active = True
+
+def draw_button(menu_button_rect, button_text :str, shadow_offset: int):    # Draw the "Open Menu" button
     main_button_color = ( 0, 0, 255)
     border_radius = 10  # Adjust for roundness
-    shadow_offset = 4  # Depth effect
 
     # Draw shadow
     shadow_color = (30, 30, 100)  # Darker red for depth
-    shadow_rect = menu_button_rect.move(shadow_offset, shadow_offset)
+    shadow_rect = menu_button_rect.move(shadow_offset, abs( shadow_offset))
     pygame.draw.rect(mgr.screen, shadow_color, shadow_rect, border_radius=border_radius)
 
     # Draw main button
@@ -131,7 +145,7 @@ def draw_button(menu_button_rect):    # Draw the "Open Menu" button
 
     # Draw text
     font = pygame.font.SysFont(None, 32)
-    text_surface = font.render("Open Menu", True, mgr.white)
+    text_surface = font.render(button_text, True, mgr.white)
     text_rect = text_surface.get_rect(center=menu_button_rect.center)
     mgr.screen.blit(text_surface, text_rect)
 

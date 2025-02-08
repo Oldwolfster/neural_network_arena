@@ -30,14 +30,25 @@ class EZForm(EZSurface):
         banner_rect = banner_surface.get_rect(center=(self.width // 2, banner_height // 2))
         self.surface.blit(banner_surface, banner_rect)
 
-        # Draw the outer box for the form
+        # Set dimensions of panel
+        outer_box_rect = pygame.Rect(0,0,self.width,  self.height)
+        shadow_offset = -5 if self.left_pct < .5 else 5
+        border_radius = 10  # Adjust for roundness
+        # Draw shadow
+        shadow_color = (30, 30, 100)  # Darker red for depth
+        shadow_rect = outer_box_rect.move(shadow_offset, abs( shadow_offset))
+        #pygame.draw.rect(self.surface, shadow_color, shadow_rect) #, border_radius=border_radius)
+        #pygame.draw.rect(self.surface, self.bg_color, outer_box_rect) #, border_radius=border_radius)
+        #draw main box
         pygame.draw.rect(
             self.surface,
             self.banner_color,  # Blue border
-            (0, 0, self.width, self.height, ),
+            outer_box_rect,
             3  # Border width
             ,border_radius = 4,
         )
+
+
 
         # Adjust starting Y position for fields (below the banner)
         field_start_y = banner_height + self.spacing + 10
