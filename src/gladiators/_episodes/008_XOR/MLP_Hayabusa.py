@@ -33,7 +33,15 @@ class MLP_Hayabusa(Gladiator):
 
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([2], [Initializer_Xavier], Tanh)
+        #will add cost function soon.
+        #will add optimizer option soon
+        #what other options should be here?
+        #Regularization  will be added soon
+        self.initialize_neurons([4,4,5], [Initializer_Xavier], activation_function_for_hidden= Tanh)
+        #self.initialize_neurons([4,4,5],   activation_function_for_hidden= Tanh) #Test not specifying initializer
+        #Neuron.layers(1).set_activation(ReLU)
+        #self.neurons(1,1).set_activation(Tanh)
+        #self.learning_rate = .1
         #self.initialize_neurons([2,3,5], [Initializer_He], ReLU)
         #self.initialize_neurons([10,10], [Initializer_He], ReLU)
         #self.initialize_neurons([2,3,5], [Initializer_Uniform], Tanh)
@@ -54,6 +62,13 @@ class MLP_Hayabusa(Gladiator):
                     neuron.raw_sum += neuron.bias
                     neuron.activate()
 
+    def validate_pass(self, target: float, prediction_raw:float):
+        error = target - prediction_raw
+        loss = error ** 2  # Example loss calculation (MSE for a single sample)
+        prediction =  1 if prediction_raw > .5 else 0      # Apply step function
+        loss_gradient = error * 2 #For MSE it is linear.
+        return error, loss, prediction, loss_gradient
+
     def back_pass(self, training_sample, loss_gradient: float):
         output_neuron = Neuron.layers[-1][0]
 
@@ -69,7 +84,7 @@ class MLP_Hayabusa(Gladiator):
 
         # Step 3: Adjust weights for the output neuron
         prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
-        self.back_pass_distribute_error(output_neuron, prev_layer_activations)
+        self.back_pass__distribute_error(output_neuron, prev_layer_activations)
 
         # Step 4: Adjust weights for the hidden neurons (⬅️ Last step we need)
         for layer_index in range(len(Neuron.layers) - 2, -1, -1):  # Iterate backwards (including first hidden layer)
@@ -77,7 +92,7 @@ class MLP_Hayabusa(Gladiator):
             if layer_index == 0:        #For layer zero overwrite prev_layer_activations with inputs as inputs aren't in the neuron layers.
                 prev_layer_activations = training_sample[:-1]  # Use raw inputs for first hidden layer
             for neuron in Neuron.layers[layer_index]:
-                self.back_pass_distribute_error(neuron, prev_layer_activations)
+                self.back_pass__distribute_error(neuron, prev_layer_activations)
 
     def back_pass__error_signal_for_output(self, loss_gradient: float):
         """
@@ -117,7 +132,7 @@ class MLP_Hayabusa(Gladiator):
         neuron.error_signal = activation_gradient * total_backprop_error
 
 
-    def back_pass_distribute_error(self, neuron: Neuron, prev_layer_values):
+    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
         """
         Updates weights for a neuron based on error signal.
         args: neuron: The neuron that will have its weights updated to.

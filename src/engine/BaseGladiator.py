@@ -1,15 +1,8 @@
 from abc import ABC, abstractmethod
 from json import dumps
-import random
-import numpy
-from numpy import ndarray
-from typing import Any
-from numpy import array
-
 from src.engine.ActivationFunction import *
 from src.engine.MgrSQL import MgrSQL
 from src.engine.Neuron import Neuron
-from src.engine.TrainingData import TrainingData
 from datetime import datetime
 from src.engine.Utils_DataClasses import Iteration
 from src.engine.WeightInitializer import *
@@ -17,6 +10,13 @@ from typing import List
 
 
 class Gladiator(ABC):
+    """
+    Abstract base class for training neural network models.
+
+    This class encapsulates the training logic, including forward/backward propagation,
+    weight initialization, and convergence detection. It serves as the parent class
+    for specific model implementations.
+"""
     def __init__(self,  *args):
         self.gladiator          = args[0]
         self.hyper              = args[1]
@@ -33,19 +33,17 @@ class Gladiator(ABC):
         self.last_lost          = 0
         self.iteration          = 0
         self.epoch              = 0
-        self.neuron_initializers= []        # Delegate functions to init neurons
-        #if self.hyper.random_seed == 0:
-        #    self.random_seed        = random.randint(1, 999999)
-        #else:
-        #    self.random_seed = self.hyper.random_seed
-        #self.set_random_seed(self.random_seed) # 🔹 Set the seed for reproducibility
 
-    def set_random_seed(self, seed):
+    def train(self) -> tuple[str, list[int]]:
+        """
+        Main method invoked from Framework to train model.
 
-        np.random.seed(seed)
-        random.seed(seed)
+        Returns:
+            tuple[str, list[int]]: A tuple containing:
+                - converged_signal (str): Which convergence signal(s) triggered early stop.
+                - full_architecture (list[int]): Architecture of the model including hidden and output layers.
+        """
 
-    def train(self) -> str:
         if self.neuron_count == 0:
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
 
@@ -56,7 +54,15 @@ class Gladiator(ABC):
                 return convg_signal, self._full_architecture
         return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
 
-    def run_an_epoch(self, epoch_num: int) -> bool:
+    def run_an_epoch(self, epoch_num: int) -> str:
+        """
+        Executes a training epoch i.e. trains on all samples
+
+        Args:
+            epoch_num (int) : number of epoch being executed
+        Returns:
+            convergence_signal (str) : If not converged, empty string, otherwise signal that detected convergence
+        """
         self.epoch = epoch_num      # Set so the child model has access
         if epoch_num % 100 == 0:
                 print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -65,17 +71,14 @@ class Gladiator(ABC):
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
             target = sample[-1]
-            self.snapshot_weights_as_weights_before(inputs)
+            self.snapshot_weights_as_weights_before()
 
             # Step 2: Delegate to the model's logic for forward propagation
             self.forward_pass(sample)  # Call model-specific logic
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
 
-            # Step 3: Validate_pass :)
-            error = target - prediction_raw
-            loss = error ** 2  # Example loss calculation (MSE for a single sample)
-            prediction =  1 if prediction_raw > .5 else 0      # Apply step function
-            loss_gradient = error * 2 #For MSE it is linear.
+            # Step 3: Delegate to models logic for Validate_pass :)
+            error, loss, prediction, loss_gradient = self.validate_pass(prediction_raw, target)
             self.last_lost = loss
 
             # Step 4: Delegate to models logic for backporop.
@@ -95,46 +98,18 @@ class Gladiator(ABC):
                 loss_gradient=loss_gradient,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
-
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
+        return self.mgr_sql.finish_epoch()      # Finish epoch and return convergence signal
 
-        # Finish epoch and return convergence signal
-        return self.mgr_sql.finish_epoch()
-
-    def snapshot_weights_as_weights_before(self, inputs: numpy.array):
-        """        Copies weights and bias        """
+    def snapshot_weights_as_weights_before(self):
+        """
+         Stores copy of weights and bias for comparison reporting
+         """
         for layer_index, current_layer in enumerate(Neuron.layers):
             for neuron in current_layer:
                 # Capture "before" state for debugging and backpropagation
                 neuron.weights_before = np.copy(neuron.weights)
                 neuron.bias_before = neuron.bias
-
-
-    def snapshot_weights_as_weights_before_doing_way_to_muchDeleteMe(self, inputs: numpy.array):
-        """
-        Executes the forward propagation for one sample, ensuring weights_before are correctly captured.
-        """
-
-        for layer_index, current_layer in enumerate(Neuron.layers):
-            if layer_index == 0:
-                # First hidden layer: Takes inputs directly from the sample
-                prev_values = inputs
-            else:
-                # Subsequent layers: Takes inputs from previous layer's activations
-                prev_values = [neuron.activation_value for neuron in Neuron.layers[layer_index - 1]]
-
-            for neuron in current_layer:
-                # Capture "before" state for debugging and backpropagation
-                neuron.weights_before = np.copy(neuron.weights)
-                neuron.bias_before = neuron.bias
-
-                # Compute weighted sum and activation
-                neuron.raw_sum = sum(weight * value for weight, value in zip(neuron.weights, prev_values)) + neuron.bias
-                neuron.activation_value = neuron.raw_sum  # TODO: Apply activation function
-
-            # Debugging
-            # print(f"DEBUG Layer {layer_index} Activations: {[n.activation_value for n in current_layer]}")
-
 
     def get_flat_initializers(self, architecture: List[int], initializers: List[WeightInitializer]) -> List[WeightInitializer]:
         """
@@ -153,43 +128,45 @@ class Gladiator(ABC):
 
         Returns:
             List[WeightInitializer]: A list of initializers for each neuron.
+        Raises:
+            ValueError: If number of initializers is not either 1(apply to all), number of layers, or number of neurons
+
         """
         total_neurons = sum(architecture)
 
-        # Default to Xavier if not set
-        #if not self.neuron_initializers:
+        # Default to Xavier if not provided
         if not initializers:
             initializers = [Initializer_Xavier] * total_neurons
 
-        # If already correct, return as-is
+        # If already one per neuron, assign and return
         if len(initializers) == total_neurons:
-            return self.neuron_initializers
+            return initializers
 
-        # If matches layer count, expand per neuron
+        # If one per layer, expand for each neuron in that layer
         if len(initializers) == len(architecture):
             expanded_list = []
             for layer_index, neuron_count in enumerate(architecture):
-                expanded_list.extend([self.neuron_initializers[layer_index]] * neuron_count)
-            self.neuron_initializers = expanded_list
-            return self.neuron_initializers
+                expanded_list.extend([initializers[layer_index]] * neuron_count)
+            return expanded_list
 
         # If only one initializer, apply to all neurons
         if len(initializers) == 1:
-            initializers = [initializers[0]] * total_neurons
-            self.neuron_initializers = initializers
-            return self.neuron_initializers
+            expanded_list = [initializers[0]] * total_neurons
+            return expanded_list
 
         # Invalid case: raise error
-        raise ValueError(f"Incompatible number of initializers ({len(self.neuron_initializers)}) "
-                         f"for total neurons ({total_neurons})")
+        raise ValueError(f"Incompatible number of initializers ({len(initializers)}) for total neurons ({total_neurons})")
 
-    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, default_AF: ActivationFunction = Tanh):
+
+
+    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, activation_function_for_hidden: ActivationFunction = Tanh):
         """
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
 
         Args:
             architecture (List[int]): Number of neurons per hidden layer.
-            default_AF (Activation Function): Sets AF for all neurons except output layer
+            initializers (List[WeightInitializer]): A list of weight initializers.
+            activation_function_for_hidden (ActivationFunction): The activation function for hidden layers.
         """
         if architecture is None:
             architecture = []  # Default to no hidden layers
@@ -197,6 +174,7 @@ class Gladiator(ABC):
 
         # Ensure initializer list matches neuron count
         flat_initializers = self.get_flat_initializers(architecture, initializers)
+        print(f"Checking flat_initializers: {flat_initializers}")
 
         input_count = self.training_data.input_count
         self._full_architecture = [input_count] + architecture  # Store the full architecture
@@ -213,8 +191,8 @@ class Gladiator(ABC):
             for neuron_index in range(neuron_count):
                 nid += 1
 
-                activation = output_af if layer_index==len(architecture)-1 else default_AF
-                print(f"Creating Neuron {nid}  in layer{layer_index}  len(architecture)={len(architecture)} - Act = {activation.name}")
+                activation = output_af if layer_index==len(architecture)-1 else activation_function_for_hidden
+                #print(f"Creating Neuron {nid}  in layer{layer_index}  len(architecture)={len(architecture)} - Act = {activation.name}")
                 neuron = Neuron(
                     nid=nid,
                     num_of_weights=num_of_weights,
@@ -226,57 +204,20 @@ class Gladiator(ABC):
                 self.neurons.append(neuron)
         self.neuron_count = len(self.neurons)
 
-
-
-    """
-        def training_iteration(self):
-            model_style=""
-            if hasattr(self, 'training_iteration') and callable(self.training_iteration):
-                model_style="Old"
-            elif hasattr(self, 'forward_pass') and callable(self.forward_pass):
-                model_style="New"
-            else:
-                raise NotImplementedError("Subclass must implement either run_iteration or run_forward_pass")
-    """
-
-    @property
-    def weights(self):
-        """Compatibility attribute pointing to neurons[0].weights."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].weights
-
-    @weights.setter
-    def weights(self, value):
-        """Set weights for neurons[0]."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        self.neurons[0].weights = value
-
-    @property
-    def bias(self):
-        """Compatibility attribute pointing to neurons[0].bias."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        return self.neurons[0].bias
-
-    @bias.setter
-    def bias(self, value):
-        """Set bias for neurons[0]."""
-        if not self.neurons:
-            raise ValueError("No neurons initialized.")
-        self.neurons[0].bias = value
-
     @property
     def learning_rate(self):
-        """ Getter for learning rate. """
+        """
+        Getter for learning rate.
+        """
         return self._learning_rate
 
     @learning_rate.setter
     def learning_rate(self, new_learning_rate: float):
         """
-        Updates the learning rate for the Gladiator
-        and ensures all neurons reflect the change.
+        Updates the learning rate for the Gladiator and ensures all neurons reflect the change.
+
+        Args:
+            new_learning_rate (float): The new learning rate to set.
         """
         self._learning_rate = new_learning_rate
         for neuron in self.neurons:
