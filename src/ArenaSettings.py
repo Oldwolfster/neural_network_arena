@@ -1,5 +1,10 @@
-from dataclasses import dataclass
+
 from typing import List
+
+
+from dataclasses import dataclass, field
+
+
 
 
 @dataclass
@@ -8,6 +13,10 @@ class ReportSelection:
     # Report Parameters are set here                           #
     ############################################################
     Training_Evolution_with_Multiple_Scales :bool   = True
+
+
+
+
 
 @dataclass
 class HyperParameters:
@@ -22,7 +31,7 @@ class HyperParameters:
     #seed that is all green 529966
     #
 
-    random_seed             :int    = 0    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
+    random_seed             :int    = 250490    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
     #965512 causes error #621575 LR1 gets stuck and free, but itlooks like it doesn't converge properly
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
@@ -57,7 +66,7 @@ class HyperParameters:
 training_pit              = "Predict_Income_2_Inputs"
 
 training_pit                = "XOR"
-#training_pit                = "Predict_Income_3_Inputs"
+training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
 ##training_pit              = "Salary2InputsNonlinear"
@@ -71,8 +80,8 @@ training_pit                = "XOR"
 gladiators = [
 
     #'Blackbird'
-    #'Hayabusa'
-    'MLP_Hayabusa'
+    #'XOR_Hayabusa'
+    'NeuroForge_Template'
     #'XOR_TheLongWay'
     #'MLP_Standard'
     #'XORTutorial'
@@ -86,8 +95,6 @@ gladiators = [
     #'_Template_Simpletron'
 
 ]
-
-
 
 
 

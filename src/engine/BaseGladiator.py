@@ -4,6 +4,8 @@ from src.engine.ActivationFunction import *
 from src.engine.MgrSQL import MgrSQL
 from src.engine.Neuron import Neuron
 from datetime import datetime
+
+
 from src.engine.Utils_DataClasses import Iteration
 from src.engine.WeightInitializer import *
 from typing import List
@@ -11,28 +13,133 @@ from typing import List
 
 class Gladiator(ABC):
     """
-    Abstract base class for training neural network models.
+    Abstract base class for creating Gladiators (neural network models).
+    Goal: Give child gladiator class as much power as possible, requiring as little responsibility
+    as possible, while allowing for overwriting any step of the process.
 
-    This class encapsulates the training logic, including forward/backward propagation,
-    weight initialization, and convergence detection. It serves as the parent class
-    for specific model implementations.
+    There are three main sections:
+    1) Training Default Methods - available for free, but overwritable for experimentation.
+    2) Training Framework - does the brute force tasks of the arena - not intended for overriding
+    3) Initialization - Preps everything for the framework and gladiator
 """
-    def __init__(self,  *args):
-        self.gladiator          = args[0]
-        self.hyper              = args[1]
-        self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
-        self.neurons            = []
-        #self.layers             = []                        # Layered structure
-        self.neuron_count       = 0                         # Default value
-        self.training_data      . reset_to_default()
-        self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
-        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
-        self.number_of_epochs   = self.hyper.epochs_to_run
-        self._full_architecture  = None
-        self.last_lost          = 0
-        self.iteration          = 0
-        self.epoch              = 0
+
+    ################################################################################################
+    ################################ SECTION 1 - Training Default Methods ##########################
+    ################################################################################################
+
+    def forward_pass(self, training_sample):
+        """
+        Computes forward pass for each neuron in the XOR MLP.
+        """
+        print("🚀Using Default Forward pass - to customize override forward_pass")
+        input_values = training_sample[:-1]
+
+        # 🚀 Compute raw sums + activations for each layer
+        for layer_idx, layer in enumerate(Neuron.layers):  # Exclude output layer
+            prev_activations = input_values if layer_idx == 0 else [n.activation_value for n in Neuron.layers[layer_idx - 1]]
+
+            for neuron in layer:
+                neuron.raw_sum = sum(input_val * weight for input_val, weight in zip(prev_activations, neuron.weights))
+                neuron.raw_sum += neuron.bias
+                neuron.activate()
+
+    def validate_pass(self, target: float, prediction_raw:float):
+        error = target - prediction_raw
+        loss = error ** 2  # Example loss calculation (MSE for a single sample)
+        prediction =  1 if prediction_raw > .5 else 0      # Apply step function
+        loss_gradient = error * 2 #For MSE it is linear.
+        return error, loss, prediction, loss_gradient
+
+    def back_pass(self, training_sample, loss_gradient: float):
+        print("🚀Using Default back_pass - to customize override back_pass")
+        output_neuron = Neuron.layers[-1][0]
+
+        # Step 1: Compute error signal for output neuron
+        self.back_pass__error_signal_for_output(loss_gradient)
+
+        # Step 2: Compute error signals for hidden neurons
+        # * MUST go in reverse order!
+        # * MUST be based on weights BEFORE they are updated.(weight as it was during forward prop
+        for layer_index in range(len(Neuron.layers) - 2, -1, -1):  # Exclude output layer
+            for hidden_neuron in Neuron.layers[layer_index]:  # Iterate over current hidden layer
+                self.back_pass__error_signal_for_hidden(hidden_neuron)
+
+        # Step 3: Adjust weights for the output neuron
+        prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
+        self.back_pass__distribute_error(output_neuron, prev_layer_activations)
+
+        # Step 4: Adjust weights for the hidden neurons (⬅️ Last step we need)
+        for layer_index in range(len(Neuron.layers) - 2, -1, -1):  # Iterate backwards (including first hidden layer)
+            prev_layer_activations = [n.activation_value for n in Neuron.layers[layer_index - 1]]  # Use activations for hidden layers
+            if layer_index == 0:        #For layer zero overwrite prev_layer_activations with inputs as inputs aren't in the neuron layers.
+                prev_layer_activations = training_sample[:-1]  # Use raw inputs for first hidden layer
+            for neuron in Neuron.layers[layer_index]:
+                self.back_pass__distribute_error(neuron, prev_layer_activations)
+
+    def back_pass__error_signal_for_output(self, loss_gradient: float):
+        """
+        Calculate error_signal(gradient) for output neuron.
+        Assumes one output neuron and that loss_gradient has already been calculated.
+        """
+        output_neuron               = Neuron.layers[-1][0]
+        activation_gradient         = output_neuron.activation_gradient
+        error_signal                = loss_gradient * activation_gradient
+        output_neuron.error_signal  = error_signal
+
+    def back_pass__error_signal_for_hidden(self, neuron: Neuron):
+        """
+        Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
+        args: neuron:  The neuron we are calculating the error for.
+        """
+        activation_gradient = neuron.activation_gradient
+        total_backprop_error = 0  # Sum of (next neuron error * connecting weight)
+        neuron.error_signal_calcs=""
+
+        #print(f"Calculating error signal epoch/iter:{self.epoch}/{self.iteration} for neuron {to_neuron.layer_id},{to_neuron.position}")
+        # 🔄 Loop through each neuron in the next layer
+
+        memory_efficent_way_to_store_calcs = []
+        for next_neuron in Neuron.layers[neuron.layer_id + 1]:  # Next layer neurons
+            #print (f"
+            # getting weight and error from {to_neuron.layer_id},{to_neuron.position}")
+            weight_to_next = next_neuron.weights_before[neuron.position]  # Connection weight #TODO is weights before requried here?  I dont think so
+            error_from_next = next_neuron.error_signal  # Next neuron’s error signal
+            total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
+            #OLD WAY neuron.error_signal_calcs= neuron.error_signal_calcs + f"{smart_format( weight_to_next)}!{smart_format( error_from_next)}@"
+            memory_efficent_way_to_store_calcs.append(f"{smart_format(weight_to_next)}!{smart_format(error_from_next)}@")
+        neuron.error_signal_calcs = ''.join(memory_efficent_way_to_store_calcs)  # Join once instead of multiple string concatenations
+
+
+        # 🔥 Compute final error signal for this hidden neuron
+        neuron.error_signal = activation_gradient * total_backprop_error
+
+
+    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
+        """
+        Updates weights for a neuron based on error signal.
+        args: neuron: The neuron that will have its weights updated to.
+
+        - First hidden layer uses inputs from training data.
+        - All other neurons use activations from the previous layer.
+        """
+        learning_rate = neuron.learning_rate
+        error_signal = neuron.error_signal
+        weight_formulas = []
+
+        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
+            neuron.weights[i] += learning_rate * error_signal * prev_value
+            neuron_id = f"{neuron.layer_id},{neuron.position}"
+            calculation = f"w{i} Neuron ID{neuron_id} = {store_num(w)} + {store_num(learning_rate)} * {store_num(error_signal)} * {store_num(prev_value)}"
+            weight_formulas.append(calculation)
+
+        # Bias update
+        neuron.bias += learning_rate * error_signal
+        weight_formulas.append(f"B = {store_num(neuron.bias_before)} + {store_num(learning_rate)} * {store_num(error_signal)}")
+        neuron.weight_adjustments = '\n'.join(weight_formulas)
+
+    ################################################################################################
+    ################################ SECTION 2 - pipeline ####################################
+    ################################################################################################
 
     def train(self) -> tuple[str, list[int]]:
         """
@@ -78,7 +185,7 @@ class Gladiator(ABC):
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
 
             # Step 3: Delegate to models logic for Validate_pass :)
-            error, loss, prediction, loss_gradient = self.validate_pass(prediction_raw, target)
+            error, loss, prediction, loss_gradient = self.validate_pass(target, prediction_raw )
             self.last_lost = loss
 
             # Step 4: Delegate to models logic for backporop.
@@ -100,6 +207,27 @@ class Gladiator(ABC):
             )
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
         return self.mgr_sql.finish_epoch()      # Finish epoch and return convergence signal
+
+    ################################################################################################
+    ################################ SECTION 3 - Initialization ####################################
+    ################################################################################################
+    def __init__(self,  *args):
+        self.gladiator          = args[0]
+        self.hyper              = args[1]
+        self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
+        self.neurons            = []
+        #self.layers             = []                        # Layered structure
+        self.neuron_count       = 0                         # Default value
+        self.training_data      . reset_to_default()
+        self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
+        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
+        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
+        self.number_of_epochs   = self.hyper.epochs_to_run
+        self._full_architecture  = None
+        self.last_lost          = 0
+        self.iteration          = 0
+        self.epoch              = 0
+
 
     def snapshot_weights_as_weights_before(self):
         """
@@ -222,3 +350,25 @@ class Gladiator(ABC):
         self._learning_rate = new_learning_rate
         for neuron in self.neurons:
             neuron.learning_rate = new_learning_rate
+
+
+def smart_format(num):
+    if num == 0:
+        return "0"
+    elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
+        return f"{num:.2e}"
+    elif abs(num) < 0.001:  # Use 6 decimal places for small numbers
+        formatted = f"{num:,.6f}"
+    elif abs(num) < 1:  # Use 3 decimal places for numbers less than 1
+        formatted = f"{num:,.3f}"
+    elif abs(num) > 1000:  # Use no decimal places for large numbers
+        formatted = f"{num:,.0f}"
+    else:  # Default to 2 decimal places
+        formatted = f"{num:,.2f}"
+
+    # Remove trailing zeros and trailing decimal point if necessary
+    return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
+
+def store_num(number):
+    formatted = f"{number:,.6f}"
+    return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted

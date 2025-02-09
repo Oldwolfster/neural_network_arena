@@ -32,7 +32,9 @@ class LossFunction:
             The computed loss.
         """
         return self.loss(y_pred, y_true)
-
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return f"WeightInitializer(name={self.name})"
     def grad(self, y_pred, y_true):
         """
         Computes the gradient of the loss with respect to predictions.

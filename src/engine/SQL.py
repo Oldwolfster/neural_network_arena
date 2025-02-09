@@ -5,7 +5,7 @@ import ast  # For safely evaluating strings back to data structures
 
 
 def record_training_data(training_data: list[tuple[float, ...]]):
-    print(training_data)
+    print(f"TRAINING DATA:::::::::::::::::\n{training_data}")
     conn = get_db_connection()
     create_table(conn)
     insert_training_data(conn, training_data)

@@ -11,6 +11,10 @@ class ActivationFunction:
         """Allows the object to be used as a function."""
         return self.function(x)
 
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return f"WeightInitializer(name={self.name})"
+
     def apply_derivative(self, x):
         """Compute the derivative for backpropagation."""
         return self.derivative(x)
