@@ -65,7 +65,8 @@ def mse_derivative(y_pred, y_true):
     """
     Computes the derivative of the MSE loss with respect to predictions.
     """
-    n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
+    #n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
+    n=1 #not array
     return 2 * (y_pred - y_true) / n
 
 Loss_MSE = LossFunction(
