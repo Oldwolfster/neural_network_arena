@@ -32,7 +32,7 @@ class Gladiator(ABC):
         """
         Computes forward pass for each neuron in the XOR MLP.
         """
-        print("🚀Using Default Forward pass - to customize override forward_pass")
+        #print("🚀Using Default Forward pass - to customize override forward_pass")
         input_values = training_sample[:-1]
 
         # 🚀 Compute raw sums + activations for each layer
@@ -46,13 +46,18 @@ class Gladiator(ABC):
 
     def validate_pass(self, target: float, prediction_raw:float):
         error = target - prediction_raw
-        loss = error ** 2  # Example loss calculation (MSE for a single sample)
+        #loss = error ** 2  # Example loss calculation (MSE for a single sample)
+        #loss_gradient = error * 2 #For MSE it is linear.
+        #loss = self.config.loss_function(prediction_raw, target)  # Uses selected loss function
+        print(f"Using Loss Function: {self.config.loss_function.name}")
+        loss_gradient = self.config.loss_function.grad(prediction_raw, target)  # Uses loss derivative
+
         prediction =  1 if prediction_raw > .5 else 0      # Apply step function
-        loss_gradient = error * 2 #For MSE it is linear.
+
         return error, loss, prediction, loss_gradient
 
     def back_pass(self, training_sample, loss_gradient: float):
-        print("🚀Using Default back_pass - to customize override back_pass")
+        #print("🚀Using Default back_pass - to customize override back_pass")
         output_neuron = Neuron.layers[-1][0]
 
         # Step 1: Compute error signal for output neuron
@@ -228,7 +233,7 @@ class Gladiator(ABC):
         self.last_lost          = 0
         self.iteration          = 0
         self.epoch              = 0
-
+        self.config             = config
 
     def snapshot_weights_as_weights_before(self):
         """
