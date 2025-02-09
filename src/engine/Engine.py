@@ -5,6 +5,7 @@ import time
 from typing import Tuple
 from src.engine.Utils import dynamic_instantiate, set_seed
 from .ActivationFunction import Tanh
+from .ModelConfig import ModelConfig
 
 from .RamDB import RamDB
 from .SQL import retrieve_training_data
@@ -22,44 +23,6 @@ from .WeightInitializer import *
 from ..legos.LossFunctions import *
 from ..neuroForge.NeuroForge import *
 
-@dataclass
-class ModelConfig:
-    # 🔹 Hyperparameters and # 🔹 Database Connections
-    hyper: HyperParameters      = field(default_factory=HyperParameters)
-    db: RamDB                   =  field(default_factory=RamDB)
-    training_data: TrainingData = None
-
-    # 🔹 Architecture (Using Strategy Pattern for most)
-    architecture: list = field(default_factory=lambda: [1])
-    initializer: type = Initializer_Xavier
-    activation_function_for_hidden: type = Tanh
-    loss_function: LossFunction = Loss_MSE  # Default to MSE  # 🔹 Loss Function
-
-    def __post_init__(self):
-        """ Initialize training_data AFTER hyper is available. """
-        self.training_data = get_training_data(self.hyper)  # ✅ Now correctly gets training data
-
-    ### Below here has yet to be migrated
-    """
-    # 🔹 Core Training Settings
-    learning_rate: float = 0.01
-    epochs: int = 100
-    batch_size: int = 1  # Defaults to SGD
-    # 🔹 Hyperparameters
-    accuracy_threshold: float = 0.01
-    momentum: float = 0.9    
-    learning_rate: float = 0.01
-    epochs: int = 100
-    batch_size: int = 32
-    regularization: Optional[str] = None
-    momentum: float = 0.9
-    early_stopping: Optional[Dict[str, Any]] = None
-    metrics: List[str] = ('accuracy',)
-    verbose: bool = True
-    training_data: Optional[Any] = None
-    validation_data: Optional[Any] = None
-    database_connection: Optional[Any] = None
-    """
 
 
 
@@ -67,36 +30,38 @@ def run_a_match(gladiators, training_pit):
 
     config = ModelConfig(
         hyper = HyperParameters(),
-        db =    prep_RamDB(),   # Create a connection to an in-memory SQLite database
+        db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     )
+    config.training_data =  get_training_data(config.hyper)
+    #hyper           = HyperParameters()
+    seed            = set_seed(config.hyper.random_seed)
 
-    hyper           = HyperParameters()
-    seed            = set_seed(hyper.random_seed)
-
-    training_data   =  get_training_data(hyper)
-    db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
-    record_training_data(training_data.get_list())
+    #training_data   =  get_training_data(hyper)
+    #db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
+    record_training_data(config.training_data.get_list())
 
     print()
     model_info_list = [] # Initialize an empty list to store ModelInfo objects
     for gladiator in gladiators:    # Loop through the NNs competing.
         set_seed(seed)      #reset for each gladiator
         print(f"Preparing to run model:{gladiator}")
-        nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
+        config.gladiator_name = gladiator
+        #nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
+        nn = dynamic_instantiate(gladiator, 'gladiators',config)
 
         start_time = time.time()  # Start timing
         cvg_condition,full_architecture = nn.train()
         end_time = time.time()  # End timing
         run_time = end_time - start_time
-        model_details= ModelInfo(gladiator, run_time, cvg_condition, full_architecture, training_data.problem_type )
-        db.add(model_details)
+        model_details= ModelInfo(gladiator, run_time, cvg_condition, full_architecture, config.training_data.problem_type )
+        config.db.add(model_details)
         model_info_list.append(model_details)
         print (f"{gladiator} completed in {run_time}")
 
-    generate_reports(db, training_data, hyper, model_info_list)
+    generate_reports(config.db, config.training_data, config.hyper, model_info_list)
     print(f"🛠️ Using Random Seed: {seed}")
-    if hyper.run_neuroForge:
-        neuroForge(db,training_data,hyper, model_info_list)
+    if config.hyper.run_neuroForge:
+        neuroForge(config.db,config.training_data,config.hyper, model_info_list)
 
 
 

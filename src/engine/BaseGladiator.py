@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from json import dumps
 from src.engine.ActivationFunction import *
 from src.engine.MgrSQL import MgrSQL
+from src.engine.ModelConfig import ModelConfig
 from src.engine.Neuron import Neuron
 from datetime import datetime
 
@@ -211,16 +212,16 @@ class Gladiator(ABC):
     ################################################################################################
     ################################ SECTION 3 - Initialization ####################################
     ################################################################################################
-    def __init__(self,  *args):
-        self.gladiator          = args[0]
-        self.hyper              = args[1]
-        self.training_data      = args[2]                   # Only needed for sqlMgr ==> self.ramDb = args[3]
+    def __init__(self,  config: ModelConfig):
+        self.gladiator          = config.gladiator_name
+        self.hyper              = config.hyper
+        self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.neurons            = []
         #self.layers             = []                        # Layered structure
         self.neuron_count       = 0                         # Default value
         self.training_data      . reset_to_default()
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, args[3]) # Args3, is ramdb
+        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture  = None
