@@ -46,12 +46,11 @@ class Gladiator(ABC):
 
     def validate_pass(self, target: float, prediction_raw:float):
         error = target - prediction_raw
-        #loss = error ** 2  # Example loss calculation (MSE for a single sample)
-        #loss_gradient = error * 2 #For MSE it is linear.
-        #loss = self.config.loss_function(prediction_raw, target)  # Uses selected loss function
-        print(f"Using Loss Function: {self.config.loss_function.name}")
-        loss_gradient = self.config.loss_function.grad(prediction_raw, target)  # Uses loss derivative
 
+        #loss = self.config.loss_function(prediction_raw, target)  # Uses selected loss function
+        #loss_gradient = self.config.loss_function.grad(prediction_raw, target)  # Uses loss derivative
+        loss = error ** 2  # Example loss calculation (MSE for a single sample)
+        loss_gradient = error * 2 #For MSE it is linear.
         prediction =  1 if prediction_raw > .5 else 0      # Apply step function
 
         return error, loss, prediction, loss_gradient

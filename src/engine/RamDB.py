@@ -202,7 +202,7 @@ class RamDB:
 
             if surpress_call_stack == False:
                 print(f"PRINTING FROM RamDB queryprint")
-                print_call_stack()
+                #print_call_stack()
             print(report)
             return data
         else:
