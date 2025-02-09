@@ -3,7 +3,8 @@ import statistics
 import numpy as np
 import time
 from typing import Tuple
-from src.engine.Utils import dynamic_instantiate
+from src.engine.Utils import dynamic_instantiate, set_seed
+from .ActivationFunction import Tanh
 
 from .RamDB import RamDB
 from .SQL import retrieve_training_data
@@ -17,31 +18,66 @@ from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
 from .Utils_DataClasses import ModelInfo
-from ..neuroForge.NeuroForge import neuroForge
-import random
+from .WeightInitializer import *
+from ..legos.LossFunctions import *
+from ..neuroForge.NeuroForge import *
 
-def set_seed(seed) -> int:
-    """ Sets random seed for numpy & Python's random module.
-        If hyperparameters has seed value uses it for repeatabilty.
-        IF not, generates randomly
+@dataclass
+class ModelConfig:
+    # 🔹 Hyperparameters and # 🔹 Database Connections
+    hyper: HyperParameters      = field(default_factory=HyperParameters)
+    db: RamDB                   =  field(default_factory=RamDB)
+    training_data: TrainingData = None
+
+    # 🔹 Architecture (Using Strategy Pattern for most)
+    architecture: list = field(default_factory=lambda: [1])
+    initializer: type = Initializer_Xavier
+    activation_function_for_hidden: type = Tanh
+    loss_function: LossFunction = Loss_MSE  # Default to MSE  # 🔹 Loss Function
+
+    def __post_init__(self):
+        """ Initialize training_data AFTER hyper is available. """
+        self.training_data = get_training_data(self.hyper)  # ✅ Now correctly gets training data
+
+    ### Below here has yet to be migrated
     """
-    if seed == 0:
-        seed = random.randint(1, 999999)
-    np.random.seed(seed)
-    random.seed(seed)
-    print(f"random seed set to {seed}")
-    return  seed
+    # 🔹 Core Training Settings
+    learning_rate: float = 0.01
+    epochs: int = 100
+    batch_size: int = 1  # Defaults to SGD
+    # 🔹 Hyperparameters
+    accuracy_threshold: float = 0.01
+    momentum: float = 0.9    
+    learning_rate: float = 0.01
+    epochs: int = 100
+    batch_size: int = 32
+    regularization: Optional[str] = None
+    momentum: float = 0.9
+    early_stopping: Optional[Dict[str, Any]] = None
+    metrics: List[str] = ('accuracy',)
+    verbose: bool = True
+    training_data: Optional[Any] = None
+    validation_data: Optional[Any] = None
+    database_connection: Optional[Any] = None
+    """
+
 
 
 def run_a_match(gladiators, training_pit):
+
+    config = ModelConfig(
+        hyper = HyperParameters(),
+        db =    prep_RamDB(),   # Create a connection to an in-memory SQLite database
+    )
+
     hyper           = HyperParameters()
     seed            = set_seed(hyper.random_seed)
-    print(f"🛠️ Using Random Seed: {seed}")
+
     training_data   =  get_training_data(hyper)
     db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     record_training_data(training_data.get_list())
-    print("TRAINING DATA:::::::::::::::::")
-    print(training_data.get_list())
+
+    print()
     model_info_list = [] # Initialize an empty list to store ModelInfo objects
     for gladiator in gladiators:    # Loop through the NNs competing.
         set_seed(seed)      #reset for each gladiator

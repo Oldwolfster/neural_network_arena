@@ -1,4 +1,6 @@
 from dataclasses import dataclass, field
+import random
+
 import numpy as np
 import inspect
 
@@ -64,6 +66,20 @@ def smart_format_Feb03(number):
     else:
         # If it's a single number, just format it
         return format_single(number)
+
+def set_seed(seed) -> int:
+    """ Sets random seed for numpy & Python's random module.
+        If hyperparameters has seed value uses it for repeatabilty.
+        IF not, generates randomly
+    """
+    if seed == 0:
+        seed = random.randint(1, 999999)
+    np.random.seed(seed)
+    random.seed(seed)
+    print(f"🛠️ Using Random Seed: {seed}")
+    return  seed
+
+
 
 def draw_gradient_rect( surface, rect, color1, color2):
     for i in range(rect.height):
