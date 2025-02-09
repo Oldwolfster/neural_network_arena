@@ -14,8 +14,8 @@ Things to test.
 6) Seed 250490, epoch 2, iter 2,22 neuron 1-0, loss gradient looks wrong says - but should be positvie
 """
 class MLP_Hayabusa(Gladiator):
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, config):
+        super().__init__(config)
         self.initialize_neurons([1], [Initializer_Xavier], activation_function_for_hidden= Tanh)
 
 
