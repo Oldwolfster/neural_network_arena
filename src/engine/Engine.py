@@ -38,6 +38,7 @@ def run_a_match(gladiators, training_pit):
     seed            = set_seed(config.hyper.random_seed)
     config.training_data =  get_training_data(config.hyper)
     print(f"config.hyper.random_seed={config.hyper.random_seed}")
+
     #training_data   =  get_training_data(hyper)
     #db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     record_training_data(config.training_data.get_list())

@@ -51,10 +51,10 @@ class Iteration:
 
     @property
     def is_true(self) -> int:
-        if self.accuracy_threshold == -696:
-            raise ValueError("accuracy_threshold has not been set!")
         if self.target == 0:
-            return self.prediction == 0
+            return self.prediction == 0     #Prevent divide by zero and floating point issues
+        if self.target == self.prediction:
+            return True                     #for binary decision
         return int(self.relative_error <= self.accuracy_threshold)
 
     @property
