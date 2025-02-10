@@ -15,6 +15,11 @@ class DisplayModel__Neuron:
     input_values = []   # Class variable to store inputs
     def __init__(self, nid:int, layer: int, position: int, output_layer: int, text_version: str):
         #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
+
+
+        # Attach Display Strategy
+        self.display_strategy = display_strategy
+
         self.location_left=0
         self.location_top=0
         self.location_width=0
