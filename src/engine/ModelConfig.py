@@ -22,6 +22,7 @@ class ModelConfig:
     initializer: type = Initializer_Xavier
     activation_function_for_hidden: type = Tanh
     loss_function: LossFunction = Loss_MSE  # Default to MSE  # 🔹 Loss Function
+    optimizer: str = "simplified_descent"  # Default to your method
 
 
 #    def __post_init__(self):

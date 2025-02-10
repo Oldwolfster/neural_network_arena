@@ -92,7 +92,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
             """
 
 
-        return self.converge_detector.check_convergence(epoch_metrics)
+        return self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
 
     def get_metrics_from_ramdb(self) -> Dict[str, float]:
         """

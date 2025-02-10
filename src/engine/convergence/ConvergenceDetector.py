@@ -1,14 +1,12 @@
 from typing import List
 
 from src.ArenaSettings import HyperParameters
+from src.engine.RamDB import RamDB
 from src.engine.TrainingData import TrainingData
+
 from src.engine.convergence.Signal_PerfectAccuracy import Signal_PerfectAccuracy
 from src.engine.convergence.Signal_StableAccuracy import Signal_StableAccuracy
 from src.engine.convergence.Signal_UnderMeanThreshold_ShortTerm import Signal_UnderMeanThreshold_ShortTerm
-
-
-
-
 
 class ConvergenceDetector:
     def __init__(self, hyper: HyperParameters, td: TrainingData):
@@ -39,16 +37,18 @@ class ConvergenceDetector:
         return [
             #Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.metrics),
             #Signal_StableAccuracy(self.hyper.accuracy_threshold, self.metrics),
-            Signal_PerfectAccuracy (self.hyper.accuracy_threshold, self.metrics)
+            Signal_PerfectAccuracy (self.hyper.accuracy_threshold, self.metrics),
+            #Need to check every itSignal_GradientExplosion(self.hyper.accuracy_threshold, self.metrics)
             #,Signal_UnderMeanThreshold_LongTerm (self.mgr, self.relative_threshold)
         ]
 
-    def check_convergence(self, epoch_metrics : dict[str, float]) -> str:
+    def check_convergence(self,epoch_current_no: int, epoch_metrics : dict[str, float]) -> str:
         """
         Evaluate all signals - for now, if all are true we call it converged.
         Returns:
             List[str]: Signal Names that triggered convergence
         """
+        #TODO use ramdb!!!!   get_iteration_dict is already below!!!!
         #print(f"epoch metrics={epoch_metrics}")
         self.metrics.append(epoch_metrics)
 
@@ -79,3 +79,19 @@ class ConvergenceDetector:
         mean_of_targets = self.td.sum_of_targets / self.td.sample_count
         rel_threshold = mean_of_targets * self.hyper.converge_threshold / 100 # 100 makes the hyperparameter act as a %
         return rel_threshold
+
+    def get_iteration_dict(self, db: RamDB, epoch: int, iteration: int) -> dict:  #Retrieve iteration data from the database."""
+        # db.query_print("PRAGMA table_info(Iteration);")
+        sql = """  
+            SELECT * FROM Iteration 
+            WHERE epoch = ? AND iteration = ?  
+        """#TODO ADD MODEL TO CRITERIIA
+        params = (epoch, iteration)
+        rs = db.query(sql, params)
+
+        if rs:            #
+            return rs[0]  # Return the first row as a dictionary
+
+        #print(f"No data found for epoch={epoch}, iteration={iteration}")
+        return {}  # Return an empty dictionary if no results
+
