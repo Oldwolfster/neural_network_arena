@@ -60,6 +60,8 @@ class Gladiator(ABC):
             for hidden_neuron in Neuron.layers[layer_index]:  # Iterate over current hidden layer
                 self.back_pass__error_signal_for_hidden(hidden_neuron)
 
+        self.adjust_weights(training_sample)
+        """
         # Step 3: Adjust weights for the output neuron
         prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
         self.back_pass__distribute_error(output_neuron, prev_layer_activations)
@@ -71,7 +73,7 @@ class Gladiator(ABC):
                 prev_layer_activations = training_sample[:-1]  # Use raw inputs for first hidden layer
             for neuron in Neuron.layers[layer_index]:
                 self.back_pass__distribute_error(neuron, prev_layer_activations)
-
+        """
     def back_pass__error_signal_for_output(self, loss_gradient: float):
         """
         Calculate error_signal(gradient) for output neuron.
@@ -81,6 +83,24 @@ class Gladiator(ABC):
         activation_gradient         = output_neuron.activation_gradient
         error_signal                = loss_gradient * activation_gradient
         output_neuron.error_signal  = error_signal
+
+    def adjust_weights(self, training_sample):
+        """
+        Adjust weights for all neurons in the network using backpropagation.
+        This works for both perceptrons and MLPs.
+        """
+        # Iterate backward through all layers, including the output layer
+        for layer_index in range(len(Neuron.layers) - 1, -1, -1):  # Start from the output layer
+            if layer_index == 0:
+                # For the first layer (input layer), use raw inputs
+                prev_layer_activations = training_sample[:-1]  # Exclude the label
+            else:
+                # For other layers, use activations from the previous layer
+                prev_layer_activations = [n.activation_value for n in Neuron.layers[layer_index - 1]]
+
+            # Adjust weights for each neuron in the current layer
+            for neuron in Neuron.layers[layer_index]:
+                self.back_pass__distribute_error(neuron, prev_layer_activations)
 
     def back_pass__error_signal_for_hidden(self, neuron: Neuron):
         """
@@ -128,14 +148,15 @@ class Gladiator(ABC):
             weight_before = neuron.weights[i]
             #If calculating gradient tradional way (errpr *-2) then below shuold subtract not add. but it dont work
             neuron.weights[i] += learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
-            if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
-                print(f"w={w}\tneuron.weights[i]={neuron.weights[i]}\tneuron.weights_before[i]={neuron.weights_before[i]}")
+            #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
+                #print(f"w={w}\tneuron.weights[i]={neuron.weights[i]}\tneuron.weights_before[i]={neuron.weights_before[i]}")
                 #print(f"weight# {i}  weight_before={smart_format(weight_before)}\tlearning_rate={learning_rate}\terror_signal={smart_format(error_signal)}\tprev_value={prev_value}\tnew weight={smart_format(neuron.weights[i])}\t")
             neuron_id = f"{neuron.layer_id},{neuron.position}"
             calculation = f"w{i} Neuron ID{neuron_id} = {store_num(w)} + {store_num(learning_rate)} * {store_num(error_signal)} * {store_num(prev_value)}"
+
             weight_formulas.append(calculation)
-        if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
-            print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
+        #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
+        #    print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
         # Bias update
         neuron.bias += learning_rate * error_signal
         weight_formulas.append(f"B = {store_num(neuron.bias_before)} + {store_num(learning_rate)} * {store_num(error_signal)}")
@@ -148,8 +169,11 @@ class Gladiator(ABC):
 
         error = target - prediction_raw  # ✅ Simple error calculation
         loss = self.config.loss_function(prediction_raw, target)  # ✅ Compute loss dynamically
-        correction = self.config.loss_function.grad(target, prediction_raw)  # ✅ Compute correction (NO inversion!)
-        #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={loss}, Correction={correction}")
+        if self.config.optimizer == "simplified_descent":
+            correction = self.config.loss_function.grad(target, prediction_raw)  # ✅ Compute correction (NO inversion!)
+            #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={loss}, Correction={correction}")
+        else:
+            raise ValueError(f"Unsupported optimizer: {self.config.optimizer}")
         return error, loss,  correction  # ✅ Correction replaces "loss gradient"
 
     def validate_pass_WithoutStrategy(self, target: float, prediction_raw:float):
@@ -212,6 +236,7 @@ class Gladiator(ABC):
 
             # Step 3: Delegate to models logic for Validate_pass :)
             error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
+            loss_gradient = self.watch_for_explosion(loss_gradient)
             self.last_lost = loss
             #If binary decision apply step logic.
             prediction = prediction_raw # Assyme regression
@@ -238,6 +263,13 @@ class Gladiator(ABC):
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
         return self.mgr_sql.finish_epoch()      # Finish epoch and return convergence signal
 
+    def watch_for_explosion(self,correction: float) ->float:        # 🚨 Detect gradient explosion
+        if abs(correction) > self.config.hyper.gradient_clip_threshold:
+            print(f"🚨 Gradient Explosion Detected! Clipping correction: {correction}")
+            correction = np.sign(correction) * self.config.hyper.gradient_clip_threshold  # Clip to max allowed
+        return  correction
+
+
     ################################################################################################
     ################################ SECTION 3 - Initialization ####################################
     ################################################################################################
@@ -258,6 +290,8 @@ class Gladiator(ABC):
         self.iteration          = 0
         self.epoch              = 0
         self.config             = config
+
+
 
     def snapshot_weights_as_weights_before(self):
         """
@@ -400,5 +434,5 @@ def smart_format(num):
     return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
 
 def store_num(number):
-    formatted = f"{number:,.6f}"
+    formatted = f"{number:.6g}".replace(",", "")
     return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted

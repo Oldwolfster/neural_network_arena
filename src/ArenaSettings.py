@@ -24,14 +24,15 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
 
-    epochs_to_run           :int    = 333      # Number of times training run will cycle through all training data
-    training_set_size       :int    = 22      # Qty of training data
-    default_learning_rate   :float  = 1        # Affects magnitude of weight adjustments #.0001 Equalizer
+    epochs_to_run           :int    = 55      # Number of times training run will cycle through all training data
+    training_set_size       :int    = 1      # Qty of training data
+    default_learning_rate   :float  = .01        # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
+    gradient_clip_threshold :float  = 1e12
     #seed that is all green 529966
     #
 
-    random_seed             :int    = 547298    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
+    random_seed             :int    = 51017 #8422    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
     #965512 causes error #621575 LR1 gets stuck and free, but itlooks like it doesn't converge properly
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
@@ -63,10 +64,10 @@ class HyperParameters:
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
 
-training_pit              = "Predict_Income_2_Inputs"
+#training_pit              = "Predict_Income_2_Inputs"
 
-#training_pit                = "XOR"
-#training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
+training_pit                = "XOR"
+training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
 ##training_pit              = "Salary2InputsNonlinear"

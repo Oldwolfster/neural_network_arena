@@ -45,7 +45,7 @@ class DisplayPanelPrediction(EZForm):
         # Update the form fields
         self.fields["Prediction(Raw)"] = smart_format(prediction_raw)
         self.fields["Error (Targ-Raw)"] = smart_format(error)
-        self.fields["Target"] = smart_format(target)
+        self.fields["Target Value"] = smart_format(target)
 
         avg_error =  epoch_data.get("mean_absolute_error", 0.0)
         if avg_error >= 1000:

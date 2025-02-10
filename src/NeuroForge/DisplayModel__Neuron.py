@@ -386,9 +386,10 @@ class DisplayModel__Neuron:
             if len(parts) >= 3:
                 adjustments.append(  smart_format( float(parts[0]) * float(parts[1]) * float(parts[2])))
             else:
-                adjustments.append(smart_format(float(parts[0]) * float(parts[1])))
+                adjustments.append(smart_format(float(parts[0].replace(",", "")) * float(parts[1].replace(",", ""))))
 
-            new_weights.append(smart_format(float(adjustments[-1]) + float(weights[-1])))
+            new_weights.append((float(adjustments[-1].replace(",", "")) + float(weights[-1].replace(",", ""))))
+            new_weights.append((adjustments[-1] + weights[-1]))
         backprop_data = [parameters, weights, learning_rates, error_signals, inputs, adjustments, new_weights]
 
         return backprop_data
@@ -573,13 +574,13 @@ class DisplayModel__Neuron:
                 if x == 7 and y > 0 and len(text_cell) > 0:  # Adjustment column
                     try:
                         # Attempt to convert the text_cell to a float
-                        val = float(text_cell)
+                        val = float(text_cell.replace(",", ""))
                         this_color = mgr.color_greenforest if val >= 0 else mgr.color_crimson
                     except ValueError as e:
-                       # print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
+                        print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
                         # Optionally, set this_color to a fallback (here normal_color) if conversion fails
                         this_color = mgr.color_black
-                label = font.render(text_cell, True, this_color)
+                label = font.render(str(text_cell), True, this_color)
                 screen.blit(label, (tooltip_x + x * col_size + 5,  header_spac + (tooltip_y + 5 + y * 20)))
 
 
