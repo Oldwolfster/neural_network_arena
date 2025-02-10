@@ -68,5 +68,5 @@ git show f8db2ee:src/Metrics.py > src/Metrics_old_version.py
 
 ##TODO List
 DONE:  In convergence metrics is fcked and so is perfect accuracy  XOR with seed 547298 in 88, but more perfect epochs first
-Loss functions
+DONE: Loss functions
 get perceptron working
