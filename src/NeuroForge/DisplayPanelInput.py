@@ -6,7 +6,6 @@ import pygame
 from src.neuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
-
 from src.neuroForge.EZForm import EZForm
 from src.engine.Utils import smart_format
 
@@ -16,14 +15,19 @@ class DisplayPanelInput(EZForm):
         # Calculate absolute dimensions from percentages
         screen_width, screen_height = screen.get_size()
 
-        # Dynamically create fields for all input labels
+        # Dynamically create fields for all input labels.
+        # Move "Target Value" to the top by adding it first.
         fields = {}
 
-        for label in data_labels[:-1]:  # Exclude the last label (assuming it's the target)
-            fields[label] = "0.000"  # Default value for each input
-        # Add the target field explicitly
-        fields["Target"] = data_labels[-1]
+        # Add the target value field at the top.
+        fields["Target Value"] = ""
 
+        # Then add all other input fields (excluding the target label, which is assumed to be the last element)
+        for label in data_labels[:-1]:
+            fields[label] = "0.000"  # Default value for each input
+
+        # Add the target field explicitly (this one is not updated during back pass)
+        fields["Target"] = data_labels[-1]
 
         # Initialize the parent class with dynamically created fields
         super().__init__(
@@ -45,17 +49,19 @@ class DisplayPanelInput(EZForm):
         raw_inputs = rs.get("inputs", "[]")  # Retrieve raw inputs as a JSON-like string
         inputs = json.loads(raw_inputs) if isinstance(raw_inputs, str) else raw_inputs
 
-        for i, label in enumerate(self.fields.keys()):
-            if label == "Target":  # Skip updating "Target" here
+        # Use a separate counter for input fields since the ordering now includes "Target Value" at the top.
+        input_index = 0
+        for label in self.fields.keys():
+            # Skip fields that are not part of the raw inputs
+            if label in ("Target", "Target Value"):
                 continue
-            if i < len(inputs):  # Update inputs only if they exist in the list
-                self.fields[label] = smart_format(float(inputs[i]))
+            if input_index < len(inputs):  # Update inputs only if they exist in the list
+                self.fields[label] = smart_format(float(inputs[input_index]))
             else:
                 self.fields[label] = "N/A"  # Set to "N/A" if no input exists
+            input_index += 1
 
-        # Update the target explicitly
-        #target = rs.get("target", 0.0)
-        #self.fields["Target"] = smart_format(float(target))
-
+        # Update the target value explicitly (this field is now at the top)
+        self.fields["Target Value"] = smart_format(rs.get("target", ""))
         # Debugging
         #print(f"Updated Input Panel: {self.fields}")

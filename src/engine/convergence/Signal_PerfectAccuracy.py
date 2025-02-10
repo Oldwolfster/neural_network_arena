@@ -21,7 +21,7 @@ class Signal_PerfectAccuracy(Signal__BASE):
         n_epochs = 8  # Number of epochs to consider for stabilization
 
         #print(f"self.metrics.epoch_curr_number:{self.metrics[-1].epoch_curr_number}\tself.metrics[-1]={self.metrics[-1]}")
-        print(f"{self.metrics}")
+        #print(f"{self.metrics}")
 
         if float(self.metrics[-1]['Accuracy'])   != 100:
             return None  # Not enough data yet

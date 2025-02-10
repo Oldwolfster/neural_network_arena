@@ -19,8 +19,16 @@ class DisplayPanelLoss(EZForm):
             super().__init__(screen=self.screen, fields=fields,width_pct=width_pct,height_pct=height_pct,left_pct=left_pct,top_pct=top_pct,banner_text="Gradient",banner_color=(0, 0, 255))  # Matching neuron colorsbg_color=(240, 240, 240),font_color=(0, 0, 0)        )
 
     def update_me(self, rs: dict, epoch_data: dict):
-        gradient = float(rs.get("loss_gradient", 0.0))
+        loss_function = str(rs.get("loss_function",""))
+        loss_value = float(rs.get("loss", 0.0))
+        loss_gradient = float(rs.get("loss_gradient", 0.0))
+
+
         # Update the form fields
-        self.fields["Loss Gradient"] = smart_format(gradient)
+        self.fields["Loss Function"] = loss_function
+        self.fields["Loss Value"] = smart_format(loss_value)
+        #self.fields["Gradient Formula"] = smart_format(loss_gradient)
+        self.fields["Loss Gradient"] = smart_format(loss_gradient)
+
 
 
