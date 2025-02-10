@@ -18,7 +18,7 @@ class DisplayModel__Neuron:
 
 
         # Attach Display Strategy
-        self.display_strategy = display_strategy
+
 
         self.location_left=0
         self.location_top=0
