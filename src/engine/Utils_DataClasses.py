@@ -27,6 +27,7 @@ class Iteration:
     target: float
     prediction: float   #After threshold(step function) is applied
     prediction_raw: float
+    loss_function: str
     loss: float
     loss_gradient: float
     # error: float

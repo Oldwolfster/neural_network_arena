@@ -20,7 +20,7 @@ from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
 from .Utils_DataClasses import ModelInfo
 from .WeightInitializer import *
-from ..legos.LossFunctions import *
+from ..Legos.LossFunctions import *
 from ..neuroForge.NeuroForge import *
 
 

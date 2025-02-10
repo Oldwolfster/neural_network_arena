@@ -52,7 +52,7 @@ class ConvergenceDetector:
         #print(f"epoch metrics={epoch_metrics}")
         self.metrics.append(epoch_metrics)
 
-        print(f"epoch metrics={self.metrics[-1]}")
+        #print(f"epoch metrics={self.metrics[-1]}")
         if len(self.metrics) < self.hyper.min_no_epochs:
             return ""   # Has not yet met minimum no of epochs per hyper paramater setting
 

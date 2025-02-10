@@ -8,17 +8,18 @@ class DisplayPanelPrediction(EZForm):
             # Define the fields and default values for the form
             if problem_type == "Binary Decision":
                 fields = {
+                    "Target Value": "0.000",
                     "Prediction(Raw)": "0.000",
                     "With Threshold" : "0.000",
-                    "Target": "0.000",
+
                     "Error (Targ-Raw)": "0.000",
                     "Avg for Epoch": "0.000"
                 }
             else:
                 fields = {
+                    "Target Value": "0.000",
                     "Prediction(Raw)": "0.000",
-                    "Error (Targ-Raw)": "0.000",
-                    "Target": "0.000"
+                    "Error (Targ-Raw)": "0.000"
                 }
             self.screen = screen
 

@@ -1,24 +1,8 @@
 import numpy as np
 
-def _get_n(y_true):
-    """
-    Helper function to determine the number of samples in y_true.
-    Returns 1 if y_true is a scalar (or 0-d array), otherwise returns the size of the first dimension.
-    """
-    if np.isscalar(y_true):
-        return 1
-    try:
-        y_true_arr = np.array(y_true)
-        if y_true_arr.ndim == 0:
-            return 1
-        return y_true_arr.shape[0]
-    except TypeError:
-        # If y_true is not iterable, treat it as scalar.
-        return 1
-
 class LossFunction:
     """
-    🚀 Encapsulates loss function strategies with optional gradient computation.
+    Encapsulates loss function strategies with optional gradient computation.
 
     Attributes:
         loss: A function that computes the loss given predictions and true values.
@@ -27,16 +11,14 @@ class LossFunction:
         desc: A description of the loss function.
         when_to_use: Guidance on when to use this loss function.
         best_for: The scenarios or tasks where this loss function performs best.
-        derivative_formula: A string representation of the derivative formula.
     """
-    def __init__(self, loss, derivative=None, name="Custom", desc="", when_to_use="", best_for="", derivative_formula=""):
+    def __init__(self, loss, derivative=None, name="Custom", desc="", when_to_use="", best_for=""):
         self.loss = loss  # Function to compute the loss.
         self.derivative = derivative  # Optional function to compute the gradient of the loss.
         self.name = name
         self.desc = desc
         self.when_to_use = when_to_use
         self.best_for = best_for
-        self.derivative_formula = derivative_formula  # String representation of the derivative formula.
 
     def __call__(self, y_pred, y_true):
         """
@@ -50,11 +32,9 @@ class LossFunction:
             The computed loss.
         """
         return self.loss(y_pred, y_true)
-
     def __repr__(self):
         """Custom representation for debugging."""
         return f"WeightInitializer(name={self.name})"
-
     def grad(self, y_pred, y_true):
         """
         Computes the gradient of the loss with respect to predictions.
@@ -85,8 +65,8 @@ def mse_derivative(y_pred, y_true):
     """
     Computes the derivative of the MSE loss with respect to predictions.
     """
-    # Originally: n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
-    n = _get_n(y_true)
+    #n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
+    n=1 #not array
     return 2 * (y_pred - y_true) / n
 
 Loss_MSE = LossFunction(
@@ -95,8 +75,7 @@ Loss_MSE = LossFunction(
     name="Mean Squared Error (MSE)",
     desc="Calculates the average of the squares of differences between predictions and actual values.",
     when_to_use="Commonly used for regression problems.",
-    best_for="Regression tasks.",
-    derivative_formula="2 * (prediction - target)"
+    best_for="Regression tasks."
 )
 
 # 🔹 **2. Mean Absolute Error (MAE) Loss**
@@ -111,8 +90,7 @@ def mae_derivative(y_pred, y_true):
     Computes the derivative of the MAE loss with respect to predictions.
     Note: The derivative is undefined at zero; np.sign is used here.
     """
-    # Originally: n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
-    n = _get_n(y_true)
+    n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
     return np.sign(y_pred - y_true) / n
 
 Loss_MAE = LossFunction(
@@ -121,8 +99,7 @@ Loss_MAE = LossFunction(
     name="Mean Absolute Error (MAE)",
     desc="Calculates the average of the absolute differences between predictions and actual values.",
     when_to_use="Useful for regression tasks less sensitive to outliers.",
-    best_for="Regression tasks with outlier presence.",
-    derivative_formula="sign(prediction - target) / n"
+    best_for="Regression tasks with outlier presence."
 )
 
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**
@@ -140,8 +117,7 @@ def binary_crossentropy_derivative(y_pred, y_true, epsilon=1e-15):
     Clipping is applied to avoid division by zero.
     """
     y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
-    # Originally: n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
-    n = _get_n(y_true)
+    n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
     return - (y_true / y_pred - (1 - y_true) / (1 - y_pred)) / n
 
 Loss_BinaryCrossEntropy = LossFunction(
@@ -150,8 +126,7 @@ Loss_BinaryCrossEntropy = LossFunction(
     name="Binary Cross-Entropy",
     desc="Calculates loss for binary classification tasks using cross-entropy.",
     when_to_use="Ideal for binary classification problems.",
-    best_for="Binary classification.",
-    derivative_formula="- (target / prediction - (1 - target) / (1 - prediction)) / n"
+    best_for="Binary classification."
 )
 
 # 🔹 **4. Categorical Cross-Entropy Loss**
@@ -169,8 +144,7 @@ def categorical_crossentropy_derivative(y_pred, y_true):
     Computes the derivative of the Categorical Cross-Entropy loss with respect to predictions.
     Assumes that y_pred is the output of a softmax layer.
     """
-    # Originally: n = y_true.shape[0]
-    n = _get_n(y_true)
+    n = y_true.shape[0]
     return (y_pred - y_true) / n
 
 Loss_CategoricalCrossEntropy = LossFunction(
@@ -179,8 +153,7 @@ Loss_CategoricalCrossEntropy = LossFunction(
     name="Categorical Cross-Entropy",
     desc="Calculates loss for multi-class classification tasks using cross-entropy.",
     when_to_use="Ideal for multi-class classification problems with one-hot encoded targets.",
-    best_for="Multi-class classification.",
-    derivative_formula="(prediction - target) / n"
+    best_for="Multi-class classification."
 )
 
 # 🔹 **5. Hinge Loss**
@@ -196,8 +169,7 @@ def hinge_derivative(y_pred, y_true):
     Computes the derivative of the Hinge loss with respect to predictions.
     """
     grad = np.where(1 - y_true * y_pred > 0, -y_true, 0)
-    # Originally: n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
-    n = _get_n(y_true)
+    n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
     return grad / n
 
 Loss_Hinge = LossFunction(
@@ -206,8 +178,7 @@ Loss_Hinge = LossFunction(
     name="Hinge Loss",
     desc="Used primarily for maximum-margin classification (e.g., SVMs).",
     when_to_use="Useful for support vector machines and related models.",
-    best_for="Binary classification with margin-based methods.",
-    derivative_formula="where(1 - target * prediction > 0, -target, 0) / n"
+    best_for="Binary classification with margin-based methods."
 )
 
 # 🔹 **6. Log-Cosh Loss**
@@ -221,8 +192,7 @@ def logcosh_derivative(y_pred, y_true):
     """
     Computes the derivative of the Log-Cosh loss with respect to predictions.
     """
-    # Originally: n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
-    n = _get_n(y_true)
+    n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
     return np.tanh(y_pred - y_true) / n
 
 Loss_LogCosh = LossFunction(
@@ -231,8 +201,7 @@ Loss_LogCosh = LossFunction(
     name="Log-Cosh Loss",
     desc="Calculates loss using the logarithm of the hyperbolic cosine of the prediction error.",
     when_to_use="A smooth loss function that is less sensitive to outliers than MSE.",
-    best_for="Regression tasks.",
-    derivative_formula="tanh(prediction - target) / n"
+    best_for="Regression tasks."
 )
 
 """

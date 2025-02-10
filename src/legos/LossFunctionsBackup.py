@@ -18,7 +18,7 @@ def _get_n(y_true):
 
 class LossFunction:
     """
-    🚀 Encapsulates loss function strategies with optional gradient computation.
+    Encapsulates loss function strategies with optional gradient computation.
 
     Attributes:
         loss: A function that computes the loss given predictions and true values.

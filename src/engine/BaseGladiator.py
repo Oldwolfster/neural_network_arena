@@ -14,6 +14,7 @@ from typing import List
 
 class Gladiator(ABC):
     """
+    💥 NOTE: The gradient is inverted from the traditional way of thinking.
     Abstract base class for creating Gladiators (neural network models).
     Goal: Give child gladiator class as much power as possible, requiring as little responsibility
     as possible, while allowing for overwriting any step of the process.
@@ -44,16 +45,6 @@ class Gladiator(ABC):
                 neuron.raw_sum += neuron.bias
                 neuron.activate()
 
-    def validate_pass(self, target: float, prediction_raw:float):
-        error = target - prediction_raw
-
-        #loss = self.config.loss_function(prediction_raw, target)  # Uses selected loss function
-        #loss_gradient = self.config.loss_function.grad(prediction_raw, target)  # Uses loss derivative
-        loss = error ** 2  # Example loss calculation (MSE for a single sample)
-        loss_gradient = error * 2 #For MSE it is linear.
-        prediction =  1 if prediction_raw > .5 else 0      # Apply step function
-
-        return error, loss, prediction, loss_gradient
 
     def back_pass(self, training_sample, loss_gradient: float):
         #print("🚀Using Default back_pass - to customize override back_pass")
@@ -130,17 +121,47 @@ class Gladiator(ABC):
         learning_rate = neuron.learning_rate
         error_signal = neuron.error_signal
         weight_formulas = []
+        #if neuron.nid    == 2 and self.epoch==1 and self.iteration<3:
+        #print(f"WEIGHT UPDATE FOR epoch:{self.epoch}\tItertion{self.iteration}")
 
         for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
-            neuron.weights[i] += learning_rate * error_signal * prev_value
+            weight_before = neuron.weights[i]
+            #If calculating gradient tradional way (errpr *-2) then below shuold subtract not add. but it dont work
+            neuron.weights[i] += learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
+            if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
+                print(f"w={w}\tneuron.weights[i]={neuron.weights[i]}\tneuron.weights_before[i]={neuron.weights_before[i]}")
+                #print(f"weight# {i}  weight_before={smart_format(weight_before)}\tlearning_rate={learning_rate}\terror_signal={smart_format(error_signal)}\tprev_value={prev_value}\tnew weight={smart_format(neuron.weights[i])}\t")
             neuron_id = f"{neuron.layer_id},{neuron.position}"
             calculation = f"w{i} Neuron ID{neuron_id} = {store_num(w)} + {store_num(learning_rate)} * {store_num(error_signal)} * {store_num(prev_value)}"
             weight_formulas.append(calculation)
-
+        if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
+            print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
         # Bias update
         neuron.bias += learning_rate * error_signal
         weight_formulas.append(f"B = {store_num(neuron.bias_before)} + {store_num(learning_rate)} * {store_num(error_signal)}")
         neuron.weight_adjustments = '\n'.join(weight_formulas)
+
+    def validate_pass(self, target: float, prediction_raw: float):
+        """
+        Computes error, loss, and correction based on the configured loss function.
+        """
+
+        error = target - prediction_raw  # ✅ Simple error calculation
+        loss = self.config.loss_function(prediction_raw, target)  # ✅ Compute loss dynamically
+        correction = self.config.loss_function.grad(target, prediction_raw)  # ✅ Compute correction (NO inversion!)
+        #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={loss}, Correction={correction}")
+        return error, loss,  correction  # ✅ Correction replaces "loss gradient"
+
+    def validate_pass_WithoutStrategy(self, target: float, prediction_raw:float):
+            print("In new Validate")
+            error = target - prediction_raw
+            loss = error ** 2  # Example loss calculation (MSE for a single sample)
+            loss_gradient = error * 2 #For MSE it is linear.
+            #prediction =  1 if prediction_raw > .5 else 0      # Apply step function
+            return error, loss,  loss_gradient
+
+
+
 
     ################################################################################################
     ################################ SECTION 2 - pipeline ####################################
@@ -190,9 +211,12 @@ class Gladiator(ABC):
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
 
             # Step 3: Delegate to models logic for Validate_pass :)
-            error, loss, prediction, loss_gradient = self.validate_pass(target, prediction_raw )
+            error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
             self.last_lost = loss
-
+            #If binary decision apply step logic.
+            prediction = prediction_raw # Assyme regression
+            if self.training_data.problem_type == "Binary Decision":
+                prediction = 1 if prediction_raw >= 0.5 else 0
             # Step 4: Delegate to models logic for backporop.
             self.back_pass(sample, loss_gradient)  # Call model-specific logic
             #print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
@@ -207,6 +231,7 @@ class Gladiator(ABC):
                 prediction=prediction,
                 prediction_raw=prediction_raw,
                 loss=loss,
+                loss_function=self.config.loss_function.name,
                 loss_gradient=loss_gradient,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
