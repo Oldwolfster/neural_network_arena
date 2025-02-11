@@ -30,7 +30,7 @@ class DisplayManager:
         self.neurons        = None
         mgr.VCR            = VCR()
         self.last_epoch = 0 #to get loop started
-        self.initialize_components(model_info_list, ui_manager)
+        self.initialize_components(model_info_list, ui_manager, db)
 
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):
         """Render all components on the screen."""
@@ -157,7 +157,7 @@ class DisplayManager:
         return rs[0].get("max_iteration")
 
     def create_display_models(self, width_pct: int, height_pct: int, left_pct: int, top_pct: int,
-            screen: pygame.Surface, labels, model_info_list):
+            screen: pygame.Surface, labels, model_info_list, db: RamDB):
         """Create DisplayModel instances based on the provided model information."""
         models = []
         for index, model_info in enumerate(model_info_list):
@@ -170,7 +170,8 @@ class DisplayManager:
                 width_pct=width_pct,
                 height_pct=height_pct,
                 left_pct=left_pct,
-                top_pct=top_pct
+                top_pct=top_pct,
+                db=db
             )
             display_model.initialize_with_model_info(model_info)  # Populate model details
             models.append(display_model)
@@ -178,7 +179,7 @@ class DisplayManager:
         return models
 
 
-    def initialize_components(self, model_info_list, ui_manager):
+    def initialize_components(self, model_info_list, ui_manager, db: RamDB):
         """Initialize and configure all display components."""
 
         # print(f"Model list (in displaymanager==============={ model_info_list[0].}")
@@ -209,4 +210,4 @@ class DisplayManager:
         self.components.append(loss_panel)
 
         # Create and add models
-        self.models = self.create_display_models(72, 91, 14, 5, self.screen, self.hyper.data_labels, model_info_list)
+        self.models = self.create_display_models(72, 91, 14, 5, self.screen, self.hyper.data_labels, model_info_list, db)

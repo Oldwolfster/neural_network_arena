@@ -198,129 +198,43 @@ class PlaybackController:
 
             print(f"[{key}] Moved at {rate} FPS")  # Debug output
 
+    def get_contrasting_text_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+        """
+        Given a background RGB color, this function returns an RGB tuple for either black or white text,
+        whichever offers better readability.
 
+        The brightness is computed using the formula:
+            brightness = (R * 299 + G * 587 + B * 114) / 1000
+        which is a standard formula for perceived brightness. If the brightness is greater than 128,
+        the background is considered light and black text is returned; otherwise, white text is returned.
 
+        Parameters:
+            rgb (tuple[int, int, int]): A tuple representing the background color (R, G, B).
 
+        Returns:
+            tuple[int, int, int]: An RGB tuple for the text color (either (0, 0, 0) for black or (255, 255, 255) for white).
+        """
+        r, g, b = rgb
+        # Calculate the perceived brightness of the background color.
+        brightness = (r * 299 + g * 587 + b * 114) / 1000
 
+        # Choose black text for light backgrounds and white text for dark backgrounds.
+        if brightness > 128:
+            return (0, 0, 0)  # Black text for lighter backgrounds.
+        else:
+            return (255, 255, 255)  # White text for darker backgrounds.
 
-
-
-"""DELETE ME 
-@dataclass
-class GladiatorOutput:
-    prediction: float
-    #adjustment: float
-
-@dataclass
-class IterationContext:
-    iteration: int
-    epoch: int
-    # Old from when it was only 1 input: float
-    inputs: np.ndarray
-    weights: np.ndarray
-    new_weights: np.ndarray
-    target: float
-    bias: float = 0
-    new_bias: float = 0
-
-
-@dataclass
-class GladiatorOutputOrig:
-    prediction: float
-    adjustment: float
-    weight: np.ndarray
-    new_weight: np.ndarray
-    bias: float = 0
-    new_bias: float = 0
-
-@dataclass
-class IterationContextOrig:
-    iteration: int
-    epoch: int
-    # Old from when it was only 1 input: float
-    inputs: np.ndarray
-    target: float
-
-@dataclass
-class IterationResult:
-    gladiator_output: GladiatorOutput
-    context: IterationContext
-    #new_iteration_data : IterationData
-    #new_neuron_list: list[NeuronData]
-
-from dataclasses import dataclass, field
-import math
-
-@dataclass
-class EpochSummary:
-    model_name: str = ""
-    epoch: int = 0
-    final_weight: float = 0
-    final_bias: float = 0
-    total_samples: int = 0
-
-    # error metrics
-    total_absolute_error: float = 0.0
-    total_squared_error: float = 0.0  #TODO Convert to calculatedd
-    total_error: float = 0.0
-
-    # Confusion matrix
-    tp: int = 0  # True Positives
-    tn: int = 0  # True Negatives
-    fp: int = 0  # False Positives
-    fn: int = 0  # False Negatives
-
-    @property
-    def precision(self) -> float: # Precision (Positive Predictive Value)  #self.precision = self.tp / (self.tp + self.fp) if (self.tp + self.fp) > 0 else 0
-        return self.tp / (self.tp + self.fp) if (self.tp + self.fp) > 0 else 0
-
-    @property
-    def recall(self) -> float: # Recall (Sensitivity)   self.recall = self.tp / (self.tp + self.fn) if (self.tp + self.fn) > 0 else 0
-        return self.tp / (self.tp + self.fn) if (self.tp + self.fn) > 0 else 0
-
-    @property
-    def F1(self) -> float:    # F1 Score
-        return (2 * self.precision * self.recall) / (self.precision + self.recall) \
-                if (self.precision + self.recall) > 0 else 0
-    @property
-    def correct(self) -> int:
-        return self.tp + self.tn
-
-    @property
-    def wrong(self) -> int:
-        return self.fp + self.fn
-
-    @property
-    def accuracy(self) -> float:
-        return self.correct / self.total_samples * 100 if self.total_samples > 0 else 0
-
-    @property
-    def mean_absolute_error(self) -> float:
-        return self.total_absolute_error / self.total_samples if self.total_samples > 0 else 0
-
-    @property
-    def mean_squared_error(self) -> float:
-        return self.total_squared_error / self.total_samples if self.total_samples > 0 else 0
-
-    @property
-    def rmse(self) -> float:
-        return math.sqrt(self.mean_squared_error) if self.mean_squared_error > 0 else 0
-
-
-
-        # R-squared (this would typically require predicted and actual values,
-        # so this is a placeholder calculation)
-        self.r_squared = 1 - (self.total_squared_error /
-                               (self.total_samples * math.pow(self.mean_absolute_error, 2))) \
-            if self.total_samples > 0 and self.mean_absolute_error != 0 else 0
-
-        # Log Loss (this is a simplified version and might need more context)
-        # Assumes binary classification
-        self.log_loss = -(self.tp * math.log(self.precision) +
-                          self.fn * math.log(1 - self.precision)) / self.total_samples \
-            if self.total_samples > 0 else 0
-
-        # Mean Absolute Percentage Error
-        self.mape = (self.total_absolute_error / self.total_samples) * 100 \
-            if self.total_samples > 0 else 0
-"""
+    """
+    # Example usage:
+    if __name__ == "__main__":
+        # Example background colors:
+        examples = [
+            (255, 255, 255),  # white background -> should use black text
+            (0, 0, 0),        # black background -> should use white text
+            (100, 150, 200)   # medium background -> decision based on brightness
+        ]
+        
+        for bg in examples:
+            text_color = get_contrasting_text_color(bg)
+            print(f"Background color {bg} -> Contrasting text color {text_color}")
+    """
