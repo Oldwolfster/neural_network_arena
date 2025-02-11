@@ -10,10 +10,11 @@ from src.engine.RamDB import RamDB
 
 
 class DisplayModel(EZSurface):
-    def __init__(self, screen, data_labels, width_pct, height_pct, left_pct, top_pct, architecture=None):
+    def __init__(self, screen, data_labels, width_pct, height_pct, left_pct, top_pct, db: RamDB, architecture=None):
         #print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")
         #chg below bg color to do bo
         super().__init__(screen, width_pct, height_pct, left_pct, top_pct, bg_color=(255, 255, 255))
+        self.db = db
         self.neurons = [[] for _ in range(len(architecture))] if architecture else []  # Nested list by layers
         self.connections = []  # List of connections between neurons
         self.model_id = None
@@ -179,7 +180,7 @@ class DisplayModel(EZSurface):
                 extra_height = self.height - height_needed
                 extra_height_to_center = extra_height  / 2
 
-                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(architecture)-1, text_version=text_version)
+                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(architecture)-1, text_version=text_version, db=self.db, model_id= self.model_id   )
                 y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
 
                 # 🔹 Assign calculated position & size

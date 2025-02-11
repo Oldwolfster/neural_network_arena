@@ -5,6 +5,8 @@ import pygame
 
 from src.engine.ActivationFunction import get_activation_derivative_formula
 from src.neuroForge import mgr
+from src.neuroForge.DisplayModel__NeuronText import DisplayModel__NeuronText
+from src.neuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.neuroForge.EZPrint import EZPrint
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format, draw_gradient_rect
@@ -13,13 +15,11 @@ from src.neuroForge.mgr import * # Imports everything into the local namespace
 
 class DisplayModel__Neuron:
     input_values = []   # Class variable to store inputs
-    def __init__(self, nid:int, layer: int, position: int, output_layer: int, text_version: str):
+    def __init__(self, nid:int, layer: int, position: int, output_layer: int, text_version: str, db: RamDB, model_id : str):
         #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
-
-
-        # Attach Display Strategy
-
-
+        #self.my_model #reference to DisplayModel
+        self.model_id = model_id
+        self.db = db
         self.location_left=0
         self.location_top=0
         self.location_width=0
@@ -47,11 +47,15 @@ class DisplayModel__Neuron:
         self.weight_adjustments = ""
         self.error_signal_calcs = ""
         self.avg_err_sig_for_epoch = 0.0
+
+        # ✅ Create a NeuronWeightVisualizer instance
+        #self.neuron_visualizer = DisplayModel__NeuronText(self)
+        self.neuron_visualizer = DisplayModel__NeuronWeights(self, self.model_id)
+
         self.loss_gradient = 0.0    #Same for all neurons
         self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
         # Create EZPrint instance
-        self.ez_printer = EZPrint(pygame.font.Font(None, 24)
-                                  , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
+        self.ez_printer = EZPrint(pygame.font.Font(None, 24)   , color=(0, 0, 0), max_width=200, max_height=100, sentinel_char="\n")
     def is_hovered(self, offset_x : int, offset_y : int): #"""Check if the mouse is over this neuron."""
         mouse_x, mouse_y = pygame.mouse.get_pos()
         self.mouse_x =  mouse_x-offset_x
@@ -60,46 +64,6 @@ class DisplayModel__Neuron:
 
 
 
-    def get_contrasting_text_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
-        """
-        Given a background RGB color, this function returns an RGB tuple for either black or white text,
-        whichever offers better readability.
-
-        The brightness is computed using the formula:
-            brightness = (R * 299 + G * 587 + B * 114) / 1000
-        which is a standard formula for perceived brightness. If the brightness is greater than 128,
-        the background is considered light and black text is returned; otherwise, white text is returned.
-
-        Parameters:
-            rgb (tuple[int, int, int]): A tuple representing the background color (R, G, B).
-
-        Returns:
-            tuple[int, int, int]: An RGB tuple for the text color (either (0, 0, 0) for black or (255, 255, 255) for white).
-        """
-        r, g, b = rgb
-        # Calculate the perceived brightness of the background color.
-        brightness = (r * 299 + g * 587 + b * 114) / 1000
-
-        # Choose black text for light backgrounds and white text for dark backgrounds.
-        if brightness > 128:
-            return (0, 0, 0)  # Black text for lighter backgrounds.
-        else:
-            return (255, 255, 255)  # White text for darker backgrounds.
-
-    """
-    # Example usage:
-    if __name__ == "__main__":
-        # Example background colors:
-        examples = [
-            (255, 255, 255),  # white background -> should use black text
-            (0, 0, 0),        # black background -> should use white text
-            (100, 150, 200)   # medium background -> decision based on brightness
-        ]
-        
-        for bg in examples:
-            text_color = get_contrasting_text_color(bg)
-            print(f"Background color {bg} -> Contrasting text color {text_color}")
-    """
 
 
     @classmethod
@@ -165,7 +129,7 @@ class DisplayModel__Neuron:
         WHERE 
         model   = ? and
         epoch_n = ? and  -- Replace with the current epoch(ChatGPT is trolling us)
-        nid     = ?        
+        nid     = ?      
         """
         params = (model_id,  epoch, self.nid)
         rs = db.query(SQL, params)  # Execute query
@@ -253,7 +217,7 @@ class DisplayModel__Neuron:
         output_surface = font.render(output_text, True, text_color)
 
         # Get text dimensions
-        text_height = label_surface.get_height()
+        text_height = label_surface.get_height() #text heigth is 18
         label_strip_height = text_height + 8  # Padding (8px)
 
         # Draw neuron banner
@@ -277,14 +241,8 @@ class DisplayModel__Neuron:
         )
 
 
-        # Render neuron details inside the body
-        body_text_y_start = body_y_start + 5
-        self.ez_printer.render(
-            screen,
-            text=self.weight_text,
-            x=self.location_left + 11,
-            y=body_text_y_start + 7
-        )
+        self.neuron_visualizer.render( screen, self.ez_printer, body_y_start, self.weight_text,self.location_left)
+
 
     def neuron_build_text_small(self, row): #less info so it still fits
         self.neuron_build_text_large(row) # Ensures values are saved for the pop up window.

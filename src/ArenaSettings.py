@@ -24,9 +24,9 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
 
-    epochs_to_run           :int    = 55      # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 3      # Number of times training run will cycle through all training data
     training_set_size       :int    = 1      # Qty of training data
-    default_learning_rate   :float  = .01        # Affects magnitude of weight adjustments #.0001 Equalizer
+    default_learning_rate   :float  = 1        # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     gradient_clip_threshold :float  = 1e12
     #seed that is all green 529966
@@ -67,7 +67,7 @@ class HyperParameters:
 #training_pit              = "Predict_Income_2_Inputs"
 
 training_pit                = "XOR"
-training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
+#training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit              = "SimpleBinaryDecision"
 #training_pit              = "Predict_Income_2_Inputs"
 ##training_pit              = "Salary2InputsNonlinear"
