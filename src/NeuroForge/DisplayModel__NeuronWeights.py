@@ -8,7 +8,7 @@ class DisplayModel__NeuronWeights:
         self.padding_bottom = 3
         self.gap_between_weight_bars = 1
         self.gap_between_weights = 2
-        self.right_margin = 0  # New: Space reserved for activation visualization
+        self.right_margin = 20  # New: Space reserved for activation visualization
         self.BANNER_HEIGHT = 29  # 4 pixels above + 26 pixels total height
 
         self.neuron = neuron  # ✅ Store reference to parent neuron
@@ -21,26 +21,18 @@ class DisplayModel__NeuronWeights:
         self.neuron_height = 0
         self.bar_height  = 0
         self.previous_weights = None  # Store last weights for comparison
+        self.max_act_run = 0
+        #TODO consolidate below to above
+        self.global_max_activation = 0
 
-    def render(self, screen, ez_printer, body_y_start, weight_text, location_left):
-        if self.global_max == 0:
-            self.initialize(screen, ez_printer, body_y_start, weight_text, location_left)
-        bar_lengths = self.calculate_weight_bar_lengths()
-        #self.debug_weight_changes()
-        self.draw_bars(screen)
-
-
-    def debug_weight_changes(self): #Prints weights only if they have changed from the last recorded values.
-        current_weights = self.neuron.weights
-        if self.previous_weights is None or current_weights != self.previous_weights:
-            print(f"🔍 Weights Updated: {current_weights}")
-            self.previous_weights = list(current_weights)  # Copy to track changes
     def initialize(self, screen, ez_printer, body_y_start, weight_text, location_left):
         if len(self.neuron.weights) == 0:
             return
         self.global_max, self.max_per_weight = self.get_weight_min_max(self.neuron.db, self.model_id, self.neuron.nid)
         self.num_weights = len(self.neuron.weights)
         self.neuron_height = self.neuron.location_height
+        self.max_act_run = self.get_max_activation_for_run(self.neuron.db, self.model_id)
+        print(f"MAX ACT={self.max_act_run}")
         if self.num_weights > 0:
             self.bar_height= self.calculate_bar_height(
                 num_weights=self.num_weights,neuron_height=self.neuron_height
@@ -50,13 +42,137 @@ class DisplayModel__NeuronWeights:
         #print(f"INITIALIZING//////////   Max per weight{self.max_per_weight}\tGlobal max: {self.global_max}")
         #self.debug_bar_placement()
 
-        #print(f"Weights: {self.neuron.weights}")
-        #print(f"Bar height={self.bar_height}")
-        # print(f"screen info{screen.height, screen.width}")
-        # print(f"neuron info{self.neuron.location_left, self.neuron.location_top, self.neuron.location_width, self.neuron.location_height}")
-        # print(f"Neuron {self.neuron.nid}: location=({self.neuron.location_left}, {self.neuron.location_top}), "              f"size=({self.neuron.location_width}, {self.neuron.location_height})")        # Calculate bar lengths
+    def render(self, screen, ez_printer, body_y_start, weight_text, location_left):
+        if self.global_max == 0:
+            self.initialize(screen, ez_printer, body_y_start, weight_text, location_left)
+        bar_lengths = self.calculate_weight_bar_lengths()
+        #self.debug_weight_changes()
+        self.draw_weight_bars(screen)
+        self.draw_activation_bar(screen)
 
-    def draw_bars(self, screen):
+
+    def draw_weight_label(self, screen, text, rect, bar_color):
+        """
+        Draws a weight label with a background for readability.
+
+        - If the bar is wide enough, places the label inside the bar.
+        - If the bar is too small, places the label outside (to the right).
+        - Uses a black semi-transparent background to improve contrast.
+
+        Parameters:
+            screen     (pygame.Surface): The surface to draw on.
+            text       (str): The weight value as a formatted string.
+            rect       (pygame.Rect): The bar rectangle (determines placement).
+            bar_color  (tuple): The RGB color of the bar (for future use, e.g., dynamic contrast).
+        """
+
+        # Define the minimum width required to place the text inside the bar
+        min_label_width = 30
+
+        # Create font and render text
+        font = pygame.font.Font(None, 18)  # Small font for weight labels
+        text_surface = font.render(text, True, (255, 255, 255))  # White text
+        text_rect = text_surface.get_rect()
+
+        # Determine label placement: inside if enough space, otherwise outside
+        if rect.width >= min_label_width:
+            text_rect.center = rect.center  # Center text inside the bar
+        else:
+            text_rect.midleft = (rect.right + 5, rect.centery)  # Place outside to the right
+
+        # Draw a semi-transparent background behind the text for readability
+        bg_rect = text_rect.inflate(4, 2)  # Slight padding
+        pygame.draw.rect(screen, (0, 0, 0, 150), bg_rect)  # Dark transparent background
+
+        # Render text onto screen
+        screen.blit(text_surface, text_rect)
+
+
+
+
+
+    def draw_activation_bar(self, screen):
+        """
+        Draws the activation bar inside the right margin of the neuron.
+
+        - Bar height is scaled relative to the **global max activation**.
+        - The bar is drawn from the **bottom up** (low values = short bars).
+        - Uses `self.right_margin` as the width.
+        """
+        if self.max_act_run == 0:  # Safety check
+            return
+
+        neuron_x = self.neuron.location_left + self.neuron.location_width  # Start at right edge
+        neuron_y = self.neuron.location_top  # Top of neuron
+        neuron_height = self.neuron.location_height  # Full height available
+
+        # 🔹 Normalize activation (scaled to fit the neuron)
+        activation_magnitude = abs(self.neuron.activation_value)
+        bar_height = (activation_magnitude / self.max_act_run) * neuron_height
+
+        # 🔹 Define bar position (grows **upward** from bottom)
+        bar_rect = pygame.Rect(
+            neuron_x-self.right_margin , neuron_y + neuron_height - bar_height,  # X,Y (bottom-aligned)
+            self.right_margin, bar_height  # Width, Height
+        )
+
+        # 🔹 Choose color based on activation sign
+        bar_color = (0, 255, 0) if self.neuron.activation_value >= 0 else (255, 0, 0)  # Green for positive, Red for negative
+
+        # 🔹 Draw the activation bar
+        pygame.draw.rect(screen, bar_color, bar_rect)
+    def get_max_activation_for_run(self, db: RamDB, model_id: str):
+        """
+        Retrieves the highest absolute activation value across all epochs and iterations for the given model.
+
+        :param db: RamDB instance to query
+        :param model_id: The model identifier
+        :return: The maximum absolute activation value in the run
+        """
+        #_Original_not_used_scales_on_all_not_90 =
+        SQL_MAX_ACTIVATION = """ 
+        
+            SELECT MAX(ABS(activation_value)) AS max_activation
+            FROM Neuron
+            WHERE model = ?
+        """
+        SQL_MAX_ACTIVATION = """
+            SELECT MAX(abs_activation) AS max_activation
+            FROM (
+                SELECT ABS(activation_value) AS abs_activation
+                FROM Neuron
+                WHERE model = ?
+                ORDER BY abs_activation ASC
+                LIMIT (SELECT CAST(COUNT(*) * 0.95 AS INT) 
+                       FROM Neuron WHERE model = ?)
+            ) AS FilteredActivations;
+
+
+            """
+
+        result = db.query(SQL_MAX_ACTIVATION, (model_id, model_id))
+        print(result)
+        # Return the max activation or a default value to prevent division by zero
+        return result[0]['max_activation'] if result and result[0]['max_activation'] is not None else 1.0
+
+
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+    ###########EVERYTHING BELOW HERE RELATES TO THE WEIGHTS######################################
+
+    def debug_weight_changes(self): #Prints weights only if they have changed from the last recorded values.
+        current_weights = self.neuron.weights
+        if self.previous_weights is None or current_weights != self.previous_weights:
+            print(f"🔍 Weights Updated: {current_weights}")
+            self.previous_weights = list(current_weights)  # Copy to track changes
+
+
+    def draw_weight_bars(self, screen):
         """
         Draw all weight bars inside the neuron, considering padding, spacing, and bar height.
 
@@ -114,25 +230,39 @@ class DisplayModel__NeuronWeights:
 
     def draw_two_bars_for_one_weight(self, screen, x, y, width_self, width_global, bar_height=8, bar_gap=2):
         """
-        Draws two horizontal bars for a single weight visualization.
+        Draws two horizontal bars for a single weight visualization with labels.
 
-        Parameters:
-            screen       (pygame.Surface): The Pygame screen to draw on.
-            x            (float): Left position where the bars should start.
-            y            (float): Vertical position for the bars.
-            width_self   (float): Length of the self-weight bar.
-            width_global (float): Length of the global max-weight bar.
-            bar_height   (int): Height of each bar.
-            bar_gap      (int): Spacing between the bars.
+        - Orange = Global max reference.
+        - Green = Self max reference.
+        - Labels are drawn inside if space allows, or outside if bars are too small.
         """
 
-        # Draw Global Weight Bar (Orange)
-        pygame.draw.rect(screen, (255, 165, 0),  # Orange
-                         pygame.Rect(x, y, width_global, bar_height))
+        # Create rectangles first
+        global_rect = pygame.Rect(x, y, width_global, bar_height)  # Orange bar
+        self_rect = pygame.Rect(x, y + bar_height + bar_gap, width_self, bar_height)  # Green bar
 
-        # Draw Self Weight Bar (Green), placed below the Global Bar
-        pygame.draw.rect(screen, (0, 128, 0),  # Green
-                         pygame.Rect(x, y + bar_height + bar_gap, width_self, bar_height))
+        # Draw bars
+        pygame.draw.rect(screen, (255, 165, 0), global_rect)  # Orange (global)
+        pygame.draw.rect(screen, (0, 128, 0), self_rect)  # Green (self)
+
+        # Retrieve actual weight value for labeling
+        weight_index = len(self.neuron.weights) - 1  # Assumes sequential drawing
+        weight_value = self.neuron.weights[weight_index]
+        label_text = f"{weight_value:.2f}"  # Format label text
+
+        # Call label function with the actual rectangle positions
+        self.draw_weight_label(screen, label_text, global_rect, (255, 165, 0))  # Label for global bar
+        self.draw_weight_label(screen, label_text, self_rect, (0, 128, 0))  # Label for self bar
+
+
+        # Get weight index and actual values
+        weight_index = len(self.neuron.weights) - 1  # Assumes sequential drawing
+        weight_value = self.neuron.weights[weight_index]
+        label_text = f"{weight_value:.2f}"  # Format label text
+
+        # Draw labels using the new function
+        self.draw_weight_label(screen, label_text, global_rect, (255, 165, 0))  # Label for global bar
+        self.draw_weight_label(screen, label_text, self_rect, (0, 128, 0))  # Label for self bar
 
     def calculate_weight_bar_lengths(self):
         """
@@ -179,6 +309,19 @@ class DisplayModel__NeuronWeights:
             max_per_weight (list): A list of max absolute weights for each weight index.
         """
 
+
+        """ ALTERNATE WEIGHT SQL.  Base scale on bottom 90% to reduce outlier impact
+        WITH OrderedWeights AS (
+            SELECT ABS(json_each.value) AS abs_weight
+            FROM Neuron, json_each(Neuron.weights)
+            WHERE model = ? AND nid = ?
+            ORDER BY abs_weight DESC
+            LIMIT (SELECT COUNT(*) * 0.9 FROM Neuron, json_each(Neuron.weights) WHERE model = ? AND nid = ?)
+        )
+        SELECT MAX(abs_weight) AS adjusted_max FROM OrderedWeights;
+        """
+
+
         #db.query_print("Select weights from neuron")
         # ✅ Query 1: Get the highest absolute weight overall
         SQL_GLOBAL_MAX = """
@@ -204,6 +347,7 @@ class DisplayModel__NeuronWeights:
             GROUP BY key
             ORDER BY key ASC
         """
+
         max_per_weight_result = db.query(SQL_MAX_PER_WEIGHT, (model_id, neuron_id))
 
         # Convert result to a list, ensuring order by index (key)
