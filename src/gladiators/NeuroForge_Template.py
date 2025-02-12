@@ -17,8 +17,8 @@ class MLP_Hayabusa(Gladiator):
     def __init__(self, config):
         config.loss_function = Loss_MSE
         super().__init__(config)
-        self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Tanh)
-        self.neurons[0].set_activation(Linear)
+        self.initialize_neurons([], [Initializer_Xavier], activation_function_for_hidden= Tanh)
+        #self.neurons[0].set_activation(Linear)
 
 
 #print("🚀 NOT Using Default Forward pass - to customize override forward_pass")

@@ -210,7 +210,7 @@ class DisplayModel__Neuron:
 
         # **Split banner text into two parts:**
         label_text = f"ID: {self.label}"  # Left side (Neuron ID)
-        output_text = f"{smart_format(self.activation_value)}"  # Right side
+        output_text = f"{self.activation_function}"  # Right side
 
         # Render both texts separately
         label_surface = font.render(label_text, True, text_color)

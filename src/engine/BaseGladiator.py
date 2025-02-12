@@ -11,6 +11,9 @@ from src.engine.Utils_DataClasses import Iteration
 from src.engine.WeightInitializer import *
 from typing import List
 
+"""
+
+"""
 
 class Gladiator(ABC):
     """
@@ -24,11 +27,140 @@ class Gladiator(ABC):
     2) Training Framework - does the brute force tasks of the arena - not intended for overriding
     3) Initialization - Preps everything for the framework and gladiator
 """
+    def __init__(self,  config: ModelConfig):
+        self.gladiator          = config.gladiator_name
+        self.hyper              = config.hyper
+        self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
+        self.neurons            = []
+        #self.layers             = []                        # Layered structure
+        self.neuron_count       = 0                         # Default value
+        self.training_data      . reset_to_default()
+        self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
+        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
+        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
+        self.number_of_epochs   = self.hyper.epochs_to_run
+        self._full_architecture  = None
+        self.last_lost          = 0
+        self.iteration          = 0
+        self.epoch              = 0
+        self.config             = config
+        self._simpletron(config)        #Check if support needed for old optimzer
+
+
+    ################################################################################################
+    ################################ SECTION 1 - Simpletron Support ##########################
+    ################################################################################################
+    def _simpletron(self, config:ModelConfig):
+        if hasattr(self, 'training_iteration'):
+            config.optimizer="simpletron"
+
+    ################################################################################################
+    ################################ SECTION 1 - pipeline ####################################
+    ################################################################################################
+
+    def train(self) -> tuple[str, list[int]]:
+        """
+        Main method invoked from Framework to train model.
+
+        Returns:
+            tuple[str, list[int]]: A tuple containing:
+                - converged_signal (str): Which convergence signal(s) triggered early stop.
+                - full_architecture (list[int]): Architecture of the model including hidden and output layers.
+        """
+
+        if self.neuron_count == 0:
+            self.initialize_neurons([]) #Defaults to 1 when it adds the output
+
+        self.training_samples = self.training_data.get_list()           # Store the list version of training data
+        for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
+            convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
+            if convg_signal !="":                                 # Converged so end early
+                return convg_signal, self._full_architecture
+        return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
+
+    def run_an_epoch(self, epoch_num: int) -> str:
+        """
+        Executes a training epoch i.e. trains on all samples
+
+        Args:
+            epoch_num (int) : number of epoch being executed
+        Returns:
+            convergence_signal (str) : If not converged, empty string, otherwise signal that detected convergence
+        """
+        self.epoch = epoch_num      # Set so the child model has access
+
+        #print(f"\tepoch\titeration\tinput\ttarget\tprediction\terror\tweight before adj\tfinal weight")
+        if epoch_num % 100 == 0 and epoch_num!=0:
+                print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        for i, sample in enumerate(self.training_samples):  # Loop through all training data
+            self.iteration = i      # Set so the model has access
+            sample = np.array(sample)  # Convert sample to NumPy array
+            inputs = sample[:-1]
+            target = sample[-1]
+            self.snapshot_weights_as_weights_before()
+            prediction_raw = 0
+            if self.config.optimizer=="simplified_descent":
+                error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
+                prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
+            elif self.config.optimizer=="simpletron":
+                error, loss,  loss_gradient, prediction_raw = self.optimizer_simpletron(sample, inputs,target)
+            else:
+                raise TypeError("Optimizer not supported")
+            #print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
+            self.last_lost = loss
+
+            #If binary decision apply step logic.
+            prediction = prediction_raw # Assyme regression
+            if self.training_data.problem_type == "Binary Decision":
+                prediction = 1 if prediction_raw >= 0.5 else 0
+
+            #print(f"{self.gladiator}\t{self.epoch}\t{self.iteration}\t{inputs[0]}\t{target}\t{prediction}\t{error}\t{self.weights[0]}\t{self.neurons[0].weights_before[0]}\t{self.training_data.problem_type}")
+
+            # Step 4: Record iteration data
+            iteration_data = Iteration(
+                model_id=self.mgr_sql.model_id,
+                epoch=epoch_num + 1,
+                iteration=i + 1,
+                inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
+                target=sample[-1],
+                prediction=prediction,
+                prediction_raw=prediction_raw,
+                loss=loss,
+                loss_function=self.config.loss_function.name,
+                loss_gradient=loss_gradient,
+                accuracy_threshold=self.hyper.accuracy_threshold,
+            )
+            self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
+        return self.mgr_sql.finish_epoch()      # Finish epoch and return convergence signal
+    def optimizer_simpletron(self, sample, inputs, target):
+        prediction_raw = self.training_iteration(sample)
+        error = target - prediction_raw
+        loss = error
+        loss_gradient = error
+        return error, loss,  loss_gradient, prediction_raw
+    def optimizer_simplified_descent(self, sample, inputs, target):
+        # Step 1: Forward pass
+        self.forward_pass(sample)  # Call model-specific logic
+        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
+
+        # Step 3: Delegate to models logic for Validate_pass :)
+        error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
+        loss_gradient = self.watch_for_explosion(loss_gradient)
+        # Step 4: Delegate to models logic for backporop.
+        self.back_pass(sample, loss_gradient)  # Call model-specific logic
+        return error, loss,  loss_gradient
+
+
+
+    def watch_for_explosion(self,correction: float) ->float:        # 🚨 Detect gradient explosion
+        if abs(correction) > self.config.hyper.gradient_clip_threshold:
+            print(f"🚨 Gradient Explosion Detected! Clipping correction: {correction}")
+            correction = np.sign(correction) * self.config.hyper.gradient_clip_threshold  # Clip to max allowed
+        return  correction
 
     ################################################################################################
     ################################ SECTION 1 - Training Default Methods ##########################
     ################################################################################################
-
     def forward_pass(self, training_sample):
         """
         Computes forward pass for each neuron in the XOR MLP.
@@ -172,6 +304,8 @@ class Gladiator(ABC):
         if self.config.optimizer == "simplified_descent":
             correction = self.config.loss_function.grad(target, prediction_raw)  # ✅ Compute correction (NO inversion!)
             #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={loss}, Correction={correction}")
+        elif self.config.optimizer == "Simpletron":
+            print("Warning: Simpletron has been deprecated")
         else:
             raise ValueError(f"Unsupported optimizer: {self.config.optimizer}")
         return error, loss,  correction  # ✅ Correction replaces "loss gradient"
@@ -184,114 +318,9 @@ class Gladiator(ABC):
             #prediction =  1 if prediction_raw > .5 else 0      # Apply step function
             return error, loss,  loss_gradient
 
-
-
-
-    ################################################################################################
-    ################################ SECTION 2 - pipeline ####################################
-    ################################################################################################
-
-    def train(self) -> tuple[str, list[int]]:
-        """
-        Main method invoked from Framework to train model.
-
-        Returns:
-            tuple[str, list[int]]: A tuple containing:
-                - converged_signal (str): Which convergence signal(s) triggered early stop.
-                - full_architecture (list[int]): Architecture of the model including hidden and output layers.
-        """
-
-        if self.neuron_count == 0:
-            self.initialize_neurons([]) #Defaults to 1 when it adds the output
-
-        self.training_samples = self.training_data.get_list()           # Store the list version of training data
-        for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
-            convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
-            if convg_signal !="":                                 # Converged so end early
-                return convg_signal, self._full_architecture
-        return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
-
-    def run_an_epoch(self, epoch_num: int) -> str:
-        """
-        Executes a training epoch i.e. trains on all samples
-
-        Args:
-            epoch_num (int) : number of epoch being executed
-        Returns:
-            convergence_signal (str) : If not converged, empty string, otherwise signal that detected convergence
-        """
-        self.epoch = epoch_num      # Set so the child model has access
-        if epoch_num % 100 == 0:
-                print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        for i, sample in enumerate(self.training_samples):  # Loop through all training data
-            self.iteration = i      # Set so the model has access
-            sample = np.array(sample)  # Convert sample to NumPy array
-            inputs = sample[:-1]
-            target = sample[-1]
-            self.snapshot_weights_as_weights_before()
-
-            # Step 2: Delegate to the model's logic for forward propagation
-            self.forward_pass(sample)  # Call model-specific logic
-            prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
-
-            # Step 3: Delegate to models logic for Validate_pass :)
-            error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
-            loss_gradient = self.watch_for_explosion(loss_gradient)
-            self.last_lost = loss
-            #If binary decision apply step logic.
-            prediction = prediction_raw # Assyme regression
-            if self.training_data.problem_type == "Binary Decision":
-                prediction = 1 if prediction_raw >= 0.5 else 0
-            # Step 4: Delegate to models logic for backporop.
-            self.back_pass(sample, loss_gradient)  # Call model-specific logic
-            #print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
-
-            # Step 4: Record iteration data
-            iteration_data = Iteration(
-                model_id=self.mgr_sql.model_id,
-                epoch=epoch_num + 1,
-                iteration=i + 1,
-                inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
-                target=sample[-1],
-                prediction=prediction,
-                prediction_raw=prediction_raw,
-                loss=loss,
-                loss_function=self.config.loss_function.name,
-                loss_gradient=loss_gradient,
-                accuracy_threshold=self.hyper.accuracy_threshold,
-            )
-            self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
-        return self.mgr_sql.finish_epoch()      # Finish epoch and return convergence signal
-
-    def watch_for_explosion(self,correction: float) ->float:        # 🚨 Detect gradient explosion
-        if abs(correction) > self.config.hyper.gradient_clip_threshold:
-            print(f"🚨 Gradient Explosion Detected! Clipping correction: {correction}")
-            correction = np.sign(correction) * self.config.hyper.gradient_clip_threshold  # Clip to max allowed
-        return  correction
-
-
     ################################################################################################
     ################################ SECTION 3 - Initialization ####################################
     ################################################################################################
-    def __init__(self,  config: ModelConfig):
-        self.gladiator          = config.gladiator_name
-        self.hyper              = config.hyper
-        self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
-        self.neurons            = []
-        #self.layers             = []                        # Layered structure
-        self.neuron_count       = 0                         # Default value
-        self.training_data      . reset_to_default()
-        self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
-        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
-        self.number_of_epochs   = self.hyper.epochs_to_run
-        self._full_architecture  = None
-        self.last_lost          = 0
-        self.iteration          = 0
-        self.epoch              = 0
-        self.config             = config
-
-
 
     def snapshot_weights_as_weights_before(self):
         """
@@ -396,6 +425,12 @@ class Gladiator(ABC):
                 self.neurons.append(neuron)
         self.neuron_count = len(self.neurons)
 
+    @property
+    def weights(self):
+        """
+        Getter for learning rate.
+        """
+        return self.neurons[0].weights
     @property
     def learning_rate(self):
         """

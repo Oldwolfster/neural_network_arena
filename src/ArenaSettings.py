@@ -25,14 +25,14 @@ class HyperParameters:
     ############################################################
 
     epochs_to_run           :int    = 333      # Number of times training run will cycle through all training data
-    training_set_size       :int    = 1      # Qty of training data
-    default_learning_rate   :float  = 1        # Affects magnitude of weight adjustments #.0001 Equalizer
+    training_set_size       :int    = 111      # Qty of training data
+    default_learning_rate   :float  = 4        # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     gradient_clip_threshold :float  = 1e12
     #seed that is all green 529966
     #
 
-    random_seed             :int    = 51017 #8422    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
+    random_seed             :int       = 171193 #8422    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
     #965512 causes error #621575 LR1 gets stuck and free, but itlooks like it doesn't converge properly
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = .001      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
@@ -58,13 +58,11 @@ class HyperParameters:
     criteria_neuron :List[int] = None       # None = show all - otherwise list of neurons to include
     criteria_weight :List[int] = None       # None = show all - 0= Ommit weights - Otherwise list all weights to include
 
-
-
 ############################################################
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
 
-#training_pit              = "Predict_Income_2_Inputs"
+training_pit              = "Predict_Income_2_Inputs"
 
 training_pit                = "XOR"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
@@ -73,18 +71,15 @@ training_pit                = "XOR"
 ##training_pit              = "Salary2InputsNonlinear"
 #training_pit              = "Manual"
 
-
-
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-
     #'Blackbird'
     #'XOR_Hayabusa'
     'NeuroForge_Template'
-    #'XOR_TheLongWay'
-    #'MLP_Standard'
+   #'_Template_Simpletron'
+    #,'HayabusaTwoWeights'   #2 weights
     #'XORTutorial'
     #'GBS_XOR'
     #'HayabusaNormalizer'

@@ -4,7 +4,7 @@ import pygame
 from src.neuroForge import mgr
 
 
-class DisplayModel__Connection:
+class DisplayModel__ConnectionForward:
     def __init__(self, from_neuron, to_neuron, weight=0):
         self.from_neuron = from_neuron  # Can be a neuron or (x, y) coordinates
         self.to_neuron = to_neuron      # Reference to DisplayNeuron
@@ -45,9 +45,13 @@ class DisplayModel__Connection:
             self.is_really_a_weight = False
             return self.from_neuron
         # Otherwise, assume it's a neuron object
+        #Forward prop
         start_x = self.from_neuron.location_left + self.from_neuron.location_width
+        #Back prop
+        #start_x = self.from_neuron.location_left
         banner_height = self.from_neuron.location_height * 0.2  # Assume banner is 20% of neuron height
-        start_y = self.from_neuron.location_top + (banner_height * 0.5)  # Place in middle of banner
+
+        start_y = self.from_neuron.location_top + (self.from_neuron.location_height * 0.5)  # Place in middle of banner
         return (start_x, start_y)
 
     def _get_end_point(self):

@@ -11,6 +11,98 @@ from src.engine.BaseArena import BaseArena
 from src.engine.BaseGladiator import Gladiator
 
 
+import pygame
+
+def draw_text_with_background(screen, text, x, y, font_size, text_color=(255, 255, 255), bg_color=(0, 0, 0)):
+    """
+    Draws text with a background rectangle for better visibility.
+    """
+    font = pygame.font.SysFont(None, font_size)
+    text_surface = font.render(text, True, text_color)
+    text_rect = text_surface.get_rect()
+    text_rect.topleft = (x, y)
+
+    # Draw background rectangle
+    pygame.draw.rect(screen, bg_color, text_rect.inflate(6, 4))  # Slight padding around text
+    screen.blit(text_surface, text_rect)
+
+
+
+def draw_rect_with_border(screen, rect, color, border_width, border_color=(0,0,0)):
+    """
+    Draws a rectangle with a border on the given Pygame surface.
+
+    Parameters:
+        screen (pygame.Surface): The surface to draw on.
+        rect (pygame.Rect): The rectangle defining the position and size.
+        color (tuple): The RGB color of the inner rectangle.
+        border_color (tuple): The RGB color of the border.
+        border_width (int): The thickness of the border.
+    """
+    # Draw the outer rectangle (border)
+    pygame.draw.rect(screen, border_color, rect)
+
+    # Calculate the dimensions of the inner rectangle
+    inner_rect = rect.inflate(-2*border_width, -2*border_width)
+
+    # Draw the inner rectangle
+    #pygame.draw.rect(screen, color, inner_rect)
+    draw_gradient_rect(screen, inner_rect, color, get_darker_color(color))
+
+def draw_gradient_rect(screen, rect, color_start, color_end_before_avg):
+    """
+    Draws a gradient rectangle from color_start to color_end.
+    - screen: Pygame surface
+    - rect: Pygame.Rect object defining position and size
+    - color_start: RGB color for the top
+    - color_end: RGB color for the bottom
+    """
+
+    color_end = average_rgb([color_start, color_end_before_avg])
+    # Split the height into gradient steps
+    num_steps = rect.height
+    for i in range(num_steps):
+        # Interpolate color
+        r = color_start[0] + (color_end[0] - color_start[0]) * i // num_steps
+        g = color_start[1] + (color_end[1] - color_start[1]) * i // num_steps
+        b = color_start[2] + (color_end[2] - color_start[2]) * i // num_steps
+        pygame.draw.line(screen, (r, g, b), (rect.x, rect.y + i), (rect.x + rect.width, rect.y + i))
+
+
+def average_rgb(rgb_colors):
+  """Calculates the average RGB color from a list of RGB tuples.
+
+  Args:
+    rgb_colors: A list of RGB tuples, where each tuple contains three integers
+      representing the red, green, and blue values (0-255).
+
+  Returns:
+    A tuple representing the average RGB color, or None if the input list is empty.
+  """
+  if not rgb_colors:
+    return None
+
+  r_sum = 0
+  g_sum = 0
+  b_sum = 0
+
+  for r, g, b in rgb_colors:
+    r_sum += r
+    g_sum += g
+    b_sum += b
+
+  num_colors = len(rgb_colors)
+  r_avg = r_sum / num_colors
+  g_avg = g_sum / num_colors
+  b_avg = b_sum / num_colors
+
+  return (int(r_avg), int(g_avg), int(b_avg))
+
+# Example usage:
+#colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255)]  # Red, Green, Blue
+#average_color = average_rgb(colors)
+#print(average_color)
+
 def chunk_list(lst: list, chunk_size: int):
     for i in range(0, len(lst), chunk_size):
         yield lst[i:i + chunk_size]
@@ -198,31 +290,48 @@ class PlaybackController:
 
             print(f"[{key}] Moved at {rate} FPS")  # Debug output
 
-    def get_contrasting_text_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
-        """
-        Given a background RGB color, this function returns an RGB tuple for either black or white text,
-        whichever offers better readability.
+def get_darker_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+    """
+    Given a background RGB color, this function returns an RGB tuple for a darker color,
 
-        The brightness is computed using the formula:
-            brightness = (R * 299 + G * 587 + B * 114) / 1000
-        which is a standard formula for perceived brightness. If the brightness is greater than 128,
-        the background is considered light and black text is returned; otherwise, white text is returned.
 
-        Parameters:
-            rgb (tuple[int, int, int]): A tuple representing the background color (R, G, B).
+    Parameters:
+        rgb (tuple[int, int, int]): A tuple representing the background color (R, G, B).
 
-        Returns:
-            tuple[int, int, int]: An RGB tuple for the text color (either (0, 0, 0) for black or (255, 255, 255) for white).
-        """
-        r, g, b = rgb
-        # Calculate the perceived brightness of the background color.
-        brightness = (r * 299 + g * 587 + b * 114) / 1000
+    Returns:
+        tuple[int, int, int]: An RGB tuple darker color
+    """
+    r, g, b = rgb
+    towards_color = 11
 
-        # Choose black text for light backgrounds and white text for dark backgrounds.
-        if brightness > 128:
-            return (0, 0, 0)  # Black text for lighter backgrounds.
-        else:
-            return (255, 255, 255)  # White text for darker backgrounds.
+    return (min(r+ towards_color, 255) / 2,min(g+ towards_color, 255) / 2,min(b+ towards_color, 255) / 2,)
+
+
+def get_contrasting_text_color(rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+    """
+    Given a background RGB color, this function returns an RGB tuple for either black or white text,
+    whichever offers better readability.
+
+    The brightness is computed using the formula:
+        brightness = (R * 299 + G * 587 + B * 114) / 1000
+    which is a standard formula for perceived brightness. If the brightness is greater than 128,
+    the background is considered light and black text is returned; otherwise, white text is returned.
+
+    Parameters:
+        rgb (tuple[int, int, int]): A tuple representing the background color (R, G, B).
+
+    Returns:
+        tuple[int, int, int]: An RGB tuple for the text color (either (0, 0, 0) for black or (255, 255, 255) for white).
+    """
+    r, g, b = rgb
+    # Calculate the perceived brightness of the background color.
+    brightness = (r * 299 + g * 587 + b * 114) / 1000
+
+    # Choose black text for light backgrounds and white text for dark backgrounds.
+    if brightness > 128:
+        return (0, 0, 0)  # Black text for lighter backgrounds.
+    else:
+        return (255, 255, 255)  # White text for darker backgrounds.
 
     """
     # Example usage:

@@ -7,5 +7,7 @@ pandas
 pygame
 pygame_gui
 tensorflow
+openpyxl
+
 
 

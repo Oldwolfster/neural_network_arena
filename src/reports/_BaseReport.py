@@ -1,8 +1,13 @@
 import sqlite3
 from abc import abstractmethod
+
+from openpyxl.reader.excel import load_workbook
+
 from src.neuroForge import mgr
 from tabulate import tabulate
 from src.reports._ReportUtils import clean_multiline_string
+import pandas as pd
+import os
 
 class BaseReport:
     """Base class for SQL-driven reports with reusable query execution and tabulation."""
@@ -14,6 +19,10 @@ class BaseReport:
         """
         self.db = args[0]
         mgr.menu_active = False # Close menu
+
+
+
+
 
     def run_report(self):
         """
@@ -33,11 +42,67 @@ class BaseReport:
             print(clean_multiline_string(self.what_to_look_for()))
 
 
+    def run_sql_report(self, sql: str, params: list = None, filename: str = "SQL_Report.xlsx"):
+        """
+        Execute a SQL query, retrieve results, and export them to an Excel file.
+
+        :param sql: SQL query string with optional placeholders.
+        :param params: List of parameters for the SQL query.
+        :param filename: Name of the Excel file to save.
+        """
+        #try:
+        result_set = self.db.query(sql, params or [], as_dict=True)
+        if not result_set:
+            print("No data returned.")
+            return
+
+        # Open an existing Excel file
+        script_dir = os.path.dirname(os.path.abspath(__file__))         #Get loc of this script
+        file_path = os.path.join(script_dir, "_XL_Template.xlsx")  #add excel file name
+        print(f"full_file_path={file_path}")
+
+        wb = load_workbook(file_path)
+
+        #print("Worksheets in file:", wb.sheetnames)
+
+        ws = wb["GeneralTemplate"]  # 🟢 Select the Pre-Formatted Worksheet
+        df = pd.DataFrame(result_set)
+
+    # 🟢 **Write Field Headers to Row 2**
+        for col_idx, col_name in enumerate(df.columns, start=1):  # Start at Excel column A (1-based)
+            ws.cell(row=2, column=col_idx, value=col_name)  # Place headers in Row 2
+
+        # 🟢 **Write Data Starting at Row 3**
+        for row_idx, row in enumerate(df.itertuples(index=False), start=3):  # Data starts in Row 3
+            for col_idx, value in enumerate(row, start=1):  # Start at Excel column A (1-based)
+                ws.cell(row=row_idx, column=col_idx, value=value)
+
+        # 🟢 Auto-Size Columns Based on Content
+        from openpyxl.utils import get_column_letter
+        for col_idx, col_name in enumerate(df.columns, start=1):
+            max_length = max(len(str(col_name)), *[len(str(row[col_idx-1])) for row in df.itertuples(index=False)])
+            ws.column_dimensions[get_column_letter(col_idx)].width = max_length + 2  # Add padding
+
+
+        # 🟢 Save Back to the Same File
+        wb.save(file_path)
+
+        # 🟢 (Optional) Open in Excel
+        os.startfile(file_path)  # Only works on Windows
+        ws.sheet_view.selection[0].activeCell = "A2"
+
+
+        #with pd.ExcelWriter(full_file_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+        #    df.to_excel(writer, sheet_name="NewSheet", index=False)
+
+
+
+
     @abstractmethod
     def report_logic(self, *args )  :  #-> List[Tuple[Any, ...]]:
         pass
 
-    def run_sql_report(self, sql: str, params: list = None, limit: int = 10):
+    def run_sql_reportInCmdWindow(self, sql: str, params: list = None, limit: int = 10):
         """
         Execute a SQL query, retrieve results, and display them in a tabulated format.
         
@@ -60,6 +125,46 @@ class BaseReport:
 
         except Exception as e:
             print(f"Error running report: {e}")
+
+
+
+
+    def run_sql_reportxl(self, sql: str, params: list = None, filename: str = "SQL_Report.xlsx"):
+        """
+        Execute a SQL query, retrieve results, and export them to an Excel file.
+
+        :param sql: SQL query string with optional placeholders.
+        :param params: List of parameters for the SQL query.
+        :param filename: Name of the Excel file to save.
+        """
+        #try:
+        result_set = self.db.query(sql, params or [], as_dict=True)
+        if not result_set:
+            print("No data returned.")
+            return
+
+        # Convert result set to DataFrame
+        df = pd.DataFrame(result_set)
+
+        # Write to Excel
+        with pd.ExcelWriter(filename, engine="openpyxl") as writer:
+            df.to_excel(writer, index=False, sheet_name="Query Results")
+
+            # Auto-adjust column widths
+            worksheet = writer.sheets["Query Results"]
+            for col_idx, col in enumerate(df.columns, 1):
+                max_length = max(df[col].astype(str).map(len).max(), len(col)) + 2
+                worksheet.column_dimensions[chr(64 + col_idx)].width = max_length
+
+        print(f"✅ Report saved as '{filename}'")
+
+        # Open the file automatically (like OLE Automation)
+        import os
+        os.system(f'start excel "{filename}"')
+
+        #except Exception as e:
+        #    print(f"❌ Error running report: {e}")
+
 
 
     """ Notes on future nice reports
@@ -180,4 +285,33 @@ A heatmap where darker areas indicate high instability.
 Overlay MAE trend to correlate instability with loss improvem
     
     
-    """
+    
+
+import win32com.client
+
+def close_excel(file_path):
+    try:
+        # Connect to Excel
+        excel = win32com.client.Dispatch("Excel.Application")
+        
+        # Loop through all open workbooks
+        for wb in excel.Workbooks:
+            if wb.FullName.lower() == file_path.lower():
+                wb.Close(SaveChanges=False)  # ✅ Force close without save prompt
+                print(f"Closed: {file_path}")
+                break  # Stop after closing the right file
+
+        # Quit Excel if no more workbooks are open
+        if excel.Workbooks.Count == 0:
+            excel.Quit()
+            print("Excel closed successfully.")
+
+    except Exception as e:
+        print(f"Error closing Excel: {e}")
+
+# 🔹 Example Usage
+file_path = r"C:\SynologyDrive\Development\PycharmProjects\neural_network_arena\src\reports\_XL_Template.xlsx"
+close_excel(file_path)
+
+
+"""
