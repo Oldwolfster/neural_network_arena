@@ -1,9 +1,10 @@
 import pygame
 from typing import List
 from src.neuroForge import mgr
+from src.neuroForge.DisplayModel__ConnectionForward import DisplayModel__ConnectionForward
 
 from src.neuroForge.DisplayModel__Neuron import DisplayModel__Neuron
-from src.neuroForge.DisplayModel__Connection import DisplayModel__Connection
+
 from src.neuroForge.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
@@ -28,7 +29,9 @@ class DisplayModel(EZSurface):
         self.model_id = model_info.model_id
         self.architecture = model_info.full_architecture
         self.create_neurons()
+        self.create_arrows(True) #false indicates back prop
 
+    def create_arrows(self, forward: bool):
         # Create connections
         self.connections = []
         for layer_index in range(1, len(self.architecture) - 1):  # Start from the first hidden layer
@@ -36,15 +39,18 @@ class DisplayModel(EZSurface):
             next_layer = self.neurons[layer_index]
             for from_neuron in current_layer:
                 for to_neuron in next_layer:
-                    connection = DisplayModel__Connection(from_neuron=from_neuron, to_neuron=to_neuron)
+                    if forward: #forward prop arrows
+                        connection = DisplayModel__ConnectionForward(from_neuron=from_neuron, to_neuron=to_neuron)
+                    else:   #back prop (reversed)
+                        connection = DisplayModel__ConnectionForward(from_neuron=to_neuron, to_neuron=from_neuron)
                     self.connections.append(connection)
 
         # *** Add Input-to-First-Hidden-Layer Connections ***
-        self.add_input_connections()
-        self.add_output_connections()
+        self.add_input_connections(forward)
+        self.add_output_connections(forward)
         return self.neurons
 
-    def add_input_connections(self):
+    def add_input_connections(self, forward: bool):
         """
         Creates connections from a single fixed point on the left edge of the model area
         to the first hidden layer neurons.
@@ -62,14 +68,14 @@ class DisplayModel(EZSurface):
         #print(f"origin_point = {origin_point}")
         for neuron in first_hidden_layer:
             # Connect from the single origin point to each neuron in the first hidden layer
-            self.connections.append(DisplayModel__Connection(from_neuron=origin_point, to_neuron=neuron))
+            self.connections.append(DisplayModel__ConnectionForward(from_neuron=origin_point, to_neuron=neuron))
 
-    def add_output_connections(self): # Creates connections from last output neuron to prediction box
+    def add_output_connections(self, forward: bool): # Creates connections from last output neuron to prediction box
         destination_x = self.width
         destination_y = 20
         dest_point = (self.width,144)
         output_neuron = self.neurons[-1][0]
-        self.connections.append(DisplayModel__Connection(from_neuron=self.neurons[-1][0], to_neuron=dest_point))
+        self.connections.append(DisplayModel__ConnectionForward(from_neuron=self.neurons[-1][0], to_neuron=dest_point))
 
     def render(self):
         """

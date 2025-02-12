@@ -1,14 +1,19 @@
 import pygame
 from src.engine.RamDB import RamDB
 import json
+
+from src.engine.Utils import draw_rect_with_border, draw_text_with_background
+
+
 class DisplayModel__NeuronWeights:
     def __init__(self, neuron, model_id):
         #Adjustable settings
+        self.font_size_weight = 24
         self.padding_top = 3
         self.padding_bottom = 3
         self.gap_between_weight_bars = 1
         self.gap_between_weights = 2
-        self.right_margin = 20  # New: Space reserved for activation visualization
+        self.right_margin = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.BANNER_HEIGHT = 29  # 4 pixels above + 26 pixels total height
 
         self.neuron = neuron  # ✅ Store reference to parent neuron
@@ -49,47 +54,39 @@ class DisplayModel__NeuronWeights:
         #self.debug_weight_changes()
         self.draw_weight_bars(screen)
         self.draw_activation_bar(screen)
+        self.draw_activation_value(screen)
 
 
-    def draw_weight_label(self, screen, text, rect, bar_color):
+
+    def draw_activation_value(self, screen):
         """
-        Draws a weight label with a background for readability.
+        Draws the activation value inside the neuron, centered on the right wall, with a background for visibility.
 
-        - If the bar is wide enough, places the label inside the bar.
-        - If the bar is too small, places the label outside (to the right).
-        - Uses a black semi-transparent background to improve contrast.
-
-        Parameters:
-            screen     (pygame.Surface): The surface to draw on.
-            text       (str): The weight value as a formatted string.
-            rect       (pygame.Rect): The bar rectangle (determines placement).
-            bar_color  (tuple): The RGB color of the bar (for future use, e.g., dynamic contrast).
+        :param screen: The pygame screen surface.
         """
+        activation_value = round(self.neuron.activation_value, 2)  # ✅ Rounded to 2 decimal places
+        text = f"{activation_value}"  # ✅ Convert to string
 
-        # Define the minimum width required to place the text inside the bar
-        min_label_width = 30
-
-        # Create font and render text
-        font = pygame.font.Font(None, 18)  # Small font for weight labels
-        text_surface = font.render(text, True, (255, 255, 255))  # White text
+        # Define text properties
+        font = pygame.font.Font(None, 24)  # ✅ Font size
+        text_surface = font.render(text, True, (255, 255, 255))  # ✅ White text
         text_rect = text_surface.get_rect()
+        text_rect.width/2
 
-        # Determine label placement: inside if enough space, otherwise outside
-        if rect.width >= min_label_width:
-            text_rect.center = rect.center  # Center text inside the bar
-        else:
-            text_rect.midleft = (rect.right + 5, rect.centery)  # Place outside to the right
+        # Calculate position (Middle of right neuron wall)
+        text_rect.midleft = (self.neuron.location_left + self.neuron.location_width-text_rect.width,
+                             self.neuron.location_top + self.neuron.location_height // 2)
 
-        # Draw a semi-transparent background behind the text for readability
-        bg_rect = text_rect.inflate(4, 2)  # Slight padding
-        pygame.draw.rect(screen, (0, 0, 0, 150), bg_rect)  # Dark transparent background
+        # Create background rectangle
+        padding = 6  # ✅ Space around text
+        bg_rect = pygame.Rect(text_rect.x - padding // 2, text_rect.y - padding // 2,
+                              text_rect.width + padding, text_rect.height + padding)
 
-        # Render text onto screen
+        # Draw background (black with slight transparency)
+        pygame.draw.rect(screen, (0, 0, 0), bg_rect)  # ✅ Solid black box
+
+        # Draw final white text
         screen.blit(text_surface, text_rect)
-
-
-
-
 
     def draw_activation_bar(self, screen):
         """
@@ -120,7 +117,8 @@ class DisplayModel__NeuronWeights:
         bar_color = (0, 255, 0) if self.neuron.activation_value >= 0 else (255, 0, 0)  # Green for positive, Red for negative
 
         # 🔹 Draw the activation bar
-        pygame.draw.rect(screen, bar_color, bar_rect)
+        #pygame.draw.rect(screen, bar_color, bar_rect)
+        draw_rect_with_border(screen, bar_rect, bar_color, 4)
     def get_max_activation_for_run(self, db: RamDB, model_id: str):
         """
         Retrieves the highest absolute activation value across all epochs and iterations for the given model.
@@ -195,8 +193,9 @@ class DisplayModel__NeuronWeights:
 
             # Call function to draw the two bars for this weight
             self.draw_two_bars_for_one_weight(
-                screen, start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_weight_bars
+                screen, start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_weight_bars, self.neuron.weights[i],i
             )
+            self.draw_weight_index_label(screen, i, y_pos+self.bar_height-9)
 
     def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_weight_bars, gap_between_weights):
         """
@@ -228,7 +227,28 @@ class DisplayModel__NeuronWeights:
         return bar_height
 
 
-    def draw_two_bars_for_one_weight(self, screen, x, y, width_self, width_global, bar_height=8, bar_gap=2):
+    def draw_weight_index_label(self, screen, weight_index, y_pos):
+        """
+        Draws a small label with the weight index on the left wall of the neuron,
+        positioned in the middle between the two bars.
+
+        :param screen: The pygame screen to draw on.
+        :param weight_index: The index of the weight.
+        :param y_pos: The y-position of the weight bars.
+        """
+
+        # Compute label position
+        label_x = self.neuron.location_left  + 5 # Slightly left of the neuron
+        label_y = y_pos   # Middle of the two bars
+
+        # Format the label text
+        label_text = f"weight #{weight_index}"
+
+        # Draw the label
+        draw_text_with_background(screen,      label_text, label_x, label_y, self.font_size_weight)
+
+
+    def draw_two_bars_for_one_weight(self, screen, x, y, width_self, width_global, bar_height, bar_gap, weight_value, weight_id):
         """
         Draws two horizontal bars for a single weight visualization with labels.
 
@@ -242,27 +262,54 @@ class DisplayModel__NeuronWeights:
         self_rect = pygame.Rect(x, y + bar_height + bar_gap, width_self, bar_height)  # Green bar
 
         # Draw bars
-        pygame.draw.rect(screen, (255, 165, 0), global_rect)  # Orange (global)
-        pygame.draw.rect(screen, (0, 128, 0), self_rect)  # Green (self)
+        draw_rect_with_border(screen,global_rect, (255, 165, 0),4)# Orange (global)
+        #pygame.draw.rect(screen, (255, 165, 0), global_rect)  # Orange (global)
+        #pygame.draw.rect(screen, (0, 128, 0), self_rect)  # Green (self)
+        draw_rect_with_border(screen, self_rect, (0, 128, 0),4)
 
-        # Retrieve actual weight value for labeling
-        weight_index = len(self.neuron.weights) - 1  # Assumes sequential drawing
-        weight_value = self.neuron.weights[weight_index]
-        label_text = f"{weight_value:.2f}"  # Format label text
+        # Format label text (now passed explicitly)
+        label_text_global = f"{weight_value:.2f}"
+        label_text_local = f"{weight_value:.2f}"
 
         # Call label function with the actual rectangle positions
-        self.draw_weight_label(screen, label_text, global_rect, (255, 165, 0))  # Label for global bar
-        self.draw_weight_label(screen, label_text, self_rect, (0, 128, 0))  # Label for self bar
+        self.draw_weight_label(screen, label_text_global, global_rect, (255, 165, 0))  # Label for global bar
+        self.draw_weight_label(screen, label_text_local, self_rect, (0, 128, 0))  # Label for self bar
 
+    def draw_weight_label(self, screen, text, rect, bar_color):
+        """
+        Draws a weight label with a background for readability.
 
-        # Get weight index and actual values
-        weight_index = len(self.neuron.weights) - 1  # Assumes sequential drawing
-        weight_value = self.neuron.weights[weight_index]
-        label_text = f"{weight_value:.2f}"  # Format label text
+        - If the bar is wide enough, places the label inside the bar.
+        - If the bar is too small, places the label outside (to the right).
+        - Uses a black semi-transparent background to improve contrast.
 
-        # Draw labels using the new function
-        self.draw_weight_label(screen, label_text, global_rect, (255, 165, 0))  # Label for global bar
-        self.draw_weight_label(screen, label_text, self_rect, (0, 128, 0))  # Label for self bar
+        Parameters:
+            screen     (pygame.Surface): The surface to draw on.
+            text       (str): The weight value as a formatted string.
+            rect       (pygame.Rect): The bar rectangle (determines placement).
+            bar_color  (tuple): The RGB color of the bar (for future use, e.g., dynamic contrast).
+        """
+
+        # Define the minimum width required to place the text inside the bar
+        min_label_width = 30
+
+        # Create font and render text
+        font = pygame.font.Font(None, self.font_size_weight)  # Small font for weight labels
+        text_surface = font.render(text, True, (255, 255, 255))  # White text
+        text_rect = text_surface.get_rect()
+
+        # Determine label placement: inside if enough space, otherwise outside
+        if rect.width >= min_label_width:
+            text_rect.center = rect.center  # Center text inside the bar
+        else:
+            text_rect.midleft = (rect.right + 5, rect.centery)  # Place outside to the right
+
+        # Draw a semi-transparent background behind the text for readability
+        bg_rect = text_rect.inflate(4, 2)  # Slight padding
+        pygame.draw.rect(screen, (0, 0, 0, 150), bg_rect)  # Dark transparent background
+
+        # Render text onto screen
+        screen.blit(text_surface, text_rect)
 
     def calculate_weight_bar_lengths(self):
         """

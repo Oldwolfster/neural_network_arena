@@ -1,4 +1,4 @@
-from src.engine.Metrics import GladiatorOutput
+
 from src.engine.BaseGladiator import Gladiator
 
 
@@ -11,7 +11,7 @@ class Hayabusa2_2inputs(Gladiator):
         super().__init__(*args)
         self.bias = .5
 
-    def training_iteration(self, training_data) -> GladiatorOutput:
+    def training_iteration(self, training_data) :
         # Assign sample's inputs and target
         target = training_data[-1]
         inp0 = training_data[0]
