@@ -22,6 +22,8 @@ class DisplayModel__NeuronWeights:
         self.max_weight = float('-inf')
         self.global_max = 0
         self.max_per_weight = []
+        self.my_fcking_labels=[]
+        self.need_label_coord = True
         self.num_weights = 0
         self.neuron_height = 0
         self.bar_height  = 0
@@ -196,6 +198,8 @@ class DisplayModel__NeuronWeights:
                 screen, start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_weight_bars, self.neuron.weights[i],i
             )
             self.draw_weight_index_label(screen, i, y_pos+self.bar_height-9)
+        if len(self.my_fcking_labels)>0:
+            self.need_label_coord= False #Only need to record on first pass.
 
     def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_weight_bars, gap_between_weights):
         """
@@ -236,6 +240,11 @@ class DisplayModel__NeuronWeights:
         :param weight_index: The index of the weight.
         :param y_pos: The y-position of the weight bars.
         """
+
+        if self.need_label_coord== True:
+            #print(f"BEFORE: my_fcking_labels{self.my_fcking_labels} adding {y_pos}")
+            self.my_fcking_labels.append(y_pos)
+            #print(f"After: my_fcking_labels{self.my_fcking_labels} adding {y_pos}")
 
         # Compute label position
         label_x = self.neuron.location_left  + 5 # Slightly left of the neuron

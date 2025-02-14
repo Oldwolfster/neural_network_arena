@@ -14,20 +14,18 @@ class DisplayPanelInput(EZForm):
     def __init__(self, screen: pygame.Surface, data_labels: List[str], width_pct: int, height_pct: int, left_pct: int, top_pct: int, bg_color=(255, 255, 255), banner_color=(0, 0, 255)):
         # Calculate absolute dimensions from percentages
         screen_width, screen_height = screen.get_size()
+        self.target_name = data_labels[-1]
 
         # Dynamically create fields for all input labels.
         # Move "Target Value" to the top by adding it first.
         fields = {}
 
-        # Add the target value field at the top.
-        fields["Target Value"] = ""
-
-        # Then add all other input fields (excluding the target label, which is assumed to be the last element)
+         # Then add all other input fields (excluding the target label, which is assumed to be the last element)
         for label in data_labels[:-1]:
             fields[label] = "0.000"  # Default value for each input
 
         # Add the target field explicitly (this one is not updated during back pass)
-        fields["Target"] = data_labels[-1]
+        fields[self.target_name] = ""
 
         # Initialize the parent class with dynamically created fields
         super().__init__(
@@ -61,7 +59,6 @@ class DisplayPanelInput(EZForm):
                 self.fields[label] = "N/A"  # Set to "N/A" if no input exists
             input_index += 1
 
-        # Update the target value explicitly (this field is now at the top)
-        self.fields["Target Value"] = smart_format(rs.get("target", ""))
-        # Debugging
-        #print(f"Updated Input Panel: {self.fields}")
+        # Update the target value explicitly (this field is now at the bottom)
+        self.fields[self.target_name] =  smart_format(rs.get("target", ""))
+        #self.fields["Target Value"] = smart_format(rs.get("target", ""))
