@@ -37,12 +37,13 @@ class DisplayModel(EZSurface):
         for layer_index in range(1, len(self.architecture) - 1):  # Start from the first hidden layer
             current_layer = self.neurons[layer_index - 1]  # Adjust to skip the input layer
             next_layer = self.neurons[layer_index]
-            for from_neuron in current_layer:
+            for weight_index,from_neuron in enumerate( current_layer):
                 for to_neuron in next_layer:
+                    #print(f"Weight index={weight_index}")
                     if forward: #forward prop arrows
-                        connection = DisplayModel__ConnectionForward(from_neuron=from_neuron, to_neuron=to_neuron)
+                        connection = DisplayModel__ConnectionForward(from_neuron=from_neuron, to_neuron=to_neuron, weight_index=weight_index)
                     else:   #back prop (reversed)
-                        connection = DisplayModel__ConnectionForward(from_neuron=to_neuron, to_neuron=from_neuron)
+                        connection = DisplayModel__ConnectionForward(from_neuron=to_neuron, to_neuron=from_neuron, weight_index=weight_index)
                     self.connections.append(connection)
 
         # *** Add Input-to-First-Hidden-Layer Connections ***

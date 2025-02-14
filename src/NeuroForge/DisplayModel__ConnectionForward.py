@@ -5,10 +5,10 @@ from src.neuroForge import mgr
 
 
 class DisplayModel__ConnectionForward:
-    def __init__(self, from_neuron, to_neuron, weight=0):
+    def __init__(self, from_neuron, to_neuron, weight_index=0):
         self.from_neuron = from_neuron  # Can be a neuron or (x, y) coordinates
         self.to_neuron = to_neuron      # Reference to DisplayNeuron
-        self.weight = 0
+        self.weight_index = weight_index
         self.color = (0, 0, 0)          # Default to black, could be dynamic
         self.thickness = 2              # Line thickness, could vary by weight
         self.arrow_size = 18            # Size of the arrowhead
@@ -43,7 +43,7 @@ class DisplayModel__ConnectionForward:
     def _get_start_point(self):
         if isinstance(self.from_neuron, tuple): # If from_neuron is a tuple, assume it's (x, y) coordinates
             self.is_really_a_weight = False
-            return self.from_neuron
+            return self.from_neuron  #fron neuron actually coordinates
         # Otherwise, assume it's a neuron object
         #Forward prop
         start_x = self.from_neuron.location_left + self.from_neuron.location_width
@@ -63,10 +63,20 @@ class DisplayModel__ConnectionForward:
         end_y = self.to_neuron.location_top + self.to_neuron.location_height // 2
         return (end_x, end_y)
 
+
+    def point_arrow_at_weight(self,original_y):
+        if isinstance(self.to_neuron, tuple): #it is coordinates not weight
+            return original_y   # return coordinates (that point to prediction
+        if  len( self.to_neuron.neuron_visualizer.my_fcking_labels)==0:
+            return  original_y
+        return self.to_neuron.neuron_visualizer.my_fcking_labels[self.weight_index]
+
     def draw_connection(self, screen):
         # Get start and end points
         start_x, start_y = self._get_start_point()
         end_x, end_y = self._get_end_point()
+        end_y=self.point_arrow_at_weight(end_y)
+        #print(f"self.w={self.weight_index}\tend_y={end_y}\tnew_y={new_y}")
 
         # Draw the main connection line
         pygame.draw.line(screen, self.color, (start_x, start_y), (end_x, end_y), self.thickness)
