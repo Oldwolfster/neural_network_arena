@@ -30,6 +30,7 @@ class DisplayManager:
         self.neurons        = None
         mgr.VCR            = VCR()
         self.last_epoch = 0 #to get loop started
+
         self.initialize_components(model_info_list, ui_manager, db)
 
     def update(self, db: RamDB, iteration: int, epoch: int, model_id: str):

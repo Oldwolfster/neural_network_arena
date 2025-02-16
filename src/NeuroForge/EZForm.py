@@ -14,6 +14,8 @@ class EZForm(EZSurface):
         self.bannerfont = pygame.font.Font(None, 36)  # Default font
         self.font = pygame.font.Font(None, 24)  # Default font
         self.spacing = 10  # Space between fields
+        self.need_label_coord = True #track if we recorded the label positions for the arrows to point from
+        self.arrow_labels_position =[]
 
     def render(self):
         """Render the form with a banner and dynamic fields."""
@@ -47,15 +49,13 @@ class EZForm(EZSurface):
             3  # Border width
             ,border_radius = 4,
         )
-
-
-
         # Adjust starting Y position for fields (below the banner)
         field_start_y = banner_height + self.spacing + 10
         total_fields = len(self.fields)
         field_spacing = (self.height - field_start_y) // (total_fields)  # Space between fields, vertically
 
         for i, (label, value) in enumerate(self.fields.items()):
+            print(f"number of items{len(self.fields.items())}")
             # Calculate positions for the label and value
             y_pos_label = field_start_y + (i * field_spacing)
             y_pos_value = y_pos_label + 25  # Value box below label
@@ -70,9 +70,14 @@ class EZForm(EZSurface):
             value_box_rect = pygame.Rect(
                 box_margin, y_pos_value - 15, self.width - (2 * box_margin), 30  # Adjusted height
             )
+            if (self.need_label_coord == True):
+                self.arrow_labels_position.append(y_pos_value)
             pygame.draw.rect(self.surface, (255, 255, 255), value_box_rect)  # White box
             pygame.draw.rect(self.surface, self.banner_color, value_box_rect, 2)  # Blue border
 
             value_surface = self.font.render(value, True, self.font_color)
             value_rect = value_surface.get_rect(center=value_box_rect.center)
             self.surface.blit(value_surface, value_rect)
+        if len(self.arrow_labels_position)>0:
+            self.need_label_coord= False #Only need to record on first pass.
+        print(self.arrow_labels_position)
