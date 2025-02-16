@@ -23,7 +23,7 @@ class DisplayModel__NeuronWeights:
         self.global_max = 0
         self.max_per_weight = []
         self.my_fcking_labels=[]
-        self.need_label_coord = True
+        self.need_label_coord = True #track if we recorded the label positions for the arrows to point from
         self.num_weights = 0
         self.neuron_height = 0
         self.bar_height  = 0

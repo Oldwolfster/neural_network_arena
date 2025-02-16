@@ -50,7 +50,7 @@ class WeightLogger(tf.keras.callbacks.Callback):
         self.weights_log = []
         self.bias_log = []
         self.loss_log = []
-
+tensorflow
     def on_epoch_end(self, epoch, logs=None):
         weights, bias = self.model.layers[0].get_weights()
         self.weights_log.append(weights[0][0])
