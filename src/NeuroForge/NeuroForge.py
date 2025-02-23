@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 from src.NeuroForge import Const
-from src.NeuroForge.DisplayManager import DisplayManager
+from src.NeuroForge.Display_Manager import DisplayManager
 from src.NeuroForge.VCR import VCR
 
 from src.UI.Menus import create_menu
@@ -10,30 +10,34 @@ from src.engine.RamDB import RamDB
 from src.ArenaSettings import HyperParameters
 from src.engine.Utils_DataClasses import ModelInfo
 from typing import List
+from src.NeuroForge.ButtonMenu import ButtonMenu
 
-def neuroForge(config: ModelConfig, model_info_list: List[ModelInfo]):
+def neuroForge(configs:  List[ModelConfig]):
     """Initialize NeuroForge and run the visualization loop."""
     pygame.init()
     Const.SCREEN = pygame.display.set_mode((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     pygame.display.set_caption("Neural Network Visualization")
 
     Const.UI_MANAGER = pygame_gui.UIManager((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
-    display_manager = DisplayManager(config, model_info_list)
+    display_manager = DisplayManager(configs)
     vcr = VCR()  # Handles event processing
-    menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, config.db)  # Create UI menu
+    menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
+    menu_button = ButtonMenu()
 
     clock = pygame.time.Clock()
     running = True
 
     while running:
-        print("runinng")
-        time_delta = clock.tick(60) / 1000.0  # Convert to seconds
+        #print("runinng")
+        time_delta = clock.tick(120) / 1000.0  # Convert to seconds
+        #print(clock.get_fps())  # See FPS impact capped at 60
         events = pygame.event.get()
 
         # Process user inputs
         for event in events:
             running = vcr.process_event(event)
             Const.UI_MANAGER.process_events(event)
+            menu_button.handle_event(event)
 
         # Update display components
         display_manager.update()
@@ -43,6 +47,7 @@ def neuroForge(config: ModelConfig, model_info_list: List[ModelInfo]):
         Const.SCREEN.fill(Const.COLOR_WHITE)
         display_manager.render()
         Const.UI_MANAGER.draw_ui(Const.SCREEN)
+        menu_button.draw()
 
         if Const.MENU_ACTIVE:
             menu.update(events)

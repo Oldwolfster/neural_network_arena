@@ -11,19 +11,21 @@ from dataclasses import dataclass, field
 
 @dataclass
 class ModelConfig:
-    # 🔹 Hyperparameters and # 🔹 Database Connections
+    # 🔹 Shared components for all models
     hyper: HyperParameters      = field(default_factory=HyperParameters)
     db: RamDB                   =  field(default_factory=RamDB)
     training_data: TrainingData = None
 
-    # 🔹 Architecture (Using Strategy Pattern for most)
-    gladiator_name: str = ""
-    architecture: list = field(default_factory=lambda: [1])
-    initializer: type = Initializer_Xavier
-    activation_function_for_hidden: type = Tanh
+    # 🔹 Unique components
+    gladiator_name: str         = ""
+    architecture: list          = field(default_factory=lambda: [1])
+    full_architecture: list     = field(default_factory=lambda: [1])
+    initializer: type           = Initializer_Xavier
     loss_function: LossFunction = Loss_MSE  # Default to MSE  # 🔹 Loss Function
-    optimizer: str = "simplified_descent"  # Default to your method
-
+    optimizer: str              = "simplified_descent"  # Default to your method
+    activation_function_for_hidden: type = Tanh
+    seconds: float              = 0.0
+    cvg_condition: str          = ""
 
 #    def __post_init__(self):
 #        """ Initialize training_data AFTER hyper is available. """

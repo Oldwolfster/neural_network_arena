@@ -1,0 +1,85 @@
+from typing import List
+
+import pygame
+
+from src.NeuroForge import Const
+from src.NeuroForge.DisplayBanner import DisplayBanner
+from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
+from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
+from src.NeuroForge.DisplayPanelInputtemp import DisplayPanelInputtemp
+from src.engine.ModelConfig import ModelConfig
+from src.engine.Utils_DataClasses import ModelInfo
+
+
+from src.NeuroForge.Metrics import get_max_epoch, get_max_iteration, get_max_weight, get_max_error
+
+class DisplayManager:
+    def __init__(self, configs: List[ModelConfig]):
+        Const.configs       = configs  # Store all model configs
+        #Const.dm            = self
+        self.components     = []  # List for EZSurface-based components
+        self.eventors       = []  # Components that need event handling
+        self.event_runners  = []
+        self.models         = []  # List for display models
+        self.db             = configs[0].db  # Temporary shortcut
+        self.iteration_data = None
+
+        # Compute global max values across all models using Metrics module
+        Const.MAX_EPOCH     = get_max_epoch(self.db)
+        Const.MAX_ITERATION = get_max_iteration(self.db)
+        Const.MAX_WEIGHT    = get_max_weight(self.db)
+        Const.MAX_ERROR     = get_max_error(self.db)
+
+        print(f"max epochs{Const.MAX_EPOCH}")
+        # Initialize UI Components
+        self.initialize_components()
+        self.iteration_dict= self.get_iteration_dict()
+        print(self.get_model_iteration_data("NeuroForge_Template"))
+        print(self.get_model_iteration_data("HayabusaTwoWeights"))
+    def initialize_components(self):
+        """Initialize UI components like EZForm-based input panels and model displays."""
+
+        problem_type = Const.configs[0].training_data.problem_type
+        display_banner = DisplayBanner(problem_type, Const.MAX_EPOCH, Const.MAX_ITERATION)
+        self.components.append(display_banner)
+
+        # Add Input Panel
+        input_panel = DisplayPanelInput(width_pct=12, height_pct=42, left_pct=2, top_pct=10)
+        self.components.append(input_panel)
+
+        # Add Control Panel
+        panel = DisplayPanelCtrl( width_pct=12, height_pct=42, left_pct=2, top_pct=54)
+        self.components.append(panel)
+        self.eventors.append(panel)
+
+    def get_iteration_dict(self):
+        """Retrieve iteration data from the database and return it as a nested dictionary indexed by model_id."""
+        sql = """  
+            SELECT * FROM Iteration 
+            WHERE epoch = ? AND iteration = ?  
+        """
+        params = (Const.CUR_EPOCH, Const.CUR_ITERATION)
+        rs = self.db.query(sql, params)
+
+        self.iteration_data = {}
+        for row in rs:
+            model_id = row["model_id"]
+            self.iteration_data[model_id] = row  # Store each model's data separately
+
+    def get_model_iteration_data(self, model_id: str) -> dict:
+        """Retrieve iteration data for a specific model from the cached dictionary."""
+        return self.iteration_data.get(model_id, {})
+
+    def update(self):
+        pass
+        #for component in self.components:
+        #    component.update_me()
+
+    def render(self):
+        """Render all registered components."""
+        for component in self.components:
+            component.draw_me()
+
+    def process_events(self, event):
+        for component in self.eventors:
+            component.process_an_event(event)
