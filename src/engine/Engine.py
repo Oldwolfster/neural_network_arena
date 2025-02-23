@@ -26,21 +26,15 @@ from ..NeuroForge.NeuroForge import *
 
 
 
-def run_a_match(gladiators, training_pit):
+def run_a_match_orig(gladiators, training_pit):
 
     config = ModelConfig(
         hyper = HyperParameters(),
         db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     )
 
-    #hyper           = HyperParameters()
-    print(f"config.hyper.random_seed={config.hyper.random_seed}")
     seed            = set_seed(config.hyper.random_seed)
     config.training_data =  get_training_data(config.hyper)
-    print(f"config.hyper.random_seed={config.hyper.random_seed}")
-
-    #training_data   =  get_training_data(hyper)
-    #db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
     record_training_data(config.training_data.get_list())
 
     print()
@@ -68,6 +62,61 @@ def run_a_match(gladiators, training_pit):
     if config.hyper.run_neuroForge:
         #neuroForge(config.db, config.training_data, config.hyper, model_info_list)
         neuroForge(config, model_info_list)
+
+
+
+def run_a_match(gladiators, training_pit):
+    shared_hyper = HyperParameters()  # Create ONE instance
+    seed = set_seed( shared_hyper.random_seed)
+
+    # Shared resources
+    db = prep_RamDB()
+    training_data = get_training_data(shared_hyper)
+    record_training_data(training_data.get_list())
+
+    print()
+    model_configs = []
+    model_info_list = []
+    for gladiator in gladiators:
+        set_seed(seed)
+
+        print(f"Preparing to run model: {gladiator}")
+
+        # Create a unique config per model
+        model_config = ModelConfig(
+            hyper=shared_hyper,
+            db=db,  # Shared database
+            #training_data=training_data,  # Shared training data
+            gladiator_name=gladiator
+        )
+        model_config.training_data = training_data
+
+
+        # Instantiate and train the model
+        nn = dynamic_instantiate(gladiator, 'gladiators', model_config)
+        start_time = time.time()
+        model_config.cvg_condition, model_config.full_architecture = nn.train()
+
+        #TODO remove next 4 lines- currently needed  to create ModelInfo table.
+        end_time = time.time()  # End timing
+        run_time = end_time - start_time
+        model_details= ModelInfo(gladiator, run_time, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
+        model_info_list.append(model_details)
+        model_config.db.add(model_details)    #Writes record to ModelInfo table
+
+        model_config.seconds = time.time() - start_time
+
+        print(f"{gladiator} completed in {model_config.seconds}")
+
+        # Store ModelConfig for this model
+        model_configs.append(model_config)
+
+    # Generate reports and send all model configs to NeuroForge
+    generate_reports(db, training_data, shared_hyper, model_info_list)
+    print(f"🛠️ Using Random Seed: {seed}")
+
+    if shared_hyper.run_neuroForge:
+        neuroForge(model_configs)
 
 
 

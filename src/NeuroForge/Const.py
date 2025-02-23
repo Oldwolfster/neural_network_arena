@@ -1,3 +1,8 @@
+from typing import List
+from typing import TYPE_CHECKING
+#from src.NeuroForge import Display_Manager
+from src.engine.ModelConfig import ModelConfig
+
 # ==============================
 # UI Constants
 # ==============================
@@ -6,12 +11,24 @@ SCREEN_HEIGHT = 900
 MENU_ACTIVE   = False
 
 # ==============================
+# Global References
+# ==============================
+configs: List[ModelConfig] = []
+if TYPE_CHECKING:
+    from src.NeuroForge.Display_Manager import DisplayManager
+
+dm: "DisplayManager" = None  # Lazy reference to avoid circular imports
+
+
+# ==============================
 # Training State
 # ==============================
 MAX_EPOCH       = 0
 CUR_EPOCH       = 1
 MAX_ITERATION   = 0
 CUR_ITERATION   = 1
+MAX_WEIGHT      = 0.0
+MAX_ERROR       = 0.0
 
 # ==============================
 # Pygame Objects (Initialized Later)
@@ -31,15 +48,15 @@ COLOR_NEURONS  = True
 # ==============================
 # Colors
 # ==============================
-COLOR_WHITE            = (255, 255, 255)
-COLOR_BLACK            = (0, 0, 0)
-COLOR_SKY_BLUE         = (135, 206, 235)
-COLOR_CRIMSON          = (220, 20, 60)
-COLOR_FOREST_GREEN     = (34, 139, 34)
-COLOR_BLUE             = (50, 50, 255)
-COLOR_BANNER_COLOR     = (0, 0, 255)
-
-
+COLOR_WHITE             = (255, 255, 255)
+COLOR_BLACK             = (0, 0, 0)
+COLOR_SKY_BLUE          = (135, 206, 235)
+COLOR_CRIMSON           = (220, 20, 60)
+COLOR_FOREST_GREEN      = (34, 139, 34)
+COLOR_BLUE              = (50, 50, 255)
+COLOR_FOR_BANNER        = (0, 0, 255)
+COLOR_FOR_SHADOW        = (30, 30, 100)  # Darker blue for depth
+COLOR_FOR_BACKGROUND    = COLOR_WHITE
 """ From original
 
 #Epoch and VCR

@@ -35,6 +35,7 @@ class DisplayManager:
         mgr.VCR            = VCR()
         self.last_epoch = 0 #to get loop started
         self.get_iteration_dict(1, 1, model_info_list[0].model_id)
+
         self.get_epoch_dict(1, model_info_list[0].model_id)
         self.initialize_components(ui_manager)
 
@@ -43,7 +44,7 @@ class DisplayManager:
 
         # print(f"Model list (in displaymanager==============={ model_info_list[0].}")
 
-        # Add Banner for EPoch and Iteration
+        # Add Banner for Epoch and Iteration
         problem_type = self.model_info[0].problem_type
         banner = DisplayBanner(self.screen, problem_type, mgr.max_epoch, mgr.max_iteration, 96, 4, 2, 0)
         self.components.append(banner)

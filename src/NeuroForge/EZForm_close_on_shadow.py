@@ -18,11 +18,12 @@ class EZForm(EZSurface):
         bg_color=Const.COLOR_FOR_BACKGROUND,
         font_color=Const.COLOR_BLACK,
         shadow_offset_x=5,  # Can be negative for left-side shadows
-        #shadow_offset_y=5
+        shadow_offset_y=5
     ):
         #Store the simple stuff
         self.shadow_offset_x = shadow_offset_x
-        #self.shadow_offset_y = shadow_offset_y
+        self.shadow_offset_y = shadow_offset_y
+        print(f"shadow_offset_x={shadow_offset_x}")
         self.fields = fields
         self.banner_text = banner_text
         self.banner_color = banner_color
@@ -34,41 +35,38 @@ class EZForm(EZSurface):
 
         # Calculate dimensions and position based on percentages
         self.form_width = int(Const.SCREEN_WIDTH * (width_pct / 100))
-        self.form_height = int(Const.SCREEN_HEIGHT * (height_pct / 100))
+        form_height = int(Const.SCREEN_HEIGHT * (height_pct / 100))
         form_left = int(Const.SCREEN_WIDTH * (left_pct / 100))
+
         form_top = int(Const.SCREEN_HEIGHT * (top_pct / 100))
 
 
         # Convert shadow offsets from pixels to percentages (rounding up)
-        #shadow_x_pct = round((shadow_offset_x / Const.SCREEN_WIDTH) * 100)
-        #shadow_y_pct = round((shadow_offset_y / Const.SCREEN_HEIGHT) * 100)
+        shadow_x_pct = round((shadow_offset_x / Const.SCREEN_WIDTH) * 100)
+        shadow_y_pct = round((shadow_offset_y / Const.SCREEN_HEIGHT) * 100)
 
         # Calculate new width, height, left, and top including shadow expansion
-        #width_pct_shad = width_pct + shadow_x_pct
-        #height_pct_shad = height_pct + shadow_y_pct
-        #left_pct_shad = left_pct - shadow_x_pct if shadow_offset_x < 0 else left_pct
-        #top_pct_shad = top_pct - shadow_y_pct if shadow_offset_y < 0 else top_pct
+        width_pct_shad = width_pct + shadow_x_pct
+        height_pct_shad = height_pct + shadow_y_pct
+        left_pct_shad = left_pct - shadow_x_pct if shadow_offset_x < 0 else left_pct
+        top_pct_shad = top_pct - shadow_y_pct if shadow_offset_y < 0 else top_pct
 
         # Calculate final surface dimensions and placement
-        #width_pct_surf = max(width_pct, width_pct_shad)
-        #height_pct_surf = max(height_pct, height_pct_shad)
-        #left_pct_surf = min(left_pct, left_pct_shad)
-        #top_pct_surf = min(top_pct, top_pct_shad)
+        width_pct_surf = max(width_pct, width_pct_shad)
+        height_pct_surf = max(height_pct, height_pct_shad)
+        left_pct_surf = min(left_pct, left_pct_shad)
+        top_pct_surf = min(top_pct, top_pct_shad)
 
         # Initialize EZSurface with the total surface space
-        #super().__init__(width_pct_surf , height_pct_surf, left_pct_surf, top_pct_surf, bg_color)
-        super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color, False,
-                         shadow_offset_x, shadow_offset_x,0,0)
-
+        super().__init__(width_pct_surf , height_pct_surf, left_pct_surf, top_pct_surf, bg_color)
 
         # Store main and shadow rectangles for rendering
         #self.form_rect = pygame.Rect(0, 0, self.width, self.height) #these are pulling from EZSurface
         #self.form_rect = pygame.Rect(form_left, form_top, form_width, form_height)
-        self.form_rect = pygame.Rect(0, 0, self.form_width, self.form_height)
-        #self.shadow_rect = pygame.Rect(abs(shadow_offset_x), abs(shadow_offset_y), self.width, self.height)
-        self.shadow_rect = pygame.Rect(shadow_offset_x, shadow_offset_x, self.form_width, self.form_height)
+        self.form_rect = pygame.Rect(0, 0, self.form_width, form_height)
+        self.shadow_rect = pygame.Rect(abs(shadow_offset_x), abs(shadow_offset_y), self.width, self.height)
         #self.surface_rect = pygame.Rect(0, 0, self.width, self.height)  # Surface dimensions
-        #self.surface_rect = pygame.Rect(left_pct_surf, top_pct_surf,width_pct_surf,height_pct_surf)
+        self.surface_rect = pygame.Rect(left_pct_surf, top_pct_surf,width_pct_surf,height_pct_surf)
 
         #Calculate Banner Rect
         banner_surface = self.banner_font.render(self.banner_text, True, Const.COLOR_WHITE)
@@ -76,13 +74,12 @@ class EZForm(EZSurface):
         self.banner_text_rect = banner_surface.get_rect(center=(self.width // 2, self.banner_height // 2))
         self.banner_rect = pygame.Rect(0, 0, self.form_width, self.banner_height)
 
-        #print("New FORM!!!!")
-        #print(f"shadow_offset_x={shadow_offset_x}\tleft_pct={left_pct}\tleft_pct_shad={left_pct_shad} ")
-        #print(f"width_pct_surf={width_pct_surf}\theight_pct_surf={height_pct_surf}\tleft_pct_surf={left_pct_surf}\ttop_pct_surf={top_pct_surf}")
-        #print(f"self.form_rect={self.form_rect}")
-        #print(f"self.shadow_rect={self.shadow_rect}")
-        #print(f"shadow_offset_x={shadow_offset_x}")
-        #print(f"self.surface_rect={self.surface_rect}")
+        print("New FORM!!!!")
+        print(f"shadow_offset_x={shadow_offset_x}\tleft_pct={left_pct}\tleft_pct_shad={left_pct_shad} ")
+        print(f"width_pct_surf={width_pct_surf}\theight_pct_surf={height_pct_surf}\tleft_pct_surf={left_pct_surf}\ttop_pct_surf={top_pct_surf}")
+        print(f"self.form_rect={self.form_rect}")
+        print(f"self.shadow_rect={self.shadow_rect}")
+        print(f"self.surface_rect={self.surface_rect}")
 
 
 
@@ -102,11 +99,10 @@ class EZForm(EZSurface):
             self.surface,
             self.shadow_color,
             self.shadow_rect,
-            border_radius= self.shadow_offset_x* 1
-            #border_top_left_radius=20,
-            #border_top_right_radius=20,
-            #border_bottom_left_radius=20,
-            #border_bottom_right_radius=23
+            border_top_left_radius=20,
+            border_top_right_radius=20,
+            border_bottom_left_radius=20,
+            border_bottom_right_radius=23
         )
 
         # 2️⃣ Fill Background AFTER Shadow (only inside form area)

@@ -3,20 +3,23 @@ import pygame
 from src.NeuroForge import Const
 
 class EZSurface(ABC):
-    def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0, bg_color=Const.COLOR_WHITE, transparent=False):
+    #def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0, bg_color=Const.COLOR_WHITE, transparent=False):
+    def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0,bg_color=Const.COLOR_WHITE,transparent=False,
+            pixel_adjust_width = 0,pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
+
         """Creates a resizable and positionable surface within the main screen."""
-        self.screen_width = Const.SCREEN_WIDTH
-        self.screen_height = Const.SCREEN_HEIGHT
+        self.screen_width = Const.SCREEN_WIDTH  #TODO remove these
+        self.screen_height = Const.SCREEN_HEIGHT #TODO remove these
 
         self.left_pct = left_pct
         self.width_pct = width_pct
         self.height_pct = height_pct
 
         # Calculate dimensions and position based on percentages
-        self.width = int(self.screen_width * (width_pct / 100))
-        self.height = int(self.screen_height * (height_pct / 100))
-        self.left = int(self.screen_width * (left_pct / 100))
-        self.top = int(self.screen_height * (top_pct / 100))
+        self.width = int(self.screen_width * (width_pct / 100)) + pixel_adjust_width  #remove the plus 50
+        self.height = int(self.screen_height * (height_pct / 100)) + pixel_adjust_height
+        self.left = int(self.screen_width * (left_pct / 100)) + pixel_adjust_left
+        self.top = int(self.screen_height * (top_pct / 100)) + pixel_adjust_top
 
         # Create the surface with optional transparency
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA if transparent else 0)
