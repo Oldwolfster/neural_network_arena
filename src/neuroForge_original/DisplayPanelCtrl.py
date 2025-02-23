@@ -4,8 +4,8 @@ import pygame
 import pygame_gui
 from pygame_gui.elements import UIButton, UITextEntryLine, UIDropDownMenu
 
-from src.neuroForge import mgr
-from src.neuroForge.EZForm import EZForm
+from src.neuroForge_original import mgr
+from src.neuroForge_original.EZForm import EZForm
 
 
 class DisplayPanelCtrl(EZForm):

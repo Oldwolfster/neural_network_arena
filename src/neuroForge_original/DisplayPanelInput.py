@@ -3,10 +3,10 @@ from typing import List
 
 import pygame
 
-from src.neuroForge.EZSurface import EZSurface
+from src.neuroForge_original.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
-from src.neuroForge.EZForm import EZForm
+from src.neuroForge_original.EZForm import EZForm
 from src.engine.Utils import smart_format
 
 

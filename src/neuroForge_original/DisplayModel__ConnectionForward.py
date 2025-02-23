@@ -1,7 +1,7 @@
 import math
 import pygame
 
-from src.neuroForge import mgr
+from src.neuroForge_original import mgr
 
 
 class DisplayModel__ConnectionForward:

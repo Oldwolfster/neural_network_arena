@@ -1,5 +1,5 @@
 import time
-from src.neuroForge import mgr
+from src.neuroForge_original import mgr
 import tkinter.messagebox as mb
 
 class VCR:

@@ -21,7 +21,7 @@ from src.engine.Reporting import prep_RamDB
 from .Utils_DataClasses import ModelInfo
 from .WeightInitializer import *
 from ..Legos.LossFunctions import *
-from ..neuroForge.NeuroForge import *
+from ..NeuroForge.NeuroForge import *
 
 
 
@@ -64,7 +64,7 @@ def run_a_match(gladiators, training_pit):
     generate_reports(config.db, config.training_data, config.hyper, model_info_list)
     print(f"🛠️ Using Random Seed: {seed}")
     if config.hyper.run_neuroForge:
-        neuroForge(config.db,config.training_data,config.hyper, model_info_list)
+        neuroForge(config.db, config.training_data, config.hyper, model_info_list)
 
 
 

@@ -2,8 +2,8 @@ import json
 from typing import List
 import pygame
 
-from src.neuroForge.DisplayModel import DisplayModel
-from src.neuroForge.EZSurface import EZSurface
+from src.neuroForge_original.DisplayModel import DisplayModel
+from src.neuroForge_original.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
 class DisplayBanner(EZSurface):

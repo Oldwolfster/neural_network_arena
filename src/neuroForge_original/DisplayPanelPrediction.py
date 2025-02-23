@@ -1,7 +1,7 @@
 import pygame
-from src.neuroForge.EZForm import EZForm
+from src.neuroForge_original.EZForm import EZForm
 from src.engine.Utils import smart_format
-from src.neuroForge import mgr
+from src.neuroForge_original import mgr
 class DisplayPanelPrediction(EZForm):
     def __init__(self, screen: pygame.Surface,problem_type: str, width_pct, height_pct, left_pct, top_pct):
             self.problem_type = problem_type
