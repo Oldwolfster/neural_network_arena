@@ -44,7 +44,8 @@ def run_a_match(gladiators, training_pit):
     record_training_data(config.training_data.get_list())
 
     print()
-    model_info_list = [] # Initialize an empty list to store ModelInfo objects
+    model_info_list = [] # Initialize an empty list to store ModelInfo objects #TODO remove me
+    model_configs = []
     for gladiator in gladiators:    # Loop through the NNs competing.
         set_seed(seed)      #reset for each gladiator
         print(f"Preparing to run model:{gladiator}")
@@ -57,14 +58,16 @@ def run_a_match(gladiators, training_pit):
         end_time = time.time()  # End timing
         run_time = end_time - start_time
         model_details= ModelInfo(gladiator, run_time, cvg_condition, full_architecture, config.training_data.problem_type )
-        config.db.add(model_details)
+        config.db.add(model_details)    #TODO this looks wrong
         model_info_list.append(model_details)
+
         print (f"{gladiator} completed in {run_time}")
 
     generate_reports(config.db, config.training_data, config.hyper, model_info_list)
     print(f"🛠️ Using Random Seed: {seed}")
     if config.hyper.run_neuroForge:
-        neuroForge(config.db, config.training_data, config.hyper, model_info_list)
+        #neuroForge(config.db, config.training_data, config.hyper, model_info_list)
+        neuroForge(config, model_info_list)
 
 
 

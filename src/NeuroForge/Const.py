@@ -16,10 +16,11 @@ CUR_ITERATION   = 1
 # ==============================
 # Pygame Objects (Initialized Later)
 # ==============================
-SCREEN         = None
-TOOL_TIP       = None
-FONT           = None
-DISPLAY_MODELS = []
+SCREEN          = None
+UI_MANAGER      = None
+TOOL_TIP        = None
+FONT            = None
+DISPLAY_MODELS  = []
 
 # ==============================
 # UI Customization
