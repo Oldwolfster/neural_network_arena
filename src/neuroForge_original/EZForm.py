@@ -1,6 +1,6 @@
 from typing import Dict, Any
 import pygame
-from src.neuroForge.EZSurface import EZSurface
+from src.neuroForge_original.EZSurface import EZSurface
 
 
 class EZForm(EZSurface):

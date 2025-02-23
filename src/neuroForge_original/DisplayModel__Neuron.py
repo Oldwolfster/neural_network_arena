@@ -4,13 +4,13 @@ from typing import List
 import pygame
 
 from src.engine.ActivationFunction import get_activation_derivative_formula
-from src.neuroForge import mgr
-from src.neuroForge.DisplayModel__NeuronText import DisplayModel__NeuronText
-from src.neuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
-from src.neuroForge.EZPrint import EZPrint
+from src.neuroForge_original import mgr
+from src.neuroForge_original.DisplayModel__NeuronText import DisplayModel__NeuronText
+from src.neuroForge_original.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
+from src.neuroForge_original.EZPrint import EZPrint
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format, draw_gradient_rect
-from src.neuroForge.mgr import * # Imports everything into the local namespace
+from src.neuroForge_original.mgr import * # Imports everything into the local namespace
 
 
 class DisplayModel__Neuron:

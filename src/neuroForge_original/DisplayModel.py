@@ -1,9 +1,9 @@
 import pygame
 from typing import List
-from src.neuroForge import mgr
-from src.neuroForge.DisplayModel__ConnectionForward import DisplayModel__ConnectionForward
-from src.neuroForge.DisplayModel__Neuron import DisplayModel__Neuron
-from src.neuroForge.EZSurface import EZSurface
+from src.neuroForge_original import mgr
+from src.neuroForge_original.DisplayModel__ConnectionForward import DisplayModel__ConnectionForward
+from src.neuroForge_original.DisplayModel__Neuron import DisplayModel__Neuron
+from src.neuroForge_original.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
 

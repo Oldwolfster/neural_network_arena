@@ -1,6 +1,6 @@
 import pygame
 import pygame_menu
-from src.neuroForge import mgr
+from src.neuroForge_original import mgr
 from src.engine.RamDB import RamDB
 
 # A simple callback to use for the menu items

@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 from openpyxl.reader.excel import load_workbook
 
-from src.neuroForge import mgr
+from src.neuroForge_original import mgr
 from tabulate import tabulate
 from src.reports._ReportUtils import clean_multiline_string
 import pandas as pd

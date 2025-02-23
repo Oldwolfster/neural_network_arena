@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 
-from src.neuroForge.EZSurface import EZSurface
+from src.neuroForge_original.EZSurface import EZSurface
 
 
 class DisplayUI_Reports(EZSurface): # !!!WOULD BE NICE TO GIVE QUICKER ACCESS TO REPORTS
