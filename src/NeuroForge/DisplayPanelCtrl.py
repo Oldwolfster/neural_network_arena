@@ -42,13 +42,13 @@ class DisplayPanelCtrl(EZForm):
             elif event.ui_element == self.reverse_button:
                 self.toggle_reverse()
             elif event.ui_element == self.step_forward:
-                Const.VCR.step_x_iteration(1)
+                Const.vcr.step_x_iteration(1)
             elif event.ui_element == self.step_back:
-                Const.VCR.step_x_iteration(-1)
+                Const.vcr.step_x_iteration(-1)
             elif event.ui_element == self.step_forward_big:
-                Const.VCR.step_x_epochs(100)
+                Const.vcr.step_x_epochs(100)
             elif event.ui_element == self.step_back_big:
-                Const.VCR.step_x_epochs(-100)
+                Const.vcr.step_x_epochs(-100)
 
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == self.speed_dropdown:
             self.set_playback_speed(self.speed_dropdown.selected_option)
@@ -56,7 +56,7 @@ class DisplayPanelCtrl(EZForm):
     def toggle_reverse(self):
         """Toggles the playback direction (Reverse/Forward)."""
         self.is_reversed = not self.is_reversed
-        Const.VCR.reverse()
+        Const.vcr.reverse()
         self.reverse_button.set_text("Forward" if self.is_reversed else "Reverse")
 
     def set_playback_speed(self, speed: str):
@@ -65,7 +65,7 @@ class DisplayPanelCtrl(EZForm):
         """
         try:
             new_speed = int(speed.replace("x", ""))  # Remove 'x' and convert to int
-            Const.VCR.set_speed(new_speed)
+            Const.vcr.set_speed(new_speed)
             self.epoch_input.set_text("")  # Clear input box after processing
         except ValueError:
             pass  # Ignore invalid inputs
@@ -83,17 +83,17 @@ class DisplayPanelCtrl(EZForm):
         else:
             print(f"Jumping to epoch {epoch_text}")
             self.epoch_input.set_text("")  # Clear text box after processing
-            Const.VCR.jump_to_epoch(epoch_text)
+            Const.vcr.jump_to_epoch(epoch_text)
 
     def toggle_playback(self):
         """Toggles between play and pause modes."""
         self.is_playing = not self.is_playing
         if self.is_playing:
-            Const.VCR.play()
+            Const.vcr.play()
             self.play_button.set_text("Pause")
             self.fields["Current Mode"] = "Playing"
         else:
-            Const.VCR.pause()
+            Const.vcr.pause()
             self.play_button.set_text("Play")
             self.fields["Current Mode"] = "Paused"
 
@@ -157,9 +157,10 @@ class DisplayPanelCtrl(EZForm):
             manager=Const.UI_MANAGER
         )
 
-    def update_me(self, rs: dict, epoch_data: dict):
+    def update_me(self):
         """
         Updates the display panel UI fields dynamically.
         """
-        self.fields["Playback Speed"] = self.speed_dropdown.selected_option
+
+
         self.fields["Current Mode"] = "Playing" if self.is_playing else "Paused"

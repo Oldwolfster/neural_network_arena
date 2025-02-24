@@ -8,6 +8,16 @@ from src.engine.ModelConfig import ModelConfig
 # ==============================
 SCREEN_WIDTH  = 1200
 SCREEN_HEIGHT = 900
+
+MODEL_AREA_PERCENT_LEFT     = 0.14
+MODEL_AREA_PERCENT_TOP      = 0.05
+MODEL_AREA_PERCENT_WIDTH    = 0.72
+MODEL_AREA_PERCENT_HEIGHT   = 0.91
+MODEL_AREA_PIXELS_LEFT      = SCREEN_WIDTH * MODEL_AREA_PERCENT_LEFT
+MODEL_AREA_PIXELS_TOP       = SCREEN_HEIGHT * MODEL_AREA_PERCENT_TOP
+MODEL_AREA_PIXELS_WIDTH     = SCREEN_WIDTH * MODEL_AREA_PERCENT_WIDTH
+MODEL_AREA_PIXELS_HEIGHT    = SCREEN_HEIGHT * MODEL_AREA_PERCENT_HEIGHT
+
 MENU_ACTIVE   = False
 
 # ==============================
@@ -16,9 +26,9 @@ MENU_ACTIVE   = False
 configs: List[ModelConfig] = []
 if TYPE_CHECKING:
     from src.NeuroForge.Display_Manager import DisplayManager
-
+    from src.NeuroForge.VCR             import VCR
 dm: "DisplayManager" = None  # Lazy reference to avoid circular imports
-
+vcr: "VCR" = None
 
 # ==============================
 # Training State

@@ -54,8 +54,10 @@ def neuroForge(db: RamDB, training_data, hyper: HyperParameters, model_info_list
 
 
 def handle_events(menu_button_rect, display_manager, ui_manager):
+    print("Checking events")
     events = pygame.event.get()
     for event in events:
+        print(f"NeuroForge: event={event} ")
         ui_manager.process_events(event)  # ✅ Fix: Ensure pygame_gui gets events
         check_menu_button(event, menu_button_rect)
         display_manager.process_events(event)

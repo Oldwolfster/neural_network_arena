@@ -6,7 +6,7 @@ class DisplayBanner(EZSurface):
     def __init__(self, problem_type: str, max_epoch: int, max_iteration: int, width_pct=96, height_pct=4, left_pct=2, top_pct=0):
         """Creates a banner displaying epoch and iteration information."""
         super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color=Const.COLOR_BLUE)
-
+        self.child_name = "Top Banner"
         self.banner_text = "Loading..."
         self.max_epoch = max_epoch
         self.max_iteration = max_iteration

@@ -21,6 +21,7 @@ class EZForm(EZSurface):
         #shadow_offset_y=5
     ):
         #Store the simple stuff
+        self.child_name = self.__class__.__name__  # Store the subclass name
         self.shadow_offset_x = shadow_offset_x
         #self.shadow_offset_y = shadow_offset_y
         self.fields = fields
@@ -146,6 +147,7 @@ class EZForm(EZSurface):
             pygame.draw.rect(self.surface, Const.COLOR_WHITE, value_box_rect)
             pygame.draw.rect(self.surface, self.banner_color, value_box_rect, 2)
 
+            #print(f"Latest value to print on form {value}")
             value_surface = self.field_font.render(value, True, self.font_color)
             value_rect = value_surface.get_rect(center=value_box_rect.center)
             self.surface.blit(value_surface, value_rect)

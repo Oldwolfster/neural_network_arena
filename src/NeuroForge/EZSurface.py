@@ -3,7 +3,6 @@ import pygame
 from src.NeuroForge import Const
 
 class EZSurface(ABC):
-    #def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0, bg_color=Const.COLOR_WHITE, transparent=False):
     def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0,bg_color=Const.COLOR_WHITE,transparent=False,
             pixel_adjust_width = 0,pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
 

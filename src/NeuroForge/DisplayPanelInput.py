@@ -29,10 +29,11 @@ class DisplayPanelInput(EZForm):
             font_color=Const.COLOR_BLACK
         )
 
-    #def update_me(self, rs: dict, epoch_data: dict):
+
     def update_me(self):
         """Update input fields dynamically based on retrieved values."""
-        rs = Const.db.
+        rs = Const.dm.get_model_iteration_data()
+
         raw_inputs = rs.get("inputs", "[]")
         try:
             inputs = json.loads(raw_inputs) if isinstance(raw_inputs, str) else raw_inputs
