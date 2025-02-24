@@ -1,22 +1,16 @@
 from typing import List
-
 import pygame
-
 from src.NeuroForge import Const
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
-from src.NeuroForge.DisplayPanelInputtemp import DisplayPanelInputtemp
+from src.NeuroForge.ModelGenerator import ModelGenerator
 from src.engine.ModelConfig import ModelConfig
-from src.engine.Utils_DataClasses import ModelInfo
-
-
 from src.NeuroForge.Metrics import get_max_epoch, get_max_iteration, get_max_weight, get_max_error
 
 class DisplayManager:
     def __init__(self, configs: List[ModelConfig]):
         Const.configs       = configs  # Store all model configs
-        #Const.dm            = self
         self.components     = []  # List for EZSurface-based components
         self.eventors       = []  # Components that need event handling
         self.event_runners  = []
@@ -30,12 +24,13 @@ class DisplayManager:
         Const.MAX_WEIGHT    = get_max_weight(self.db)
         Const.MAX_ERROR     = get_max_error(self.db)
 
-        print(f"max epochs{Const.MAX_EPOCH}")
         # Initialize UI Components
+        self.get_iteration_dict()
         self.initialize_components()
-        self.iteration_dict= self.get_iteration_dict()
-        print(self.get_model_iteration_data("NeuroForge_Template"))
-        print(self.get_model_iteration_data("HayabusaTwoWeights"))
+
+        #print(self.get_model_iteration_data("NeuroForge_Template"))
+        #print(self.get_model_iteration_data("HayabusaTwoWeights"))
+
     def initialize_components(self):
         """Initialize UI components like EZForm-based input panels and model displays."""
 
@@ -52,6 +47,23 @@ class DisplayManager:
         self.components.append(panel)
         self.eventors.append(panel)
 
+        ModelGenerator.create_models()  # This will process all layout calculations #create models
+        positions = ModelGenerator.model_positions
+        print(positions)
+
+    def update(self):
+        for component in self.components:
+            component.update_me()
+
+    def render(self):
+        """Render all registered components."""
+        for component in self.components:            #print(f"Rendering: {component.child_name}")  # Print the subclass name
+            component.draw_me()
+
+    def process_events(self, event):
+        for component in self.eventors:            #print(f"Display Manager: event={event} ")
+            component.process_an_event(event)
+
     def get_iteration_dict(self):
         """Retrieve iteration data from the database and return it as a nested dictionary indexed by model_id."""
         sql = """  
@@ -66,20 +78,13 @@ class DisplayManager:
             model_id = row["model_id"]
             self.iteration_data[model_id] = row  # Store each model's data separately
 
-    def get_model_iteration_data(self, model_id: str) -> dict:
+    def get_model_iteration_data(self, model_id: str = None) -> dict:
         """Retrieve iteration data for a specific model from the cached dictionary."""
-        return self.iteration_data.get(model_id, {})
+        if model_id:
+            return self.iteration_data.get(model_id, {})
 
-    def update(self):
-        pass
-        #for component in self.components:
-        #    component.update_me()
+        # If no model_id is provided, return the first available model's data
+        for model in self.iteration_data.values():
+            return model  # Return the first entry found
+        return {}
 
-    def render(self):
-        """Render all registered components."""
-        for component in self.components:
-            component.draw_me()
-
-    def process_events(self, event):
-        for component in self.eventors:
-            component.process_an_event(event)

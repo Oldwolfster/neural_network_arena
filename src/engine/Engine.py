@@ -96,11 +96,13 @@ def run_a_match(gladiators, training_pit):
         nn = dynamic_instantiate(gladiator, 'gladiators', model_config)
         start_time = time.time()
         model_config.cvg_condition, model_config.full_architecture = nn.train()
+        model_config.architecture = model_config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
 
         #TODO remove next 4 lines- currently needed  to create ModelInfo table.
         end_time = time.time()  # End timing
         run_time = end_time - start_time
         model_details= ModelInfo(gladiator, run_time, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
+
         model_info_list.append(model_details)
         model_config.db.add(model_details)    #Writes record to ModelInfo table
 
