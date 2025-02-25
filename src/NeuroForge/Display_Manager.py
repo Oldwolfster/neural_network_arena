@@ -51,7 +51,7 @@ class DisplayManager:
 
         self.components.extend(ModelGenerator.create_models())  # This will process all layout calculations #create models
         positions = ModelGenerator.model_positions   #
-        print(positions)
+        #print(positions)
 
     def update(self):
         for component in self.components:
