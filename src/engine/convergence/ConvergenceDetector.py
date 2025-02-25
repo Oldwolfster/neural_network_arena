@@ -33,6 +33,9 @@ class ConvergenceDetector:
                 self.create_signals()
             return self._converge_detector
     """
+
+    #TODO VERY INTERESING APPROACH.  Add as signal Normalized Convergence Rate Convergence_Rate = (previous_stability - current_stability) / (1 - current_stability)
+    #TODO Oscillation detection Oscillation_Index = variance_of_sign_changes_in_recent_updates / variance_of_magnitude_changes
     def create_signals(self):
         return [
             #Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.metrics),

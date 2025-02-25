@@ -97,6 +97,7 @@ def run_a_match(gladiators, training_pit):
         start_time = time.time()
         model_config.cvg_condition, model_config.full_architecture = nn.train()
         model_config.architecture = model_config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
+        print(f"Gladiator:{gladiator}  model_config.full_architecture[1:]={model_config.full_architecture}\t model_config.architecture={model_config.architecture}")
 
         #TODO remove next 4 lines- currently needed  to create ModelInfo table.
         end_time = time.time()  # End timing
