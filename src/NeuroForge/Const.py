@@ -4,12 +4,25 @@ from typing import TYPE_CHECKING
 from src.engine.ModelConfig import ModelConfig
 
 # ==============================
+# Global References
+# ==============================
+configs: List[ModelConfig] = []
+if TYPE_CHECKING:
+    from src.NeuroForge.Display_Manager import DisplayManager
+dm: "DisplayManager" = None  # Lazy reference to avoid circular imports
+
+if TYPE_CHECKING:
+    from src.NeuroForge.VCR             import VCR
+vcr: "VCR" = None
+
+
+# ==============================
 # UI Constants
 # ==============================
 SCREEN_WIDTH  = 1200
 SCREEN_HEIGHT = 900
 
-MODEL_AREA_PERCENT_LEFT     = 0.14
+MODEL_AREA_PERCENT_LEFT     = 0.15
 MODEL_AREA_PERCENT_TOP      = 0.05
 MODEL_AREA_PERCENT_WIDTH    = 0.72
 MODEL_AREA_PERCENT_HEIGHT   = 0.91
@@ -19,16 +32,6 @@ MODEL_AREA_PIXELS_WIDTH     = SCREEN_WIDTH * MODEL_AREA_PERCENT_WIDTH
 MODEL_AREA_PIXELS_HEIGHT    = SCREEN_HEIGHT * MODEL_AREA_PERCENT_HEIGHT
 
 MENU_ACTIVE   = False
-
-# ==============================
-# Global References
-# ==============================
-configs: List[ModelConfig] = []
-if TYPE_CHECKING:
-    from src.NeuroForge.Display_Manager import DisplayManager
-    from src.NeuroForge.VCR             import VCR
-dm: "DisplayManager" = None  # Lazy reference to avoid circular imports
-vcr: "VCR" = None
 
 # ==============================
 # Training State
@@ -53,7 +56,7 @@ DISPLAY_MODELS  = []
 # UI Customization
 # ==============================
 JUMP_TO_EPOCH  = 0
-COLOR_NEURONS  = True
+#COLOR_NEURONS  = True
 
 # ==============================
 # Colors
@@ -64,9 +67,15 @@ COLOR_SKY_BLUE          = (135, 206, 235)
 COLOR_CRIMSON           = (220, 20, 60)
 COLOR_FOREST_GREEN      = (34, 139, 34)
 COLOR_BLUE              = (50, 50, 255)
+COLOR_BLUE_PURE         = (0, 0, 255)
+COLOR_BLUE_MIDNIGHT     = (25, 25, 112)
+COLOR_BLUE_STEEL        = (70, 130, 180)
 COLOR_FOR_BANNER        = (0, 0, 255)
 COLOR_FOR_SHADOW        = (30, 30, 100)  # Darker blue for depth
 COLOR_FOR_BACKGROUND    = COLOR_WHITE
+COLOR_FOR_BANNER_START  = COLOR_BLUE_MIDNIGHT
+COLOR_FOR_BANNER_END    = COLOR_BLUE_STEEL
+COLOR_FOR_NEURON_BODY   = COLOR_BLUE_PURE
 """ From original
 
 #Epoch and VCR

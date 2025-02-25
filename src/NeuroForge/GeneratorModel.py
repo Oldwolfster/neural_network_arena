@@ -8,17 +8,21 @@ class ModelGenerator:
     model_positions = {}
     model_count     = 0
     models          = []
+    display_models  = []
     @staticmethod
     def create_models():
         ModelGenerator.divide_real_estate()
         ModelGenerator.instantiate_DisplayModels()
+        return ModelGenerator.display_models
 
     @staticmethod
     def instantiate_DisplayModels():
         """Create DisplayModel instances for each model."""
         ModelGenerator.display_models = []
-        for model_id, architecture in ModelGenerator.model_shapes.items():
-            display_model = DisplayModel(model_id, architecture)
+
+        for config in Const.configs:  # Loop through stored ModelConfig objects
+            model_position = ModelGenerator.model_positions[config.gladiator_name]  # Fetch position
+            display_model = DisplayModel(config, model_position)  # Pass both config & position
             display_model.initialize_with_model_info()
             ModelGenerator.display_models.append(display_model)
 
@@ -34,7 +38,7 @@ class ModelGenerator:
             LayoutSelector_2_or_3.determine_layout()
         else:
             print(f"🚨 Unsupported model count: {ModelGenerator.model_count}")  # Placeholder for future expansion
-        print(f"{ModelGenerator.model_count} Models:Calculated Positions: {ModelGenerator.model_positions}")
+        #print(f"{ModelGenerator.model_count} Models:Calculated Positions: {ModelGenerator.model_positions}")
 
     @staticmethod
     def get_model_shapes():
@@ -47,7 +51,7 @@ class ModelGenerator:
 
             ModelGenerator.model_shapes[config.gladiator_name] = (layer_count, max_neurons)
 
-        print(f"Model Shapes: {ModelGenerator.model_shapes}")
+        #print(f"Model Shapes: {ModelGenerator.model_shapes}")
 
 class LayoutSelector_single_model:
     @staticmethod
@@ -64,7 +68,7 @@ class LayoutSelector_single_model:
             }
         }
 
-        print(f"Single Model Positioned at: {ModelGenerator.model_positions}")
+        #print(f"Single Model Positioned at: {ModelGenerator.model_positions}")
 
 class LayoutSelector_2_or_3:
     @staticmethod
@@ -92,7 +96,7 @@ class LayoutSelector_2_or_3:
 
         # Decision logic: Compare aspect ratios
         ModelGenerator.split_direction = "vertical" if model_aspect_ratio > available_aspect_ratio else "horizontal"
-        print(f"Splitting models {ModelGenerator.split_direction.upper()} based on shape & available space.")
+        #print(f"Splitting models {ModelGenerator.split_direction.upper()} based on shape & available space.")
 
     @staticmethod
     def determine_split():

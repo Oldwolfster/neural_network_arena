@@ -15,9 +15,7 @@ from src.neuroForge_original.mgr import * # Imports everything into the local na
 
 class DisplayModel__Neuron:
     input_values = []   # Class variable to store inputs
-    def __init__(self, nid:int, layer: int, position: int, output_layer: int, text_version: str, db: RamDB, model_id : str):
-        #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
-        #self.my_model #reference to DisplayModel
+    def __init__(self, nid:int, layer: int, position: int, output_layer: int, text_version: str, db: RamDB, model_id : str):       #print(f"Instantiating neuron Pnid={nid}\tlabel={label}")
         self.model_id = model_id
         self.db = db
         self.location_left=0
@@ -61,10 +59,6 @@ class DisplayModel__Neuron:
         self.mouse_x =  mouse_x-offset_x
         self.mouse_y = mouse_y - offset_y  #print(f"left={self.location_left}\twidth={self.location_left + self.location_width  }\tmouse={mouse_x}tmouse2={self.mouse_x}")
         return (self.location_left <= self.mouse_x <= self.location_left + self.location_width and self.location_top <= self.mouse_y <= self.location_top + self.location_height)
-
-
-
-
 
     @classmethod
     def retrieve_inputs(cls, db: RamDB, iteration: int, epoch: int, modelID: str):
@@ -239,8 +233,6 @@ class DisplayModel__Neuron:
             border_radius=6,
             width= 5  # Border width
         )
-
-
         self.neuron_visualizer.render( screen, self.ez_printer, body_y_start, self.weight_text,self.location_left)
 
 

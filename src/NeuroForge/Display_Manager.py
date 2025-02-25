@@ -4,11 +4,12 @@ from src.NeuroForge import Const
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
-from src.NeuroForge.ModelGenerator import ModelGenerator
+from src.NeuroForge.GeneratorModel import ModelGenerator
 from src.engine.ModelConfig import ModelConfig
 from src.NeuroForge.Metrics import get_max_epoch, get_max_iteration, get_max_weight, get_max_error
 
 class DisplayManager:
+
     def __init__(self, configs: List[ModelConfig]):
         Const.configs       = configs  # Store all model configs
         self.components     = []  # List for EZSurface-based components
@@ -17,6 +18,7 @@ class DisplayManager:
         self.models         = []  # List for display models
         self.db             = configs[0].db  # Temporary shortcut
         self.iteration_data = None
+        Const.dm = self
 
         # Compute global max values across all models using Metrics module
         Const.MAX_EPOCH     = get_max_epoch(self.db)
@@ -47,8 +49,8 @@ class DisplayManager:
         self.components.append(panel)
         self.eventors.append(panel)
 
-        ModelGenerator.create_models()  # This will process all layout calculations #create models
-        positions = ModelGenerator.model_positions
+        self.components.extend(ModelGenerator.create_models())  # This will process all layout calculations #create models
+        positions = ModelGenerator.model_positions   #
         print(positions)
 
     def update(self):

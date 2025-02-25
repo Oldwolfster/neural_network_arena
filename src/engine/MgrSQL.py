@@ -47,9 +47,11 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         #print(f"iteration_data={iteration_data}")
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
-
+        epoch_num = iteration_data.epoch
+        iteration_num = iteration_data.iteration
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):
+
             for neuron in layer:
                 if layer_index == 0:  # First hidden layer (takes raw sample inputs)
                     raw_inputs = json.loads(iteration_data.inputs)  # Parse JSON string to list
@@ -64,9 +66,9 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                     #for prev in previous_layer:
                     #    print(f"prev.nid={prev.nid}\t{prev.activation_value}")
                 # Add the neuron data to the database
-                epoch_num = iteration_data.epoch
-                iteration_num = iteration_data.iteration
+
                 self.db.add(neuron, exclude_keys={"activation"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
+        Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
                 #print("NEURON DATA ADDED")
         #if epoch_num ==2 and iteration_num ==4  :
         #    self.db.query_print("Select * from Neuron WHERE nid   = 0")

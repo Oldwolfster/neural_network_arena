@@ -15,7 +15,27 @@ from src.engine.WeightInitializer import *
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):
     summary_report_launch(db)
     print(training_data.get_list())
+    """
+    db.query_print(  # Examines weight table
+        
+SELECT 
+    W.*, 
+    --N.bias_before, 
+    --N.bias, 
+    json_extract(N.weights_before, '$[0]') AS first_weight_value_before,
+    json_extract(N.weights, '$[0]') AS first_weight_value
+FROM Neuron N
+JOIN Weights W 
+    ON N.model = W.model_id
+    AND N.epoch_n = W.epoch
+    AND N.iteration_n = W.iteration
+    AND N.nid = W.nid
+WHERE W.weight_id = 1 and w.nid=2
+ORDER BY N.model, N.epoch_n, N.iteration_n, N.nid, W.weight_id;
 
+        """
+
+    #)
 
 def prep_RamDB():
     db=RamDB()
@@ -33,7 +53,20 @@ def prep_RamDB():
     epoch_create_view_epochSummary(db)
     db.execute("DELETE FROM Iteration")     #Delete dummy records
     db.execute("DELETE FROM Neuron")        #Delete dummy records
-
+    db.execute(
+        """
+        CREATE TABLE IF NOT EXISTS Weights (
+            model_id TEXT NOT NULL,
+            epoch INTEGER NOT NULL,
+            iteration INTEGER NOT NULL,
+            nid INTEGER NOT NULL,
+            weight_id INTEGER NOT NULL,
+            value_before REAL NOT NULL,
+            value REAL NOT NULL,            
+            PRIMARY KEY (model_id, epoch, iteration, nid, weight_id)       
+        );        
+        """
+    )
     #db.query_print("PRAGMA table_info(Iteration);")
 
     return db

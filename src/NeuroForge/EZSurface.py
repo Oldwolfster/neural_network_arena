@@ -3,6 +3,7 @@ import pygame
 from src.NeuroForge import Const
 
 class EZSurface(ABC):
+    __slots__ = ("screen_width", "screen_height", "left_pct", "width_pct", "height_pct",        "width", "height", "left", "top",        "surface", "bg_color"    )
     def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0,bg_color=Const.COLOR_WHITE,transparent=False,
             pixel_adjust_width = 0,pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
 

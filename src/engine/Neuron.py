@@ -1,6 +1,7 @@
 import numpy as np
 
 from src.engine.ActivationFunction import *
+from src.engine.RamDB import RamDB
 
 
 class Neuron:
@@ -68,6 +69,35 @@ class Neuron:
     def reset_layers(cls):
         """ Clears layers before starting a new Gladiator. """
         cls.layers = []
+
+
+    @staticmethod
+    def bulk_insert_weights(db, model_id, epoch, iteration):
+        """
+        Collects all weight values across neurons and creates a bulk insert SQL statement.
+        """
+        sql_statements = []
+
+        # Ensure model_id is wrapped in single quotes if it's a string
+        model_id_str = f"'{model_id}'" if isinstance(model_id, str) else model_id
+
+        for layer in Neuron.layers:
+            for neuron in layer:
+                for weight_id, (prev_weight, weight ) in enumerate(zip(neuron.weights_before, neuron.weights)):
+                    sql_statements.append(
+                        f"({model_id_str}, {epoch}, {iteration}, {neuron.nid}, {weight_id + 1}, {prev_weight}, {weight})"
+                    )
+
+                # Store bias separately as weight_id = 0
+                sql_statements.append(
+                    f"({model_id_str}, {epoch}, {iteration}, {neuron.nid}, 0, {neuron.bias_before}, {neuron.bias})"
+                )
+
+        if sql_statements:
+            sql_query = f"INSERT INTO Weights (model_id, epoch, iteration, nid, weight_id, value_before, value) VALUES {', '.join(sql_statements)};"
+            #print(f"Query for weights: {sql_query}")
+            db.execute(sql_query)
+
 
     """
     the below methods restrict experimenting to much.

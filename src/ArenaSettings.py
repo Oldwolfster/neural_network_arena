@@ -78,8 +78,9 @@ gladiators = [
     #'Blackbird'
     #'XOR_Hayabusa'
     'NeuroForge_Template'
+    ,'NeuroForge_Experiment'
    #'_Template_Simpletron'
-    ,'HayabusaTwoWeights'   #2 weights
+    #,'HayabusaTwoWeights'   #2 weights
     #'XORTutorial'
     #'GBS_XOR'
     #'HayabusaNormalizer'
