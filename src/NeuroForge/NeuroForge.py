@@ -10,7 +10,8 @@ from src.engine.RamDB import RamDB
 from src.ArenaSettings import HyperParameters
 from src.engine.Utils_DataClasses import ModelInfo
 from typing import List
-from src.NeuroForge.ButtonMenu import ButtonMenu
+from src.NeuroForge.ButtonMenu import ButtonMenu, ButtonInfo
+
 
 def neuroForge(configs:  List[ModelConfig]):
     """Initialize NeuroForge and run the visualization loop."""
@@ -23,6 +24,7 @@ def neuroForge(configs:  List[ModelConfig]):
     Const.vcr = VCR()  # Handles event processing
     menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
     menu_button = ButtonMenu()
+    info_button = ButtonInfo()
 
     clock = pygame.time.Clock()
     running = True
@@ -50,9 +52,11 @@ def neuroForge(configs:  List[ModelConfig]):
         Const.dm.render()
         Const.UI_MANAGER.draw_ui(Const.SCREEN)
         menu_button.draw()
+        info_button.draw()
 
         if Const.MENU_ACTIVE:
             menu.update(events)
             menu.draw(Const.SCREEN)
 
         pygame.display.flip()
+

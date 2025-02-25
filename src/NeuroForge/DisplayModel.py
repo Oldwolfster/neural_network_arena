@@ -37,15 +37,11 @@ class DisplayModel(EZSurface):
 #            connection.draw_connection(self.surface)
         for layer in self.neurons:
             for neuron in layer:
-                neuron.draw_neuron(self.surface)
+                neuron.draw_neuron()
 
     def update_me(self):
-        """Update neurons based on the latest iteration data."""
-        for layer in self.neurons:
-            for neuron in layer:
-                pass
-                #neuron.update_neuron(Const.dm.db, iteration, epoch, self.model_id)
-                #neuron.update_neuron(iteration, epoch, self.model_id)
+        pass # draw_neuron will run the update
+
 
     def draw_border(self):
         """Draw a rectangle around the perimeter of the display model."""

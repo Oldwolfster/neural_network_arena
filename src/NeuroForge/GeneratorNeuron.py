@@ -21,7 +21,7 @@ class GeneratorNeuron:
         # 🔹 Compute neuron size and spacing
         GeneratorNeuron.model = the_model
         size = GeneratorNeuron.calculate_neuron_size( margin, gap, max_neuron_size)
-        print(f"Neuron size:{size}")
+        #print(f"Neuron size:{size}")
         max_neurons = max(GeneratorNeuron.model.config.architecture)  # Determine the layer with the most neurons
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
         text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
@@ -50,7 +50,7 @@ class GeneratorNeuron:
                 extra_height = GeneratorNeuron.model.height - height_needed
                 extra_height_to_center = extra_height  // 2
                 #print(f"Model Height: {GeneratorNeuron.model.height}, Neuron Space Needed: {height_needed}, Extra Height: {extra_height}")
-                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name)
+                neuron = DisplayModel__Neuron(nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface)
                 y_coord = size * neuron_index + gap *   neuron_index + margin/696969 + extra_height_to_center
 
                 # 🔹 Assign calculated position & size
