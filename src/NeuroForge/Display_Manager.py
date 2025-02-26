@@ -43,11 +43,11 @@ class DisplayManager:
         self.components.append(display_banner)
 
         # Add Input Panel
-        input_panel = DisplayPanelInput(width_pct=12, height_pct=42, left_pct=2, top_pct=10)
+        input_panel = DisplayPanelInput(width_pct=12, height_pct=39, left_pct=2, top_pct=10)
         self.components.append(input_panel)
 
         # Add Control Panel
-        panel = DisplayPanelCtrl( width_pct=12, height_pct=42, left_pct=2, top_pct=54)
+        panel = DisplayPanelCtrl( width_pct=12, height_pct=44, left_pct=2, top_pct=51)
         self.components.append(panel)
         self.eventors.append(panel)
 

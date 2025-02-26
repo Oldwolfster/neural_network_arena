@@ -105,7 +105,7 @@ class DisplayPanelCtrl(EZForm):
         self.speed_dropdown = UIDropDownMenu(
             options_list=["0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
             starting_option="1x",
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 62), (138, 30)),
+            relative_rect=pygame.Rect((panel_x + 4, panel_y + 52), (138, 35)),
             manager=Const.UI_MANAGER
         )
 

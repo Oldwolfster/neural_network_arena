@@ -6,7 +6,7 @@ class ButtonMenu:
 
     def __init__(self):
         """Initialize the menu button position and properties."""
-        self.width = 120
+        self.width = 135
         self.height = 40
         self.top = 40
         self.left = Const.SCREEN_WIDTH - 20 - self.width  # Positioning on the right side

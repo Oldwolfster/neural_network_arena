@@ -55,21 +55,27 @@ DISPLAY_MODELS  = []
 # ==============================
 # UI Customization
 # ==============================
-JUMP_TO_EPOCH  = 0
+JUMP_TO_EPOCH       = 0
+FONT_SIZE_WEIGHT    = 20
 #COLOR_NEURONS  = True
 
 # ==============================
 # Colors
 # ==============================
-COLOR_WHITE             = (255, 255, 255)
 COLOR_BLACK             = (0, 0, 0)
-COLOR_SKY_BLUE          = (135, 206, 235)
-COLOR_CRIMSON           = (220, 20, 60)
-COLOR_FOREST_GREEN      = (34, 139, 34)
 COLOR_BLUE              = (50, 50, 255)
 COLOR_BLUE_PURE         = (0, 0, 255)
 COLOR_BLUE_MIDNIGHT     = (25, 25, 112)
 COLOR_BLUE_STEEL        = (70, 130, 180)
+COLOR_BLUE_SKY          = (135, 206, 235)
+COLOR_CRIMSON           = (220, 20, 60)
+COLOR_CYAN              = (0, 255, 255)
+COLOR_GREEN             = (0, 128, 0)
+COLOR_GREEN_FOREST      = (34, 139, 34)
+COLOR_ORANGE            = (255, 165, 0)
+COLOR_YELLOW_BRIGHT     = (255, 215, 0)
+COLOR_WHITE             = (255, 255, 255)
+
 COLOR_FOR_BANNER        = (0, 0, 255)
 COLOR_FOR_SHADOW        = (30, 30, 100)  # Darker blue for depth
 COLOR_FOR_BACKGROUND    = COLOR_WHITE
@@ -77,6 +83,10 @@ COLOR_FOR_BANNER_START  = COLOR_BLUE_MIDNIGHT
 COLOR_FOR_BANNER_END    = COLOR_BLUE_STEEL
 COLOR_FOR_NEURON_BODY   = COLOR_BLUE_PURE
 COLOR_FOR_NEURON_TEXT   = COLOR_WHITE
+COLOR_FOR_BAR_GLOBAL    = COLOR_ORANGE
+COLOR_FOR_BAR_SELF      = COLOR_GREEN
+COLOR_FOR_ACT_POSITIVE  = COLOR_GREEN
+COLOR_FOR_ACT_NEGATIVE  = COLOR_CRIMSON
 """ From original
 
 #Epoch and VCR
