@@ -8,7 +8,7 @@ from src.engine.ModelConfig import ModelConfig
 
 
 class DisplayModel(EZSurface):
-    __slots__ = ("config", "neurons", "connections","last_iteration","last_epoch")
+    __slots__ = ("config", "neurons", "connections")
     def __init__(self, config: ModelConfig, position: dict):
         """Initialize a display model using pixel-based positioning."""
         super().__init__(

@@ -26,6 +26,18 @@ def draw_text_with_background(screen, text, x, y, font_size, text_color=(255, 25
     pygame.draw.rect(screen, bg_color, text_rect.inflate(6, 4))  # Slight padding around text
     screen.blit(text_surface, text_rect)
 
+def check_label_collision(new_label_rect, existing_labels_rects):
+    """
+    Checks if the new label's rect collides with any of the existing label rectangles.
+
+    :param new_label_rect: A pygame.Rect representing the new label's boundaries.
+    :param existing_labels_rects: A list of pygame.Rect objects for already placed labels.
+    :return: True if there is a collision with any existing label, False otherwise.
+    """
+    for rect in existing_labels_rects:
+        if new_label_rect.colliderect(rect):
+            return True
+    return False
 
 
 def draw_rect_with_border(screen, rect, color, border_width, border_color=(0,0,0)):
@@ -332,6 +344,57 @@ def get_contrasting_text_color(rgb: tuple[int, int, int]) -> tuple[int, int, int
         return (0, 0, 0)  # Black text for lighter backgrounds.
     else:
         return (255, 255, 255)  # White text for darker backgrounds.
+
+import inspect
+import ast
+
+import inspect
+import ast
+import sys
+
+def ez_debug(**kwargs):
+    """
+    Print debug information for each provided variable.
+
+    For every keyword argument passed in, this function prints:
+    1) The variable name
+    2) An equal sign
+    3) The variable's value
+    4) A tab character for separation
+
+    Example:
+        a = 1
+        b = 2
+        c = 3
+        ez_debug(a=a, b=b, c=c)
+        # Output: a=1    b=2    c=3
+    """
+    debug_output = ""
+    for name, value in kwargs.items():
+        debug_output += f"{name}={value}\t"
+    print(debug_output)
+
+# Example usage:
+if __name__ == "__main__":
+    a = 1
+    b = 2
+    c = 3
+    ez_debug(a=a, b=b, c=c)
+
+
+
+
+
+    """
+    # Example usage:
+    if __name__ == "__main__":
+        a = 1
+        b = 2
+        c = 3
+        ez_debug(a, b, c)
+    """
+
+
 
     """
     # Example usage:
