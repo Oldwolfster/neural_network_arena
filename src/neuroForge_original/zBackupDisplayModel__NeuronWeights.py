@@ -11,7 +11,7 @@ class DisplayModel__NeuronWeights:
         self.font_size_weight = 24
         self.padding_top = 3
         self.padding_bottom = 3
-        self.gap_between_weight_bars = 1
+        self.gap_between_bars = 1
         self.gap_between_weights = 2
         self.right_margin = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.BANNER_HEIGHT = 29  # 4 pixels above + 26 pixels total height
@@ -42,7 +42,7 @@ class DisplayModel__NeuronWeights:
             self.bar_height= self.calculate_bar_height(
                 num_weights=self.num_weights,neuron_height=self.neuron_height
                 ,padding_top=self.padding_top,padding_bottom=self.padding_bottom
-                ,gap_between_weight_bars= self.gap_between_weight_bars,gap_between_weights=self.gap_between_weights
+                ,gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights
             )
         #print(f"INITIALIZING//////////   Max per weight{self.max_per_weight}\tGlobal max: {self.global_max}")
         #self.debug_bar_placement()
@@ -164,10 +164,10 @@ class DisplayModel__NeuronWeights:
 
             # Call function to draw the two bars for this weight
             self.draw_two_bars_for_one_weight(
-                screen, start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_weight_bars, self.neuron.weights[i],i
+                screen, start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_bars, self.neuron.weights[i],i
             )
 
-    def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_weight_bars, gap_between_weights):
+    def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_bars, gap_between_weights):
         """
         Calculate the height of each weight bar dynamically based on available space.
 
@@ -175,7 +175,7 @@ class DisplayModel__NeuronWeights:
         :param neuron_height: Total height of the neuron
         :param padding_top: Space above the first set of bars
         :param padding_bottom: Space below the last set of bars
-        :param gap_between_weight_bars: Gap between the two bars of the same weight
+        :param gap_between_bars: Gap between the two bars of the same weight
         :param gap_between_weights: Gap between different weights
         :return: The calculated height for each individual bar
         """
@@ -184,7 +184,7 @@ class DisplayModel__NeuronWeights:
         available_height = neuron_height - (padding_top + padding_bottom + self.BANNER_HEIGHT)
 
         # Each weight has two bars, so total bar slots = num_weights * 2
-        total_gaps = (num_weights * gap_between_weights) + (num_weights * 2 - 1) * gap_between_weight_bars
+        total_gaps = (num_weights * gap_between_weights) + (num_weights * 2 - 1) * gap_between_bars
 
         # Ensure the remaining space is distributed across all bars
         if total_gaps >= available_height:
@@ -366,7 +366,7 @@ class DisplayModel__NeuronWeights:
         print(f"Neuron {self.neuron.nid}: location=({self.neuron.location_left}, {self.neuron.location_top})")
         print(f"Neuron Size: width={self.neuron.location_width}, height={self.neuron.location_height}")
         print(f"Padding: top={self.padding_top}, bottom={self.padding_bottom}")
-        print(f"Gaps: between_weight_bars={self.gap_between_weight_bars}, between_weights={self.gap_between_weights}")
+        print(f"Gaps: between_weight_bars={self.gap_between_bars}, between_weights={self.gap_between_weights}")
         print(f"Total Number of Weights: {self.num_weights}")
         print(f"Computed Bar Height: {self.bar_height}")
 

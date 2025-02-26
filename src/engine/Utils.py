@@ -13,18 +13,38 @@ from src.engine.BaseGladiator import Gladiator
 
 import pygame
 
-def draw_text_with_background(screen, text, x, y, font_size, text_color=(255, 255, 255), bg_color=(0, 0, 0)):
+
+def get_text_rect(text: str, font_size: int):
+    font = pygame.font.SysFont(None, font_size)
+    text_surface = font.render(text, True, (0,0,0))
+    return text_surface.get_rect()
+
+def draw_text_with_background(screen, text, x, y, font_size, text_color=(255, 255, 255), bg_color=(0, 0, 0), right_align=False, border_color=None):
     """
     Draws text with a background rectangle for better visibility.
+
+    :param right_align: If True, the text is right-aligned to x; otherwise, x is the left edge.
+    :param border_color: If True, adds a black border
     """
     font = pygame.font.SysFont(None, font_size)
     text_surface = font.render(text, True, text_color)
     text_rect = text_surface.get_rect()
-    text_rect.topleft = (x, y)
+
+    # Original logic if right_align is False
+    if not right_align:
+        text_rect.topleft = (x, y)
+    else:
+        # If right_align is True, place the text so its right edge is at x
+        text_rect.topright = (x, y)
+
+    if not border_color is None:
+        pygame.draw.rect(screen, border_color, text_rect.inflate(9, 7))  # Slight padding around text
+        screen.blit(text_surface, text_rect)
 
     # Draw background rectangle
     pygame.draw.rect(screen, bg_color, text_rect.inflate(6, 4))  # Slight padding around text
     screen.blit(text_surface, text_rect)
+
 
 def check_label_collision(new_label_rect, existing_labels_rects):
     """

@@ -7,8 +7,7 @@ class GeneratorNeuron:
     model= None #Refernce to the Model it is creating neurons for.
 
     @staticmethod
-    def create_neurons(the_model, margin=20, gap=30, max_neuron_size=500 ):
-    #def create_neurons(self, margin=00, gap=0, max_neuron_size=2000):
+    def create_neurons(the_model: str, max_act: float, margin=20, gap=30, max_neuron_size=500 ):
         """
         Create neuron objects, dynamically positioning them based on architecture.
 
@@ -52,7 +51,7 @@ class GeneratorNeuron:
                 y_coord = size * neuron_index + gap *   neuron_index + margin/696969 + extra_height_to_center
 
                 # 🔹 Instantiate Neuron (DisplayModel)
-                neuron = DisplayModel__Neuron(left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface)
+                neuron = DisplayModel__Neuron(left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface, max_activation=max_act )
                 layer_neurons.append(neuron)
             GeneratorNeuron.model.neurons.append(layer_neurons)
 
