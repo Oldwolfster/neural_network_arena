@@ -1,4 +1,3 @@
-import json
 from ast import literal_eval
 from typing import List
 import pygame
@@ -10,35 +9,39 @@ from src.engine.Utils import smart_format, draw_gradient_rect
 from src.NeuroForge import Const
 
 class DisplayModel__Neuron:
+    __slots__ = ("max_per_weight", "global_weight_max", "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", "weight_before" )
     input_values = []   # Class variable to store inputs
 
     def __init__(self, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface):
-        self.model_id = model_id
-        self.screen = screen
-        self.db = Const.dm.db
-        self.nid = nid
-        self.layer = layer
-        self.position = position
-        self.output_layer = output_layer
-        self.label = f"{layer}-{position}"
+        self.model_id               = model_id
+        self.screen                 = screen
+        self.db                     = Const.dm.db
+        self.rs                     = None  # Store result of querying Iteration/Neuron table for this iteration/epoch
+        self.nid                    = nid
+        self.layer                  = layer
+        self.position               = position
+        self.output_layer           = output_layer
+        self.label                  = f"{layer}-{position}"
 
         # Positioning
-        self.location_left = 0
-        self.location_top = 0
-        self.location_width = 0
-        self.location_height = 0
+        self.location_left          = 0
+        self.location_top           = 0
+        self.location_width         = 0
+        self.location_height        = 0
 
         # Neural properties
-        self.weights = []
-        self.neuron_inputs = []
-        self.bias = 0
-        self.raw_sum = 0
-        self.activation_function = ""
-        self.activation_value = 0
-        self.activation_gradient = 0
+        self.activation_function    = ""
+        self.weights                = []
+        self.weight_before          = []
+        self.neuron_inputs          = []
+        self.max_per_weight         = []
+        self.raw_sum                = 0.0
+        self.activation_value       = 0.0
+        self.activation_gradient    = 0.0
+        self.global_weight_max      = 0.0
+
 
         # Visualization properties
-
         self.banner_text = ""
         self.tooltip_columns = []
         self.weight_adjustments = ""
@@ -46,21 +49,20 @@ class DisplayModel__Neuron:
         self.avg_err_sig_for_epoch = 0.0
         self.loss_gradient = 0.0
 
+        self.ez_printer = EZPrint(pygame.font.Font(None, 24), color=Const.COLOR_BLACK, max_width=200, max_height=100, sentinel_char="\n")
         # Conditional visualizer
-        self.neuron_visualizer = DisplayModel__NeuronWeights(self)
+        self.neuron_visualizer = DisplayModel__NeuronWeights(self, self.ez_printer)
         self.neuron_build_text = "fix me"
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
-        self.ez_printer = EZPrint(pygame.font.Font(None, 24), color=Const.COLOR_BLACK, max_width=200, max_height=100, sentinel_char="\n")
+
 
     def draw_neuron(self):
         """Draw the neuron visualization."""
         # Define colors
-        self.update_neuron() #Get latest info for neuron
-
         #TODO add Gradient body_color = self.get_color_gradient(self.avg_err_sig_for_epoch, mgr.max_error)
 
         # Font setup
-        font = pygame.font.Font(None, 24)
+        font = pygame.font.Font(None, 24) #TODO remove and use EZ_Print
 
         # Banner text
         label_surface = font.render(f"ID: {self.label}", True, Const.COLOR_FOR_NEURON_TEXT)
@@ -86,39 +88,61 @@ class DisplayModel__Neuron:
 
         # Render visual elements
         if hasattr(self, 'neuron_visualizer') and self.neuron_visualizer:
-            self.neuron_visualizer.render(self.screen, self, body_y_start)
+            self.neuron_visualizer.render(self.screen) #, self, body_y_start)
 
     def update_neuron(self):
-            if not self.update_avg_error():
-                return #no record found so exit early
-            # Parameterized query with placeholders
-            SQL =   """
-                SELECT  *
-                FROM    Iteration I
-                JOIN    Neuron N
-                ON      I.model_id  = N.model 
-                AND     I.epoch     = N.epoch_n
-                AND     I.iteration = N.iteration_n
-                WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
-                ORDER BY epoch, iteration, model, nid 
-            """
+        print(f"updating neuron {self.nid}")
+        if not self.update_avg_error():
+            return #no record found so exit early
+        self.update_rs()
+        self.update_weights()
+        self.get_weight_min_max()
 
+    def get_weight_min_max(self):
+        """
+        Retrieves:
+        1. The global maximum absolute weight across all epochs and neurons.
+        2. The maximum absolute weight for each individual weight index across all epochs.
+        """
 
-            params = (self.model_id, Const.CUR_ITERATION, Const.CUR_EPOCH, self.nid)
-            # print(f"SQL in update_me: {SQL}")
-            # print(f"Params: {params}")
+        # ✅ Query 1: Get the highest absolute weight overall
+        SQL_GLOBAL_MAX = """
+            SELECT MAX(ABS(value)) AS global_max
+            FROM Weight
+            WHERE model_id = ? AND nid = ?
+        """
 
-            rs = self.db.query(SQL, params) # Execute query
-            try:
-                self.weight_text = self.neuron_build_text(rs[0])
-                self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
-                self.error_signal_calcs = rs[0].get("error_signal_calcs")
-                #print(f"calcsforerror{self.error_signal_calcs}")
-                self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
-                #print(f"Query result: {rs}")
-                #print(f"PREDICTIONS: {self.weight_text}")
-            except:
-                pass
+        global_max_result = self.db.query(SQL_GLOBAL_MAX, (self.model_id, self.nid))
+        self.global_weight_max = global_max_result[0]['global_max'] if global_max_result and global_max_result[0]['global_max'] is not None else 1.0
+
+        # ✅ Query 2: Get the max absolute weight per weight index
+        SQL_MAX_PER_WEIGHT = """
+            SELECT MAX(ABS(value)) AS max_weight
+            FROM Weight
+            WHERE model_id = ? AND nid = ?
+            GROUP BY weight_id
+            ORDER BY weight_id ASC
+        """
+        max_per_weight = self.db.query_scalar_list(SQL_MAX_PER_WEIGHT, (self.model_id, self.nid))
+        self.max_per_weight = max_per_weight if max_per_weight != 0 else 1
+    def update_rs(self):
+        # Parameterized query with placeholders
+        SQL =   """
+            SELECT  *
+            FROM    Iteration I
+            JOIN    Neuron N
+            ON      I.model_id  = N.model 
+            AND     I.epoch     = N.epoch_n
+            AND     I.iteration = N.iteration_n
+            WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
+            ORDER BY epoch, iteration, model, nid 
+        """
+
+        rs = self.db.query(SQL, (self.model_id, Const.CUR_ITERATION, Const.CUR_EPOCH, self.nid)) # Execute query
+        self.rs = rs[0]
+        self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
+        self.error_signal_calcs = rs[0].get("error_signal_calcs")
+        self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
 
     def update_avg_error(self):
         SQL = """
@@ -141,6 +165,20 @@ class DisplayModel__Neuron:
         self.avg_err_sig_for_epoch = float(rs[0].get("avg_error_signal") or 0.0)
         #print("in update_avg_error returning TRUE")
         return True
+    def update_weights(self):
+        """Fetches weights from the Weight table instead of JSON and populates self.weights and self.weights_before."""
+        SQL = """
+            SELECT weight_id, value, value_before
+            FROM Weight
+            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            ORDER BY weight_id ASC
+        """
+        weights_data = self.db.query(SQL, (self.model_id, self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), False)
 
-
-
+        if weights_data:
+            self.weights = [column[1] for column in weights_data]  # Extract values
+            self.weights_before = [column[2] for column in weights_data]  # Extract previous values
+        else:
+            # TODO: Handle case where no weights are found for the current epoch/iteration
+            self.weights = []
+            self.weights_before = []

@@ -8,7 +8,7 @@ from src.engine.ModelConfig import ModelConfig
 
 
 class DisplayModel(EZSurface):
-    __slots__ = ("config", "neurons", "connections")
+    __slots__ = ("config", "neurons", "connections","last_iteration","last_epoch")
     def __init__(self, config: ModelConfig, position: dict):
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -19,9 +19,9 @@ class DisplayModel(EZSurface):
             pixel_adjust_top=position["top"],
             bg_color=Const.COLOR_FOR_BACKGROUND
         )
-        self.config = config
-        self.neurons = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
-        self.connections = []  # List of neuron connections
+        self.config         = config
+        self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
+        self.connections    = []  # List of neuron connections
 
     def initialize_with_model_info(self):
         """Create neurons and connections based on architecture."""
@@ -40,7 +40,10 @@ class DisplayModel(EZSurface):
                 neuron.draw_neuron()
 
     def update_me(self):
-        pass # draw_neuron will run the update
+        for layer in self.neurons:
+            for neuron in layer:
+                neuron.update_neuron()
+
 
 
     def draw_border(self):
