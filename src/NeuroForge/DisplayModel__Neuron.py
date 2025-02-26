@@ -5,14 +5,22 @@ from src.engine.ActivationFunction import get_activation_derivative_formula
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
 from src.engine.RamDB import RamDB
-from src.engine.Utils import smart_format, draw_gradient_rect
+from src.engine.Utils import smart_format, draw_gradient_rect, ez_debug
 from src.NeuroForge import Const
 
 class DisplayModel__Neuron:
+    """
+    DisplayModel__Neuron is created by DisplayModel.
+    This class has the following primary purposes:
+    1) Store all information related to the neuron
+    2) Update that information when the iteration or epoch changes.
+    3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
+    4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
+    """
     __slots__ = ("max_per_weight", "global_weight_max", "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", "weight_before" )
     input_values = []   # Class variable to store inputs
 
-    def __init__(self, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface):
+    def __init__(self, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface):
         self.model_id               = model_id
         self.screen                 = screen
         self.db                     = Const.dm.db
@@ -24,10 +32,10 @@ class DisplayModel__Neuron:
         self.label                  = f"{layer}-{position}"
 
         # Positioning
-        self.location_left          = 0
-        self.location_top           = 0
-        self.location_width         = 0
-        self.location_height        = 0
+        self.location_left          = left
+        self.location_top           = top
+        self.location_width         = width
+        self.location_height        = height
 
         # Neural properties
         self.activation_function    = ""
@@ -48,11 +56,12 @@ class DisplayModel__Neuron:
         self.error_signal_calcs = ""
         self.avg_err_sig_for_epoch = 0.0
         self.loss_gradient = 0.0
-
+        self.neuron_build_text = "fix me"
         self.ez_printer = EZPrint(pygame.font.Font(None, 24), color=Const.COLOR_BLACK, max_width=200, max_height=100, sentinel_char="\n")
         # Conditional visualizer
+        self.update_neuron() # must come before selecting visualizer
         self.neuron_visualizer = DisplayModel__NeuronWeights(self, self.ez_printer)
-        self.neuron_build_text = "fix me"
+
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
 
 
