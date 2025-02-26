@@ -18,6 +18,8 @@ class DisplayManager:
         self.models         = []  # List for display models
         self.db             = configs[0].db  # Temporary shortcut
         self.iteration_data = None
+        self.last_iteration = 0
+        self.last_epoch     = 0
         Const.dm = self
 
         # Compute global max values across all models using Metrics module
@@ -54,6 +56,10 @@ class DisplayManager:
         #print(positions)
 
     def update(self):
+        if self.last_iteration == Const.CUR_ITERATION and self.last_epoch == Const.CUR_EPOCH:
+            return #No change so no need to update
+        self.last_iteration = Const.CUR_ITERATION   # Set them to current values
+        self.last_epoch     = Const.CUR_EPOCH       # Set them to current values
         for component in self.components:
             component.update_me()
 

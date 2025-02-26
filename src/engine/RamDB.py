@@ -193,6 +193,25 @@ class RamDB:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL query failed: {e}")
 
+    def query_scalar_list(self, sql, params=None):
+        """
+        Fetch a single-column result as a flat list.
+
+        This method ensures that if a query selects only one column,
+        the result is returned as a list of scalar values instead of tuples.
+
+        Raises:
+            RuntimeError: If the SQL query selects more than one column.
+        """
+        try:
+            self.cursor.execute(sql, params or ())
+            if len(self.cursor.description) > 1:
+                raise RuntimeError("query_scalar_list() can only be used for single-column queries.")
+
+            rows = self.cursor.fetchall()
+            return [row[0] for row in rows] if rows else []
+        except sqlite3.Error as e:
+            raise RuntimeError(f"SQL query failed: {e}")
 
 
     def query_print(self, sql, as_dict=True, surpress_call_stack = False):
