@@ -17,9 +17,11 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("max_per_weight", "max_activation", "global_weight_max", "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", "weight_before" )
+    __slots__ = ("max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", "weight_before" )
     input_values = []   # Class variable to store inputs
-
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return f"Neuron {self.label})"
     def __init__(self, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float):
         self.model_id               = model_id
         self.screen                 = screen
@@ -47,7 +49,6 @@ class DisplayModel__Neuron:
         self.raw_sum                = 0.0
         self.activation_value       = 0.0
         self.activation_gradient    = 0.0
-        self.global_weight_max      = 0.0
 
         # Visualization properties
         self.banner_text            = ""
@@ -58,7 +59,7 @@ class DisplayModel__Neuron:
         self.loss_gradient          = 0.0
         self.neuron_build_text      = "fix me"
         self.ez_printer             = EZPrint(pygame.font.Font(None, 24), color=Const.COLOR_BLACK, max_width=200, max_height=100, sentinel_char="\n")
-
+        self.get_max_val_per_wt()
         # Conditional visualizer
         self.update_neuron()        # must come before selecting visualizer
         self.neuron_visualizer      = DisplayModel__NeuronWeights(self, self.ez_printer)
@@ -100,26 +101,11 @@ class DisplayModel__Neuron:
             return #no record found so exit early
         self.update_rs()
         self.update_weights()
-        self.get_weight_min_max()
 
-    def get_weight_min_max(self):
-        """
-        Retrieves:
-        1. The global maximum absolute weight across all epochs and neurons.
-        2. The maximum absolute weight for each individual weight index across all epochs.
-        """
+    def get_max_val_per_wt(self):
+        """Retrieves:The maximum absolute weight for each individual weight index across all epochs."""
 
-        # ✅ Query 1: Get the highest absolute weight overall
-        SQL_GLOBAL_MAX = """
-            SELECT MAX(ABS(value)) AS global_max
-            FROM Weight
-            WHERE model_id = ? AND nid = ?
-        """
-        global_max_result = self.db.query(SQL_GLOBAL_MAX, (self.model_id, self.nid))
-        self.global_weight_max = global_max_result[0]['global_max'] if global_max_result and global_max_result[0]['global_max'] is not None else 1.0
-
-        # ✅ Query 2: Get the max absolute weight per weight index
-        SQL_MAX_PER_WEIGHT = """
+        SQL_MAX_PER_WEIGHT = """                        
             SELECT MAX(ABS(value)) AS max_weight
             FROM Weight
             WHERE model_id = ? AND nid = ?
@@ -128,6 +114,7 @@ class DisplayModel__Neuron:
         """
         max_per_weight = self.db.query_scalar_list(SQL_MAX_PER_WEIGHT, (self.model_id, self.nid))
         self.max_per_weight = max_per_weight if max_per_weight != 0 else 1
+
     def update_rs(self):
         # Parameterized query with placeholders
         SQL =   """

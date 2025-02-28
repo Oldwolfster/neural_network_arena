@@ -155,7 +155,7 @@ class DisplayModel__NeuronWeights:
             norm_self = abs_weight / self_max  # Scale between 0 and 1
 
             # Normalize relative to the absolute global max weight   # Scale between 0 and 1
-            norm_global = abs_weight / (self.neuron.global_weight_max if self.neuron.global_weight_max != 0 else 1)
+            norm_global = abs_weight / (Const.MAX_WEIGHT if Const.MAX_WEIGHT != 0 else 1)
 
             # Scale to neuron width (so bars fit inside the neuron)
             bar_self = norm_self * neuron_width
@@ -186,9 +186,9 @@ class DisplayModel__NeuronWeights:
 
         # Draw labels dynamically based on available space
         label_rects=[]
-        label_space = self.draw_weight_label(label_text_global, global_rect, (255, 165, 0))  # Label for global bar
+        label_space = self.draw_weight_label(label_text_global, global_rect)  # Label for global bar
         label_rects.append(label_space)
-        label_space = self.draw_weight_label(label_text_local, self_rect, (0, 128, 0))  # Label for self bar
+        label_space = self.draw_weight_label(label_text_local, self_rect)  # Label for self bar
         label_rects.append(label_space)
         self.draw_weight_index_label(weight_id, y+self.bar_height-9, label_rects)
 
@@ -206,7 +206,7 @@ class DisplayModel__NeuronWeights:
 
         # Create font and render text
         font = pygame.font.Font(None, 20)  # Adjusted font size for better readability
-        text_surface = font.render(text, True, (255, 255, 255))  # White text
+        text_surface = font.render(text, True, Const.COLOR_WHITE)  # White text
         text_rect = text_surface.get_rect()
 
         # Determine label placement: inside if enough space, otherwise outside
@@ -237,9 +237,6 @@ class DisplayModel__NeuronWeights:
         :param existing_labels_rects: list of rects for other labels that might collide.
         """
 
-        # Record label loc for arrows to go to.
-        if self.need_label_coord:
-            self.my_fcking_labels.append(y_pos)
 
         # Compute label position
         label_x = self.neuron.location_left  + 5 # Slightly left of the neuron
@@ -252,10 +249,17 @@ class DisplayModel__NeuronWeights:
         text_rect = get_text_rect(label_text, Const.FONT_SIZE_WEIGHT) #Get rect for index label.
         text_rect.topleft = label_x,label_y
 
+
+
         if self.neuron.layer == 0 and self.neuron.location_left > text_rect.width + 5:
             label_x = self.neuron.location_left - text_rect.width -  3
             draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT,Const.COLOR_WHITE,Const.COLOR_BLUE, border_color=Const.COLOR_BLACK)
+            # Record label loc for input arrows to go to.
+            if self.need_label_coord:
+                self.my_fcking_labels.append((label_x-text_rect.width * 0.2, label_y))
             return
+        if self.need_label_coord:
+            self.my_fcking_labels.append((label_x,label_y))
 
         # Check if there is a collision
         if not check_label_collision(text_rect, existing_labels_rects):

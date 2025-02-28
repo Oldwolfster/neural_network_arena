@@ -37,7 +37,7 @@ class DisplayModel(EZSurface):
             next_layer = self.neurons[layer_index]
             for weight_index,from_neuron in enumerate( current_layer):
                 for to_neuron in next_layer:
-                    #print(f"Weight index={weight_index}")
+                    ez_
                     if forward: #forward prop arrows
                         connection = DisplayModel__ConnectionForward(from_neuron=from_neuron, to_neuron=to_neuron, weight_index=weight_index)
                     else:   #back prop (reversed)

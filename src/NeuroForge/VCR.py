@@ -102,4 +102,5 @@ class VCR:
             Const.CUR_ITERATION = Const.MAX_ITERATION
 
         # Fetch the latest iteration data after stepping
-        Const.dm.get_iteration_dict()
+        Const.dm.query_dict_iteration()
+        Const.dm.query_dict_epoch()

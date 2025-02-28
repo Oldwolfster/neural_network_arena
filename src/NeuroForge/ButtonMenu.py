@@ -6,10 +6,10 @@ class ButtonMenu:
 
     def __init__(self):
         """Initialize the menu button position and properties."""
-        self.width = 135
+        self.width = 140
         self.height = 40
         self.top = 40
-        self.left = Const.SCREEN_WIDTH - 20 - self.width  # Positioning on the right side
+        self.left = Const.SCREEN_WIDTH - 26 - self.width  # Positioning on the right side
         self.button_rect = pygame.Rect(self.left, self.top, self.width, self.height)
         self.main_button_color = Const.COLOR_BLUE
         self.shadow_color = Const.COLOR_FOR_SHADOW  # Darker blue for depth

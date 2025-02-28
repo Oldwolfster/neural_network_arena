@@ -1,6 +1,6 @@
 import pygame
 from src.NeuroForge import Const
-from src.NeuroForge.DisplayModel__ConnectionForward import DisplayModel__ConnectionForward
+from src.NeuroForge.DisplayModel__Connection import DisplayModel__ConnectionForward
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorModel import ModelGenerator

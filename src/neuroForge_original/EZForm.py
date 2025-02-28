@@ -15,7 +15,7 @@ class EZForm(EZSurface):
         self.font = pygame.font.Font(None, 24)  # Default font
         self.spacing = 10  # Space between fields
         self.need_label_coord = True #track if we recorded the label positions for the arrows to point from
-        self.arrow_labels_position =[]
+        self.label_y_positions =[]
 
     def render(self):
         """Render the form with a banner and dynamic fields."""
@@ -71,13 +71,13 @@ class EZForm(EZSurface):
                 box_margin, y_pos_value - 15, self.width - (2 * box_margin), 30  # Adjusted height
             )
             if (self.need_label_coord == True):
-                self.arrow_labels_position.append(y_pos_value)
+                self.label_y_positions.append(y_pos_value)
             pygame.draw.rect(self.surface, (255, 255, 255), value_box_rect)  # White box
             pygame.draw.rect(self.surface, self.banner_color, value_box_rect, 2)  # Blue border
 
             value_surface = self.font.render(value, True, self.font_color)
             value_rect = value_surface.get_rect(center=value_box_rect.center)
             self.surface.blit(value_surface, value_rect)
-        if len(self.arrow_labels_position)>0:
+        if len(self.label_y_positions)>0:
             self.need_label_coord= False #Only need to record on first pass.
-        print(self.arrow_labels_position)
+        print(self.label_y_positions)

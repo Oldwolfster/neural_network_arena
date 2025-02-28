@@ -3,14 +3,13 @@ import pygame
 from src.NeuroForge import Const
 
 class EZSurface(ABC):
-    __slots__ = ("screen_width", "screen_height", "left_pct", "width_pct", "height_pct",        "width", "height", "left", "top",        "surface", "bg_color"    )
+    __slots__ = ("screen_width", "screen_height", "left_pct", "width_pct", "height_pct", "width", "height", "left", "top", "surface", "bg_color")
     def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0,bg_color=Const.COLOR_WHITE,transparent=False,
-            pixel_adjust_width = 0,pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
+            pixel_adjust_width = 0, pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
 
         """Creates a resizable and positionable surface within the main screen."""
         self.screen_width = Const.SCREEN_WIDTH  #TODO remove these
         self.screen_height = Const.SCREEN_HEIGHT #TODO remove these
-
         self.left_pct = left_pct
         self.width_pct = width_pct
         self.height_pct = height_pct
@@ -33,16 +32,25 @@ class EZSurface(ABC):
 
     def draw_me(self):
         """Clears, renders, and blits the surface onto the main screen."""
+
         self.clear()
         self.render()
         Const.SCREEN.blit(self.surface, (self.left, self.top))
 
     def clear(self):
-        """Clears the surface with the background color or maintains transparency."""
+        """Clears the surface only if `clear_surface` is enabled."""
+#        if not self.clear_surface:
+#            print(f"Skipping clear for {self.__class__.__name__}")
+#            return  # ✅ Skip clearing if not needed
+#
+#        print(f"Clearing surface for {self.__class__.__name__}")  # 🔍 Debugging line
+
         if self.surface.get_flags() & pygame.SRCALPHA:
-            self.surface.fill((0, 0, 0, 0))  # Clear with transparency
+            self.surface.fill((0, 0, 0, 0))  # ✅ Preserve transparency
         else:
-            self.surface.fill(self.bg_color)
+            self.surface.fill(self.bg_color)  # ✅ Standard clearing for non-alpha surfaces
+
+
 
     def resize(self, new_width_pct=None, new_height_pct=None):
         """Dynamically resizes the surface while maintaining position."""

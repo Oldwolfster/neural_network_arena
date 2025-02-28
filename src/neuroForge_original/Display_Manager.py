@@ -104,7 +104,7 @@ class DisplayManager:
             component.process_an_event(event)
 
 
-    def get_epoch_dict(self, epoch: int, model_id: str ) -> dict:  #Retrieve iteration data from the database."""
+    def get_epoch_dict(self, epoch: int, model_id: str = None) -> dict:  #Retrieve iteration data from the database."""
         # db.query_print("PRAGMA table_info(Iteration);")
         sql = """  
             SELECT * FROM EpochSummary 
@@ -124,12 +124,12 @@ class DisplayManager:
         return {}  # Return an empty dictionary if no results
 
 
-    def get_iteration_dict(self, epoch: int, iteration: int, model_id: str ) -> dict:  #Retrieve iteration data from the database."""
+    def get_iteration_dict(self, epoch: int, iteration: int, model_id: str= None ) -> dict:  #Retrieve iteration data from the database."""
         # db.query_print("PRAGMA table_info(Iteration);")
         sql = """  
             SELECT * FROM Iteration 
             WHERE epoch = ? AND iteration = ?  
-        """#TODO ADD MODEL TO CRITERIIA
+        """
         params = (epoch, iteration)
         rs = self.db.query(sql, params)
 
