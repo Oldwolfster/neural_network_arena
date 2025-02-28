@@ -15,6 +15,7 @@ from src.engine.WeightInitializer import *
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):
     summary_report_launch(db)
     print(training_data.get_list())
+    #db.query_print("SELECT * FROM DistributeErrorCalcs")
 """ 
     db.query_print(  # Examines weight table
        
@@ -64,14 +65,73 @@ def prep_RamDB():
             value_before REAL NOT NULL,
             value REAL NOT NULL,            
             PRIMARY KEY (model_id, epoch, iteration, nid, weight_id)       
-        );        
-        """
-    )
+        );""")
+
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS ErrorSignalCalcs (
+            epoch        INTEGER NOT NULL,
+            iteration    INTEGER NOT NULL,
+            model_id     TEXT NOT NULL,
+            nid          INTEGER NOT NULL,
+            weight_id    INTEGER NOT NULL,
+            arg_1        REAL NOT NULL,
+            op_1         TEXT NOT NULL CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
+            arg_2        REAL NOT NULL,
+            op_2         TEXT NOT NULL CHECK (op_2 IN ('+', '-', '*', '/', '=')),
+            arg_3        REAL DEFAULT NULL,
+            op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+            result       REAL NOT NULL,
+            PRIMARY KEY (epoch, iteration, model_id, nid,weight_id)  -- Ensures unique calculations per neuron per step
+        );""")
+
+
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS ErrorSignalCalcs (
+            epoch        INTEGER NOT NULL,
+            iteration    INTEGER NOT NULL,
+            model_id     TEXT NOT NULL,
+            neuron_id          INTEGER NOT NULL,            
+            arg_1        REAL NOT NULL,
+            op_1         TEXT NOT NULL CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
+            arg_2        REAL NOT NULL,
+            op_2         TEXT NOT NULL CHECK (op_2 IN ('+', '-', '*', '/', '=')),
+            arg_3        REAL DEFAULT NULL,
+            op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+            result       REAL NOT NULL,
+            PRIMARY KEY (epoch, iteration, model_id, neuron_id)  -- Ensures unique calculations per neuron per step
+        );""")
+
+    db.execute("""CREATE TABLE DistributeErrorCalcs (
+                    epoch        INTEGER NOT NULL,
+                    iteration    INTEGER NOT NULL,
+                    model_id     TEXT NOT NULL,
+                    nid          INTEGER NOT NULL,
+                    weight_index INTEGER NOT NULL,
+                    arg_1        REAL NOT NULL,
+                    op_1         TEXT NOT NULL CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
+                    arg_2        REAL NOT NULL,
+                    op_2         TEXT NOT NULL CHECK (op_2 IN ('+', '-', '*', '/', '=')),
+                    arg_3        REAL DEFAULT NULL,
+                    op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    result       REAL NOT NULL,
+                    PRIMARY KEY (epoch, iteration, model_id, nid, arg_1, op_1, arg_2, op_2, arg_3, op_3)  -- Ensures unique weight update calculations
+                );""")
+
+
     #db.query_print("PRAGMA table_info(Iteration);")
 
+
+    sql= """ #temp saving insert
+        def insert_backprop_calculation(db, epoch, iteration, model_id, neuron_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result):
+            sql = "" "
+            INSERT INTO BackpropCalculations 
+            (epoch, iteration, model_id, neuron_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            "" "
+            db.execute(sql, (epoch, iteration, model_id, neuron_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result))
+        
+        """
     return db
-
-
 
 def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
     # model_id           │   epoch │   correct │   wrong │   mean_absolute_error │   mean_squared_error │   root_mean_squared_error │ weights                                    │ biases              │   seconds │

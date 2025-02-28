@@ -47,7 +47,7 @@ class Gladiator(ABC):
         self.config             = config
         self._simpletron(config)        #Check if support needed for old optimzer
         self.error_signal_calcs = []
-        self.distribute_error_calcs = []
+        self.oldcalcs           = []
 
     ################################################################################################
     ################################ SECTION 1 - Simpletron Support ##########################
@@ -195,8 +195,7 @@ class Gladiator(ABC):
                 self.back_pass__error_signal_for_hidden(hidden_neuron)
 
         self.adjust_weights(training_sample)
-        self.insert_error_signal_calcs()            # Write error signal calculations to db for NeuroForge popup
-        self.insert_distribute_error_calcs()        # Write distribute error calculations to db for NeuroForge popup
+        self.insert_backprop_calculations()
         """
         # Step 3: Adjust weights for the output neuron
         prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
@@ -257,7 +256,7 @@ class Gladiator(ABC):
             weight_to_next = next_neuron.weights_before[neuron.position]  # Connection weight #TODO is weights before requried here?  I dont think so
             error_from_next = next_neuron.error_signal  # Next neuron’s error signal
             total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
-            # 🔹 Store calculation step as a structured tuple, now including weight index
+            # Store calculation step as a structured tuple, now including weight index
             self.error_signal_calcs.append([
                 self.epoch, self.iteration, self.gladiator, f"{neuron.layer_id},{neuron.position}",
                 next_neuron.position,  # Adding weight index for uniqueness
@@ -265,7 +264,7 @@ class Gladiator(ABC):
             ])
             memory_efficent_way_to_store_calcs.append(f"{smart_format(weight_to_next)}!{smart_format(error_from_next)}@")
         neuron.error_signal_calcs = ''.join(memory_efficent_way_to_store_calcs)  # Join once instead of multiple string concatenations
-        """
+        self.oldcalcs
         print("**********************")
         print("**********************")
         print("**********************")
@@ -276,19 +275,14 @@ class Gladiator(ABC):
         for row in memory_efficent_way_to_store_calcs:
             print(row)
         # 🔥 Compute final error signal for this hidden neuron
-        """
         neuron.error_signal = activation_gradient * total_backprop_error
 
-    def insert_error_signal_calcs(self):
+    def insert_backprop_calculations(self):
         """
         Inserts all backprop calculations for the current iteration into the database.
         """
-        #print("********  Distribute Error Calcs************")
-        #for row in self.error_signal_calcs:
-        #    print(row)
-
         sql = """
-        INSERT INTO ErrorSignalCalcs 
+        INSERT INTO BackpropCalculations 
         (epoch, iteration, model_id, nid, weight_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
         self.db.executemany(sql, self.error_signal_calcs)
@@ -317,12 +311,7 @@ class Gladiator(ABC):
                 #print(f"weight# {i}  weight_before={smart_format(weight_before)}\tlearning_rate={learning_rate}\terror_signal={smart_format(error_signal)}\tprev_value={prev_value}\tnew weight={smart_format(neuron.weights[i])}\t")
             neuron_id = f"{neuron.layer_id},{neuron.position}"
             calculation = f"w{i} Neuron ID{neuron_id} = {store_num(w)} + {store_num(learning_rate)} * {store_num(error_signal)} * {store_num(prev_value)}"
-            # 🔹 Store structured calculation for weights
-            self.distribute_error_calcs.append([
-                # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-                self.epoch, self.iteration, self.gladiator, neuron.nid, i,
-                weight_before, "*", learning_rate, "*", error_signal, "=", neuron.weights[i]
-            ])
+
             weight_formulas.append(calculation)
         #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
         #    print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
@@ -330,23 +319,6 @@ class Gladiator(ABC):
         neuron.bias += learning_rate * error_signal
         weight_formulas.append(f"B = {store_num(neuron.bias_before)} + {store_num(learning_rate)} * {store_num(error_signal)}")
         neuron.weight_adjustments = '\n'.join(weight_formulas)
-
-        # 🔹 Store structured calculation for bias
-        #self.distribute_error_calcs.append([
-        #    self.epoch, self.iteration, self.gladiator, neuron_id,
-        #    bias_before, "+", learning_rate, "*", error_signal, None, None, neuron.bias
-        #])
-    def insert_distribute_error_calcs(self):
-        """
-        Inserts all weight update calculations for the current iteration into the database.
-        """
-        sql = """
-        INSERT INTO DistributeErrorCalcs 
-        (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-
-        self.db.executemany(sql, self.distribute_error_calcs)
-        self.distribute_error_calcs.clear()
 
     def validate_pass(self, target: float, prediction_raw: float):
         """

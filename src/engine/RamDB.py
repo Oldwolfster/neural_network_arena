@@ -4,13 +4,11 @@ import sqlite3
 import numpy as np
 from tabulate import tabulate
 
-
-
-
 class RamDB:
     def __init__(self):
         self.conn = sqlite3.connect(':memory:', isolation_level=None)
         self.cursor = self.conn.cursor()
+        self.cursor.execute("PRAGMA cache_size = -20000")  # ✅ Set cache size ONCE when initializing
         self.tables = {}  # To track schemas for validation
 
     def _infer_schema(self, obj):
@@ -181,6 +179,16 @@ class RamDB:
             self.cursor.execute(sql)
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL execution failed: {e}")
+
+    def executemany(self, sql, data_list):
+        """
+        Execute a SQL command that takes multiple parameter sets.
+        """
+        try:
+            self.cursor.executemany(sql, data_list)
+        except sqlite3.Error as e:
+            raise RuntimeError(f"SQL execution failed: {e}")
+
 
     def query(self, sql, params=None, as_dict=True):
         try:
