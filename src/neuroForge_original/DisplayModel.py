@@ -6,8 +6,6 @@ from src.neuroForge_original.DisplayModel__Neuron import DisplayModel__Neuron
 from src.neuroForge_original.EZSurface import EZSurface
 from src.engine.RamDB import RamDB
 
-
-
 class DisplayModel(EZSurface):
     def __init__(self, screen, data_labels, width_pct, height_pct, left_pct, top_pct, db: RamDB, architecture=None):
         #print(f"IN DISPLAYMODEL -- left_pct = {left_pct}")

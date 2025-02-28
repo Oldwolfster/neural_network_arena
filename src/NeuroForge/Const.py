@@ -76,6 +76,7 @@ COLOR_GREEN_FOREST      = (34, 139, 34)
 COLOR_ORANGE            = (255, 165, 0)
 COLOR_YELLOW_BRIGHT     = (255, 215, 0)
 COLOR_WHITE             = (255, 255, 255)
+COLOR_CREAM             = (255, 255, 200)
 
 COLOR_FOR_BANNER        = (0, 0, 255)
 COLOR_FOR_SHADOW        = (30, 30, 100)  # Darker blue for depth

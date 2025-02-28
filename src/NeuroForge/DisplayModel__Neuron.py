@@ -65,6 +65,14 @@ class DisplayModel__Neuron:
         self.neuron_visualizer      = DisplayModel__NeuronWeights(self, self.ez_printer)
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
 
+    def is_hovered(self, model_x, model_y, mouse_x, mouse_y):
+        """
+        Check if the mouse is over this neuron.
+        """
+        neuron_x = model_x + self.location_left
+        neuron_y = model_y + self.location_top
+        return (neuron_x <= mouse_x <= neuron_x + self.location_width) and (neuron_y <= mouse_y <= neuron_y + self.location_height)
+
 
     def draw_neuron(self):
         """Draw the neuron visualization."""
@@ -177,3 +185,65 @@ class DisplayModel__Neuron:
             # TODO: Handle case where no weights are found for the current epoch/iteration
             self.weights = []
             self.weights_before = []
+
+############################### BELOW HERE IS POP UP WINDOW ##################################
+############################### BELOW HERE IS POP UP WINDOW ##################################
+############################### BELOW HERE IS POP UP WINDOW ##################################
+############################### BELOW HERE IS POP UP WINDOW ##################################
+############################### BELOW HERE IS POP UP WINDOW ##################################
+############################### BELOW HERE IS POP UP WINDOW ##################################
+    def render_tooltip(self):   #"""Render the tooltip with neuron details."""
+        screen = Const.SCREEN
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        tooltip_width = 619
+        tooltip_height = 300
+        tooltip_x = mouse_x + 10
+        tooltip_y = mouse_y + 10
+
+        # Ensure tooltip doesn't go off screen
+        if tooltip_x + tooltip_width > screen.get_width():
+            tooltip_x -= tooltip_width + 20
+        if tooltip_y + tooltip_height > screen.get_height():
+            tooltip_y -= tooltip_height + 20
+
+        # Draw background box
+        pygame.draw.rect(screen, Const.COLOR_CREAM, (tooltip_x, tooltip_y, tooltip_width, tooltip_height))
+        pygame.draw.rect(screen, Const.COLOR_BLACK, (tooltip_x, tooltip_y, tooltip_width, tooltip_height), 2)
+
+        #Header
+        font2 = pygame.font.Font(None, 40)
+        head1 = font2.render("Forward Prop       Back Prop", True,  Const.COLOR_BLACK)
+        screen.blit(head1 , (tooltip_x + 5, tooltip_y + 5))
+
+        # Font setup
+        font = pygame.font.Font(None, 22)
+        self.tooltip_generate_text()
+        col_size = 60
+        header_spac = 39
+        for x, text_col in enumerate(self.tooltip_columns):  # loop through columns
+            for y, text_cell in enumerate(text_col): #print(f"x={x}\ty={y}\ttext_cell='{text_cell}'")
+                # Set a default color. You might define a normal_color if needed.
+                this_color =  Const.COLOR_BLACK  # or some default color
+                if x == 7 and y > 0 and len(text_cell) > 0:  # Adjustment column
+                    try:
+                        # Attempt to convert the text_cell to a float
+                        val = float(text_cell.replace(",", ""))
+                        this_color =  Const.COLOR_GREEN_FOREST if val >= 0 else Const.COLOR_CRIMSON
+                    except ValueError as e:
+                        print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
+                        # Optionally, set this_color to a fallback (here normal_color) if conversion fails
+                        this_color = Const.COLOR_BLACK
+                label = font.render(str(text_cell), True, this_color)
+                screen.blit(label, (tooltip_x + x * col_size + 5,  header_spac + (tooltip_y + 5 + y * 20)))
+    def tooltip_generate_text(self):
+        self.tooltip_columns.clear()
+        self.tooltip_columns_for_forward_pass()
+        #self.tooltip_columns_for_backprop()
+
+    def tooltip_columns_for_forward_pass(self):
+        temp_list = ["Input"]
+        self.tooltip_columns.append(temp_list)
+        temp_list = ["* Weight"]
+        self.tooltip_columns.append(temp_list)
+        temp_list = [""]

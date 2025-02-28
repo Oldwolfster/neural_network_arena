@@ -14,6 +14,7 @@ class DisplayManager:
 
     def __init__(self, configs: List[ModelConfig]):
         Const.configs       = configs  # Store all model configs
+        self.hovered_neuron = None  # ✅ Store the neuron being hovered over
         self.components     = []  # List for EZSurface-based components
         self.eventors       = []  # Components that need event handling
         self.event_runners  = []
@@ -162,7 +163,30 @@ class DisplayManager:
         """Render all registered components."""
         for component in self.components:            #print(f"Rendering: {component.child_name}")  # Print the subclass name
             component.draw_me()
+        self.update_hover_state()
+        if self.hovered_neuron is not None:
+            self.hovered_neuron.render_tooltip()
+            #self.hovered_neuron.tool_tip = None
 
     def process_events(self, event):
         for component in self.eventors:            #print(f"Display Manager: event={event} ")
             component.process_an_event(event)
+
+    def update_hover_state(self):
+        """
+        Check which neuron is being hovered over, prioritizing the topmost model.
+        """
+        self.hovered_neuron = None  # Reset each frame
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        for model in reversed(self.models):  # ✅ Start with the topmost model
+            for layer in model.neurons:
+                for neuron in layer:
+                    if neuron.is_hovered(model.left, model.top, mouse_x, mouse_y):
+                        print(f"hovering over {model.config.gladiator_name} { neuron.label}")
+                        self.hovered_neuron = neuron  # ✅ Store the first neuron found
+                        return  # ✅ Stop checking once we find one (avoids conflicts)
+
+
+
+
+
