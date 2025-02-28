@@ -2,6 +2,8 @@ from typing import Dict
 import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.EZSurface import EZSurface
+from src.engine.Utils import get_darker_color
+
 
 class EZForm(EZSurface):
     """Wrapper for rendering dynamic UI forms with auto-positioning and scaling."""
@@ -22,14 +24,16 @@ class EZForm(EZSurface):
     ):
         #Store the simple stuff
         self.child_name = self.__class__.__name__  # Store the subclass name
-        self.shadow_offset_x = shadow_offset_x
+        self.shadow_offset_x = shadow_offset_x                
+        self.need_label_coord = True    # Track first-time label positions for arrows
+        self.label_y_positions = []      # Track first-time label positions for arrows
         #self.shadow_offset_y = shadow_offset_y
         self.fields = fields
         self.banner_text = banner_text
         self.banner_color = banner_color
         self.font_color = font_color
         self.banner_font = pygame.font.Font(None, 36)
-        self.field_font = pygame.font.Font(None, 24)
+        self.field_font = pygame.font.Font   (None, 24)
         self.spacing = 10
         self.shadow_color = Const.COLOR_FOR_SHADOW
 
@@ -38,7 +42,6 @@ class EZForm(EZSurface):
         self.form_height = int(Const.SCREEN_HEIGHT * (height_pct / 100))
         form_left = int(Const.SCREEN_WIDTH * (left_pct / 100))
         form_top = int(Const.SCREEN_HEIGHT * (top_pct / 100))
-
 
         # Convert shadow offsets from pixels to percentages (rounding up)
         #shadow_x_pct = round((shadow_offset_x / Const.SCREEN_WIDTH) * 100)
@@ -85,11 +88,19 @@ class EZForm(EZSurface):
         #print(f"shadow_offset_x={shadow_offset_x}")
         #print(f"self.surface_rect={self.surface_rect}")
 
+        self.render() # Necessary to capture the label positions
 
+    def set_colors(self, correct: int):  #Called from DisplayPanelPrediction
+        """
+        Allows updating colors dynamically.
 
-        # Track first-time label positions for arrows
-        self.need_label_coord = True
-        self.arrow_labels_position = []
+        Parameters:
+        correct: int: 1 for yes or 0 for now
+        """
+        if correct:
+            self.banner_color =  get_darker_color(Const.COLOR_GREEN_FOREST)
+        else:
+            self.banner_color = get_darker_color(Const.COLOR_FOR_ACT_NEGATIVE)
 
     def render(self):
         """Render the form with a banner, background, shadow, and dynamic fields."""
@@ -129,7 +140,7 @@ class EZForm(EZSurface):
 
         for i, (label, value) in enumerate(self.fields.items()):
             y_pos_label = field_start_y + (i * field_spacing)
-            y_pos_value = y_pos_label + 25
+            y_pos_value = y_pos_label + 20
 
             # Render Label
             label_surface = self.field_font.render(label, True, self.font_color)
@@ -140,9 +151,12 @@ class EZForm(EZSurface):
             box_margin = int(self.width * 0.05)
             value_box_rect = pygame.Rect(box_margin, y_pos_value - 15, self.form_width - (2 * box_margin), 30)
 
-            # Track label positions for arrows
+            # Track label positions for arrows (convert to global coordinates)
             if self.need_label_coord:
-                self.arrow_labels_position.append(y_pos_value)
+                global_x = self.left + self.width  # Right edge of the box
+                global_y = self.top + y_pos_value  # Convert local Y to global Y
+                self.label_y_positions.append((global_x, global_y))  # Store full (x, y) position
+
 
             pygame.draw.rect(self.surface, Const.COLOR_WHITE, value_box_rect)
             pygame.draw.rect(self.surface, self.banner_color, value_box_rect, 2)
@@ -152,5 +166,6 @@ class EZForm(EZSurface):
             value_rect = value_surface.get_rect(center=value_box_rect.center)
             self.surface.blit(value_surface, value_rect)
 
-        if self.arrow_labels_position:
+        if self.label_y_positions:
             self.need_label_coord = False
+

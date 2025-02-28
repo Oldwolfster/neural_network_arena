@@ -7,7 +7,7 @@ class GeneratorNeuron:
     model= None #Refernce to the Model it is creating neurons for.
 
     @staticmethod
-    def create_neurons(the_model: str, max_act: float, margin=20, gap=30, max_neuron_size=500 ):
+    def create_neurons(the_model: str, max_act: float, margin=20, gap=30, max_neuron_size=350):
         """
         Create neuron objects, dynamically positioning them based on architecture.
 
@@ -19,6 +19,8 @@ class GeneratorNeuron:
         """
         # 🔹 Compute neuron size and spacing
         GeneratorNeuron.model = the_model
+        #print(f"Before calculate_neuron_size: margin={margin}, gap={gap}, max_neuron_size={max_neuron_size}")
+
         size = GeneratorNeuron.calculate_neuron_size( margin, gap, max_neuron_size)
         #print(f"Neuron size:{size}")
         max_neurons = max(GeneratorNeuron.model.config.architecture)  # Determine the layer with the most neurons
@@ -70,6 +72,7 @@ class GeneratorNeuron:
         Returns:
             int: Optimized neuron size.
         """
+        #print(f"Inside calculate_neuron_size: margin={margin}, gap={gap}, max_neuron_size={max_neuron_size}")
 
         max_neurons = max(GeneratorNeuron.model.config.architecture)  # Determine the layer with the most neurons
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
@@ -86,34 +89,16 @@ class GeneratorNeuron:
         #print (f"optimal_neuron_size={optimal_neuron_size}")
         return optimal_neuron_size
 
-    def create_arrows(self, forward: bool):
-        """Create neuron connections."""
-        self.connections = []
-        for layer_index in range(1, len(self.architecture) - 1):
-            current_layer = self.neurons[layer_index - 1]
-            next_layer = self.neurons[layer_index]
-            for weight_index, from_neuron in enumerate(current_layer):
-                for to_neuron in next_layer:
-                    connection = DisplayModel__ConnectionForward(
-                        from_neuron=from_neuron, to_neuron=to_neuron, weight_index=weight_index
-                    )
-                    self.connections.append(connection)
-        self.add_input_connections(forward)
-        self.add_output_connections(forward)
 
-    def add_input_connections(self, forward: bool):
-        """Create connections from the left edge to the first hidden layer."""
-        first_hidden_layer = self.neurons[0]
-        if not first_hidden_layer:
-            return
-        origin_point = (0, self.height // 2)
-        for neuron in first_hidden_layer:
-            self.connections.append(DisplayModel__ConnectionForward(from_neuron=origin_point, to_neuron=neuron))
 
-    def add_output_connections(self, forward: bool):
-        """Create connections from last output neuron to prediction box."""
-        dest_point = (self.width, 144)
-        self.connections.append(DisplayModel__ConnectionForward(from_neuron=self.neurons[-1][0], to_neuron=dest_point))
+
+
+
+
+
+
+
+
 
 
     @staticmethod
@@ -162,3 +147,19 @@ class GeneratorNeuron:
 
         #print(f"✅ Positioned {nid + 1} neurons for model {self.model_id}.")
 
+"""
+    def add_input_connections(self, forward: bool):
+        " ""Create connections from the left edge to the first hidden layer." ""
+        first_hidden_layer = self.neurons[0]
+        if not first_hidden_layer:
+            return
+        origin_point = (0, self.height // 2)
+        for neuron in first_hidden_layer:
+            self.connections.append(DisplayModel__ConnectionForward(from_neuron=origin_point, to_neuron=neuron))
+
+    def add_output_connections(self, forward: bool):
+        "" "Create connections from last output neuron to prediction box."" "
+        dest_point = (self.width, 144)
+        self.connections.append(DisplayModel__ConnectionForward(from_neuron=self.neurons[-1][0], to_neuron=dest_point))
+
+"""

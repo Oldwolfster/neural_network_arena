@@ -71,7 +71,7 @@ class DisplayModel__ConnectionForward:
             return  original_y
         return self.to_neuron.neuron_visualizer.my_fcking_labels[self.weight_index]
 
-    def draw_connection(self, screen):
+    def draw_connection1(self, screen):
         # Get start and end points
         start_x, start_y = self._get_start_point()
         end_x, end_y = self._get_end_point()

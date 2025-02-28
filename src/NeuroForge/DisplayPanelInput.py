@@ -11,10 +11,10 @@ class DisplayPanelInput(EZForm):
         data_labels = Const.configs[0].hyper.data_labels
         self.target_name = data_labels[-1]
 
-        # Construct fields: Target value first, then input fields
-        fields = {self.target_name: ""}
-        for label in data_labels[:-1]:
-            fields[label] = "0.000"  # Default value for inputs
+        # Construct fields: Input fields first, then target value last
+        fields = {label: "0.000" for label in data_labels[:-1]}  # Default value for inputs
+        fields[self.target_name] = ""  # Add target value last
+
         #print(f"In DisplayPanelInput,width_pct= {width_pct}")
         # Initialize the parent class with dynamically created fields
         super().__init__(
@@ -28,7 +28,6 @@ class DisplayPanelInput(EZForm):
             bg_color=bg_color,
             font_color=Const.COLOR_BLACK
         )
-
 
     def update_me(self):
         """Update input fields dynamically based on retrieved values."""

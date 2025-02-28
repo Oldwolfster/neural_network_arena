@@ -1,4 +1,3 @@
-
 import random
 
 import numpy as np
@@ -12,7 +11,7 @@ from src.engine.BaseGladiator import Gladiator
 
 
 import pygame
-
+import re
 
 def get_text_rect(text: str, font_size: int):
     font = pygame.font.SysFont(None, font_size)
@@ -148,6 +147,11 @@ def print_call_stack():
         print(f"Function: {frame.function}, Line: {frame.lineno}, File: {frame.filename}")
 
 def smart_format(num):
+    try:
+        num = float(num)  # Ensure input is a number
+    except (ValueError, TypeError):
+        return str(num)  # If conversion fails, return as is
+
     if num == 0:
         return "0"
     elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
@@ -402,31 +406,15 @@ if __name__ == "__main__":
     ez_debug(a=a, b=b, c=c)
 
 
+def beautify_text(text: str) -> str:
+    """Replaces underscores with spaces and adds spaces before CamelCase words."""
+    text = text.replace("_", " ")
+    text = re.sub(r'(?<!^)(?=[A-Z])', ' ', text)
+    return text
 
 
-
-    """
-    # Example usage:
-    if __name__ == "__main__":
-        a = 1
-        b = 2
-        c = 3
-        ez_debug(a, b, c)
-    """
-
-
-
-    """
-    # Example usage:
-    if __name__ == "__main__":
-        # Example background colors:
-        examples = [
-            (255, 255, 255),  # white background -> should use black text
-            (0, 0, 0),        # black background -> should use white text
-            (100, 150, 200)   # medium background -> decision based on brightness
-        ]
-        
-        for bg in examples:
-            text_color = get_contrasting_text_color(bg)
-            print(f"Background color {bg} -> Contrasting text color {text_color}")
-    """
+def get_absolute_position(surface, local_x, local_y):
+    """Converts a coordinate from a surface's local space to absolute screen space."""
+    abs_x = surface.get_abs_x() + local_x
+    abs_y = surface.get_abs_y() + local_y
+    return abs_x, abs_y
