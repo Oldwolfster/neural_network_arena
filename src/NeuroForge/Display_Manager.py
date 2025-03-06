@@ -182,7 +182,7 @@ class DisplayManager:
             for layer in model.neurons:
                 for neuron in layer:
                     if neuron.is_hovered(model.left, model.top, mouse_x, mouse_y):
-                        print(f"hovering over {model.config.gladiator_name} { neuron.label}")
+                        #print(f"hovering over {model.config.gladiator_name} { neuron.label}")
                         self.hovered_neuron = neuron  # ✅ Store the first neuron found
                         return  # ✅ Stop checking once we find one (avoids conflicts)
 

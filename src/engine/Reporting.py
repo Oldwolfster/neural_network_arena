@@ -85,22 +85,6 @@ def prep_RamDB():
         );""")
 
 
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS ErrorSignalCalcs (
-            epoch        INTEGER NOT NULL,
-            iteration    INTEGER NOT NULL,
-            model_id     TEXT NOT NULL,
-            neuron_id          INTEGER NOT NULL,            
-            arg_1        REAL NOT NULL,
-            op_1         TEXT NOT NULL CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
-            arg_2        REAL NOT NULL,
-            op_2         TEXT NOT NULL CHECK (op_2 IN ('+', '-', '*', '/', '=')),
-            arg_3        REAL DEFAULT NULL,
-            op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
-            result       REAL NOT NULL,
-            PRIMARY KEY (epoch, iteration, model_id, neuron_id)  -- Ensures unique calculations per neuron per step
-        );""")
-
     db.execute("""CREATE TABLE DistributeErrorCalcs (
                     epoch        INTEGER NOT NULL,
                     iteration    INTEGER NOT NULL,
