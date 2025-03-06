@@ -234,15 +234,25 @@ class DisplayModel__Neuron:
             # ✅ Populate content
             self.tooltip_generate_text()
 
-            for col_index, column in enumerate(self.tooltip_columns):
+            # ✅ Define dynamic column widths (adjust per column)
+            column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
+
+            # ✅ Ensure column widths match number of columns
+            if len(column_widths) < len(self.tooltip_columns):
+                column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(self.column_widths)))
+
+            # ✅ Draw each column with dynamic spacing
+            x_offset = Const.TOOLTIP_PADDING
+            for col_index, (column, col_width) in enumerate(zip(self.tooltip_columns, column_widths)):
                 for row_index, text in enumerate(column):
                     text_color = self.get_text_color(col_index, row_index, text)
-                    text=smart_format(text)
+                    text = smart_format(text)
                     label = self.font_body.render(str(text), True, text_color)
                     self.cached_tooltip.blit(label, (
-                        col_index * Const.TOOLTIP_COL_WIDTH + Const.TOOLTIP_PADDING,
+                        x_offset,
                         Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING
                     ))
+                x_offset += col_width  # ✅ Move X position based on column width
 
         # ✅ Get mouse position and adjust tooltip placement
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -281,33 +291,45 @@ class DisplayModel__Neuron:
         iteration_data = Const.dm.get_model_iteration_data(self.model_id)
         all_columns = []
         inputs          = self.tooltip_column_forward_pass_one_inputs(iteration_data) #first item on the list is the literal "Input"
-        #weights_before  = self.tooltip_column_forward_pass_three_weights()
-        #ez_debug(inpts=inputs)
-
         all_columns.append(inputs)
 
         # Multiply signs
-        multiply_signs = ["*", "="]   # the equals is for bias
-        multiply_signs.extend(["*"] * (len(inputs)-2))
+        multiply_signs = ["*", " "]   # the equals is for bias
+        multiply_signs.extend(["*"] * (len(inputs)-3))
         all_columns.append(multiply_signs)
         weights=["Weight"]
         weights.extend(self.weights_before)
         #ez_debug(wt_with_lbl = weights)
         all_columns.append(weights)
-        all_columns.append(["="] * len(inputs)) # col_op1
+        all_columns.append(["="] * (len(inputs) + 1) ) # col_op1
+
 
         # weighted product
         # Slice inpts to start from the 3rd item (index 2) and wt_before to start from the 2nd item (index 1)
         inputs_sliced = inputs[2:]  # Slices from index 2 to the end
         wt_before_sliced = weights[2:]  # Slices from index 1 to the end
         products = [inp * wt for inp, wt in zip(inputs_sliced, wt_before_sliced)]
-        product_col = ["Product", weights[1]]    #Label andbias
+        product_col = ["Product", weights[1]]    #Label and bias
         product_col.extend(products)
+        weighted_sum = sum(product_col[1:])     # Sums everything except the first element - calculate weighted sum
+        product_col.append(weighted_sum)
+        inputs.append(f"{self.activation_function}({smart_format(weighted_sum)})")
+        ez_debug(act_val=self.activation_value)
+        product_col.append(self.activation_value)
         all_columns.append(product_col)
         #ez_debug(wt_before = self.weights_before)
         #print(products)
-        ez_debug(all_columns_after_inputs=all_columns)
+        #ez_debug(all_columns_after_inputs=all_columns)
+        ez_debug(product_col=product_col)
+        inputs.append("") #Blank row after output
+        product_col.append("") #Blank row after output
+        inputs.append("Act Gradient")
+        product_col.append(self.activation_gradient)
+        inputs.append( get_activation_derivative_formula(f"{self.activation_function}"))
+        #TODO only add below if space permits
+        inputs.extend(["(How much 'Raw Sum' contri-","butes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
         return all_columns
+
     def tooltip_column_forward_pass_one_inputs(self,iteration_data):
         print(iteration_data)
         # Retrieve the JSON string from iteration_data
@@ -316,44 +338,45 @@ class DisplayModel__Neuron:
         input_col.append("Input")       # Label for column
         input_col.append("Bias")        # Bias at the top - consistency
         input_col.extend(inputs_json)
-
+        input_col.append("Weighted Sum")
         return input_col
 
-    def tooltip_column_forward_pass_three_weights(self):
-        sql = """
-        SELECT nid,value_before, value
-        FROM Weight
-        WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
-        ORDER BY weight_id ASC        
-        """
-        weights = Const.dm.db.query(sql, (self.model_id,self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), as_dict=False)
-        ez_debug(weights_RAWQUERY=weights)
-        sql = """
-        SELECT bias FROM Neuron
-        WHERE model = ? AND nid = ? AND epoch_n = ? AND iteration_n = ?               
-        """
-        bias = Const.dm.db.query(sql, (self.model_id,self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), as_dict=False)
 
-        # ✅ Extract values using list comprehension
-        weight_col =[]
-        weight_col.append("Weight")       # Label for column
-        #print (f"BIAS={bias}")
-        weight_col.extend(bias[0])
-        print (f"weight_col={weight_col}")
-        weight_col.extend([row[0] for row in weights])
-        print (f"weight_col={weight_col}")
-        self.weights_after = [smart_format(row[1]) for row in weights]  # ✅ Store "weights after" for backprop
-        return   weight_col              # ✅ return weights before iteration ran for front prop
+################### Code saved for Backward Pass #############################
+################### Code saved for Backward Pass #############################
+################### Code saved for Backward Pass #############################
+    """
+    def tooltip_columns_for_backprop(self):
+            temp_list = [""]    #Blank column dividing forward and back
 
+            self.tooltip_columns.append(temp_list)
+            temp_list = ["Input"]
+            self.tooltip_columns.append(temp_list)
+            temp_list = ["Err Sig"]
+            self.tooltip_columns.append(temp_list)
+            temp_list = ["L Rate"]
+            self.tooltip_columns.append(temp_list)
+            temp_list = ["ADJ"]
+            self.tooltip_columns.append(temp_list)
+            temp_list = ["Old Wt"]
+            self.tooltip_columns.append(temp_list)
+            temp_list = ["New Wt"]
+            self.tooltip_columns.append(temp_list)
+            #names = list(map(lambda name: "hi " + name, names))
+            bp_info = self.parse_weight_adjustments (self.weight_adjustments)
+            #self.tooltip_columns[3].extend(bp_info[0]) # Paramter name i.e.WW1,W2, B
 
+            self.tooltip_columns[4].extend(bp_info[4]) # LR
+            self.tooltip_columns[5].extend(bp_info[3]) # Err sig
+            self.tooltip_columns[6].extend(bp_info[2]) # Input Magnitude
+            self.tooltip_columns[7].extend(bp_info[5]) # Adjustment
+            self.tooltip_columns[8].extend(bp_info[1]) # original Weight
+            self.tooltip_columns[9].extend(bp_info[6]) # new Weight
+            self.tooltip_columns[4].extend(["Input * Error Signal * Learning Rate = Adjustment",""]) #Includes blank line
+            self.tooltip_columns_for_error_sig()
+"""
 
-
-
-
-
-
-
-    def tooltip_columns_saveForBack(self):
+    def tooltip_columns_saveForBackNOTNOW(self):
         """
         Populates tooltip columns with forward pass calculations for the hovered neuron.
         Queries the database using nid, model_id, epoch, iteration and orders by weight_id.
