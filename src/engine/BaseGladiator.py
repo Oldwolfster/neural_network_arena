@@ -259,7 +259,7 @@ class Gladiator(ABC):
             total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
             # 🔹 Store calculation step as a structured tuple, now including weight index
             self.error_signal_calcs.append([
-                self.epoch, self.iteration, self.gladiator, f"{neuron.layer_id},{neuron.position}",
+                self.epoch, self.iteration, self.gladiator, neuron.nid,
                 next_neuron.position,  # Adding weight index for uniqueness
                 weight_to_next, "*", error_from_next, "=", None, None, weight_to_next * error_from_next
             ])

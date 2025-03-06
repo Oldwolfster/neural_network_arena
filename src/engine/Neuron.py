@@ -87,7 +87,8 @@ class Neuron:
                     sql_statements.append(
                         f"({model_id_str}, {epoch}, {iteration}, {neuron.nid}, {weight_id + 1}, {prev_weight}, {weight})"
                     )
-
+                if neuron.nid==0: #DELETEME
+                    print(f"Epoch={neuron.bias_before}\tItearation={neuron.bias_before}\tBias Before={neuron.bias_before}\tBIAS AFTER={neuron.bias}")
                 # Store bias separately as weight_id = 0
                 sql_statements.append(
                     f"({model_id_str}, {epoch}, {iteration}, {neuron.nid}, 0, {neuron.bias_before}, {neuron.bias})"

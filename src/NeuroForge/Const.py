@@ -52,6 +52,23 @@ UI_MANAGER      = None
 TOOL_TIP        = None
 FONT            = None
 DISPLAY_MODELS  = []
+# ==============================
+# Popup Const
+# ==============================
+TOOLTIP_WIDTH       = 619
+TOOLTIP_HEIGHT      = 300
+TOOLTIP_PLACEMENT_X =  10
+TOOLTIP_PLACEMENT_Y =  10
+TOOLTIP_PADDING     =   5
+TOOLTIP_FONT_HEADER =  40
+TOOLTIP_FONT_BODY   =  22
+TOOLTIP_COL_WIDTH   =  60  # ✅ Standardized column width
+TOOLTIP_ROW_HEIGHT  =  20  # ✅ Standardized row height
+TOOLTIP_HEADER_PAD  =  39  # ✅ Consistent header spacing
+TOOLTIP_COND_COLUMN =   7
+TOOLTIP_ADJUST_PAD  =  20
+
+
 
 # ==============================
 # UI Customization

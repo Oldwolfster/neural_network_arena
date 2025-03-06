@@ -405,7 +405,25 @@ if __name__ == "__main__":
     c = 3
     ez_debug(a=a, b=b, c=c)
 
+def is_numeric(text):
+    """Validate if text can be safely converted to a number without exceptions."""
+    if not isinstance(text, str) or not text:
+        return False
 
+    # Handle commas in number format
+    text = text.replace(",", "")
+
+    # Check for decimal numbers
+    if text.count(".") <= 1:
+        # Remove one decimal point if it exists
+        text = text.replace(".", "", 1)
+
+    # Check for sign character at beginning
+    if text and text[0] in "+-":
+        text = text[1:]
+
+    # If we're left with only digits, it's numeric
+    return text.isdigit()
 def beautify_text(text: str) -> str:
     """Replaces underscores with spaces and adds spaces before CamelCase words."""
     text = text.replace("_", " ")

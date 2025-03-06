@@ -5,9 +5,9 @@ from src.engine.ActivationFunction import get_activation_derivative_formula
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
 from src.engine.RamDB import RamDB
-from src.engine.Utils import smart_format, draw_gradient_rect, ez_debug
+from src.engine.Utils import smart_format, draw_gradient_rect, ez_debug, is_numeric
 from src.NeuroForge import Const
-
+import json
 class DisplayModel__Neuron:
     """
     DisplayModel__Neuron is created by DisplayModel.
@@ -17,7 +17,7 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", "weight_before" )
+    __slots__ = ("cached_tooltip", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
     input_values = []   # Class variable to store inputs
     def __repr__(self):
         """Custom representation for debugging."""
@@ -42,7 +42,6 @@ class DisplayModel__Neuron:
 
         # Neural properties
         self.weights                = []
-        self.weight_before          = []
         self.neuron_inputs          = []
         self.max_per_weight         = []
         self.activation_function    = ""
@@ -60,8 +59,10 @@ class DisplayModel__Neuron:
         self.neuron_build_text      = "fix me"
         self.ez_printer             = EZPrint(pygame.font.Font(None, 24), color=Const.COLOR_BLACK, max_width=200, max_height=100, sentinel_char="\n")
         self.get_max_val_per_wt()
+        self.initialize_fonts()
         # Conditional visualizer
         self.update_neuron()        # must come before selecting visualizer
+
         self.neuron_visualizer      = DisplayModel__NeuronWeights(self, self.ez_printer)
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
 
@@ -186,64 +187,213 @@ class DisplayModel__Neuron:
             self.weights = []
             self.weights_before = []
 
+    def initialize_fonts(self):
+        self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_HEADER)
+        self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
+        self.header_text            = self.font_header.render("Forward Prop       Back Prop", True, Const.COLOR_BLACK)
+
+
+        #text_color = Const.COLOR_BLACK  # Default text color                # ✅ Optimize color formatting for weight adjustments (Column 7)
+        #if Const.TOOLTIP_COND_COLUMN == 7 and row_index > 0 and text:
+        #    if is_numeric(text):                    #if text.replace(",", "").replace(".", "").lstrip("-").isdigit():
+        #        value = float(text.replace(",", ""))
+        #        text_color = Const.COLOR_GREEN_FOREST if value >= 0 else Const.COLOR_CRIMSON
+
+
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
-    def render_tooltip(self):   #"""Render the tooltip with neuron details."""
-        screen = Const.SCREEN
+    def render_tooltip(self):
+        """
+        Render the tooltip with neuron details.
+        Cache the rendered tooltip and only update if epoch or iteration changes.
+        """
+
+        # ✅ Check if we need to redraw the tooltip
+        if not hasattr(self, "cached_tooltip") or self.last_epoch != Const.CUR_EPOCH or self.last_iteration != Const.CUR_ITERATION:
+            self.last_epoch = Const.CUR_EPOCH  # ✅ Update last known epoch
+            self.last_iteration = Const.CUR_ITERATION  # ✅ Update last known iteration
+
+            # ✅ Tooltip dimensions
+            tooltip_width = Const.TOOLTIP_WIDTH
+            tooltip_height = Const.TOOLTIP_HEIGHT
+
+            # ✅ Create a new surface for the tooltip
+            self.cached_tooltip = pygame.Surface((tooltip_width, tooltip_height), pygame.SRCALPHA)
+
+            # ✅ Fill background and draw border
+            self.cached_tooltip.fill(Const.COLOR_CREAM)
+            pygame.draw.rect(self.cached_tooltip, Const.COLOR_BLACK, (0, 0, tooltip_width, tooltip_height), 2)
+
+            # ✅ Draw header
+            self.cached_tooltip.blit(self.header_text, (Const.TOOLTIP_PADDING, Const.TOOLTIP_PADDING))
+
+            # ✅ Populate content
+            self.tooltip_generate_text()
+
+            for col_index, column in enumerate(self.tooltip_columns):
+                for row_index, text in enumerate(column):
+                    text_color = self.get_text_color(col_index, row_index, text)
+                    text=smart_format(text)
+                    label = self.font_body.render(str(text), True, text_color)
+                    self.cached_tooltip.blit(label, (
+                        col_index * Const.TOOLTIP_COL_WIDTH + Const.TOOLTIP_PADDING,
+                        Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING
+                    ))
+
+        # ✅ Get mouse position and adjust tooltip placement
         mouse_x, mouse_y = pygame.mouse.get_pos()
+        tooltip_x = self.adjust_position(mouse_x + Const.TOOLTIP_PLACEMENT_X, Const.TOOLTIP_WIDTH, Const.SCREEN_WIDTH)
+        tooltip_y = self.adjust_position(mouse_y + Const.TOOLTIP_PLACEMENT_Y, Const.TOOLTIP_HEIGHT, Const.SCREEN_HEIGHT)
 
-        tooltip_width = 619
-        tooltip_height = 300
-        tooltip_x = mouse_x + 10
-        tooltip_y = mouse_y + 10
+        # ✅ Draw cached tooltip onto the screen
+        Const.SCREEN.blit(self.cached_tooltip, (tooltip_x, tooltip_y))
 
-        # Ensure tooltip doesn't go off screen
-        if tooltip_x + tooltip_width > screen.get_width():
-            tooltip_x -= tooltip_width + 20
-        if tooltip_y + tooltip_height > screen.get_height():
-            tooltip_y -= tooltip_height + 20
+    def get_text_color(self,col_index, row_index, text):
+        if col_index == 7 and row_index > 0 and text:
+            if is_numeric(text):
+                value = float(text.replace(",", ""))
+                return Const.COLOR_GREEN_FOREST if value >= 0 else Const.COLOR_CRIMSON
+        return Const.COLOR_BLACK
 
-        # Draw background box
-        pygame.draw.rect(screen, Const.COLOR_CREAM, (tooltip_x, tooltip_y, tooltip_width, tooltip_height))
-        pygame.draw.rect(screen, Const.COLOR_BLACK, (tooltip_x, tooltip_y, tooltip_width, tooltip_height), 2)
+    def adjust_position(self, position, size, screen_size):
+        if position + size > screen_size:
+            return position - size - Const.TOOLTIP_ADJUST_PAD  # 20 is padding
+        return position
 
-        #Header
-        font2 = pygame.font.Font(None, 40)
-        head1 = font2.render("Forward Prop       Back Prop", True,  Const.COLOR_BLACK)
-        screen.blit(head1 , (tooltip_x + 5, tooltip_y + 5))
-
-        # Font setup
-        font = pygame.font.Font(None, 22)
-        self.tooltip_generate_text()
-        col_size = 60
-        header_spac = 39
-        for x, text_col in enumerate(self.tooltip_columns):  # loop through columns
-            for y, text_cell in enumerate(text_col): #print(f"x={x}\ty={y}\ttext_cell='{text_cell}'")
-                # Set a default color. You might define a normal_color if needed.
-                this_color =  Const.COLOR_BLACK  # or some default color
-                if x == 7 and y > 0 and len(text_cell) > 0:  # Adjustment column
-                    try:
-                        # Attempt to convert the text_cell to a float
-                        val = float(text_cell.replace(",", ""))
-                        this_color =  Const.COLOR_GREEN_FOREST if val >= 0 else Const.COLOR_CRIMSON
-                    except ValueError as e:
-                        print(f"Error converting text_cell to float: {text_cell}. Error: {e}")
-                        # Optionally, set this_color to a fallback (here normal_color) if conversion fails
-                        this_color = Const.COLOR_BLACK
-                label = font.render(str(text_cell), True, this_color)
-                screen.blit(label, (tooltip_x + x * col_size + 5,  header_spac + (tooltip_y + 5 + y * 20)))
     def tooltip_generate_text(self):
+        """Clears and regenerates tooltip text columns."""
+        print("Generating text")
         self.tooltip_columns.clear()
-        self.tooltip_columns_for_forward_pass()
-        #self.tooltip_columns_for_backprop()
+        self.tooltip_columns.extend(self.tooltip_columns_for_forward_pass())
+        # self.tooltip_columns_for_backprop()  # 🔹 Uncomment when backprop data is ready
+
+################### Gather Values for Forward Pass #############################
+################### Gather Values for Forward Pass #############################
+################### Gather Values for Forward Pass #############################
 
     def tooltip_columns_for_forward_pass(self):
-        temp_list = ["Input"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = ["* Weight"]
-        self.tooltip_columns.append(temp_list)
-        temp_list = [""]
+
+        #Next we need the actual inputs.
+        iteration_data = Const.dm.get_model_iteration_data(self.model_id)
+        all_columns = []
+        inputs          = self.tooltip_column_forward_pass_one_inputs(iteration_data) #first item on the list is the literal "Input"
+        #weights_before  = self.tooltip_column_forward_pass_three_weights()
+        #ez_debug(inpts=inputs)
+
+        all_columns.append(inputs)
+
+        # Multiply signs
+        multiply_signs = ["*", "="]   # the equals is for bias
+        multiply_signs.extend(["*"] * (len(inputs)-2))
+        all_columns.append(multiply_signs)
+        weights=["Weight"]
+        weights.extend(self.weights_before)
+        #ez_debug(wt_with_lbl = weights)
+        all_columns.append(weights)
+        all_columns.append(["="] * len(inputs)) # col_op1
+
+        # weighted product
+        # Slice inpts to start from the 3rd item (index 2) and wt_before to start from the 2nd item (index 1)
+        inputs_sliced = inputs[2:]  # Slices from index 2 to the end
+        wt_before_sliced = weights[2:]  # Slices from index 1 to the end
+        products = [inp * wt for inp, wt in zip(inputs_sliced, wt_before_sliced)]
+        product_col = ["Product", weights[1]]    #Label andbias
+        product_col.extend(products)
+        all_columns.append(product_col)
+        #ez_debug(wt_before = self.weights_before)
+        #print(products)
+        ez_debug(all_columns_after_inputs=all_columns)
+        return all_columns
+    def tooltip_column_forward_pass_one_inputs(self,iteration_data):
+        print(iteration_data)
+        # Retrieve the JSON string from iteration_data
+        inputs_json = json.loads(iteration_data.get("inputs", "[]"))  # Defaults to an empty list if missing
+        input_col =[]
+        input_col.append("Input")       # Label for column
+        input_col.append("Bias")        # Bias at the top - consistency
+        input_col.extend(inputs_json)
+
+        return input_col
+
+    def tooltip_column_forward_pass_three_weights(self):
+        sql = """
+        SELECT nid,value_before, value
+        FROM Weight
+        WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+        ORDER BY weight_id ASC        
+        """
+        weights = Const.dm.db.query(sql, (self.model_id,self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), as_dict=False)
+        ez_debug(weights_RAWQUERY=weights)
+        sql = """
+        SELECT bias FROM Neuron
+        WHERE model = ? AND nid = ? AND epoch_n = ? AND iteration_n = ?               
+        """
+        bias = Const.dm.db.query(sql, (self.model_id,self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), as_dict=False)
+
+        # ✅ Extract values using list comprehension
+        weight_col =[]
+        weight_col.append("Weight")       # Label for column
+        #print (f"BIAS={bias}")
+        weight_col.extend(bias[0])
+        print (f"weight_col={weight_col}")
+        weight_col.extend([row[0] for row in weights])
+        print (f"weight_col={weight_col}")
+        self.weights_after = [smart_format(row[1]) for row in weights]  # ✅ Store "weights after" for backprop
+        return   weight_col              # ✅ return weights before iteration ran for front prop
+
+
+
+
+
+
+
+
+
+    def tooltip_columns_saveForBack(self):
+        """
+        Populates tooltip columns with forward pass calculations for the hovered neuron.
+        Queries the database using nid, model_id, epoch, iteration and orders by weight_id.
+        """
+
+        neuron = Const.dm.hovered_neuron  # ✅ Delete this line.. this code is in the neuron that is hovered. if you need attributes of the neuron please use self.
+        if not neuron:
+            return  # ✅ Exit early if no neuron is hovered
+
+        # ✅ Define tooltip columns (headers)
+        self.tooltip_columns = [
+            ["Input"],         # Column 0 - Input value
+            ["×"],             # Column 1 - Multiplication operator
+            ["Weight"],        # Column 2 - Weight value
+            ["="],             # Column 3 - Equals operator
+            ["Raw Sum"],       # Column 4 - Weighted sum before activation
+        ]
+
+        # ✅ Query the database for the forward pass calculations of this neuron
+        sql = """
+        SELECT arg_1, op_1, arg_2, op_2, arg_3, op_3, result
+        FROM ErrorSignalCalcs 
+        WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+        ORDER BY weight_id ASC
+        """
+
+        results = Const.dm.db.query(sql, (neuron.model_id, neuron.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), as_dict=False)
+
+        if not results:
+            return  # ✅ No data found, exit early
+
+        # ✅ Loop through results and add each record as a new row
+        for row in results:
+            weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3 = row
+
+            self.tooltip_columns.append([
+                smart_format(arg_1),   # Input
+                op_1,             # × Operator
+                smart_format(arg_2),   # Weight
+                op_2,             # = Operator
+                smart_format(arg_3) # Raw Sum
+
+            ])

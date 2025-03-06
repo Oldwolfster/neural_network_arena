@@ -128,7 +128,7 @@ class DisplayModel__NeuronWeights:
             y_pos = start_y + i * (self.bar_height * 2 + self.gap_between_weights)
 
             # Call function to draw the two bars for this weight
-            self.draw_two_bars_for_one_weight(start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_bars, self.neuron.weights[i],i)
+            self.draw_two_bars_for_one_weight(start_x, y_pos, bar_self, bar_global, self.bar_height, self.gap_between_bars, self.neuron.weights_before[i],i)
 
         if len(self.my_fcking_labels) > 0:
             self.need_label_coord = False #Only need to record on first pass.
@@ -147,7 +147,7 @@ class DisplayModel__NeuronWeights:
             neuron_width = 20
 
         bar_lengths = []
-        for i, weight in enumerate(self.neuron.weights):
+        for i, weight in enumerate(self.neuron.weights_before):
             abs_weight = abs(weight)  # Use absolute value for visualization
 
             # Normalize relative to this weight's historical max
