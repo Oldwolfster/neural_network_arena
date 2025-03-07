@@ -154,10 +154,11 @@ def smart_format(num):
 
     if num == 0:
         return "0"
-    elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
-        return f"{num:.2e}"
+    #elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
+    #    return f"{num:.2e}"
     elif abs(num) < 0.001:  # Use 6 decimal places for small numbers
-        formatted = f"{num:,.6f}"
+        #formatted = f"{num:,.6f}"
+        return f"{num:.1e}"
     elif abs(num) < 1:  # Use 3 decimal places for numbers less than 1
         formatted = f"{num:,.3f}"
     elif abs(num) > 1000:  # Use no decimal places for large numbers
@@ -436,3 +437,14 @@ def get_absolute_position(surface, local_x, local_y):
     abs_x = surface.get_abs_x() + local_x
     abs_y = surface.get_abs_y() + local_y
     return abs_x, abs_y
+
+
+def clean_value(value):
+    """Ensure values are correctly formatted for SQLite storage."""
+    if isinstance(value, (int, float, np.float64, np.int64)):
+        return float(value)  # Convert to standard float
+    elif value == 0:
+        return 0.0  # Explicitly ensure zero is stored correctly
+    elif value is None or value == "":
+        return None  # Ensure NULL values are handled properly
+    return value  # Return unchanged for text or other valid values

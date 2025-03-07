@@ -90,7 +90,7 @@ class Gladiator(ABC):
             convergence_signal (str) : If not converged, empty string, otherwise signal that detected convergence
         """
         self.epoch = epoch_num      # Set so the child model has access
-
+        print(f"epoch={self.epoch}")
         #print(f"\tepoch\titeration\tinput\ttarget\tprediction\terror\tweight before adj\tfinal weight")
         if epoch_num % 100 == 0 and epoch_num!=0:
                 print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -194,22 +194,13 @@ class Gladiator(ABC):
             for hidden_neuron in Neuron.layers[layer_index]:  # Iterate over current hidden layer
                 self.back_pass__error_signal_for_hidden(hidden_neuron)
 
-        self.adjust_weights(training_sample)
-        self.insert_error_signal_calcs()            # Write error signal calculations to db for NeuroForge popup
-        self.insert_distribute_error_calcs()        # Write distribute error calculations to db for NeuroForge popup
-        """
         # Step 3: Adjust weights for the output neuron
-        prev_layer_activations = [n.activation_value for n in Neuron.layers[-2]]  # Last hidden layer activations
-        self.back_pass__distribute_error(output_neuron, prev_layer_activations)
+        self.adjust_weights(training_sample)
 
         # Step 4: Adjust weights for the hidden neurons (⬅️ Last step we need)
-        for layer_index in range(len(Neuron.layers) - 2, -1, -1):  # Iterate backwards (including first hidden layer)
-            prev_layer_activations = [n.activation_value for n in Neuron.layers[layer_index - 1]]  # Use activations for hidden layers
-            if layer_index == 0:        #For layer zero overwrite prev_layer_activations with inputs as inputs aren't in the neuron layers.
-                prev_layer_activations = training_sample[:-1]  # Use raw inputs for first hidden layer
-            for neuron in Neuron.layers[layer_index]:
-                self.back_pass__distribute_error(neuron, prev_layer_activations)
-        """
+        self.insert_error_signal_calcs()            # Write error signal calculations to db for NeuroForge popup
+        self.insert_distribute_error_calcs()        # Write distribute error calculations to db for NeuroForge popup
+
     def back_pass__error_signal_for_output(self, loss_gradient: float):
         """
         Calculate error_signal(gradient) for output neuron.
@@ -238,6 +229,82 @@ class Gladiator(ABC):
             for neuron in Neuron.layers[layer_index]:
                 self.back_pass__distribute_error(neuron, prev_layer_activations)
 
+
+    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
+        """
+        Updates weights for a neuron based on error signal.
+        args: neuron: The neuron that will have its weights updated to.
+
+        - First hidden layer uses inputs from training data.
+        - All other neurons use activations from the previous layer.
+        """
+        learning_rate = neuron.learning_rate
+        error_signal = neuron.error_signal
+        weight_formulas = []
+        #if neuron.nid    == 2 and self.epoch==1 and self.iteration<3:
+        #print(f"WEIGHT UPDATE FOR epoch:{self.epoch}\tItertion{self.iteration}")
+
+        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
+            weight_before = neuron.weights[i]
+            #If calculating gradient tradional way (errpr *-2) then below shuold subtract not add. but it dont work
+            #adjustment  = learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
+            adjustment  = prev_value * error_signal *  learning_rate  #So stupid to go down hill they look uphill and go opposite
+            neuron.weights[i] += adjustment
+            print(f"{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
+
+            # 🔹 Store structured calculation for weights
+            self.distribute_error_calcs.append([
+                # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
+                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
+                prev_value, "*", error_signal, "*", learning_rate, "=", adjustment
+            ])
+
+        if self.iteration+1==2:
+            print("Mistake here!")
+            for row in self.distribute_error_calcs:
+                print(row)
+
+
+
+        #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
+        #    print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
+        # Bias update
+        adjustment_bias = learning_rate * error_signal
+        neuron.bias += adjustment_bias
+
+        # 🔹 Store structured calculation for bias
+
+        self.distribute_error_calcs.append([
+        # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
+            self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
+                "1", "*", error_signal, "*", learning_rate,   "=", adjustment_bias
+            ])
+    def convert_numpy_scalars_because_python_is_weak(self, row):
+        """
+        Converts any NumPy scalar values in the given row to their native Python types.
+        Friggen ridiculous it was converting either 0 to null or 1 to 0.... what a joke this language is
+        """
+        return [x.item() if hasattr(x, 'item') else x for x in row]
+
+    def insert_distribute_error_calcs(self):
+        """
+        Inserts all weight update calculations for the current iteration into the database.
+        """
+        sql = """
+        INSERT INTO DistributeErrorCalcs 
+        (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+        VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))"""
+
+        #print("About to insert")
+        #for row in self.distribute_error_calcs:
+        #    print(row)
+
+        # Convert each row to ensure any numpy scalars are native Python types
+        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.distribute_error_calcs]
+        self.db.executemany(sql, converted_rows)
+        self.distribute_error_calcs.clear()
+        #self.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0 ORDER BY weight_index")
+
     def back_pass__error_signal_for_hidden(self, neuron: Neuron):
         """
         Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
@@ -259,7 +326,7 @@ class Gladiator(ABC):
             total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
             # 🔹 Store calculation step as a structured tuple, now including weight index
             self.error_signal_calcs.append([
-                self.epoch, self.iteration, self.gladiator, neuron.nid,
+                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid,
                 next_neuron.position,  # Adding weight index for uniqueness
                 weight_to_next, "*", error_from_next, "=", None, None, weight_to_next * error_from_next
             ])
@@ -288,65 +355,23 @@ class Gladiator(ABC):
         #    print(row)
 
         sql = """
-        INSERT INTO ErrorSignalCalcs 
-        (epoch, iteration, model_id, nid, weight_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+        INSERT INTO ErrorSignalCalcs
+        (epoch, iteration, model_id, nid, weight_id, 
+         arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+        VALUES 
+        (?, ?, ?, ?, ?, 
+         CAST(? AS REAL), ?, 
+         CAST(? AS REAL), ?, 
+         CAST(? AS REAL), ?, 
+         CAST(? AS REAL))
+        """
+
+        # Convert each row to ensure any numpy scalars are native Python types
+        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.error_signal_calcs]
         self.db.executemany(sql, self.error_signal_calcs)
         self.error_signal_calcs.clear()
 
-    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
-        """
-        Updates weights for a neuron based on error signal.
-        args: neuron: The neuron that will have its weights updated to.
 
-        - First hidden layer uses inputs from training data.
-        - All other neurons use activations from the previous layer.
-        """
-        learning_rate = neuron.learning_rate
-        error_signal = neuron.error_signal
-        weight_formulas = []
-        #if neuron.nid    == 2 and self.epoch==1 and self.iteration<3:
-        #print(f"WEIGHT UPDATE FOR epoch:{self.epoch}\tItertion{self.iteration}")
-
-        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
-            weight_before = neuron.weights[i]
-            #If calculating gradient tradional way (errpr *-2) then below shuold subtract not add. but it dont work
-            neuron.weights[i] += learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
-            #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
-                #print(f"w={w}\tneuron.weights[i]={neuron.weights[i]}\tneuron.weights_before[i]={neuron.weights_before[i]}")
-                #print(f"weight# {i}  weight_before={smart_format(weight_before)}\tlearning_rate={learning_rate}\terror_signal={smart_format(error_signal)}\tprev_value={prev_value}\tnew weight={smart_format(neuron.weights[i])}\t")
-            neuron_id = f"{neuron.layer_id},{neuron.position}"
-            calculation = f"w{i} Neuron ID{neuron_id} = {store_num(w)} + {store_num(learning_rate)} * {store_num(error_signal)} * {store_num(prev_value)}"
-            # 🔹 Store structured calculation for weights
-            self.distribute_error_calcs.append([
-                # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-                self.epoch, self.iteration, self.gladiator, neuron.nid, i,
-                weight_before, "*", learning_rate, "*", error_signal, "=", neuron.weights[i]
-            ])
-            weight_formulas.append(calculation)
-        #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
-        #    print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
-        # Bias update
-        neuron.bias += learning_rate * error_signal
-        weight_formulas.append(f"B = {store_num(neuron.bias_before)} + {store_num(learning_rate)} * {store_num(error_signal)}")
-        neuron.weight_adjustments = '\n'.join(weight_formulas)
-
-        # 🔹 Store structured calculation for bias
-        #self.distribute_error_calcs.append([
-        #    self.epoch, self.iteration, self.gladiator, neuron_id,
-        #    bias_before, "+", learning_rate, "*", error_signal, None, None, neuron.bias
-        #])
-    def insert_distribute_error_calcs(self):
-        """
-        Inserts all weight update calculations for the current iteration into the database.
-        """
-        sql = """
-        INSERT INTO DistributeErrorCalcs 
-        (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
-
-        self.db.executemany(sql, self.distribute_error_calcs)
-        self.distribute_error_calcs.clear()
 
     def validate_pass(self, target: float, prediction_raw: float):
         """
@@ -506,12 +531,18 @@ class Gladiator(ABC):
 
 
 def smart_format(num):
+    try:
+        num = float(num)  # Ensure input is a number
+    except (ValueError, TypeError):
+        return str(num)  # If conversion fails, return as is
+
     if num == 0:
         return "0"
-    elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
-        return f"{num:.2e}"
+    #elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
+    #    return f"{num:.2e}"
     elif abs(num) < 0.001:  # Use 6 decimal places for small numbers
-        formatted = f"{num:,.6f}"
+        #formatted = f"{num:,.6f}"
+        return f"{num:.1e}"
     elif abs(num) < 1:  # Use 3 decimal places for numbers less than 1
         formatted = f"{num:,.3f}"
     elif abs(num) > 1000:  # Use no decimal places for large numbers
@@ -519,9 +550,11 @@ def smart_format(num):
     else:  # Default to 2 decimal places
         formatted = f"{num:,.2f}"
 
-    # Remove trailing zeros and trailing decimal point if necessary
-    return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
+
 
 def store_num(number):
     formatted = f"{number:.6g}".replace(",", "")
     return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
+
+def store_num(number):
+    return number
