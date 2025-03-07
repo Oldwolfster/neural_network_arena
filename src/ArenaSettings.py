@@ -77,7 +77,8 @@ training_pit                = "XOR"
 gladiators = [
     #'Blackbird'
     #'XOR_Hayabusa'
-    'NeuroForge_Template'
+    #'NeuroForge_Template'
+    'NeuroForge_4Layers'
     #,'NeuroForge_Experiment'
    #'_Template_Simpletron'
     #,'HayabusaTwoWeights'   #2 weights

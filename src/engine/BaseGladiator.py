@@ -250,7 +250,7 @@ class Gladiator(ABC):
             #adjustment  = learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
             adjustment  = prev_value * error_signal *  learning_rate  #So stupid to go down hill they look uphill and go opposite
             neuron.weights[i] += adjustment
-            print(f"{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
+            #print(f"{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
 
             # 🔹 Store structured calculation for weights
             self.distribute_error_calcs.append([

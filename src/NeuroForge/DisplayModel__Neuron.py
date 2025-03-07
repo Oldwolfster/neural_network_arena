@@ -264,7 +264,8 @@ class DisplayModel__Neuron:
         Const.SCREEN.blit(self.cached_tooltip, (tooltip_x, tooltip_y))
 
     def get_text_color(self,col_index, row_index, text):
-        if col_index == 7 and row_index > 0 and text:
+        #if col_index == 7 and row_index > 0 and text:
+        if  row_index > 11111 and text:
             if is_numeric(text):
                 value = float(text.replace(",", ""))
                 return Const.COLOR_GREEN_FOREST if value >= 0 else Const.COLOR_CRIMSON
@@ -345,7 +346,7 @@ class DisplayModel__Neuron:
         inputs_json = json.loads(iteration_data.get("inputs", "[]"))  # Defaults to an empty list if missing
         input_col =[]
         input_col.append("Input")       # Label for column
-        input_col.append("N/A")        # Bias at the top - consistency
+        input_col.append("1")        # Bias at the top - consistency
         input_col.extend(inputs_json)
         return input_col
 
@@ -361,6 +362,7 @@ class DisplayModel__Neuron:
         weights = ["New"]
         weights.extend(self.weights)
         all_columns.append(weights)
+        all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
         return all_columns
 
     def tooltip_columns_for_backprop_error_distribution(self):
@@ -383,7 +385,7 @@ class DisplayModel__Neuron:
         if not results:
             return []  # ✅ No data found, exit early
 
-        ez_debug(results=results)
+        #ez_debug(results=results)
 
         # ✅ Initialize columns for backpropagation
         col_input = ["Input"]
@@ -416,4 +418,80 @@ class DisplayModel__Neuron:
         all_columns.append(col_adj)
         return all_columns
 
+    def tooltip_columns_for_error_signal_calculation(self, all_cols):
+        for i in range(9):
+            all_cols[i].append(" ")
 
+
+        if self.layer == self.output_layer: # This is an output neuron
+            return self.tooltip_columns_for_error_sig_outputlayer(all_cols)
+        else:
+            return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
+
+    def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
+        all_cols[0].append("Error Signal Calculation (for OUTPUT layer)")
+        all_cols[0].append("Error Signal  = Loss Gradient * Activation Gradient")
+        all_cols[0].extend([f"Error Signal = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+        return all_cols
+    def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
+        col_weight = 0
+        col_errsig = 3
+        col_contri = 6
+        all_cols[col_weight].append("Error Signal Calculation (for Hidden layer)")
+        all_cols[col_errsig-1].append(" ")
+        all_cols[col_errsig].append(" ")
+        all_cols[col_contri-1].append(" ")
+        all_cols[col_contri].append(" ")
+        all_cols[col_weight].append("Weight")
+        all_cols[col_errsig].append("Err Sig")
+        all_cols[col_contri].append("Contribution")
+        arg_1, arg_2 = self.get_elements_of_backproped_error()
+        contributions = [a * b for a, b in zip(arg_1, arg_2)]
+        all_cols[col_weight].extend(arg_1)
+        all_cols[col_errsig-1].extend("*" * (len(arg_1)+1))
+        all_cols[col_errsig].extend(arg_2)
+        all_cols[col_contri-1].extend("=" * (len(arg_1)+3))
+        all_cols[col_contri].extend(contributions)
+        bpe=sum(contributions)
+        all_cols[col_weight].append("BackPropagated Error")
+        all_cols[col_weight].append("ErrSig = BPE *  Act Grad")
+        all_cols[col_contri].append(bpe)
+        all_cols[col_contri].append(bpe*self.activation_gradient)
+        #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
+        #all_cols[col_weight].append(f"Error Signal = {smart_format(bpe*self.activation_gradient)}")
+        return all_cols
+
+    def get_elements_of_backproped_error(self):
+        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
+        SQL = """
+            SELECT arg_1, arg_2
+            FROM ErrorSignalCalcs
+            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            ORDER BY weight_id ASC
+        """
+        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), False)
+
+        if backprop_error_elements:             # Split the elements into two lists using the helper function
+            list1, list2 = self.split_error_elements(backprop_error_elements)
+            return list1, list2
+        else:
+            return [],[]
+
+    def split_error_elements(self,elements):
+        """
+        Splits a list of tuples into two lists.
+        Each tuple is expected to have two elements.
+
+        Parameters:
+            elements (list of tuple): List of tuples to split.
+
+        Returns:
+            tuple: A tuple containing two lists:
+                   - The first list contains the first element of each tuple.
+                   - The second list contains the second element of each tuple.
+        """
+        if elements:
+            # Use zip to transpose the list of tuples and then convert each tuple to a list
+            first_list, second_list = map(list, zip(*elements))
+            return first_list, second_list
+        return [], []
