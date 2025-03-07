@@ -228,7 +228,7 @@ class RamDB:
             report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
 
             if surpress_call_stack == False:
-                print(f"PRINTING FROM RamDB queryprint")
+                print(f"PRINTING FROM RamDB query_print")
                 #print_call_stack()
             print(report)
             return data

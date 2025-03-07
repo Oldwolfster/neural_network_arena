@@ -190,7 +190,7 @@ class DisplayModel__Neuron:
     def initialize_fonts(self):
         self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_HEADER)
         self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
-        self.header_text            = self.font_header.render("Forward Prop       Back Prop", True, Const.COLOR_BLACK)
+        self.header_text            = self.font_header.render("Forward Prop           Back Prop", True, Const.COLOR_BLACK)
 
 
         #text_color = Const.COLOR_BLACK  # Default text color                # ✅ Optimize color formatting for weight adjustments (Column 7)
@@ -235,11 +235,12 @@ class DisplayModel__Neuron:
             self.tooltip_generate_text()
 
             # ✅ Define dynamic column widths (adjust per column)
-            column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
-
+            #column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
+            column_widths = [40, 50, 10, 60, 10, 70, 50, 10, #ends on first op  in backprop
+                             57,10,50,10,50,50,50,100]   # Example widths for each column
             # ✅ Ensure column widths match number of columns
-            if len(column_widths) < len(self.tooltip_columns):
-                column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(self.column_widths)))
+            #if len(column_widths) < len(self.tooltip_columns):
+            #    column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(column_widths)))
 
             # ✅ Draw each column with dynamic spacing
             x_offset = Const.TOOLTIP_PADDING
@@ -279,11 +280,17 @@ class DisplayModel__Neuron:
         print("Generating text")
         self.tooltip_columns.clear()
         self.tooltip_columns.extend(self.tooltip_columns_for_forward_pass())
-        # self.tooltip_columns_for_backprop()  # 🔹 Uncomment when backprop data is ready
+        self.tooltip_columns.extend(self.tooltip_columns_for_backprop())  # 🔹 Uncomment when backprop data is ready
 
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
+    def tooltip_columns_for_forward_pass_row_labels(self, inputs):
+        labels = [" ", "Bias"]
+        for i,inp in enumerate(inputs[:-2]):
+            labels.append(f"Wt#{i+1}")
+        labels.append("Weighted Sum")
+        return labels
 
     def tooltip_columns_for_forward_pass(self):
 
@@ -291,11 +298,13 @@ class DisplayModel__Neuron:
         iteration_data = Const.dm.get_model_iteration_data(self.model_id)
         all_columns = []
         inputs          = self.tooltip_column_forward_pass_one_inputs(iteration_data) #first item on the list is the literal "Input"
+        row_labels = self.tooltip_columns_for_forward_pass_row_labels(inputs)
+        all_columns.append(row_labels)
         all_columns.append(inputs)
 
         # Multiply signs
         multiply_signs = ["*", " "]   # the equals is for bias
-        multiply_signs.extend(["*"] * (len(inputs)-3))
+        multiply_signs.extend(["*"] * (len(inputs)-2))
         all_columns.append(multiply_signs)
         weights=["Weight"]
         weights.extend(self.weights_before)
@@ -313,21 +322,21 @@ class DisplayModel__Neuron:
         product_col.extend(products)
         weighted_sum = sum(product_col[1:])     # Sums everything except the first element - calculate weighted sum
         product_col.append(weighted_sum)
-        inputs.append(f"{self.activation_function}({smart_format(weighted_sum)})")
-        ez_debug(act_val=self.activation_value)
+        row_labels.append(f"{self.activation_function}({smart_format(weighted_sum)})")
+
         product_col.append(self.activation_value)
         all_columns.append(product_col)
         #ez_debug(wt_before = self.weights_before)
         #print(products)
         #ez_debug(all_columns_after_inputs=all_columns)
-        ez_debug(product_col=product_col)
-        inputs.append("") #Blank row after output
+        #ez_debug(product_col=product_col)
+        row_labels.append("") #Blank row after output
         product_col.append("") #Blank row after output
-        inputs.append("Act Gradient")
+        row_labels.append("Act Gradient")
         product_col.append(self.activation_gradient)
-        inputs.append( get_activation_derivative_formula(f"{self.activation_function}"))
+        row_labels.append( get_activation_derivative_formula(f"{self.activation_function}"))
         #TODO only add below if space permits
-        inputs.extend(["(How much 'Raw Sum' contri-","butes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
+        row_labels.extend(["(How much 'Raw Sum' contri-","butes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
         return all_columns
 
     def tooltip_column_forward_pass_one_inputs(self,iteration_data):
@@ -336,87 +345,75 @@ class DisplayModel__Neuron:
         inputs_json = json.loads(iteration_data.get("inputs", "[]"))  # Defaults to an empty list if missing
         input_col =[]
         input_col.append("Input")       # Label for column
-        input_col.append("Bias")        # Bias at the top - consistency
+        input_col.append("N/A")        # Bias at the top - consistency
         input_col.extend(inputs_json)
-        input_col.append("Weighted Sum")
         return input_col
 
+################### Gather Values for Back Pass #############################
+################### Gather Values for Back Pass #############################
+################### Gather Values for Back Pass #############################
 
-################### Code saved for Backward Pass #############################
-################### Code saved for Backward Pass #############################
-################### Code saved for Backward Pass #############################
-    """
     def tooltip_columns_for_backprop(self):
-            temp_list = [""]    #Blank column dividing forward and back
+        all_columns = self.tooltip_columns_for_backprop_error_distribution()
+        weights=["Orig"]
+        weights.extend(self.weights_before)
+        all_columns.append(weights)
+        weights = ["New"]
+        weights.extend(self.weights)
+        all_columns.append(weights)
+        return all_columns
 
-            self.tooltip_columns.append(temp_list)
-            temp_list = ["Input"]
-            self.tooltip_columns.append(temp_list)
-            temp_list = ["Err Sig"]
-            self.tooltip_columns.append(temp_list)
-            temp_list = ["L Rate"]
-            self.tooltip_columns.append(temp_list)
-            temp_list = ["ADJ"]
-            self.tooltip_columns.append(temp_list)
-            temp_list = ["Old Wt"]
-            self.tooltip_columns.append(temp_list)
-            temp_list = ["New Wt"]
-            self.tooltip_columns.append(temp_list)
-            #names = list(map(lambda name: "hi " + name, names))
-            bp_info = self.parse_weight_adjustments (self.weight_adjustments)
-            #self.tooltip_columns[3].extend(bp_info[0]) # Paramter name i.e.WW1,W2, B
-
-            self.tooltip_columns[4].extend(bp_info[4]) # LR
-            self.tooltip_columns[5].extend(bp_info[3]) # Err sig
-            self.tooltip_columns[6].extend(bp_info[2]) # Input Magnitude
-            self.tooltip_columns[7].extend(bp_info[5]) # Adjustment
-            self.tooltip_columns[8].extend(bp_info[1]) # original Weight
-            self.tooltip_columns[9].extend(bp_info[6]) # new Weight
-            self.tooltip_columns[4].extend(["Input * Error Signal * Learning Rate = Adjustment",""]) #Includes blank line
-            self.tooltip_columns_for_error_sig()
-"""
-
-    def tooltip_columns_saveForBackNOTNOW(self):
+    def tooltip_columns_for_backprop_error_distribution(self):
         """
-        Populates tooltip columns with forward pass calculations for the hovered neuron.
+        Populates tooltip columns with backprop calculations for the hovered neuron.
         Queries the database using nid, model_id, epoch, iteration and orders by weight_id.
         """
 
-        neuron = Const.dm.hovered_neuron  # ✅ Delete this line.. this code is in the neuron that is hovered. if you need attributes of the neuron please use self.
-        if not neuron:
-            return  # ✅ Exit early if no neuron is hovered
-
-        # ✅ Define tooltip columns (headers)
-        self.tooltip_columns = [
-            ["Input"],         # Column 0 - Input value
-            ["×"],             # Column 1 - Multiplication operator
-            ["Weight"],        # Column 2 - Weight value
-            ["="],             # Column 3 - Equals operator
-            ["Raw Sum"],       # Column 4 - Weighted sum before activation
-        ]
-
-        # ✅ Query the database for the forward pass calculations of this neuron
+        # Query weight updates from DB
         sql = """
-        SELECT arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-        FROM ErrorSignalCalcs 
-        WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
-        ORDER BY weight_id ASC
+        SELECT weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result 
+        FROM DistributeErrorCalcs 
+        WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
+        ORDER BY weight_index ASC
         """
-
-        results = Const.dm.db.query(sql, (neuron.model_id, neuron.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), as_dict=False)
-
+        #ez_debug(epoch=Const.CUR_EPOCH, iter=Const.CUR_ITERATION,model= self.model_id, nid=self.nid)
+        #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM DistributeErrorCalcs GROUP BY epoch, iteration ")
+        #Const.dm.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0")
+        results = Const.dm.db.query(sql, (Const.CUR_EPOCH, Const.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
         if not results:
-            return  # ✅ No data found, exit early
+            return []  # ✅ No data found, exit early
 
-        # ✅ Loop through results and add each record as a new row
+        ez_debug(results=results)
+
+        # ✅ Initialize columns for backpropagation
+        col_input = ["Input"]
+        col_op1 = ["*"]
+        col_err_sig = ["ErrSig"]
+        col_op2 = ["*"]
+        col_lrate = ["LRate"]
+        col_op3 = ["="]
+        col_adj = ["Adj"]
+
+        # ✅ Loop through results and populate columns
         for row in results:
-            weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3 = row
+            weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result_value = row
+            col_input.append(arg_1)  # Input
+            col_op1.append(op_1)  # ×
+            col_err_sig.append(arg_2)  # Error Signal
+            col_op2.append(op_2)  # ×
+            col_lrate.append(arg_3)  # Learning Rate
+            col_op3.append(op_3)  # =
+            col_adj.append(result_value)   # Prev Activation
 
-            self.tooltip_columns.append([
-                smart_format(arg_1),   # Input
-                op_1,             # × Operator
-                smart_format(arg_2),   # Weight
-                op_2,             # = Operator
-                smart_format(arg_3) # Raw Sum
+        # ✅ Append all columns in the correct order
+        all_columns = []
+        all_columns.append(col_input)
+        all_columns.append(col_op1)
+        all_columns.append(col_err_sig)
+        all_columns.append(col_op2)
+        all_columns.append(col_lrate)
+        all_columns.append(col_op3)
+        all_columns.append(col_adj)
+        return all_columns
 
-            ])
+

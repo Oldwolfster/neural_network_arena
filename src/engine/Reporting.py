@@ -98,7 +98,7 @@ def prep_RamDB():
                     arg_3        REAL DEFAULT NULL,
                     op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
                     result       REAL NOT NULL,
-                    PRIMARY KEY (epoch, iteration, model_id, nid, arg_1, op_1, arg_2, op_2, arg_3, op_3)  -- Ensures unique weight update calculations
+                    PRIMARY KEY (epoch, iteration, model_id, nid, weight_index)  -- Ensures unique weight update calculations
                 );""")
 
 
