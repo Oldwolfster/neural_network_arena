@@ -1,7 +1,7 @@
 Question:
 I've hit some exciting milestones on my tool that runs an MLP with an SGD optimizer, supporting any combination of activation functions and weight initializations.
 
-Every detail of the network's state is recorded in a SQL database, and I visualize the architecture on-screen—neurons as boxes (showing key metrics) and weights as arrows (whose thickness reflects magnitude).  Hovering over a neuron shows every possible metric required for SGD (Forward, weights * inputs, activations, error signal(calculated during forward prop for use in backprop) the backprop section of the popup has two sections, one showing Input, Error Signal, Learning Rate, Adjustment, Original Weight Value, New Weight Value and Adjustment size.  The other section of backprop shows the calculation of error signal as the weighted contributons (Wt * other neurons err sig ) and then multiplied by the Activation Gradient (except for the output neuron of course)
+Every detail of the network's state is recorded in a SQL database, and I visualize the architecture on-screen—neurons as boxes (showing key metrics) and weights as arrows (whose thickness reflects magnitude).  Hovering over a neuron shows every possible metric required for SGD (Forward, weights * inputs, activations, error signal(calculated during forward prop for use in backprop) the backprop section of the popup has two sections, one showing Input, Blame, Learning Rate, Adjustment, Original Weight Value, New Weight Value and Adjustment size.  The other section of backprop shows the calculation of error signal as the weighted contributons (Wt * other neurons err sig ) and then multiplied by the Activation Gradient (except for the output neuron of course)
 
 To enhance interpretability, I apply color gradients to neurons and weights:
 
@@ -118,7 +118,7 @@ Your visualization tool sounds incredibly insightful and well-designed! The use 
 
 ---
 
-### **1. Neuron is Bright Red (High Error Signal)**
+### **1. Neuron is Bright Red (High Blame)**
 
 A bright red neuron indicates that its error signal is high, meaning it is contributing significantly to the overall loss. This could be due to misalignment between its output and the expected target. Let’s analyze the insights we can derive from the colors of the weights connected to it:
 
@@ -140,7 +140,7 @@ A bright red neuron indicates that its error signal is high, meaning it is contr
 
 ---
 
-### **2. Neuron is Bright Green (Low Error Signal)**
+### **2. Neuron is Bright Green (Low Blame)**
 
 A bright green neuron indicates that its error signal is low, meaning it is contributing minimally to the overall loss. This suggests that the neuron is performing well relative to the target. Let’s analyze the weights:
 
@@ -160,7 +160,7 @@ A bright green neuron indicates that its error signal is low, meaning it is cont
 
 ---
 
-### **3. Neuron is in the Middle (Moderate Error Signal)**
+### **3. Neuron is in the Middle (Moderate Blame)**
 
 A neuron with a moderate error signal (neither bright red nor bright green) is contributing somewhat to the overall loss but is not a major outlier. Let’s analyze the weights:
 
@@ -269,7 +269,7 @@ Revised Coloring Logic
 Here’s a refined version of your coloring logic that incorporates the above improvements:
 
 Neurons:
-Hue (Error Signal): Red (high error) to Green (low error).
+Hue (Blame): Red (high error) to Green (low error).
 
 Saturation (Activation Level): Highly saturated (saturated activation) to Desaturated (linear region).
 

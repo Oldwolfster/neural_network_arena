@@ -90,8 +90,6 @@ class Gladiator(ABC):
             convergence_signal (str) : If not converged, empty string, otherwise signal that detected convergence
         """
         self.epoch = epoch_num      # Set so the child model has access
-        print(f"epoch={self.epoch}")
-        #print(f"\tepoch\titeration\tinput\ttarget\tprediction\terror\tweight before adj\tfinal weight")
         if epoch_num % 100 == 0 and epoch_num!=0:
                 print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
@@ -133,7 +131,7 @@ class Gladiator(ABC):
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
-        return self.mgr_sql.finish_epoch()      # Finish epoch and return convergence signal
+        return self.mgr_sql.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
     def optimizer_simpletron(self, sample, inputs, target):
         prediction_raw = self.training_iteration(sample)
         error = target - prediction_raw
@@ -259,15 +257,7 @@ class Gladiator(ABC):
                 prev_value, "*", error_signal, "*", learning_rate, "=", adjustment
             ])
 
-        if self.iteration+1==2:
-            print("Mistake here!")
-            for row in self.distribute_error_calcs:
-                print(row)
 
-
-
-        #if neuron.nid    == 2 and self.epoch==0 and self.iteration==0:
-        #    print (f"All weights for neuron #{neuron.nid} epoch:  {self.epoch}\tItertion{self.iteration}\tWeights before=>{neuron.weights_before}\t THEY SHOULD BE -0.24442546 -0.704763 #Weights before=>{neuron.weights}")#seed 547298 LR = 1.0
         # Bias update
         adjustment_bias = learning_rate * error_signal
         neuron.bias += adjustment_bias

@@ -302,10 +302,10 @@ class DisplayModel__Neuron:
         """
         Format and display backpropagation details:
         - Activation Gradient (A')
-        - Error Signal (δ)
+        - Blame (δ)
         """
         self.error_signal = row.get('error_signal', None)  # From neuron
-        error_signal_str = f"Error Signal (δ): {smart_format(self.error_signal)}"
+        error_signal_str = f"Blame (δ): {smart_format(self.error_signal)}"
         return f"{error_signal_str}"
 
     def parse_weight_adjustments(self,text: str):
@@ -402,8 +402,8 @@ class DisplayModel__Neuron:
             self.tooltip_columns_for_error_sig_hiddenlayer()
 
     def tooltip_columns_for_error_sig_outputlayer(self):
-        self.tooltip_columns[4].extend(["Error Signal = Loss Gradient * Activation Gradient"])
-        self.tooltip_columns[4].extend([f"Error Signal = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+        self.tooltip_columns[4].extend(["Blame = Loss Gradient * Activation Gradient"])
+        self.tooltip_columns[4].extend([f"Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
 
     def tooltip_columns_for_error_sig_hiddenlayer(self):
         weights, err_sig, contributions = self.parse_error_signal(self.error_signal_calcs)
@@ -453,7 +453,7 @@ class DisplayModel__Neuron:
         self.tooltip_columns[7].extend(bp_info[5]) # Adjustment
         self.tooltip_columns[8].extend(bp_info[1]) # original Weight
         self.tooltip_columns[9].extend(bp_info[6]) # new Weight
-        self.tooltip_columns[4].extend(["Input * Error Signal * Learning Rate = Adjustment",""]) #Includes blank line
+        self.tooltip_columns[4].extend(["Input * Blame * Learning Rate = Adjustment",""]) #Includes blank line
         self.tooltip_columns_for_error_sig()
 
     def tooltip_columns_for_forward_pass(self):

@@ -1,7 +1,7 @@
 import pygame
 import pygame_gui
 from src.NeuroForge import Const
-from src.NeuroForge.Display_Manager import DisplayManager
+from src.NeuroForge.Display_Manager import Display_Manager
 from src.NeuroForge.VCR import VCR
 
 from src.UI.Menus import create_menu
@@ -20,7 +20,7 @@ def neuroForge(configs:  List[ModelConfig]):
     pygame.display.set_caption("Neural Network Visualization")
 
     Const.UI_MANAGER = pygame_gui.UIManager((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
-    Const.dm = DisplayManager(configs)  # Assign `DisplayManager` directly
+    Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
     Const.vcr = VCR()  # Handles event processing
     menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
     menu_button = ButtonMenu()
@@ -53,6 +53,7 @@ def neuroForge(configs:  List[ModelConfig]):
         Const.UI_MANAGER.draw_ui(Const.SCREEN)
         menu_button.draw()
         info_button.draw()
+        Const.dm.render_pop_up_window()
 
         if Const.MENU_ACTIVE:
             menu.update(events)

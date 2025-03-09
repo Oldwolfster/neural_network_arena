@@ -55,7 +55,7 @@ DISPLAY_MODELS  = []
 # ==============================
 # Popup Const
 # ==============================
-TOOLTIP_WIDTH       = 619
+TOOLTIP_WIDTH       = 639
 TOOLTIP_HEIGHT      = 300
 TOOLTIP_PLACEMENT_X =  10
 TOOLTIP_PLACEMENT_Y =  10
@@ -90,11 +90,15 @@ COLOR_CRIMSON           = (220, 20, 60)
 COLOR_CYAN              = (0, 255, 255)
 COLOR_GREEN             = (0, 128, 0)
 COLOR_GREEN_FOREST      = (34, 139, 34)
+COLOR_GREEN_JADE        = (60, 179, 113)
+COLOR_GREEN_KELLY       = (34, 170, 34)
+COLOR_RED_FIREBRICK     = (178, 34, 34)
+COLOR_RED_BURGUNDY      = (139,   0, 0)
 COLOR_ORANGE            = (255, 165, 0)
 COLOR_YELLOW_BRIGHT     = (255, 215, 0)
 COLOR_WHITE             = (255, 255, 255)
 COLOR_CREAM             = (255, 255, 200)
-
+#Below is Colors  by Purpose rather than color name.
 COLOR_FOR_BANNER        = (0, 0, 255)
 COLOR_FOR_SHADOW        = (30, 30, 100)  # Darker blue for depth
 COLOR_FOR_BACKGROUND    = COLOR_WHITE
@@ -106,42 +110,7 @@ COLOR_FOR_BAR_GLOBAL    = COLOR_ORANGE
 COLOR_FOR_BAR_SELF      = COLOR_GREEN
 COLOR_FOR_ACT_POSITIVE  = COLOR_GREEN
 COLOR_FOR_ACT_NEGATIVE  = COLOR_CRIMSON
-""" From original
-
-#Epoch and VCR
-VCR                     = None
-max_epoch       :int    = 0
-max_iteration   :int    = 0
-max_weight      :float  = 0
-max_error       :float  = 0
-epoch           :int    = 1
-iteration       :int    = 1
-epoch_error     :float  = 0.0
-error           :float  = 0.0
-loss            :float  = 0.0
-loss_grd        :float  = 0.0
-avg_error       :float  = 0.0
-avg_loss        :float  = 0.0
-avg_loss_grd    :float  = 0.0
-
-#Pygame objects
-screen                  = None
-tool_tip                = None
-jump_to_epoch           = 0
-color_neurons           = True
-font                    = None
-layerDeleteMe           = 1
-neuronDeleteMe          = 1
-display_models          = []
-screen_width            = 1200
-screen_height           = 900
-menu_active             = False
-# Colors
-white                   = (255, 255, 255)
-color_black             = (0, 0, 0)
-sky_blue                = (135, 206, 235)
-color_crimson           = (220,20,60)
-color_greenforest       = (34,139,34)
-color_blue              = (50, 50, 255)
-banner_color            = (0, 0, 255)
-"""
+COLOR_FOR_BAR1_POSITIVE  = COLOR_GREEN_KELLY
+COLOR_FOR_BAR1_NEGATIVE  = COLOR_RED_FIREBRICK
+COLOR_FOR_BAR2_POSITIVE = COLOR_GREEN_JADE
+COLOR_FOR_BAR2_NEGATIVE = COLOR_RED_BURGUNDY

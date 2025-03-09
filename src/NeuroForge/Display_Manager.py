@@ -10,8 +10,16 @@ from src.NeuroForge.GeneratorModel import ModelGenerator
 from src.engine.ModelConfig import ModelConfig
 from src.engine.RamDB import RamDB
 from src.engine.Utils import ez_debug
-class DisplayManager:
-
+class Display_Manager:
+    """
+    This class is the heart of NeuroForge.  It does the following.
+    1) Initializes all components including Neurons, UI Panels and Controls, Activations(Outputs)
+    2) Runs the main "Loops" such as update, render, and event processing
+    3) Is a central location for retrieving and making available global data such as iteration and epoch queries
+    It receives all initial needed information in the constructors parameter List[ModelConfigs].
+    Changing information is retrieved from the in-ram SQL Lite DB that stores the Models states (think VCR Tape of the models training)
+    NOTE: The underscore in the class name is deliberate to separate it from the classes it manages (which all are prefixed with 'Display'
+    """
     def __init__(self, configs: List[ModelConfig]):
         Const.configs       = configs  # Store all model configs
         self.hovered_neuron = None  # ✅ Store the neuron being hovered over
@@ -37,6 +45,35 @@ class DisplayManager:
         self.query_dict_iteration()
         self.query_dict_epoch()
         self.initialize_components()
+
+    def update(self):
+        Const.vcr.play_the_tape()
+        if self.last_iteration == Const.CUR_ITERATION and self.last_epoch == Const.CUR_EPOCH:
+            return #No change so no need to update
+        self.last_iteration = Const.CUR_ITERATION   # Set them to current values
+        self.last_epoch     = Const.CUR_EPOCH       # Set them to current values
+        for component in self.components:
+            component.update_me()
+
+
+    def process_events(self, event):
+        for component in self.eventors:            #print(f"Display Manager: event={event} ")
+            component.process_an_event(event)
+
+    def render(self):
+        """Render all registered components. (Except pop up window"""
+        for component in self.components:            #print(f"Rendering: {component.child_name}")  # Print the subclass name
+            component.draw_me()
+
+
+    def render_pop_up_window(self):
+        """
+        This is rendered separately to ensure it is last and is not overwritten by anything
+        such as UI Controls.
+        """
+        self.update_hover_state()
+        if self.hovered_neuron is not None:
+            self.hovered_neuron.render_tooltip()
 
     def initialize_components(self):
         """Initialize UI components like EZForm-based input panels and model displays."""
@@ -65,8 +102,6 @@ class DisplayManager:
         arrows = DisplayArrowsOutsideNeuron(self.models[0])
         self.components.append(arrows)
 
-
-
     def create_prediction_panels(self, problem_type): #one needed per model
         for idx, model_config in enumerate(Const.configs):
             model_id = model_config.gladiator_name  # Assuming ModelConfig has a `model_id` attribute
@@ -91,7 +126,6 @@ class DisplayManager:
         for row in rs:
             model_id = row["model_id"]
             self.data_iteration[model_id] = row  # Store each model's data separately
-
 
     def query_dict_epoch(self ):  #Retrieve iteration data from the database."""
         # db.query_print("PRAGMA table_info(Iteration);")
@@ -150,27 +184,6 @@ class DisplayManager:
         sql = "SELECT MAX(iteration) as max_iteration FROM Iteration"
         rs = db.query(sql)
         return rs[0].get("max_iteration")
-
-    def update(self):
-        if self.last_iteration == Const.CUR_ITERATION and self.last_epoch == Const.CUR_EPOCH:
-            return #No change so no need to update
-        self.last_iteration = Const.CUR_ITERATION   # Set them to current values
-        self.last_epoch     = Const.CUR_EPOCH       # Set them to current values
-        for component in self.components:
-            component.update_me()
-
-    def render(self):
-        """Render all registered components."""
-        for component in self.components:            #print(f"Rendering: {component.child_name}")  # Print the subclass name
-            component.draw_me()
-        self.update_hover_state()
-        if self.hovered_neuron is not None:
-            self.hovered_neuron.render_tooltip()
-            #self.hovered_neuron.tool_tip = None
-
-    def process_events(self, event):
-        for component in self.eventors:            #print(f"Display Manager: event={event} ")
-            component.process_an_event(event)
 
     def update_hover_state(self):
         """

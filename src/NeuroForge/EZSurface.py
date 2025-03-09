@@ -3,6 +3,13 @@ import pygame
 from src.NeuroForge import Const
 
 class EZSurface(ABC):
+    """
+    This is an abstract class, in that it is never instantiated directly, rather
+    the components Display_Manager manages inherit from it. It provides...
+    1)  Standard methods for updating and rendering.
+    2)  An independent surface (similar to "camera" in systems like Unity,
+        allowing for independent zooming and positioning.
+    """
     __slots__ = ("screen_width", "screen_height", "left_pct", "width_pct", "height_pct", "width", "height", "left", "top", "surface", "bg_color")
     def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0,bg_color=Const.COLOR_WHITE,transparent=False,
             pixel_adjust_width = 0, pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
