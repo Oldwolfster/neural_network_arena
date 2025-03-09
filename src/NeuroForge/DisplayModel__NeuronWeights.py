@@ -163,12 +163,13 @@ class DisplayModel__NeuronWeights:
             bar_lengths.append((bar_self, bar_global))
         return bar_lengths
 
-    def draw_two_bars_for_one_weight(self, x, y, width_self, width_global, bar_height, bar_gap, weight_value, weight_id):
+    def draw_two_bars_for_one_weight(self, x, y, width_self, width_global, bar_height, bar_gap
+            , weight_value, weight_id):
         """
         Draws two horizontal bars for a single weight visualization with labels.
 
-        - Orange = Global max reference.
-        - Green = Self max reference.
+        - Top bar = Global max reference.
+        - Bottom Bar = Self max reference.
         - Labels are drawn inside if space allows, or outside if bars are too small.
         """
 
@@ -176,9 +177,11 @@ class DisplayModel__NeuronWeights:
         global_rect = pygame.Rect(x, y, width_global, bar_height)  # Orange bar
         self_rect = pygame.Rect(x, y + bar_height + bar_gap, width_self, bar_height)  # Green bar
 
+        color1 = Const.COLOR_FOR_BAR1_POSITIVE if weight_value >= 0 else Const.COLOR_FOR_BAR1_NEGATIVE
+        color2 = Const.COLOR_FOR_BAR2_POSITIVE if weight_value >= 0 else Const.COLOR_FOR_BAR2_NEGATIVE
         # Draw bars with borders
-        draw_rect_with_border(self.neuron.screen, global_rect, Const.COLOR_FOR_BAR_GLOBAL, self.bar_border_thickness)  # Orange (global max)
-        draw_rect_with_border(self.neuron.screen, self_rect, Const.COLOR_FOR_BAR_SELF, self.bar_border_thickness)  # Green (self max)
+        draw_rect_with_border(self.neuron.screen, global_rect, color1, self.bar_border_thickness)  # Orange (global max)
+        draw_rect_with_border(self.neuron.screen, self_rect, color2, self.bar_border_thickness)  # Green (self max)
 
         # Format label text
         label_text_global = f"{weight_value:.2f}"

@@ -63,8 +63,10 @@ class DisplayPanelCtrl(EZForm):
         """
         Updates playback speed based on dropdown selection.
         """
+        print(f"speed={speed}")
+
         try:
-            new_speed = int(speed.replace("x", ""))  # Remove 'x' and convert to int
+            new_speed = int(speed[0].replace("x", ""))  # Remove 'x' and convert to int
             Const.vcr.set_speed(new_speed)
             self.epoch_input.set_text("")  # Clear input box after processing
         except ValueError:

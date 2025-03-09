@@ -74,10 +74,10 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         #    self.db.query_print("Select * from Neuron WHERE nid   = 0")
 
 
-    def finish_epoch(self):
+    def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
         self.abs_error_for_epoch = 0 # Reset for next epoch
-        epoch_metrics = self.get_metrics_from_ramdb()
+        epoch_metrics = self.get_metrics_from_ramdb(epoch)
         #print(f"MgrSQL ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
 
 
@@ -93,10 +93,9 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
             self.db.query_print(sql)
             """
 
-
         return self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
 
-    def get_metrics_from_ramdb(self) -> Dict[str, float]:
+    def get_metrics_from_ramdb(self, epoch: int) -> Dict[str, float]:
         """
         Fetch the latest epoch's metrics for the current model.
 
@@ -106,12 +105,12 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         sql = """
             SELECT *
             FROM EpochSummary
-            WHERE model_id = ?
+            WHERE model_id = ? and epoch = ?
             ORDER BY epoch DESC
             LIMIT 1;
         """
         # Pass the parameter correctly as a tuple
-        result = self.db.query(sql, params=(self.model_id,), as_dict=True)
+        result = self.db.query(sql, params=(self.model_id, epoch), as_dict=True)
 
         if result:
             return result[0]  # Return the first row as a dictionary

@@ -9,6 +9,7 @@ class VCR:
         self.direction = 1  # 1 = Forward, -1 = Reverse
         self.last_update_time = time.monotonic()
         self.status = "Playing"  # Default to paused
+        Const.CUR_ITERATION = Const.MAX_ITERATION
 
     def play(self):
         """Start playback."""
@@ -60,11 +61,12 @@ class VCR:
     def step_x_epochs(self, step: int):
         """Move a specified number of epochs forward or backward."""
         Const.CUR_EPOCH += step
-        Const.CUR_ITERATION = 1  # Reset iteration when jumping epochs
+        #Const.CUR_ITERATION = 1  # Reset iteration when jumping epochs
         self.validate_epoch_or_iteration_change_and_sync_data()
 
     def play_the_tape(self):
         """Handles auto-play when VCR is running."""
+
         if self.status == "Playing":
             current_time = time.monotonic()
             seconds_per_frame = 1.0 / abs(self.vcr_rate)
@@ -76,10 +78,10 @@ class VCR:
         """Advance or reverse a frame based on playback direction."""
         if self.status != "Playing":
             return
-        self.step_x_iteration(self.direction)
+        self.step_x_epochs(self.direction)
         self.validate_epoch_or_iteration_change_and_sync_data()
         # Fetch the latest iteration data after stepping
-        Const.dm.get_iteration_dict()
+        #Const.dm.get_iteration_dict()
 
     def validate_epoch_or_iteration_change_and_sync_data(self):
         """Ensure epoch and iteration values stay within valid bounds."""

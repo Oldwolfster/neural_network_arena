@@ -128,7 +128,7 @@ In this case, since the output neuron uses Sigmoid, we use its derivative:
 =
 0.0183
 0.981⋅(1−0.981)=0.0183
-🔗 Link 3: Error Signal (δ)
+🔗 Link 3: Blame (δ)
 📌 Formula:
 
 𝛿
@@ -285,7 +285,7 @@ Link 2: Activation Gradient
 σ(z)⋅(1−σ(z))	
 0.0183
 0.0183
-Link 3: Error Signal (δ)	
+Link 3: Blame (δ)	
 𝛿
 =
 Loss Gradient

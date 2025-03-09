@@ -149,7 +149,7 @@ class XOR_TheLongWay(Gladiator):
         # NOTE from_neuron is to the right because it's going backwards
         #In the case of single output there is only one value to sum, the output neuron
 
-        #print(f"\n🔄 Propagating Error Signal from Layer {from_neuron.layer_id} to Layer {to_neuron.layer_id}, Neuron ID: {to_neuron.nid}")
+        #print(f"\n🔄 Propagating Blame from Layer {from_neuron.layer_id} to Layer {to_neuron.layer_id}, Neuron ID: {to_neuron.nid}")
 
         activation_gradient = to_neuron.activation_gradient
         weight_index = to_neuron.position

@@ -72,6 +72,7 @@ class VCR:
             Args:
                 direction (int): 1 for forward -1 for back
             """
+
             mgr.epoch += direction  #1 or -1
             self.validate_epoch()
 

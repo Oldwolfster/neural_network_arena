@@ -11,6 +11,7 @@ import json
 class DisplayModel__Neuron:
     """
     DisplayModel__Neuron is created by DisplayModel.
+    Note: DisplayModel inherits from EzSurface, DisplayModel__Neuron does not!
     This class has the following primary purposes:
     1) Store all information related to the neuron
     2) Update that information when the iteration or epoch changes.
@@ -18,7 +19,7 @@ class DisplayModel__Neuron:
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
     __slots__ = ("cached_tooltip", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
-    input_values = []   # Class variable to store inputs
+    input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
         return f"Neuron {self.label})"
@@ -140,6 +141,8 @@ class DisplayModel__Neuron:
         self.rs = rs[0]
         self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
         self.error_signal_calcs = rs[0].get("error_signal_calcs")
+        self.neuron_inputs = json.loads( rs[0].get("neuron_inputs"))
+        ez_debug(selfneuinp= self.neuron_inputs)
 
         # Activation function details
         self.activation_function    = rs[0].get('activation_name', 'Unknown')
@@ -192,14 +195,6 @@ class DisplayModel__Neuron:
         self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
         self.header_text            = self.font_header.render("Forward Prop           Back Prop", True, Const.COLOR_BLACK)
 
-
-        #text_color = Const.COLOR_BLACK  # Default text color                # ✅ Optimize color formatting for weight adjustments (Column 7)
-        #if Const.TOOLTIP_COND_COLUMN == 7 and row_index > 0 and text:
-        #    if is_numeric(text):                    #if text.replace(",", "").replace(".", "").lstrip("-").isdigit():
-        #        value = float(text.replace(",", ""))
-        #        text_color = Const.COLOR_GREEN_FOREST if value >= 0 else Const.COLOR_CRIMSON
-
-
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
@@ -236,8 +231,8 @@ class DisplayModel__Neuron:
 
             # ✅ Define dynamic column widths (adjust per column)
             #column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
-            column_widths = [40, 50, 10, 60, 10, 70, 50, 10, #ends on first op  in backprop
-                             57,10,50,10,50,50,50,100]   # Example widths for each column
+            column_widths = [40, 50, 10, 60, 15, 70, 50, 10, #ends on first op  in backprop
+                             57,15,50,15,60,60,60,100]   # Example widths for each column
             # ✅ Ensure column widths match number of columns
             #if len(column_widths) < len(self.tooltip_columns):
             #    column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(column_widths)))
@@ -278,7 +273,7 @@ class DisplayModel__Neuron:
 
     def tooltip_generate_text(self):
         """Clears and regenerates tooltip text columns."""
-        print("Generating text")
+        #print("Generating text")
         self.tooltip_columns.clear()
         self.tooltip_columns.extend(self.tooltip_columns_for_forward_pass())
         self.tooltip_columns.extend(self.tooltip_columns_for_backprop())  # 🔹 Uncomment when backprop data is ready
@@ -299,6 +294,7 @@ class DisplayModel__Neuron:
         iteration_data = Const.dm.get_model_iteration_data(self.model_id)
         all_columns = []
         inputs          = self.tooltip_column_forward_pass_one_inputs(iteration_data) #first item on the list is the literal "Input"
+
         row_labels = self.tooltip_columns_for_forward_pass_row_labels(inputs)
         all_columns.append(row_labels)
         all_columns.append(inputs)
@@ -330,7 +326,7 @@ class DisplayModel__Neuron:
         #ez_debug(wt_before = self.weights_before)
         #print(products)
         #ez_debug(all_columns_after_inputs=all_columns)
-        #ez_debug(product_col=product_col)
+
         row_labels.append("") #Blank row after output
         product_col.append("") #Blank row after output
         row_labels.append("Act Gradient")
@@ -341,13 +337,8 @@ class DisplayModel__Neuron:
         return all_columns
 
     def tooltip_column_forward_pass_one_inputs(self,iteration_data):
-        print(iteration_data)
-        # Retrieve the JSON string from iteration_data
-        inputs_json = json.loads(iteration_data.get("inputs", "[]"))  # Defaults to an empty list if missing
-        input_col =[]
-        input_col.append("Input")       # Label for column
-        input_col.append("1")        # Bias at the top - consistency
-        input_col.extend(inputs_json)
+        input_col =["Input","1"]
+        input_col.extend(self.neuron_inputs)
         return input_col
 
 ################### Gather Values for Back Pass #############################
@@ -390,7 +381,7 @@ class DisplayModel__Neuron:
         # ✅ Initialize columns for backpropagation
         col_input = ["Input"]
         col_op1 = ["*"]
-        col_err_sig = ["ErrSig"]
+        col_err_sig = ["Blame"]
         col_op2 = ["*"]
         col_lrate = ["LRate"]
         col_op3 = ["="]
@@ -401,7 +392,7 @@ class DisplayModel__Neuron:
             weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result_value = row
             col_input.append(arg_1)  # Input
             col_op1.append(op_1)  # ×
-            col_err_sig.append(arg_2)  # Error Signal
+            col_err_sig.append(arg_2)  # Blame
             col_op2.append(op_2)  # ×
             col_lrate.append(arg_3)  # Learning Rate
             col_op3.append(op_3)  # =
@@ -429,15 +420,15 @@ class DisplayModel__Neuron:
             return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
 
     def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Error Signal Calculation (for OUTPUT layer)")
-        all_cols[0].append("Error Signal  = Loss Gradient * Activation Gradient")
-        all_cols[0].extend([f"Error Signal = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+        all_cols[0].append("Blame Calculation (for OUTPUT layer)")
+        all_cols[0].append("Blame  = Loss Gradient * Activation Gradient")
+        all_cols[0].extend([f"Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
         return all_cols
     def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
         col_weight = 0
         col_errsig = 3
         col_contri = 6
-        all_cols[col_weight].append("Error Signal Calculation (for Hidden layer)")
+        all_cols[col_weight].append("Blame Calculation (for Hidden layer)")
         all_cols[col_errsig-1].append(" ")
         all_cols[col_errsig].append(" ")
         all_cols[col_contri-1].append(" ")
@@ -458,7 +449,7 @@ class DisplayModel__Neuron:
         all_cols[col_contri].append(bpe)
         all_cols[col_contri].append(bpe*self.activation_gradient)
         #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
-        #all_cols[col_weight].append(f"Error Signal = {smart_format(bpe*self.activation_gradient)}")
+        #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
         return all_cols
 
     def get_elements_of_backproped_error(self):
