@@ -24,12 +24,12 @@ class MLP_Hayabusa(Gladiator):
         🔹 Change anything below to customize your model!
         """
     def __init__(self, config):
-        config.loss_function = Loss_MSE
+        config.loss_function = Loss_BCEWithLogits
         super().__init__(config)
         self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Tanh)
 
         #Change activation of a single neuron.
-        #self.neurons[0].set_activation(Linear)
+        self.neurons[2].set_activation(Linear)
 
 
 #print("🚀 NOT Using Default Forward pass - to customize override forward_pass")
