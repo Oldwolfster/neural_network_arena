@@ -13,7 +13,7 @@ class DisplayPanelCtrl(EZForm):
     def __init__(self, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
         fields = {
             "Playback Speed": "1x",
-            "Jump to Epoch": "",
+            " ": "",
             "Current Mode": "Playing"
         }
 
@@ -23,12 +23,14 @@ class DisplayPanelCtrl(EZForm):
         self.is_reversed = False  # Track playback direction
 
         # Create interactive UI elements
-        self.play_button = None
-        self.reverse_button = None
-        self.step_forward = None
-        self.step_back = None
-        self.epoch_input = None
-        self.speed_dropdown = None
+        self.play_button        = None
+        self.reverse_button     = None
+        self.step_forward       = None
+        self.step_back          = None
+        self.step_forward_epoch = None
+        self.step_back_epoch    = None
+        self.epoch_input        = None
+        self.speed_dropdown     = None
         self.create_ui_elements()
 
     def process_an_event(self, event):
@@ -45,6 +47,10 @@ class DisplayPanelCtrl(EZForm):
                 Const.vcr.step_x_iteration(1)
             elif event.ui_element == self.step_back:
                 Const.vcr.step_x_iteration(-1)
+            elif event.ui_element == self.step_forward_epoch:
+                Const.vcr.step_x_epochs(1)
+            elif event.ui_element == self.step_back_epoch:
+                Const.vcr.step_x_epochs(-1)
             elif event.ui_element == self.step_forward_big:
                 Const.vcr.step_x_epochs(100)
             elif event.ui_element == self.step_back_big:
@@ -103,59 +109,82 @@ class DisplayPanelCtrl(EZForm):
         """Initializes the UI elements (buttons, text boxes, dropdowns) inside the control panel."""
         panel_x, panel_y = self.left, self.top
 
+        button_height = 25
+        button_width  = 69
+        button_row_1 = 80
+        button_row_2 = 102
+        button_row_3 = 124
+        button_row_4 = 146
+        button_xoff1 = 4
+        button_xoff2 = 73
+
         # Speed Dropdown (1x, 2x, 4x, etc.)
         self.speed_dropdown = UIDropDownMenu(
             options_list=["0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
             starting_option="1x",
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 52), (138, 35)),
+            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + 49), (138, 32)),
             manager=Const.UI_MANAGER
         )
 
         # Play button
         self.play_button = UIButton(
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 90), (68, 25)),
+            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_1), (button_width, button_height)),
             text="Pause",
             manager=Const.UI_MANAGER
         )
 
         # Reverse button
         self.reverse_button = UIButton(
-            relative_rect=pygame.Rect((panel_x + 71, panel_y + 90), (68, 25)),
+            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_1), (button_width, button_height)),
             text="Reverse",
             manager=Const.UI_MANAGER
         )
 
         # Step Forward button
         self.step_forward = UIButton(
-            relative_rect=pygame.Rect((panel_x + 71, panel_y + 117), (68, 26)),
+            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_2), (button_width, button_height)),
             text=">",
             manager=Const.UI_MANAGER
         )
 
         # Step Back button
         self.step_back = UIButton(
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 117), (68, 26)),
+            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_2), (button_width, button_height)),
             text="<",
             manager=Const.UI_MANAGER
         )
 
         # Step Forward BIG button
+        self.step_forward_epoch = UIButton(
+            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_3), (button_width, button_height)),
+            text=">>",
+            manager=Const.UI_MANAGER
+        )
+
+        # Step Back BIG button
+        self.step_back_epoch = UIButton(
+            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_3), (button_width, button_height)),
+            text="<<",
+            manager=Const.UI_MANAGER
+        )
+
+        # Step Forward BIG button
         self.step_forward_big = UIButton(
-            relative_rect=pygame.Rect((panel_x + 71, panel_y + 146), (68, 26)),
+            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_4), (button_width, button_height)),
             text=">>>>",
             manager=Const.UI_MANAGER
         )
 
         # Step Back BIG button
         self.step_back_big = UIButton(
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 146), (68, 26)),
+            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_4), (button_width, button_height)),
             text="<<<<",
             manager=Const.UI_MANAGER
         )
 
         # Epoch Jump Input Box
         self.epoch_input = UITextEntryLine(
-            relative_rect=pygame.Rect((panel_x + 4, panel_y + 169), (138, 36)),
+            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + 169), (138, 36)),
             manager=Const.UI_MANAGER
         )
 

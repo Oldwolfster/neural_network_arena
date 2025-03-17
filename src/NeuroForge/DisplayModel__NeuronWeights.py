@@ -175,7 +175,8 @@ class DisplayModel__NeuronWeights:
 
         # Create rectangles first
         global_rect = pygame.Rect(x, y, width_global, bar_height)  # Orange bar
-        self_rect = pygame.Rect(x, y + bar_height + bar_gap, width_self, bar_height)  # Green bar
+        self_rect = pygame.Rect(x, y + bar_height + bar_gap, width_global, bar_height)  # Green bar
+        #self_rect = pygame.Rect(x, y + bar_height + bar_gap, width_self, bar_height)  # Green bar
 
         color1 = Const.COLOR_FOR_BAR1_POSITIVE if weight_value >= 0 else Const.COLOR_FOR_BAR1_NEGATIVE
         color2 = Const.COLOR_FOR_BAR2_POSITIVE if weight_value >= 0 else Const.COLOR_FOR_BAR2_NEGATIVE

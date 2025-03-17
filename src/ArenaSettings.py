@@ -24,15 +24,15 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
 
-    epochs_to_run           :int    = 122      # Number of times training run will cycle through all training data
-    training_set_size       :int    = 0      # Qty of training data
+    epochs_to_run           :int    = 1222      # Number of times training run will cycle through all training data
+    training_set_size       :int    = 100      # Qty of training data
     default_learning_rate   :float  = 1        # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     gradient_clip_threshold :float  = 1e12
     #seed that is all green 529966
     #241709 LR1 converges in 24 friggen epochs!
 
-    random_seed             :int       = 905358
+    random_seed             :int       = 396837 #874170
 #171193 #8422    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
     #965512 causes error #621575 LR1 gets stuck and free, but itlooks like it doesn't converge properly
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
@@ -78,7 +78,9 @@ training_pit                = "XOR"
 gladiators = [
     #'Blackbird'
     #'XOR_Hayabusa'
+    #'XOR_Linear'
     'NeuroForge_Template'
+    #'NeuroForge_Template_BCE'
     #'NeuroForge_4Layers'
     #,'NeuroForge_Experiment'
    #'_Template_Simpletron'

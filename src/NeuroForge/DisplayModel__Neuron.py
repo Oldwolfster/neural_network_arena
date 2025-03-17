@@ -142,7 +142,7 @@ class DisplayModel__Neuron:
         self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
         self.error_signal_calcs = rs[0].get("error_signal_calcs")
         self.neuron_inputs = json.loads( rs[0].get("neuron_inputs"))
-        ez_debug(selfneuinp= self.neuron_inputs)
+        #ez_debug(selfneuinp= self.neuron_inputs)
 
         # Activation function details
         self.activation_function    = rs[0].get('activation_name', 'Unknown')
@@ -334,6 +334,7 @@ class DisplayModel__Neuron:
         row_labels.append( get_activation_derivative_formula(f"{self.activation_function}"))
         #TODO only add below if space permits
         row_labels.extend(["(How much 'Raw Sum' contri-","butes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
+        inputs[1] ="N/A" # remove the 1 for bias
         return all_columns
 
     def tooltip_column_forward_pass_one_inputs(self,iteration_data):
@@ -407,6 +408,8 @@ class DisplayModel__Neuron:
         all_columns.append(col_lrate)
         all_columns.append(col_op3)
         all_columns.append(col_adj)
+        col_input[1] = "N/A"    #  remove the 1 for bias
+        col_op1[1] = " "    #  remove the * for bias
         return all_columns
 
     def tooltip_columns_for_error_signal_calculation(self, all_cols):

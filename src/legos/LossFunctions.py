@@ -235,37 +235,28 @@ Loss_LogCosh = LossFunction(
     derivative_formula="tanh(prediction - target) / n"
 )
 
-"""
-# Example usage:
-if __name__ == "__main__":
-    # --- Regression Examples ---
-    y_true_reg = np.array([1.0, 2.0, 3.0])
-    y_pred_reg = np.array([1.1, 1.9, 3.2])
-    
-    print("=== Regression Losses ===")
-    print(f"MSE Loss: {Loss_MSE(y_pred_reg, y_true_reg)}")
-    print(f"MSE Gradient: {Loss_MSE.grad(y_pred_reg, y_true_reg)}")
-    print(f"MAE Loss: {Loss_MAE(y_pred_reg, y_true_reg)}")
-    print(f"MAE Gradient: {Loss_MAE.grad(y_pred_reg, y_true_reg)}")
-    print(f"Log-Cosh Loss: {Loss_LogCosh(y_pred_reg, y_true_reg)}")
-    print(f"Log-Cosh Gradient: {Loss_LogCosh.grad(y_pred_reg, y_true_reg)}")
-    
-    # --- Binary Classification Example ---
-    y_true_bin = np.array([0, 1, 0, 1])
-    y_pred_bin = np.array([0.1, 0.9, 0.2, 0.8])
-    
-    print("\n=== Binary Classification Loss ===")
-    print(f"Binary Cross-Entropy Loss: {Loss_BinaryCrossEntropy(y_pred_bin, y_true_bin)}")
-    print(f"Binary Cross-Entropy Gradient: {Loss_BinaryCrossEntropy.grad(y_pred_bin, y_true_bin)}")
-    
-    # --- Multi-class Classification Example ---
-    # For demonstration, assume 3 classes and two samples.
-    y_true_cat = np.array([[1, 0, 0],
-                           [0, 1, 0]])
-    y_pred_cat = np.array([[0.7, 0.2, 0.1],
-                           [0.1, 0.8, 0.1]])
-    
-    print("\n=== Multi-class Classification Loss ===")
-    print(f"Categorical Cross-Entropy Loss: {Loss_CategoricalCrossEntropy(y_pred_cat, y_true_cat)}")
-    print(f"Categorical Cross-Entropy Gradient: {Loss_CategoricalCrossEntropy.grad(y_pred_cat, y_true_cat)}")
-"""
+# 🔹 **7. Binary Cross-Entropy with Logits (BCEWithLogits) Loss**
+def bce_with_logits_loss(logits, y_true):
+    """
+    Computes the Binary Cross-Entropy loss for binary classification using logits.
+    This is numerically stable and does NOT require a Sigmoid activation beforehand.
+    """
+    return np.mean(np.maximum(logits, 0) - logits * y_true + np.log(1 + np.exp(-np.abs(logits))))
+
+def bce_with_logits_derivative(logits, y_true):
+    """
+    Computes the gradient of Binary Cross-Entropy with Logits loss.
+    Instead of using sigmoid explicitly, we use:
+      ∂L/∂logits = σ(logits) - y_true
+    """
+    return (1 / (1 + np.exp(-logits))) - y_true  # Sigmoid(logits) - y_true
+
+Loss_BCEWithLogits = LossFunction(
+    loss=bce_with_logits_loss,
+    derivative=bce_with_logits_derivative,
+    name="Binary Cross-Entropy with Logits",
+    desc="Numerically stable BCE loss using raw logits instead of Sigmoid outputs.",
+    when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
+    best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
+    derivative_formula="sigmoid(logits) - target"
+)
