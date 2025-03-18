@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from json import dumps
 from src.engine.ActivationFunction import *
 from src.engine.MgrSQL import MgrSQL
@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 from src.engine.Utils_DataClasses import Iteration
-from src.engine.WeightInitializer import *
+from src.Legos.WeightInitializer import *
 from typing import List
 
 """
@@ -45,6 +45,7 @@ class Gladiator(ABC):
         self.iteration          = 0
         self.epoch              = 0
         self.config             = config
+        self.threshold          = 0
         self._simpletron(config)        #Check if support needed for old optimzer
         self.error_signal_calcs = []
         self.distribute_error_calcs = []
@@ -112,7 +113,7 @@ class Gladiator(ABC):
             #If binary decision apply step logic.
             prediction = prediction_raw # Assyme regression
             if self.training_data.problem_type == "Binary Decision":
-                prediction = 1 if prediction_raw >= 0.5 else 0
+                prediction = 1 if prediction_raw >= self.threshold else 0
 
             #print(f"{self.gladiator}\t{self.epoch}\t{self.iteration}\t{inputs[0]}\t{target}\t{prediction}\t{error}\t{self.weights[0]}\t{self.neurons[0].weights_before[0]}\t{self.training_data.problem_type}")
 

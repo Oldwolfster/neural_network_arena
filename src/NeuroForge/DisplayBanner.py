@@ -3,7 +3,7 @@ from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge import Const
 
 class DisplayBanner(EZSurface):
-    def __init__(self, problem_type: str, max_epoch: int, max_iteration: int, width_pct=96, height_pct=4, left_pct=2, top_pct=0):
+    def __init__(self, problem_type: str, max_epoch: int, max_iteration: int, width_pct=98, height_pct=4, left_pct=1, top_pct=0):
         """Creates a banner displaying epoch and iteration information."""
         super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color=Const.COLOR_BLUE)
         self.child_name = "Top Banner"

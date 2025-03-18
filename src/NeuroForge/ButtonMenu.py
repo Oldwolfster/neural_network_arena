@@ -42,7 +42,7 @@ class ButtonInfo:
         self.width = 140
         self.height = 40
         self.top = 40
-        self.left =  30   # Positioning on the left side
+        self.left =  20   # Positioning on the left side
         self.button_rect = pygame.Rect(self.left, self.top, self.width, self.height)
         self.main_button_color = Const.COLOR_BLUE
         self.shadow_color = Const.COLOR_FOR_SHADOW  # Darker blue for depth

@@ -28,8 +28,21 @@ class LossFunction:
         when_to_use: Guidance on when to use this loss function.
         best_for: The scenarios or tasks where this loss function performs best.
         derivative_formula: A string representation of the derivative formula.
-    """
-    def __init__(self, loss, derivative=None, name="Custom", desc="", when_to_use="", best_for="", derivative_formula=""):
+        bd_rules: tuple containing up to 4 elements to define Binary Decision (BD) behavior.
+            1) target_alpha (float): Default numerical target for Class Alpha (e.g., 0.0). Used for error calculation.
+            2) target_beta (float): Default numerical target for Class Beta (e.g., 1.0). Used for error calculation.
+            3) locked_targets_msg (str, optional):
+                - If empty, target values can be freely changed by the model.
+                - If it starts with "Error:", raise an error if the model tries to override targets.
+                - Otherwise, raise a warning if modified.
+            4) locked_threshold_msg (str, optional):
+                - If empty, threshold can be freely changed.
+                - If it starts with "Error:", raise an error if the model tries to override it.
+                - Otherwise, raise a warning if modified.
+            Threshold is assumed to bisect the two targets unless explicitly stated otherwise.
+            """
+
+    def __init__(self, loss, derivative=None, name="Custom", desc="", when_to_use="", best_for="", derivative_formula="", bd_rules=(0, 1)):
         self.loss = loss  # Function to compute the loss.
         self.derivative = derivative  # Optional function to compute the gradient of the loss.
         self.name = name
@@ -37,6 +50,8 @@ class LossFunction:
         self.when_to_use = when_to_use
         self.best_for = best_for
         self.derivative_formula = derivative_formula  # String representation of the derivative formula.
+        self.bd_rules = bd_rules
+
 
     def __call__(self, y_pred, y_true):
         """
@@ -151,7 +166,9 @@ Loss_BinaryCrossEntropy = LossFunction(
     desc="Calculates loss for binary classification tasks using cross-entropy.",
     when_to_use="Ideal for binary classification problems.",
     best_for="Binary classification.",
-    derivative_formula="- (target / prediction - (1 - target) / (1 - prediction)) / n"
+    derivative_formula="- (target / prediction - (1 - target) / (1 - prediction)) / n",
+    bd_rules=(0, 1, "Error: BCE requires targets to be {0,1}", "Error: BCE requires threshold to be 0.5")
+
 )
 
 # 🔹 **4. Categorical Cross-Entropy Loss**
@@ -180,7 +197,8 @@ Loss_CategoricalCrossEntropy = LossFunction(
     desc="Calculates loss for multi-class classification tasks using cross-entropy.",
     when_to_use="Ideal for multi-class classification problems with one-hot encoded targets.",
     best_for="Multi-class classification.",
-    derivative_formula="(prediction - target) / n"
+    derivative_formula="(prediction - target) / n",
+    bd_rules = (None, None, "NEVER", None)
 )
 
 # 🔹 **5. Hinge Loss**
@@ -207,7 +225,8 @@ Loss_Hinge = LossFunction(
     desc="Used primarily for maximum-margin classification (e.g., SVMs).",
     when_to_use="Useful for support vector machines and related models.",
     best_for="Binary classification with margin-based methods.",
-    derivative_formula="where(1 - target * prediction > 0, -target, 0) / n"
+    derivative_formula="where(1 - target * prediction > 0, -target, 0) / n",
+    bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0")
 )
 
 # 🔹 **6. Log-Cosh Loss**
@@ -258,5 +277,6 @@ Loss_BCEWithLogits = LossFunction(
     desc="Numerically stable BCE loss using raw logits instead of Sigmoid outputs.",
     when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
     best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
-    derivative_formula="sigmoid(logits) - target"
+    derivative_formula="sigmoid(logits) - target",
+    bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
 )

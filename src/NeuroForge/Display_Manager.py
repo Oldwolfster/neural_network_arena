@@ -82,11 +82,11 @@ class Display_Manager:
         self.components.append(display_banner)
 
         # Add Input Panel  # Storing reference for arrows from input to first layer of neurons
-        self.input_panel = DisplayPanelInput(width_pct=12, height_pct=39, left_pct=2, top_pct=10)
+        self.input_panel = DisplayPanelInput(width_pct=12, height_pct=39, left_pct=1, top_pct=10)
         self.components.append(self.input_panel)
 
         # Add Control Panel
-        panel = DisplayPanelCtrl( width_pct=12, height_pct=44, left_pct=2, top_pct=51)
+        panel = DisplayPanelCtrl( width_pct=12, height_pct=44, left_pct=1, top_pct=51)
         self.components.append(panel)
         self.eventors.append(panel)
 

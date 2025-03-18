@@ -1,6 +1,6 @@
 from src.engine.ActivationFunction import *
 from src.engine.BaseGladiator import Gladiator
-from src.engine.WeightInitializer import *
+from src.Legos.WeightInitializer import *
 
 class MLP_Hayabusa(Gladiator):
     def __init__(self, *args):

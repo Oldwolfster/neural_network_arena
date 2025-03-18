@@ -7,6 +7,7 @@ class VCR:
         """Initialize VCR playback control."""
         self.vcr_rate = 5  # Speed of playback (0 = paused, ±1, ±2, etc.)
         self.direction = 1  # 1 = Forward, -1 = Reverse
+        self.advance_by_epoch = 1
         self.last_update_time = time.monotonic()
         self.status = "Playing"  # Default to paused
         Const.CUR_ITERATION = Const.MAX_ITERATION
@@ -78,7 +79,10 @@ class VCR:
         """Advance or reverse a frame based on playback direction."""
         if self.status != "Playing":
             return
-        self.step_x_epochs(self.direction)
+        if self.advance_by_epoch == 1:
+            self.step_x_epochs(self.direction)
+        else:
+            self.step_x_iteration(self.direction)
         self.validate_epoch_or_iteration_change_and_sync_data()
         # Fetch the latest iteration data after stepping
         #Const.dm.get_iteration_dict()

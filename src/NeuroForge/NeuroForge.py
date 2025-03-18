@@ -55,7 +55,7 @@ def neuroForge(configs:  List[ModelConfig]):
         info_button.draw()
         Const.dm.render_pop_up_window()
 
-        if Const.MENU_ACTIVE:
+        if Const.MENU_ACTIVE and menu.is_enabled():
             menu.update(events)
             menu.draw(Const.SCREEN)
 

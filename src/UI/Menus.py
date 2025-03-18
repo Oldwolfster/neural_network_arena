@@ -1,6 +1,6 @@
 import pygame
 import pygame_menu
-from src.neuroForge_original import mgr
+from src.NeuroForge import Const
 from src.engine.RamDB import RamDB
 
 # A simple callback to use for the menu items
@@ -9,7 +9,7 @@ show_menu = False
 def some_callback():
     print("Callback executed!")
 def close_menu():
-    mgr.menu_active = False
+    Const.MENU_ACTIVE = False
 
 
 def create_menu(WIDTH : int, HEIGHT : int, db: RamDB):
