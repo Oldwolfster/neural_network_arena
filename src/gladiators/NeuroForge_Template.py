@@ -1,7 +1,6 @@
 from src.engine.ActivationFunction import *
 from src.engine.BaseGladiator import Gladiator
-from src.engine.Neuron import Neuron
-from src.engine.WeightInitializer import *
+from src.Legos.WeightInitializer import *
 from src.Legos.LossFunctions import *
 
 """
@@ -22,6 +21,8 @@ class MLP_Hayabusa(Gladiator):
         ✅ Flexible architecture with preconfigured alternatives
 
         🔹 Change anything below to customize your model!
+        self.threshold = 0 # Set threshold - only used if problem type is 'Binary Decision' Defaults to 0
+        TODO if output neuron is sigmoid then it should change default to .5
         """
     def __init__(self, config):
         config.loss_function = Loss_MSE

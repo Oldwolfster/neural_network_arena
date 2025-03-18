@@ -3,7 +3,8 @@ import pygame
 import pygame_gui
 from pygame_gui.elements import UIButton, UITextEntryLine, UIDropDownMenu
 from src.NeuroForge import Const
-from src.NeuroForge.EZForm import EZForm
+from src.NeuroForge.EZFormLEFT import EZForm
+
 
 class DisplayPanelCtrl(EZForm):
     """
@@ -69,8 +70,12 @@ class DisplayPanelCtrl(EZForm):
         """
         Updates playback speed based on dropdown selection.
         """
-        print(f"speed={speed}")
-
+        #print(f"speed={speed}")
+        Const.vcr.advance_by_epoch = 1 # assume epoch unless determined otherwise below
+        if speed[0]=="Iteration":
+            Const.vcr.advance_by_epoch = 0
+            Const.vcr.set_speed(1)
+            return  #switching to iteration mode
         try:
             new_speed = int(speed[0].replace("x", ""))  # Remove 'x' and convert to int
             Const.vcr.set_speed(new_speed)
@@ -115,12 +120,12 @@ class DisplayPanelCtrl(EZForm):
         button_row_2 = 102
         button_row_3 = 124
         button_row_4 = 146
-        button_xoff1 = 4
-        button_xoff2 = 73
+        button_xoff1 = 8
+        button_xoff2 = 77
 
         # Speed Dropdown (1x, 2x, 4x, etc.)
         self.speed_dropdown = UIDropDownMenu(
-            options_list=["0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
+            options_list=["Iteration", "0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
             starting_option="1x",
             relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + 49), (138, 32)),
             manager=Const.UI_MANAGER

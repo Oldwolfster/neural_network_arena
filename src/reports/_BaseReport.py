@@ -1,9 +1,9 @@
 import sqlite3
 from abc import abstractmethod
-
+from src.NeuroForge import Const
 from openpyxl.reader.excel import load_workbook
 
-from src.neuroForge_original import mgr
+
 from tabulate import tabulate
 from src.reports._ReportUtils import clean_multiline_string
 import pandas as pd
@@ -18,7 +18,7 @@ class BaseReport:
         :param RamDB: Database connection object
         """
         self.db = args[0]
-        mgr.menu_active = False # Close menu
+        Const.MENU_ACTIVE = False # Close menu
 
 
 

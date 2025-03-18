@@ -1,25 +1,17 @@
 import math
 import statistics
-import numpy as np
 import time
 from typing import Tuple
 from src.engine.Utils import dynamic_instantiate, set_seed
-from .ActivationFunction import Tanh
-from .ModelConfig import ModelConfig
 
-from .RamDB import RamDB
 from .SQL import retrieve_training_data
 from .SQL import record_training_data
 
 from src.ArenaSettings import *
-from src.engine.BaseArena import BaseArena
-from src.engine.BaseGladiator import Gladiator
 from src.ArenaSettings import run_previous_training_data
 from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
-from .Utils_DataClasses import ModelInfo
-from .WeightInitializer import *
 from ..Legos.LossFunctions import *
 from ..NeuroForge.NeuroForge import *
 

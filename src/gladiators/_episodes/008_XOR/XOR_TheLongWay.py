@@ -1,14 +1,9 @@
-import traceback
-
-import numpy as np
-
 from src.engine.ActivationFunction import Tanh, Sigmoid
 from src.engine.BaseGladiator import Gladiator
-import math
 
 from src.engine.Neuron import Neuron
-from src.engine.Utils import smart_format, print_call_stack, store_num
-from src.engine.WeightInitializer import *
+from src.engine.Utils import smart_format, store_num
+from src.Legos.WeightInitializer import *
 
 
 class XOR_TheLongWay(Gladiator):

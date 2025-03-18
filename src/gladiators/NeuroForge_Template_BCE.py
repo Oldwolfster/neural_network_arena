@@ -1,7 +1,6 @@
 from src.engine.ActivationFunction import *
 from src.engine.BaseGladiator import Gladiator
-from src.engine.Neuron import Neuron
-from src.engine.WeightInitializer import *
+from src.Legos.WeightInitializer import *
 from src.Legos.LossFunctions import *
 
 """
@@ -27,7 +26,9 @@ class MLP_Hayabusa(Gladiator):
         config.loss_function = Loss_BCEWithLogits
         super().__init__(config)
         self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Tanh)
-
+        config.loss_function = Loss_MSE
+        config.loss_function = Loss_Hinge
+        self.threshold=20
         #Change activation of a single neuron.
         self.neurons[2].set_activation(Linear)
 

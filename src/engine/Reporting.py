@@ -1,15 +1,13 @@
 import json
-import sqlite3
 from tabulate import tabulate
 from typing import List
 from src.engine.Utils_DataClasses import ModelInfo
 from src.ArenaSettings import HyperParameters
-from src.neuroForge_original.NeuroForge import neuroForge
 from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format
 from src.engine.Utils_DataClasses import Iteration
-from src.engine.WeightInitializer import *
+from src.Legos.WeightInitializer import *
 
 
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):

@@ -2,7 +2,7 @@ import json
 from typing import List
 import pygame
 from src.NeuroForge import Const
-from src.NeuroForge.EZForm import EZForm
+from src.NeuroForge.EZFormLEFT import EZForm
 from src.engine.Utils import smart_format
 
 class DisplayPanelInput(EZForm):
