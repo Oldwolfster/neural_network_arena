@@ -30,15 +30,11 @@ def neuroForge(configs:  List[ModelConfig]):
     running = True
 
     while running:
-        #print("runinng")
-        time_delta = clock.tick(120) / 1000.0  # Convert to seconds
-        #print(clock.get_fps())  # See FPS impact capped at 60
+        time_delta = clock.tick(120) / 1000.0  # Convert to seconds        #print(clock.get_fps())  # See FPS impact capped at 60
         events = pygame.event.get()
 
         # Process user inputs
         for event in events:
-
-            #running = Const.vcr.process_event(event)
             Const.UI_MANAGER.process_events(event)
             Const.dm.process_events(event)
             menu_button.handle_event(event)

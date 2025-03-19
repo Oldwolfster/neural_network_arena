@@ -50,6 +50,7 @@ class DisplayModel__NeuronWeights:
 
     def render(self):                   #self.debug_weight_changes()
         self.draw_weight_bars()
+
         self.draw_activation_bar()
 
     def draw_activation_bar(self):
@@ -61,6 +62,7 @@ class DisplayModel__NeuronWeights:
         """
         if self.neuron.max_activation == 0:  # Safety check
             return
+
 
         neuron_x = self.neuron.location_left + self.neuron.location_width  # Start at right edge
         neuron_y = self.neuron.location_top  # Top of neuron
@@ -84,6 +86,20 @@ class DisplayModel__NeuronWeights:
         # 🔹 Writes the activation value inside the neuron, centered on the right wall, with a background for visibility.
         text = f"{round(self.neuron.activation_value, 2)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
         draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+
+        # 🔹 Writes the raw sum inside the neuron, bottom right corner, with a background for visibility.
+        weighted_sum = self.calculate_weighted_sum()
+        text = f" Wt\nSum\n{round(weighted_sum, 2)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
+        draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height - 55 , Const.FONT_SIZE_WEIGHT, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+
+    def calculate_weighted_sum(self):
+        """
+        Calculates the weighted sum that is displayed in bottom right and fed to activation function.
+        """
+        return sum(
+            weight * input_value
+            for weight, input_value in zip(self.neuron.weights_before, [1] + self.neuron.neuron_inputs)
+        )
 
     def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_bars, gap_between_weights):
         """
@@ -180,6 +196,7 @@ class DisplayModel__NeuronWeights:
 
         color1 = Const.COLOR_FOR_BAR1_POSITIVE if weight_value >= 0 else Const.COLOR_FOR_BAR1_NEGATIVE
         color2 = Const.COLOR_FOR_BAR2_POSITIVE if weight_value >= 0 else Const.COLOR_FOR_BAR2_NEGATIVE
+
         # Draw bars with borders
         draw_rect_with_border(self.neuron.screen, global_rect, color1, self.bar_border_thickness)  # Orange (global max)
         draw_rect_with_border(self.neuron.screen, self_rect, color2, self.bar_border_thickness)  # Green (self max)
@@ -209,7 +226,7 @@ class DisplayModel__NeuronWeights:
         min_label_width = 30
 
         # Create font and render text
-        font = pygame.font.Font(None, 20)  # Adjusted font size for better readability
+        font = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         text_surface = font.render(text, True, Const.COLOR_WHITE)  # White text
         text_rect = text_surface.get_rect()
 
@@ -240,8 +257,6 @@ class DisplayModel__NeuronWeights:
         :param y_pos: The y-position of the weight bars.
         :param existing_labels_rects: list of rects for other labels that might collide.
         """
-
-
         # Compute label position
         label_x = self.neuron.location_left  + 5 # Slightly left of the neuron
         label_y = y_pos   # Middle of the two bars
@@ -253,11 +268,9 @@ class DisplayModel__NeuronWeights:
         text_rect = get_text_rect(label_text, Const.FONT_SIZE_WEIGHT) #Get rect for index label.
         text_rect.topleft = label_x,label_y
 
-
-
         if self.neuron.layer == 0 and self.neuron.location_left > text_rect.width + 5:
             label_x = self.neuron.location_left - text_rect.width -  3
-            draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT,Const.COLOR_WHITE,Const.COLOR_BLUE, border_color=Const.COLOR_BLACK)
+            draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT, Const.COLOR_WHITE, Const.COLOR_BLUE, border_color=Const.COLOR_BLACK)
             # Record label loc for input arrows to go to.
             if self.need_label_coord:
                 self.my_fcking_labels.append((label_x-text_rect.width * 0.2, label_y))
@@ -267,4 +280,4 @@ class DisplayModel__NeuronWeights:
 
         # Check if there is a collision
         if not check_label_collision(text_rect, existing_labels_rects):
-            draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT)
+            draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT, Const.COLOR_WHITE, Const.COLOR_BLUE, border_color=Const.COLOR_BLACK)

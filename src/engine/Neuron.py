@@ -9,6 +9,7 @@ class Neuron:
     Represents a single neuron with weights, bias, and an activation function.
     """
     layers = []  # Shared across all Gladiators, needs resetting per run
+    _output_neuron = None  #Shared access directly to the output neuron.
     def __init__(self, nid: int, num_of_weights: int, learning_rate: float, weight_initializer, layer_id: int = 0, activation = None):
         #print(f"creating neuron - nid={nid}")
         self.nid = nid
@@ -40,6 +41,10 @@ class Neuron:
         Neuron.layers[layer_id].append(self)
         self.position = len(Neuron.layers[layer_id]) - 1  # Zero-based position within layer
 
+        # If this neuron is in the last layer, set it as the output neuron
+        if layer_id == len(Neuron.layers) - 1:
+            Neuron._output_neuron = self  # Assign this neuron as the output neuron
+
 
     def initialize_weights(self, weight_initializer):
 
@@ -65,10 +70,12 @@ class Neuron:
     def compute_gradient(self):
         """Use the derivative for backpropagation."""
         return self.activation.apply_derivative(self.activation_value)
+
     @classmethod
     def reset_layers(cls):
         """ Clears layers before starting a new Gladiator. """
-        cls.layers = []
+        cls.layers.clear()
+        cls._output_neuron = None
 
 
     @staticmethod

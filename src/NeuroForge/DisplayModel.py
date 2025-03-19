@@ -8,7 +8,7 @@ from src.engine.ModelConfig import ModelConfig
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 
 class DisplayModel(EZSurface):
-    __slots__ = ("config", "neurons", "arrows_forward", "model_id")
+    __slots__ = ("config", "neurons", "threshold", "arrows_forward", "model_id")
     def __init__(self, config: ModelConfig, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -23,6 +23,8 @@ class DisplayModel(EZSurface):
         self.model_id       = config.gladiator_name
         self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.arrows_forward = []  # List of neuron connections
+        _, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
+
 
     def initialize_with_model_info(self):
         """Create neurons and connections based on architecture."""
@@ -60,13 +62,25 @@ class DisplayModel(EZSurface):
         )
 
     def draw_model_name(self):
-        """Draw the model's name in the top-right corner of the model area."""
+        """Draw the model's name and threshold in the top-right corner of the model area."""
         font = pygame.font.Font(None, 28)
+
+        # Render the model name
         text_surface = font.render(beautify_text(self.config.gladiator_name), True, Const.COLOR_BLACK)
         text_x = self.width - text_surface.get_width() - 10  # Align to right with margin
-
         text_y = 5  # Small margin from the top
         self.surface.blit(text_surface, (text_x, text_y))
+
+        if self.config.training_data.problem_type != "Binary Decision":
+            return
+
+        # Render the threshold (right below the model name) IF it is binary decision
+        threshold_text = f"Threshold: {self.threshold:.1f}"  # Format threshold to 1 decimals
+        threshold_surface = font.render(threshold_text, True, Const.COLOR_BLACK)
+        threshold_x = self.width - threshold_surface.get_width() - 10
+        threshold_y = text_y + text_surface.get_height() + 3  # Place below the model name with spacing
+        self.surface.blit(threshold_surface, (threshold_x, threshold_y))
+
 
 
 

@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
+from src.Legos.LossFunctions import LossFunction
+
+
 class TrainingData:
     """
     Manages machine learning training data with support for various normalization methods and metrics.
@@ -16,13 +19,15 @@ class TrainingData:
         current_data_list: Reference to currently active data list based on normalization setting
     """
 
-    def __init__(self, data: List[Tuple[float, ...]]) -> None:
+    def __init__(self, data: List[Tuple[float, ...]], feature_labels: Optional[List[str]] = None, target_labels: Optional[List[str]] = None) -> None:
         """
         Initialize the TrainingData instance with raw input data.
 
         Args:
             data: List of tuples where each tuple contains input features and a target value.
                  The last element of each tuple is treated as the target value.
+            feature_labels: List of what each element of the tuple represents
+            target_labels: For binary decision, two classes the targets represent
 
         Raises:
             ValueError: If data is empty
@@ -32,10 +37,15 @@ class TrainingData:
         self.td_original    = [Tuple[float, ...]]
         self.td_original    = data                  # Store the original data
         self.td_z_score     = [Tuple[float, ...]]   # List in case model requests zscore
-        self.td_min_max     = []   # List in case model request minmax
+        self.td_min_max     = []                    # List in case model request minmax
         self.td_current     = self.td_original      # pointer to the "selected list" defaults to original
-        self._cache         = {}  # Private dictionary for caching values
+        self._cache         = {}                    # Private dictionary for caching values
+        self.feature_labels = feature_labels        # Optional feature labels (e.g., ["Credit Score", "Income"])
+        self.target_labels  = target_labels         # Optional outcome labels (e.g., ["Repaid", "Defaulted"])
+
         self.problem_type   = self.determine_problem_type(data)
+        if self.problem_type == "Binary Decision" and not self.target_labels: # If it's BD and no labels were provided, assign default labels
+            self.target_labels = ["Class Alpha", "Class Beta"]
 
 
     def determine_problem_type(self, data: List[Tuple[float, ...]]) -> str:
@@ -50,6 +60,70 @@ class TrainingData:
             return "Regression"
         else:
             return "Inconclusive"
+
+    def get_binary_decision_settings(self, loss_function: LossFunction) -> Tuple[float, float, float]:
+        """
+        Determines the appropriate targets and decision threshold for Binary Decision tasks.
+
+        Args:
+            loss_function: The loss function being used.
+
+        Returns:
+            Tuple containing:
+            - target_alpha: The numerical target for Class Alpha (e.g., 0.0 or -1.0)
+            - target_beta: The numerical target for Class Beta (e.g., 1.0)
+            - threshold: The decision boundary
+        """
+        if self.problem_type != "Binary Decision":
+            raise ValueError("get_bd_settings() was called, but the problem type is not Binary Decision.")
+
+        # Directly access bd_rules (assuming it's always set in LossFunction)
+        bd_rules = loss_function.bd_rules
+
+        return bd_rules[0], bd_rules[1], (bd_rules[0] + bd_rules[1]) / 2  # Auto-calculate threshold
+
+    def apply_binary_decision_targets_for_specific_loss_function(self, loss_function: LossFunction) ->  tuple[float, float, float]:
+        """
+        Updates targets in `td_current` for Binary Decision problems based on the loss function's BD rules.
+
+
+        Args:
+            loss_function: The loss function being used.
+
+        Raises:
+            ValueError: If unexpected target values are found.
+        """
+        if self.problem_type != "Binary Decision":
+            return  # No need to modify targets if it's not BD
+
+        target_alpha, target_beta, threshold = self.get_binary_decision_settings(loss_function)
+
+
+        # Extract existing unique targets while preserving their original order
+        seen = {}
+        for sample in self.td_current:
+            if sample[-1] not in seen:
+                seen[sample[-1]] = None  # Preserve insertion order
+
+        existing_targets = list(seen.keys())
+
+        if len(existing_targets) != 2:
+            raise ValueError(f"Binary Decision dataset expected 2 distinct target values, but found: {existing_targets}")
+
+        # Map old targets to new targets (Preserving Arena's order)
+        target_map = {existing_targets[0]: target_alpha, existing_targets[1]: target_beta}
+        #print(f"DEBUG: Before applying BD rules, targets: {set(sample[-1] for sample in self.td_current)}")
+
+
+        # Replace targets in training data (without modifying input order)
+        self.td_current = [
+            (*sample[:-1], target_map[sample[-1]]) for sample in self.td_current
+        ]
+        #print(f"DEBUG: After applying BD rules, targets: {set(sample[-1] for sample in self.td_current)}")
+        #print(f"DEBUG: Target Mapping in TrainingData: {target_map}")
+        return target_alpha, target_beta, threshold
+    #print(f"✅ Binary Decision targets updated: {target_map}")
+
 
     @property
     def sum_of_targets(self) -> int:
