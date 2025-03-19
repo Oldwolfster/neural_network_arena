@@ -3,12 +3,13 @@ from src.NeuroForge.EZForm import EZForm
 from src.engine.Utils import smart_format
 from src.NeuroForge import Const
 class DisplayPanelPrediction(EZForm):
-    __slots__ = ("model_id", "problem_type")
+    __slots__ = ("model_id", "problem_type", "loss_function")
 
-    def __init__(self, model_id: str, problem_type: str, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
-        self.model_id = model_id
-        self.problem_type = problem_type
-        self.target_name = Const.configs[0].hyper.data_labels[-1].strip()
+    def __init__(self, model_id: str, problem_type: str, loss_function, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
+        self.model_id       = model_id
+        self.loss_function  = loss_function
+        self.problem_type   = problem_type
+        self.target_name    = Const.configs[0].hyper.data_labels[-1].strip()
 
         # Define the fields and default values for the form
         fields = {
@@ -16,7 +17,7 @@ class DisplayPanelPrediction(EZForm):
             "Prediction": "0.000",
             "Error": "0.000 / 0.000",
             "Epoch Avg Error": "0.000",
-            "Gradient Factor": "2",
+            "Loss Function": self.loss_function.short_name,
             "Loss Gradient": "0.0",
         }
 

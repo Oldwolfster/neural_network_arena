@@ -74,7 +74,7 @@ TOOLTIP_ADJUST_PAD  =  20
 # UI Customization
 # ==============================
 JUMP_TO_EPOCH       = 0
-FONT_SIZE_WEIGHT    = 20
+FONT_SIZE_WEIGHT    = 24
 #COLOR_NEURONS  = True
 
 # ==============================

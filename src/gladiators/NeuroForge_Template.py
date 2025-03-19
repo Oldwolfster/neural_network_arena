@@ -25,7 +25,7 @@ class MLP_Hayabusa(Gladiator):
         TODO if output neuron is sigmoid then it should change default to .5
         """
     def __init__(self, config):
-        config.loss_function = Loss_MSE
+        config.loss_function = Loss_Hinge
         super().__init__(config)
         self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Tanh)
 

@@ -38,7 +38,50 @@ class DisplayPanelCtrl(EZForm):
         """Handles UI events and sends commands to VCR.
         Also ensures pygame_gui receives events.
         """
+        self.process_mouse_events(event)
+        if event.type == pygame.KEYDOWN:
+            self.process_keyboard_events(event)
+
+    def handle_key(self, key_function=None):
+        """
+        Handles keyboard input. If playback is running, stops it first.
+        If playback is not running, executes the provided key function.
+
+        Args:
+            key_function (callable, optional): A function to execute when not playing.
+        """
+        if self.is_playing:
+            self.toggle_playback()
+        elif key_function:  # Only run if a function was provided
+            key_function()
+
+    def process_keyboard_events(self, event):
+        """Handles UI events and sends commands to VCR.
+        Also ensures pygame_gui receives events.
+        """
         self.handle_enter_key(event)
+
+        key_mapping = {
+            pygame.K_q: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(-1)),
+            pygame.K_w: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(1)),
+            pygame.K_a: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-1)),
+            pygame.K_s: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(1)),
+            pygame.K_z: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-100)),
+            pygame.K_x: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(100)),
+            pygame.K_e: lambda: self.toggle_playback(),
+            pygame.K_CAPSLOCK: lambda: self.toggle_reverse(),
+        }
+
+        if event.key in key_mapping:
+            key_mapping[event.key]()  # Execute the mapped function
+
+
+
+    def process_mouse_events(self, event):
+        """Handles UI events and sends commands to VCR.
+        Also ensures pygame_gui receives events.
+        """
+
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
             if event.ui_element == self.play_button:
                 self.toggle_playback()

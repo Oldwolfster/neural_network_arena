@@ -77,8 +77,7 @@ class Display_Manager:
 
     def initialize_components(self):
         """Initialize UI components like EZForm-based input panels and model displays."""
-        problem_type = Const.configs[0].training_data.problem_type
-        display_banner = DisplayBanner(problem_type, Const.MAX_EPOCH, Const.MAX_ITERATION)
+        display_banner = DisplayBanner(Const.configs[0].training_data, Const.MAX_EPOCH, Const.MAX_ITERATION)
         self.components.append(display_banner)
 
         # Add Input Panel  # Storing reference for arrows from input to first layer of neurons
@@ -91,7 +90,7 @@ class Display_Manager:
         self.eventors.append(panel)
 
         # Add Prediction Panels for each model
-        self.create_prediction_panels(problem_type)
+        self.create_prediction_panels()
 
         # Create Models
         #self.components.extend(ModelGenerator.create_models())  # This will process all layout calculations #create models
@@ -102,15 +101,16 @@ class Display_Manager:
         arrows = DisplayArrowsOutsideNeuron(self.models[0])
         self.components.append(arrows)
 
-    def create_prediction_panels(self, problem_type): #one needed per model
+    def create_prediction_panels(self): #one needed per model
         for idx, model_config in enumerate(Const.configs):
             model_id = model_config.gladiator_name  # Assuming ModelConfig has a `model_id` attribute
+            problem_type = model_config.training_data.problem_type
             #For now, this will show 2 and write the rest over the top of each other.
             top = 10 #Assume 1 model
             if idx == 1:    #move 2nd box down (0 based)
                 top = 52
             if idx <2:      #Only show two prediction panels
-                panel = DisplayPanelPrediction(model_id, problem_type,width_pct=12, height_pct=39, left_pct=86, top_pct=top)
+                panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=12, height_pct=39, left_pct=86, top_pct=top)
                 self.components.append(panel)
 
     def query_dict_iteration(self):

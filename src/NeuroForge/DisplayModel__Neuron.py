@@ -4,6 +4,7 @@ import pygame
 from src.engine.ActivationFunction import get_activation_derivative_formula
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
+from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format, draw_gradient_rect, ez_debug, is_numeric
 from src.NeuroForge import Const
@@ -63,8 +64,12 @@ class DisplayModel__Neuron:
         self.initialize_fonts()
         # Conditional visualizer
         self.update_neuron()        # must come before selecting visualizer
-
         self.neuron_visualizer      = DisplayModel__NeuronWeights(self, self.ez_printer)
+
+        if self.layer == Neuron._output_neuron.layer_id:
+            self.banner_text = "Output Neuron (o1)"
+        else:
+            self.banner_text = f"Hidden Neuron {self.label}"
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
 
     def is_hovered(self, model_x, model_y, mouse_x, mouse_y):
@@ -82,10 +87,10 @@ class DisplayModel__Neuron:
         #TODO add Gradient body_color = self.get_color_gradient(self.avg_err_sig_for_epoch, mgr.max_error)
 
         # Font setup
-        font = pygame.font.Font(None, 24) #TODO remove and use EZ_Print
+        font = pygame.font.Font(None, 30) #TODO remove and use EZ_Print
 
         # Banner text
-        label_surface = font.render(f"ID: {self.label}", True, Const.COLOR_FOR_NEURON_TEXT)
+        label_surface = font.render(self.banner_text, True, Const.COLOR_FOR_NEURON_TEXT)
         output_surface = font.render(self.activation_function, True, Const.COLOR_FOR_NEURON_TEXT)
         label_strip_height = label_surface.get_height() + 8  # Padding
 
@@ -97,9 +102,9 @@ class DisplayModel__Neuron:
         # Draw neuron banner
         banner_rect = pygame.Rect(self.location_left, self.location_top + 4, self.location_width, label_strip_height)
         draw_gradient_rect(self.screen, banner_rect, Const.COLOR_FOR_BANNER_START, Const.COLOR_FOR_BANNER_END)
-        self.screen.blit(label_surface, (self.location_left + 5, self.location_top + (label_strip_height - label_surface.get_height()) // 2))
+        self.screen.blit(label_surface, (self.location_left + 5, self.location_top + 5 + (label_strip_height - label_surface.get_height()) // 2))
         right_x = self.location_left + self.location_width - output_surface.get_width() - 5
-        self.screen.blit(output_surface, (right_x, self.location_top + (label_strip_height - output_surface.get_height()) // 2))
+        self.screen.blit(output_surface, (right_x, self.location_top + 5 + (label_strip_height - output_surface.get_height()) // 2))
 
         # Render visual elements
         if hasattr(self, 'neuron_visualizer') and self.neuron_visualizer:
@@ -148,9 +153,7 @@ class DisplayModel__Neuron:
         self.activation_function    = rs[0].get('activation_name', 'Unknown')
         self.activation_value       = rs[0].get('activation_value', None)        #THE OUTPUT
         self.activation_gradient    = rs[0].get('activation_gradient', None)  # From neuron
-
-
-        self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
+        #self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
 
     def update_avg_error(self):
         SQL = """

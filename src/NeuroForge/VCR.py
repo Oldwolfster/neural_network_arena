@@ -56,11 +56,19 @@ class VCR:
 
     def step_x_iteration(self, step: int):
         """Move a specified number of iterations forward or backward."""
+        # Check if trying to move past end
+        if step > 0 and Const.CUR_ITERATION == Const.MAX_ITERATION and Const.CUR_EPOCH == Const.MAX_EPOCH:
+            return
+        # Check if trying to move before start
+        if step < 0 and Const.CUR_ITERATION == 1 and Const.CUR_EPOCH == 1:
+            return
         Const.CUR_ITERATION += step
         self.validate_epoch_or_iteration_change_and_sync_data()
 
     def step_x_epochs(self, step: int):
         """Move a specified number of epochs forward or backward."""
+        # Check if trying to move past end
+
         Const.CUR_EPOCH += step
         #Const.CUR_ITERATION = 1  # Reset iteration when jumping epochs
         self.validate_epoch_or_iteration_change_and_sync_data()

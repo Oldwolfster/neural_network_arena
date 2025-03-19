@@ -2,6 +2,7 @@ from src.engine.ActivationFunction import *
 from src.engine.BaseGladiator import Gladiator
 from src.Legos.WeightInitializer import *
 from src.Legos.LossFunctions import *
+from src.engine.Neuron import Neuron
 
 """
 Things to test.
@@ -23,14 +24,11 @@ class MLP_Hayabusa(Gladiator):
         🔹 Change anything below to customize your model!
         """
     def __init__(self, config):
-        config.loss_function = Loss_BCEWithLogits
+        config.loss_function = Loss_BinaryCrossEntropy
         super().__init__(config)
         self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Tanh)
-        config.loss_function = Loss_MSE
-        config.loss_function = Loss_Hinge
-        self.threshold=20
-        #Change activation of a single neuron.
-        self.neurons[2].set_activation(Linear)
+        #self.bd_threshold=0
+        Neuron._output_neuron.set_activation(Sigmoid)
 
 
 #print("🚀 NOT Using Default Forward pass - to customize override forward_pass")

@@ -24,6 +24,7 @@ class LossFunction:
         loss: A function that computes the loss given predictions and true values.
         derivative: A function that computes the gradient of the loss, if available.
         name: The name of the loss function.
+        short_name: Short version of name
         desc: A description of the loss function.
         when_to_use: Guidance on when to use this loss function.
         best_for: The scenarios or tasks where this loss function performs best.
@@ -42,25 +43,24 @@ class LossFunction:
             Threshold is assumed to bisect the two targets unless explicitly stated otherwise.
             """
 
-    def __init__(self, loss, derivative=None, name="Custom", desc="", when_to_use="", best_for="", derivative_formula="", bd_rules=(0, 1)):
-        self.loss = loss  # Function to compute the loss.
-        self.derivative = derivative  # Optional function to compute the gradient of the loss.
-        self.name = name
-        self.desc = desc
-        self.when_to_use = when_to_use
-        self.best_for = best_for
+    def __init__(self, loss, derivative=None, name="Custom", short_name="Custom", desc="", when_to_use="", best_for="", derivative_formula="", bd_rules=(0, 1)):
+        self.loss               = loss  # Function to compute the loss.
+        self.derivative         = derivative  # Optional function to compute the gradient of the loss.
+        self.name               = name
+        self.short_name         = short_name
+        self.desc               = desc
+        self.when_to_use        = when_to_use
+        self.best_for           = best_for
         self.derivative_formula = derivative_formula  # String representation of the derivative formula.
-        self.bd_rules = bd_rules
+        self.bd_rules           = bd_rules
 
 
     def __call__(self, y_pred, y_true):
         """
         Computes the loss given predictions and true target values.
-
         Parameters:
             y_pred: The predicted values.
             y_true: The actual target values.
-
         Returns:
             The computed loss.
         """
@@ -68,7 +68,7 @@ class LossFunction:
 
     def __repr__(self):
         """Custom representation for debugging."""
-        return f"WeightInitializer(name={self.name})"
+        return f"Loss function is '{self.name}'"
 
     def grad(self, y_pred, y_true):
         """
@@ -108,6 +108,7 @@ Loss_MSE = LossFunction(
     loss=mse_loss,
     derivative=mse_derivative,
     name="Mean Squared Error (MSE)",
+    short_name="MSE",
     desc="Calculates the average of the squares of differences between predictions and actual values.",
     when_to_use="Commonly used for regression problems.",
     best_for="Regression tasks.",
@@ -134,12 +135,49 @@ Loss_MAE = LossFunction(
     loss=mae_loss,
     derivative=mae_derivative,
     name="Mean Absolute Error (MAE)",
+    short_name="MAE",
     desc="Calculates the average of the absolute differences between predictions and actual values.",
     when_to_use="Useful for regression tasks less sensitive to outliers.",
     best_for="Regression tasks with outlier presence.",
     derivative_formula="sign(prediction - target) / n"
 )
+# 🔹 **7. Binary Cross-Entropy with Logits (BCEWithLogits) Loss**
+def bce_with_logits_loss(logits, y_true):
+    """
+    Computes the Binary Cross-Entropy loss for binary classification using logits.
+    This is numerically stable and does NOT require a Sigmoid activation beforehand.
+    """
+    return np.mean(np.maximum(logits, 0) - logits * y_true + np.log(1 + np.exp(-np.abs(logits))))
 
+def bce_with_logits_derivative(logits, y_true):
+    """
+    Computes the gradient of Binary Cross-Entropy with Logits loss.
+    Instead of using sigmoid explicitly, we use:
+      ∂L/∂logits = σ(logits) - y_true
+    """
+    sigmoid_logits = 1 / (1 + np.exp(-logits))
+    loss_gradient = sigmoid_logits - y_true
+
+    #print(f"DEBUG BCEWLL Derivative:")
+    #print(f"  Raw Logits: {logits}")
+    #print(f"  Sigmoid(logits): {sigmoid_logits}")
+    #print(f"  Target (y_true): {y_true}")
+    #print(f"  Loss Gradient: {loss_gradient}")
+    #print("-" * 50)  # Separator for readability
+
+    return loss_gradient
+
+Loss_BCEWithLogits = LossFunction(
+    loss=bce_with_logits_loss,
+    derivative=bce_with_logits_derivative,
+    name="Binary Cross-Entropy with Logits",
+    short_name="BCE_WL",
+    desc="Numerically stable BCE loss using raw logits instead of Sigmoid outputs.",
+    when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
+    best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
+    derivative_formula="sigmoid(logits) - target",
+    bd_rules=(-1, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
+)
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**
 def binary_crossentropy_loss(y_pred, y_true, epsilon=1e-15):
     """
@@ -163,6 +201,7 @@ Loss_BinaryCrossEntropy = LossFunction(
     loss=binary_crossentropy_loss,
     derivative=binary_crossentropy_derivative,
     name="Binary Cross-Entropy",
+    short_name="BCE",
     desc="Calculates loss for binary classification tasks using cross-entropy.",
     when_to_use="Ideal for binary classification problems.",
     best_for="Binary classification.",
@@ -194,6 +233,7 @@ Loss_CategoricalCrossEntropy = LossFunction(
     loss=categorical_crossentropy_loss,
     derivative=categorical_crossentropy_derivative,
     name="Categorical Cross-Entropy",
+    short_name="CCL",
     desc="Calculates loss for multi-class classification tasks using cross-entropy.",
     when_to_use="Ideal for multi-class classification problems with one-hot encoded targets.",
     best_for="Multi-class classification.",
@@ -212,9 +252,12 @@ def hinge_loss(y_pred, y_true):
 def hinge_derivative(y_pred, y_true):
     """
     Computes the derivative of the Hinge loss with respect to predictions.
+    Loosens strict ±1 updates by blending with the raw margin violation.
     """
-    grad = np.where(1 - y_true * y_pred > 0, -y_true, 0)
-    # Originally: n = y_true.shape[0] if isinstance(y_true, np.ndarray) else len(y_true)
+    margin = 1 - y_true * y_pred
+    margin_violation = margin > 0
+    grad = np.where(margin_violation, -y_true * margin, 0)  # Use margin instead of hard ±1
+
     n = _get_n(y_true)
     return grad / n
 
@@ -222,6 +265,7 @@ Loss_Hinge = LossFunction(
     loss=hinge_loss,
     derivative=hinge_derivative,
     name="Hinge Loss",
+    short_name="Hinge",
     desc="Used primarily for maximum-margin classification (e.g., SVMs).",
     when_to_use="Useful for support vector machines and related models.",
     best_for="Binary classification with margin-based methods.",
@@ -248,35 +292,11 @@ Loss_LogCosh = LossFunction(
     loss=logcosh_loss,
     derivative=logcosh_derivative,
     name="Log-Cosh Loss",
+    short_name="LCL",
     desc="Calculates loss using the logarithm of the hyperbolic cosine of the prediction error.",
     when_to_use="A smooth loss function that is less sensitive to outliers than MSE.",
     best_for="Regression tasks.",
     derivative_formula="tanh(prediction - target) / n"
 )
 
-# 🔹 **7. Binary Cross-Entropy with Logits (BCEWithLogits) Loss**
-def bce_with_logits_loss(logits, y_true):
-    """
-    Computes the Binary Cross-Entropy loss for binary classification using logits.
-    This is numerically stable and does NOT require a Sigmoid activation beforehand.
-    """
-    return np.mean(np.maximum(logits, 0) - logits * y_true + np.log(1 + np.exp(-np.abs(logits))))
 
-def bce_with_logits_derivative(logits, y_true):
-    """
-    Computes the gradient of Binary Cross-Entropy with Logits loss.
-    Instead of using sigmoid explicitly, we use:
-      ∂L/∂logits = σ(logits) - y_true
-    """
-    return (1 / (1 + np.exp(-logits))) - y_true  # Sigmoid(logits) - y_true
-
-Loss_BCEWithLogits = LossFunction(
-    loss=bce_with_logits_loss,
-    derivative=bce_with_logits_derivative,
-    name="Binary Cross-Entropy with Logits",
-    desc="Numerically stable BCE loss using raw logits instead of Sigmoid outputs.",
-    when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
-    best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
-    derivative_formula="sigmoid(logits) - target",
-    bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
-)
