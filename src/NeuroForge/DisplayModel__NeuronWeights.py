@@ -163,6 +163,7 @@ class DisplayModel__NeuronWeights:
             neuron_width = 20
 
         bar_lengths = []
+        #if self.neuron.nid ==0:            ez_debug(wts=self.neuron.weights, wts_before=self.neuron.weights_before)
         for i, weight in enumerate(self.neuron.weights_before):
             abs_weight = abs(weight)  # Use absolute value for visualization
 

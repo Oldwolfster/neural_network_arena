@@ -7,7 +7,7 @@ from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB
 from src.engine.Utils import smart_format
 from src.engine.Utils_DataClasses import Iteration
-from src.Legos.WeightInitializer import *
+from src.Legos.WeightInitializers import *
 
 
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):

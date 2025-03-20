@@ -1,5 +1,9 @@
 import numpy as np
 
+from src.Legos.ActivationFunctions import *
+from src.engine.Neuron import Neuron
+
+
 def _get_n(y_true):
     """
     Helper function to determine the number of samples in y_true.
@@ -29,6 +33,7 @@ class LossFunction:
         when_to_use: Guidance on when to use this loss function.
         best_for: The scenarios or tasks where this loss function performs best.
         derivative_formula: A string representation of the derivative formula.
+        allowed_activations: First value is used as default.  if gladiator tries to set to one not in list error is thrown.
         bd_rules: tuple containing up to 4 elements to define Binary Decision (BD) behavior.
             1) target_alpha (float): Default numerical target for Class Alpha (e.g., 0.0). Used for error calculation.
             2) target_beta (float): Default numerical target for Class Beta (e.g., 1.0). Used for error calculation.
@@ -43,7 +48,19 @@ class LossFunction:
             Threshold is assumed to bisect the two targets unless explicitly stated otherwise.
             """
 
-    def __init__(self, loss, derivative=None, name="Custom", short_name="Custom", desc="", when_to_use="", best_for="", derivative_formula="", bd_rules=(0, 1)):
+    def __init__(
+        self,
+        loss,
+        derivative=None,
+        name="Custom",
+        short_name="Custom",
+        desc="",
+        when_to_use="",
+        best_for="",
+        derivative_formula="",
+        allowed_activations=None,   # 🚀 New: List of valid activation functions
+        bd_rules=(0, 1)             # Binary Decision rules (unchanged)
+    ):
         self.loss               = loss  # Function to compute the loss.
         self.derivative         = derivative  # Optional function to compute the gradient of the loss.
         self.name               = name
@@ -52,8 +69,9 @@ class LossFunction:
         self.when_to_use        = when_to_use
         self.best_for           = best_for
         self.derivative_formula = derivative_formula  # String representation of the derivative formula.
-        self.bd_rules           = bd_rules
-
+        self.bd_rules           = bd_rules + ("No restriction",) * (4 - len(bd_rules))  # Ensure bd_rules has exactly 4 elements (fill with None if missing)
+        self.allowed_activation_functions       = allowed_activations #if allowed_activations is not None else [] # Store allowed activation functions (default = allow all)
+        self.recommended_hidden_activations     = [Activation_ReLU]
 
     def __call__(self, y_pred, y_true):
         """
@@ -88,6 +106,31 @@ class LossFunction:
             raise NotImplementedError("Gradient function not implemented for this loss function")
         return self.derivative(y_pred, y_true)
 
+    def validate_activation_functions(self):
+        """
+        Ensures the Gladiator is using a valid activation function setup for this loss function.
+        - 🚨 Errors if the output activation is incompatible.
+        - ⚠️ Warnings if the hidden layer activation is suboptimal.
+        """
+
+        output_activation = Neuron._output_neuron.activation
+        hidden_activations = [neuron.activation for layer in Neuron.layers[:-1] for neuron in layer]  # All except output layer
+
+        # 🚨 Hard error for output activation mismatch
+        if self.allowed_activation_functions and output_activation not in self.allowed_activation_functions:
+            raise ValueError(
+                f"🚨 Invalid output activation {output_activation} for {self.name}. "
+                f"\nAllowed: {', '.join([act.name for act in self.allowed_activation_functions])}"
+            )
+
+        # ⚠️ Warning for hidden activations (optional)
+        if self.recommended_hidden_activations:
+            for act in hidden_activations:
+                if act not in self.recommended_hidden_activations:
+                    print(f"⚠️ Warning: Hidden activation {act} is not ideal for {self.name}. "
+                          f"Consider {', '.join([a.name for a in self.recommended_hidden_activations])}")
+
+
 
 # 🔹 **1. Mean Squared Error (MSE) Loss**
 def mse_loss(y_pred, y_true):
@@ -112,6 +155,7 @@ Loss_MSE = LossFunction(
     desc="Calculates the average of the squares of differences between predictions and actual values.",
     when_to_use="Commonly used for regression problems.",
     best_for="Regression tasks.",
+    allowed_activations=None,  # ✅ All activations allowed
     derivative_formula="2 * (prediction - target)"
 )
 
@@ -139,6 +183,7 @@ Loss_MAE = LossFunction(
     desc="Calculates the average of the absolute differences between predictions and actual values.",
     when_to_use="Useful for regression tasks less sensitive to outliers.",
     best_for="Regression tasks with outlier presence.",
+    allowed_activations=None,  # ✅ All activations allowed
     derivative_formula="sign(prediction - target) / n"
 )
 # 🔹 **7. Binary Cross-Entropy with Logits (BCEWithLogits) Loss**
@@ -176,7 +221,8 @@ Loss_BCEWithLogits = LossFunction(
     when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
     best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
     derivative_formula="sigmoid(logits) - target",
-    bd_rules=(-1, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
+    allowed_activations=[Activation_Linear],
+    bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
 )
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**
 def binary_crossentropy_loss(y_pred, y_true, epsilon=1e-15):
@@ -206,6 +252,7 @@ Loss_BinaryCrossEntropy = LossFunction(
     when_to_use="Ideal for binary classification problems.",
     best_for="Binary classification.",
     derivative_formula="- (target / prediction - (1 - target) / (1 - prediction)) / n",
+    allowed_activations=[Activation_Sigmoid],
     bd_rules=(0, 1, "Error: BCE requires targets to be {0,1}", "Error: BCE requires threshold to be 0.5")
 
 )
@@ -270,6 +317,7 @@ Loss_Hinge = LossFunction(
     when_to_use="Useful for support vector machines and related models.",
     best_for="Binary classification with margin-based methods.",
     derivative_formula="where(1 - target * prediction > 0, -target, 0) / n",
+    allowed_activations=[Activation_Linear],
     bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0")
 )
 
@@ -296,6 +344,7 @@ Loss_LogCosh = LossFunction(
     desc="Calculates loss using the logarithm of the hyperbolic cosine of the prediction error.",
     when_to_use="A smooth loss function that is less sensitive to outliers than MSE.",
     best_for="Regression tasks.",
+    allowed_activations=[Activation_Linear, Activation_Tanh, Activation_ReLU, Activation_LeakyReLU],
     derivative_formula="tanh(prediction - target) / n"
 )
 

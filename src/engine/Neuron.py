@@ -1,7 +1,4 @@
-import numpy as np
-
-from src.engine.ActivationFunction import *
-from src.engine.RamDB import RamDB
+from src.Legos.ActivationFunctions import *
 
 
 class Neuron:
@@ -18,7 +15,7 @@ class Neuron:
         self.learning_rate = learning_rate
         self.raw_sum = 0.0
         self.activation_value = 0.0
-        self.activation =  activation or Linear         # function
+        #self.activation =  activation or Activation_Linear         # function
         self.activation_gradient = 0.0  # Store activation gradient from forward pass
         self.error_signal = 1111.11
         self.weight_adjustments = ""
@@ -30,7 +27,7 @@ class Neuron:
         self.neuron_inputs = np.zeros_like(self.weights)
 
         # ✅ Ensure activation is never None
-        self.activation = activation if activation is not None else Linear
+        self.activation = activation if activation is not None else Activation_Linear
         self.activation_name = self.activation.name  # ✅ No more AttributeError
 
         # Ensure layers list is large enough to accommodate this layer_id

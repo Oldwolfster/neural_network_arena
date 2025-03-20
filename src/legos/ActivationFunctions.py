@@ -13,40 +13,38 @@ class ActivationFunction:
 
     def __repr__(self):
         """Custom representation for debugging."""
-        return f"WeightInitializer(name={self.name})"
+        return f"Activation Function: {self.name}"
 
     def apply_derivative(self, x):
         """Compute the derivative for backpropagation."""
         return self.derivative(x)
 
-
-
 # Standard activations as objects
-Linear = ActivationFunction(
+Activation_Linear = ActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,
     name="Linear"
 )
 
-Sigmoid = ActivationFunction(
+Activation_Sigmoid = ActivationFunction(
     function=lambda x: 1 / (1 + np.exp(-x)),
     derivative=lambda x: x * (1 - x),  # More efficient if x = sigmoid(x)
     name="Sigmoid"
 )
 
-Tanh = ActivationFunction(
+Activation_Tanh = ActivationFunction(
     function=np.tanh,
     derivative=lambda x: 1 - np.tanh(x)**2,
     name="Tanh"
 )
 
-ReLU = ActivationFunction(
+Activation_ReLU = ActivationFunction(
     function=lambda x: np.maximum(0, x),
     derivative=lambda x: np.where(x > 0, 1, 0),
     name="ReLU"
 )
 
-LeakyReLU = ActivationFunction(
+Activation_LeakyReLU = ActivationFunction(
     function=lambda x, alpha=0.01: np.where(x > 0, x, alpha * x),
     derivative=lambda x, alpha=0.01: np.where(x > 0, 1, alpha),
     name="LeakyReLU"

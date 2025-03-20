@@ -1,6 +1,6 @@
-from src.engine.ActivationFunction import *
+from src.Legos.ActivationFunctions import *
 from src.engine.BaseGladiator import Gladiator
-from src.Legos.WeightInitializer import *
+from src.Legos.WeightInitializers import *
 from src.Legos.LossFunctions import *
 from src.engine.Neuron import Neuron
 
@@ -26,9 +26,10 @@ class MLP_Hayabusa(Gladiator):
     def __init__(self, config):
         config.loss_function = Loss_BinaryCrossEntropy
         super().__init__(config)
-        self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Tanh)
+        self.initialize_neurons([2], [Initializer_Xavier], activation_function_for_hidden= Activation_Tanh)
         #self.bd_threshold=0
-        Neuron._output_neuron.set_activation(Sigmoid)
+        #self.bd_class_alpha=3
+        Neuron._output_neuron.set_activation(Activation_Sigmoid)
 
 
 #print("🚀 NOT Using Default Forward pass - to customize override forward_pass")

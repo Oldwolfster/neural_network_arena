@@ -1,6 +1,6 @@
 from abc import ABC
 from json import dumps
-from src.engine.ActivationFunction import *
+from src.Legos.ActivationFunctions import *
 from src.engine.MgrSQL import MgrSQL
 from src.engine.ModelConfig import ModelConfig
 from src.engine.Neuron import Neuron
@@ -8,7 +8,7 @@ from datetime import datetime
 
 
 from src.engine.Utils_DataClasses import Iteration
-from src.Legos.WeightInitializer import *
+from src.Legos.WeightInitializers import *
 from typing import List
 
 """
@@ -41,9 +41,9 @@ class Gladiator(ABC):
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
-        self.bd_threshold       = None
-        self.bd_class_alpha     = None
-        self.bd_class_beta      = None
+        self._bd_threshold       = None
+        self._bd_class_alpha     = None
+        self._bd_class_beta      = None
         self.last_lost          = 0
         self.iteration          = 0
         self.epoch              = 0
@@ -51,6 +51,7 @@ class Gladiator(ABC):
         self.error_signal_calcs = []
         self.distribute_error_calcs = []
         Neuron.reset_layers()
+
 
     ################################################################################################
     ################################ SECTION 1 - pipeline ####################################
@@ -65,6 +66,7 @@ class Gladiator(ABC):
                 - full_architecture (list[int]): Architecture of the model including hidden and output layers.
         """
 
+        self.config.loss_function.validate_activation_functions()
         if self.neuron_count == 0:
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
@@ -75,18 +77,19 @@ class Gladiator(ABC):
                 return convg_signal, self._full_architecture
         return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
 
-    def check_binary_decision_info(self):
-        print ("BD LOGIC HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
-        print (f"self.config.loss_function={self.config.loss_function}")
-        if self.training_data.problem_type == "Binary Decision":
-            a,b,c = self.training_data.apply_binary_decision_targets_for_specific_loss_function(self.config.loss_function)
-            self.bd_class_alpha = a
-            self.bd_class_beta = b
-            print(f"self.threshold={self.bd_threshold} abd c={c}")
-            if self.bd_threshold == None:
-                self.bd_threshold = c
-            print(f"self.threshold={self.bd_threshold} abd c={c}")
+    def validate_output_activation_functionDeleteME(self):
+        """
+        Check if loss function requires specific activation function in output neuron.
+        """
+        # 🚨 Validate activation function before training begins
+        allowed_activations = self.config.loss_function.allowed_activation_functions
+        actual_activation = Neuron._output_neuron.activation
 
+        if allowed_activations is not None and actual_activation not in allowed_activations:
+            raise ValueError(
+                f"🚨 {actual_activation} is not compatible with Loss function {self.config.loss_function.name}. "
+                f"\nAllowed: {', '.join([act.name for act in allowed_activations])}"
+            )
 
     def run_an_epoch(self, epoch_num: int) -> str:
         """
@@ -106,23 +109,13 @@ class Gladiator(ABC):
             inputs = sample[:-1]
             target = sample[-1]
             self.snapshot_weights_as_weights_before()
-            prediction_raw = 0
-            if self.config.optimizer=="simplified_descent":
-                #print("I am here1")
-                error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
-                prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
-            #elif self.config.optimizer=="simpletron":
-            #    print("I am here2")
-            #    error, loss,  loss_gradient, prediction_raw = self.optimizer_simpletron(sample, inputs,target)
-            else:
-                raise TypeError("Optimizer not supported")
-            #print(f"prediction_raw={prediction_raw}\ttarget={target}\terror={error}")
+            error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
+            prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.last_lost = loss
 
             #If binary decision apply step logic.
             prediction = prediction_raw # Assume regression
             if self.training_data.problem_type == "Binary Decision":
-                #print(f"BEFORE\tself.bd_class_beta={self.bd_class_beta}\tprediction={prediction}\tself.bd_threshold={self.bd_threshold} self.bd_class_alpha=\t{ self.bd_class_alpha}")
                 prediction = self.bd_class_beta if prediction_raw >= self.bd_threshold else self.bd_class_alpha
                 #print(f"AFTER\tself.bd_class_beta={self.bd_class_beta}\tprediction={prediction}\tself.bd_threshold={self.bd_threshold} self.bd_class_alpha=\t{ self.bd_class_alpha}")
 
@@ -143,12 +136,6 @@ class Gladiator(ABC):
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
         return self.mgr_sql.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
-    def optimizer_simpletron(self, sample, inputs, target):
-        prediction_raw = self.training_iteration(sample)
-        error = target - prediction_raw
-        loss = error
-        loss_gradient = error
-        return error, loss,  loss_gradient, prediction_raw
     def optimizer_simplified_descent(self, sample, inputs, target):
         # Step 1: Forward pass
         self.forward_pass(sample)  # Call model-specific logic
@@ -371,20 +358,13 @@ class Gladiator(ABC):
         self.db.executemany(sql, self.error_signal_calcs)
         self.error_signal_calcs.clear()
 
-
-
     def validate_pass(self, target: float, prediction_raw: float):
         """
         Computes error, loss, and blame based on the configured loss function.
         """
-
-        error = target - prediction_raw  # ✅ Simple error calculation
-        loss = self.config.loss_function(prediction_raw, target)  # ✅ Compute loss dynamically
-        if self.config.optimizer == "simplified_descent":
-            blame = self.config.loss_function.grad(prediction_raw, target)  # ✅ Compute correction (NO inversion!)
-            #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={blame}, Correction={blame}")
-        else:
-            raise ValueError(f"Unsupported optimizer: {self.config.optimizer}")
+        error   = target - prediction_raw  # ✅ Simple error calculation
+        loss    = self.config.loss_function(prediction_raw, target)  # ✅ Compute loss dynamically
+        blame   = self.config.loss_function.grad(prediction_raw, target)  # ✅ Compute correction (NO inversion!)      #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={blame}, Correction={blame}")
         return error, loss,  blame  # ✅ Correction replaces "loss gradient"
 
     ################################################################################################
@@ -449,7 +429,7 @@ class Gladiator(ABC):
 
 
 
-    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, activation_function_for_hidden: ActivationFunction = Tanh):
+    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, activation_function_for_hidden: ActivationFunction = Activation_Tanh):
         """
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
 
@@ -472,7 +452,7 @@ class Gladiator(ABC):
         self.neurons.clear()
         Neuron.layers.clear()
         nid = -1
-        output_af = Sigmoid #Assume binary decision
+        output_af = Activation_Sigmoid #Assume binary decision
         if self.training_data.problem_type !="Binary Decision":
             output_af = Linear
 
@@ -493,6 +473,63 @@ class Gladiator(ABC):
                 )
                 self.neurons.append(neuron)
         self.neuron_count = len(self.neurons)
+
+
+    ################################################################################################
+    ################################ SECTION 4 - Binary Decision logic ####################################
+    ################################################################################################
+    @property
+    def bd_class_alpha(self):
+        return self._bd_class_alpha
+
+    @bd_class_alpha.setter
+    def bd_class_alpha(self, value):
+        rule = self.config.loss_function.bd_rules[2]  # Extract the modification rule
+        if rule.startswith("Error"):
+            raise ValueError(f"🚨 Modification of bd_class_alpha is not allowed for this loss function! {rule}")
+        if rule.startswith("Warning"):
+            print(f"⚠️ {rule}")  # Show warning but allow modification
+        self._bd_class_alpha = value
+
+    @property
+    def bd_class_beta(self):
+        return self._bd_class_beta
+
+    @bd_class_beta.setter
+    def bd_class_beta(self, value):
+        rule = self.config.loss_function.bd_rules[2]  # Extract the modification rule
+        if rule.startswith("Error"):
+            raise ValueError(f"🚨 Modification of bd_class_alpha is not allowed for this loss function! {rule}")
+        if rule.startswith("Warning"):
+            print(f"⚠️ {rule}")  # Show warning but allow modification
+        self._bd_class_beta = value
+
+    @property
+    def bd_threshold(self):
+        return self._bd_threshold
+
+    @bd_threshold.setter
+    def bd_threshold(self, value):
+        rule = self.config.loss_function.bd_rules[3]  # Extract the modification rule
+        if rule.startswith("Error"):
+            raise ValueError(f"🚨 Modification of Threshold is not allowed for this loss function! {rule}")
+        if rule.startswith("Warning"):
+            print(f"⚠️ {rule}")  # Show warning but allow modification
+        self._bd_threshold = value
+
+    def check_binary_decision_info(self):
+        print (f"self.config.loss_function={self.config.loss_function}")
+        if self.training_data.problem_type == "Binary Decision":
+            a, b, c = self.training_data.apply_binary_decision_targets_for_specific_loss_function(self.config.loss_function)
+            # Only update if still None (i.e., not set by the Gladiator)
+            if self._bd_class_alpha is None:
+                self._bd_class_alpha = a  # Directly setting avoids triggering warnings
+            if self._bd_class_beta is None:
+                self._bd_class_beta = b
+            if self._bd_threshold is None:
+                self._bd_threshold = c
+
+
 
     @property
     def weights(self):
