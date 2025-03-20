@@ -1,6 +1,6 @@
-from src.engine.ActivationFunction import *
+from src.Legos.ActivationFunctions import *
 from src.engine.BaseGladiator import Gladiator
-from src.Legos.WeightInitializer import *
+from src.Legos.WeightInitializers import *
 from src.Legos.LossFunctions import *
 
 """

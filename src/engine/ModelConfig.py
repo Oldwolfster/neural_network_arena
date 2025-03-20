@@ -1,8 +1,8 @@
-from .ActivationFunction import *
+from src.Legos.ActivationFunctions import *
 from .RamDB import RamDB
 
 from .TrainingData import TrainingData
-from src.Legos.WeightInitializer import *
+from src.Legos.WeightInitializers import *
 from ..ArenaSettings import HyperParameters
 from ..Legos.LossFunctions import *
 
@@ -21,8 +21,8 @@ class ModelConfig:
     full_architecture: list     = field(default_factory=lambda: [1])
     initializer: type           = Initializer_Xavier
     loss_function: LossFunction = Loss_MSE  # Default to MSE  # 🔹 Loss Function
-    optimizer: str              = "simplified_descent"  # Default to your method
-    activation_function_for_hidden: type = Tanh
+    #optimizer: str              = "simplified_descent"  # Default to your method
+    activation_function_for_hidden: type = Activation_Tanh
     seconds: float              = 0.0
     cvg_condition: str          = ""
 

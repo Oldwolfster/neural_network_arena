@@ -1,8 +1,7 @@
 import numpy as np
-from src.engine.ActivationFunction import Tanh, Sigmoid, Linear
+from src.Legos.ActivationFunctions import Sigmoid, Linear
 from src.engine.BaseGladiator import Gladiator
 from src.engine.Neuron import Neuron
-from src.engine.Utils import smart_format
 
 
 class MLP_Standard(Gladiator):

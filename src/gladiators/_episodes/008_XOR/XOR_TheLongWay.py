@@ -1,9 +1,9 @@
-from src.engine.ActivationFunction import Tanh, Sigmoid
+from src.Legos.ActivationFunctions import Tanh, Sigmoid
 from src.engine.BaseGladiator import Gladiator
 
 from src.engine.Neuron import Neuron
 from src.engine.Utils import smart_format, store_num
-from src.Legos.WeightInitializer import *
+from src.Legos.WeightInitializers import *
 
 
 class XOR_TheLongWay(Gladiator):

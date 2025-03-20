@@ -1,12 +1,9 @@
-from ast import literal_eval
-from typing import List
 import pygame
-from src.engine.ActivationFunction import get_activation_derivative_formula
+from src.Legos.ActivationFunctions import get_activation_derivative_formula
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
 from src.engine.Neuron import Neuron
-from src.engine.RamDB import RamDB
-from src.engine.Utils import smart_format, draw_gradient_rect, ez_debug, is_numeric
+from src.engine.Utils import smart_format, draw_gradient_rect, is_numeric
 from src.NeuroForge import Const
 import json
 class DisplayModel__Neuron:
