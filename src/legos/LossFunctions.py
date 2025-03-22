@@ -122,14 +122,14 @@ class LossFunction:
                 f"🚨 Invalid output activation {output_activation} for {self.name}. "
                 f"\nAllowed: {', '.join([act.name for act in self.allowed_activation_functions])}"
             )
-
+        """ below not working for none
         # ⚠️ Warning for hidden activations (optional)
         if self.recommended_hidden_activations:
             for act in hidden_activations:
                 if act not in self.recommended_hidden_activations:
                     print(f"⚠️ Warning: Hidden activation {act} is not ideal for {self.name}. "
                           f"Consider {', '.join([a.name for a in self.recommended_hidden_activations])}")
-
+        """
 
 
 # 🔹 **1. Mean Squared Error (MSE) Loss**

@@ -140,6 +140,9 @@ class DisplayModel__Neuron:
             ORDER BY epoch, iteration, model, nid 
         """
         rs = self.db.query(SQL, (self.model_id, Const.CUR_ITERATION, Const.CUR_EPOCH, self.nid)) # Execute query
+        # ✅ Check if `rs` is empty before accessing `rs[0]`
+        if not rs:
+            return False  # No results found
         self.rs = rs[0]
         self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
         self.error_signal_calcs = rs[0].get("error_signal_calcs")

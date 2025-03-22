@@ -109,9 +109,9 @@ class LRReport(BaseReport):
 
             # Label: bias (index 0) as 'B', subsequent weights as H1, H2, etc.
             if weight_idx == 0:
-                label = f"N{nid} B"
+                label = f"N{nid} Bias"
             else:
-                label = f"N{nid} H{weight_idx}"
+                label = f"N{nid} W{weight_idx}"
 
             line, = ax1.plot(epochs, rates, marker='o', label=label)
             lr_lines.append(line)
