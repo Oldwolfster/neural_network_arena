@@ -16,17 +16,14 @@ from ..Legos.LossFunctions import *
 from ..NeuroForge.NeuroForge import *
 
 
-
-
 def run_a_match_orig(gladiators, training_pit):
-
-    config = ModelConfig(
-        hyper = HyperParameters(),
-        db =    prep_RamDB()   # Create a connection to an in-memory SQLite database
+    config                  = ModelConfig(
+        hyper   = HyperParameters(),
+        db      = prep_RamDB()   # Create a connection to an in-memory SQLite database
     )
 
-    seed            = set_seed(config.hyper.random_seed)
-    config.training_data =  get_training_data(config.hyper)
+    seed                    = set_seed(config.hyper.random_seed)
+    config.training_data    =  get_training_data(config.hyper)
     record_training_data(config.training_data.get_list())
 
     print()
@@ -87,24 +84,34 @@ def run_a_match(gladiators, training_pit):
         # Instantiate and train the model
         nn = dynamic_instantiate(gladiator, 'gladiators', model_config)
         start_time = time.time()
+
+        # Actually train model
         model_config.cvg_condition, model_config.full_architecture = nn.train()
+
+        #Record training details
         model_config.architecture = model_config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
-        print(f"Gladiator:{gladiator}  model_config.full_architecture[1:]={model_config.full_architecture}\t model_config.architecture={model_config.architecture}")
-
-        #TODO remove next 4 lines- currently needed  to create ModelInfo table.
-        end_time = time.time()  # End timing
-        run_time = end_time - start_time
-        model_details= ModelInfo(gladiator, run_time, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
-
+        #end_time = time.time()  # End timing
+        #run_time = end_time - start_time
+        model_config.seconds = time.time() - start_time
+        model_details= ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
         model_info_list.append(model_details)
         model_config.db.add(model_details)    #Writes record to ModelInfo table
 
-        model_config.seconds = time.time() - start_time
-
-        print(f"{gladiator} completed in {model_config.seconds}")
-
         # Store ModelConfig for this model
         model_configs.append(model_config)
+
+        # Easy place for quick dirty sql
+        model_config.db.query_print(
+            """ 
+                SELECT  epoch_n as epoch, nid, learning_rates , mean_absolute_error -- ,weight_adjustments 
+                FROM    Neuron N
+                JOIN    EpochSummary S
+                ON      N.epoch_n = S.epoch
+                WHERE   iteration_n == 1 and epoch_n > 10
+                ORDER   BY epoch_n
+                """)
+
+        print(f"{gladiator} completed in {model_config.seconds} based on:{model_config.cvg_condition}")
 
     # Generate reports and send all model configs to NeuroForge
     generate_reports(db, training_data, shared_hyper, model_info_list)

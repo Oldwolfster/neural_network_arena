@@ -12,7 +12,8 @@ class Neuron:
         self.nid = nid
         self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
         self.num_of_weights = num_of_weights
-        self.learning_rate = learning_rate
+        #self.learning_rate = learning_rate
+        self.learning_rates = [learning_rate] * (num_of_weights + 1)   # going to stick bias LR in element 0 even though it offsets all the indexes by 1
         self.raw_sum = 0.0
         self.activation_value = 0.0
         #self.activation =  activation or Activation_Linear         # function
@@ -27,7 +28,7 @@ class Neuron:
         self.neuron_inputs = np.zeros_like(self.weights)
 
         # ✅ Ensure activation is never None
-        self.activation = activation if activation is not None else Activation_Linear
+        self.activation = activation if activation is not None else Activation_NoDamnFunction
         self.activation_name = self.activation.name  # ✅ No more AttributeError
 
         # Ensure layers list is large enough to accommodate this layer_id

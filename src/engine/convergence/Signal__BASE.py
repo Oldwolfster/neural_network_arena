@@ -21,7 +21,7 @@ class Signal__BASE(ABC):
         Initialize the base signal.
 
         Args:
-            mgr (MetricsMgr): The metrics manager, providing access to error metrics.
+            metrics (dict[str, float]): The metrics manager, providing access to error metrics for current epoch
             threshold (float): The threshold value for evaluating convergence.
         """
 
@@ -41,8 +41,34 @@ class Signal__BASE(ABC):
         Returns:
             str: Signal Name if true, otherwise None
         """
+    def evaluate_mae_change(self, n_epochs: int, mae_threshold:  float) -> bool:
+        """
+        Evaluate if the percentage decrease in MAE over the last n_epochs is below the threshold.
 
-    def evaluate_mae_change(self, n_epochs: int) -> bool:
+        Args:
+            n_epochs (int): Number of epochs to consider in rolling improvement calculation.
+
+        Returns:
+            bool: True if the MAE change is below the threshold (stall detected), otherwise False.
+        """
+        if len(self.metrics) < n_epochs:
+            return False  # Not enough epochs to compare
+
+        MAE_now = self.metrics[-1]['mean_absolute_error']
+        MAE_prior = self.metrics[-n_epochs]['mean_absolute_error']
+
+        if MAE_prior == 0:  # Prevent division by zero
+            return False
+
+        improvement_rate = (MAE_prior - MAE_now) / MAE_prior  # Percentage decrease
+
+        # print(f"MAE_now={MAE_now}, MAE_prior={MAE_prior}, Improvement Rate={improvement_rate}, Threshold={self.threshold}")
+
+        return improvement_rate < mae_threshold  # Flag as stall if below threshold
+
+
+
+    def evaluate_mae_changeAbs(self, n_epochs: int) -> bool:
         """
         Evaluate if the MAE change over the last n_epochs is below the threshold.
 
@@ -53,7 +79,7 @@ class Signal__BASE(ABC):
             bool: True if the MAE change is below the threshold, otherwise False.
         """
         #if self.mgr.epoch_curr_number < n_epochs:  # Not enough epochs to compare
-        if len(self.metrics) < n_epochs:
+        if len(self.metrics) < n_epochs:   # Not enough epochs to compare
             return False
 
         MAE_now = self.metrics[-1]['mean_absolute_error']  # epoch_metrics['mean_absolute_error']}

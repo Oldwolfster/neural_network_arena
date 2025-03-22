@@ -5,8 +5,10 @@ from src.engine.RamDB import RamDB
 from src.engine.TrainingData import TrainingData
 
 from src.engine.convergence.Signal_PerfectAccuracy import Signal_PerfectAccuracy
-from src.engine.convergence.Signal_StableAccuracy import Signal_StableAccuracy
-from src.engine.convergence.Signal_UnderMeanThreshold_ShortTerm import Signal_UnderMeanThreshold_ShortTerm
+from src.engine.convergence.DEAD_Signal_StableAccuracy import Signal_StableAccuracy
+from src.engine.convergence.DEAD_Signal_UnderMeanThreshold_ShortTerm import Signal_UnderMeanThreshold_ShortTerm
+from src.engine.convergence.Signal_RollingMaeImprovement10 import Signal_RollingMaeImprovement10
+
 
 class ConvergenceDetector:
     def __init__(self, hyper: HyperParameters, td: TrainingData):
@@ -41,6 +43,7 @@ class ConvergenceDetector:
             #Signal_UnderMeanThreshold_ShortTerm( self.relative_threshold, self.metrics),
             #Signal_StableAccuracy(self.hyper.accuracy_threshold, self.metrics),
             Signal_PerfectAccuracy (self.hyper.accuracy_threshold, self.metrics),
+            Signal_RollingMaeImprovement10(self.hyper.accuracy_threshold, self.metrics)
             #Need to check every itSignal_GradientExplosion(self.hyper.accuracy_threshold, self.metrics)
             #,Signal_UnderMeanThreshold_LongTerm (self.mgr, self.relative_threshold)
         ]

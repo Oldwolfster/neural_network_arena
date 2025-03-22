@@ -47,6 +47,7 @@ class Gladiator(ABC):
         self.last_lost          = 0
         self.iteration          = 0
         self.epoch              = 0
+        self.too_high_adjst     = self.training_data.input_max * 5 #TODO make 5 hyperparamter
         self.config             = config
         self.error_signal_calcs = []
         self.distribute_error_calcs = []
@@ -180,14 +181,14 @@ class Gladiator(ABC):
         output_neuron = Neuron.layers[-1][0]
 
         # Step 1: Compute error signal for output neuron
-        self.back_pass__error_signal_for_output(loss_gradient)
+        self.back_pass__determine_blame_for_output_neuron(loss_gradient)
 
         # Step 2: Compute error signals for hidden neurons
         # * MUST go in reverse order!
         # * MUST be based on weights BEFORE they are updated.(weight as it was during forward prop
         for layer_index in range(len(Neuron.layers) - 2, -1, -1):  # Exclude output layer
             for hidden_neuron in Neuron.layers[layer_index]:  # Iterate over current hidden layer
-                self.back_pass__error_signal_for_hidden(hidden_neuron)
+                self.back_pass__determine_blame_for_hidden_neurons(hidden_neuron)
 
         # Step 3: Adjust weights for the output neuron
         self.adjust_weights(training_sample)
@@ -196,7 +197,7 @@ class Gladiator(ABC):
         self.insert_error_signal_calcs()            # Write error signal calculations to db for NeuroForge popup
         self.insert_distribute_error_calcs()        # Write distribute error calculations to db for NeuroForge popup
 
-    def back_pass__error_signal_for_output(self, loss_gradient: float):
+    def back_pass__determine_blame_for_output_neuron(self, loss_gradient: float):
         """
         Calculate error_signal(gradient) for output neuron.
         Assumes one output neuron and that loss_gradient has already been calculated.
@@ -233,7 +234,7 @@ class Gladiator(ABC):
         - First hidden layer uses inputs from training data.
         - All other neurons use activations from the previous layer.
         """
-        learning_rate = neuron.learning_rate
+        #learning_rate = neuron.learning_rate
         error_signal = neuron.error_signal
         weight_formulas = []
         #if neuron.nid    == 2 and self.epoch==1 and self.iteration<3:
@@ -243,7 +244,19 @@ class Gladiator(ABC):
             weight_before = neuron.weights[i]
             #If calculating gradient tradional way (errpr *-2) then below shuold subtract not add. but it dont work
             #adjustment  = learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
-            adjustment  = prev_value * error_signal *  learning_rate  #So stupid to go down hill they look uphill and go opposite
+
+
+
+            adjustment  = prev_value * error_signal *  neuron.learning_rates[i+1] #1 accounts for bias in 0  #So stupid to go down hill they look uphill and go opposite
+            if abs(adjustment) > self.too_high_adjst: #Explosion detection
+                adjustment = 0
+                neuron.learning_rates[i+1] *= 0.5     #reduce neurons LR
+            # **💡 Growth Factor: Gradually Increase LR if too slow**
+
+            #elif not is_exploding(weight) and not is_oscillating(weight):
+            else:
+                neuron.learning_rates[i] *= 1.05  # Boost LR slightly if it looks stable
+
             neuron.weights[i] -= adjustment
             #print(f"trying to find path down{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
 
@@ -251,12 +264,17 @@ class Gladiator(ABC):
             self.distribute_error_calcs.append([
                 # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
                 self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
-                prev_value, "*", error_signal, "*", learning_rate, "=", adjustment
+                prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
             ])
 
 
         # Bias update
-        adjustment_bias = learning_rate * error_signal
+        adjustment_bias = neuron.learning_rates[0] * error_signal
+        if abs(adjustment_bias) > self.too_high_adjst: #Explosion detection
+            adjustment_bias = 0
+            neuron.learning_rates[0] *= 0.5     #reduce neurons LR
+        else:
+            neuron.learning_rates[0] *= 1.05     #reduce neurons LR
         neuron.bias -= adjustment_bias
 
         # 🔹 Store structured calculation for bias
@@ -264,7 +282,7 @@ class Gladiator(ABC):
         self.distribute_error_calcs.append([
         # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
             self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
-                "1", "*", error_signal, "*", learning_rate,   "=", adjustment_bias
+                "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
             ])
     def convert_numpy_scalars_because_python_is_weak(self, row):
         """
@@ -288,11 +306,12 @@ class Gladiator(ABC):
 
         # Convert each row to ensure any numpy scalars are native Python types
         converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.distribute_error_calcs]
+        #print(f"converted rows = {converted_rows}")
         self.db.executemany(sql, converted_rows)
         self.distribute_error_calcs.clear()
         #self.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0 ORDER BY weight_index")
 
-    def back_pass__error_signal_for_hidden(self, neuron: Neuron):
+    def back_pass__determine_blame_for_hidden_neurons(self, neuron: Neuron):
         """
         Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
         args: neuron:  The neuron we are calculating the error for.
@@ -454,7 +473,7 @@ class Gladiator(ABC):
         nid = -1
         output_af = Activation_Sigmoid #Assume binary decision
         if self.training_data.problem_type !="Binary Decision":
-            output_af = Linear
+            output_af = Activation_NoDamnFunction
 
         for layer_index, neuron_count in enumerate(architecture):
             num_of_weights = self._full_architecture[layer_index]

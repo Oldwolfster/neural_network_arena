@@ -75,7 +75,8 @@ class TrainingData:
             - threshold: The decision boundary
         """
         if self.problem_type != "Binary Decision":
-            raise ValueError("get_bd_settings() was called, but the problem type is not Binary Decision.")
+            return "N/A", "N/A", "N/A"
+            #raise ValueError("get_bd_settings() was called, but the problem type is not Binary Decision.")
 
         # Directly access bd_rules (assuming it's always set in LossFunction)
         bd_rules = loss_function.bd_rules
@@ -123,6 +124,20 @@ class TrainingData:
         #print(f"DEBUG: Target Mapping in TrainingData: {target_map}")
         return target_alpha, target_beta, threshold
     #print(f"✅ Binary Decision targets updated: {target_map}")
+
+
+
+    @property
+    def input_max(self) -> float:
+        """
+        Returns:
+            float: The largest input value across all training data tuples.
+        """
+        if "max_input" not in self._cache:
+            if not self.td_original:
+                raise ValueError("Training data is empty; cannot compute max input.")
+            self._cache["max_input"] = max(max(t[:-1]) for t in self.td_original)
+        return self._cache["max_input"]
 
 
     @property

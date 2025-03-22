@@ -23,16 +23,19 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-
-    epochs_to_run           :int    = 1222      # Number of times training run will cycle through all training data
-    training_set_size       :int    = 2      # Qty of training data
-    default_learning_rate   :float  = .5       # Affects magnitude of weight adjustments #.0001 Equalizer
+    #Delete me -- temp note.. 100 training_set_size had mae of 13k
+    epochs_to_run           :int    = 500      # Number of times training run will cycle through all training data
+    training_set_size       :int    = 10      # Qty of training data
+    default_learning_rate   :float  = 4      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     gradient_clip_threshold :float  = 1e12
     #seed that is all green 529966
     #241709 LR1 converges in 24 friggen epochs!
 
-    random_seed             :int       = 723182 #393828 #874170
+    random_seed             :int       = 874170 #393828 #874170
+    #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs
+    #311161 gets 3 epochs with adaptive LR and explosion threshold of 5.
+    #375655 get 2 epochs
     #507529 hinge with .1 lr in 10 epochs.
 #171193 #8422    # Put zero to NOT use seed!  12345 and LR 1 and 5 or 2,3 arch giving me overflow
     #965512 causes error #621575 LR1 gets stuck and free, but itlooks like it doesn't converge properly

@@ -159,7 +159,7 @@ class XOR_TheLongWay(Gladiator):
 
 
 
-    def back_pass__error_signal_for_output(self, loss_gradient: float):
+    def back_pass__determine_blame_for_output_neuron(self, loss_gradient: float):
         output_neuron = Neuron.layers[-1][0]
         activation_gradient = output_neuron.activation_gradient
         error_signal = loss_gradient * activation_gradient
