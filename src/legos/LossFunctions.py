@@ -221,7 +221,7 @@ Loss_BCEWithLogits = LossFunction(
     when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
     best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
     derivative_formula="sigmoid(logits) - target",
-    allowed_activations=[Activation_Linear],
+    allowed_activations=[Activation_NoDamnFunction],
     bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
 )
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**
@@ -317,7 +317,7 @@ Loss_Hinge = LossFunction(
     when_to_use="Useful for support vector machines and related models.",
     best_for="Binary classification with margin-based methods.",
     derivative_formula="where(1 - target * prediction > 0, -target, 0) / n",
-    allowed_activations=[Activation_Linear],
+    allowed_activations=[Activation_NoDamnFunction],
     bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0")
 )
 
@@ -344,7 +344,7 @@ Loss_LogCosh = LossFunction(
     desc="Calculates loss using the logarithm of the hyperbolic cosine of the prediction error.",
     when_to_use="A smooth loss function that is less sensitive to outliers than MSE.",
     best_for="Regression tasks.",
-    allowed_activations=[Activation_Linear, Activation_Tanh, Activation_ReLU, Activation_LeakyReLU],
+    allowed_activations=[Activation_NoDamnFunction, Activation_Tanh, Activation_ReLU, Activation_LeakyReLU],
     derivative_formula="tanh(prediction - target) / n"
 )
 

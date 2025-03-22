@@ -20,7 +20,7 @@ class ActivationFunction:
         return self.derivative(x)
 
 # Standard activations as objects
-Activation_Linear = ActivationFunction(
+Activation_NoDamnFunction = ActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,
     name="Linear"
