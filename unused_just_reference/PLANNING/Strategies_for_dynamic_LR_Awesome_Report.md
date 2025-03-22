@@ -40,4 +40,8 @@ An increase in the learning rate or a sudden spike in MAE late in training is in
 Rotating Through Strategies When MAE Stalls:
 Implementing a meta-strategy that cycles through different remedies (e.g., adjusting momentum, applying a decay, issuing a burst, etc.) when a plateau is detected is an innovative idea. By testing multiple approaches sequentially, you can identify which adjustment most effectively scrubs the error down again. This dynamic, automated approach could be a cornerstone of a new optimization paradigm that minimizes manual intervention.
 
+In Regression, tanh is super saturated from the hidden weights
+
+**** INVESTIGATE  iRprop+ variant
+
 Your summary and these points underscore a holistic approach to not only eliminate manual LR tuning but also to dynamically adapt the entire optimization process. This strategy would make your optimizer both robust and flexible across various tasks—from classification (like XOR) to more complex regression problems.

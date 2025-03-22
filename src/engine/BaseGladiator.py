@@ -226,7 +226,7 @@ class Gladiator(ABC):
                 self.back_pass__distribute_error(neuron, prev_layer_activations)
 
 
-    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
+    def back_pass__distribute_errorAdaptive(self, neuron: Neuron, prev_layer_values):
         """
         Updates weights for a neuron based on blame (error signal).
         args: neuron: The neuron that will have its weights updated to.
@@ -234,19 +234,11 @@ class Gladiator(ABC):
         - First hidden layer uses inputs from training data.
         - All other neurons use activations from the previous layer.
         """
-        #learning_rate = neuron.learning_rate
         error_signal = neuron.error_signal
-        weight_formulas = []
-        #if neuron.nid    == 2 and self.epoch==1 and self.iteration<3:
-        #print(f"WEIGHT UPDATE FOR epoch:{self.epoch}\tItertion{self.iteration}")
+
 
         for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
             weight_before = neuron.weights[i]
-            #If calculating gradient tradional way (errpr *-2) then below shuold subtract not add. but it dont work
-            #adjustment  = learning_rate * error_signal * prev_value #So stupid to go down hill they look uphill and go opposite
-
-
-
             adjustment  = prev_value * error_signal *  neuron.learning_rates[i+1] #1 accounts for bias in 0  #So stupid to go down hill they look uphill and go opposite
             if abs(adjustment) > self.too_high_adjst: #Explosion detection
                 adjustment = 0
@@ -278,12 +270,45 @@ class Gladiator(ABC):
         neuron.bias -= adjustment_bias
 
         # 🔹 Store structured calculation for bias
-
         self.distribute_error_calcs.append([
         # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
             self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
                 "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
             ])
+
+    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
+        """
+        Updates weights for a neuron based on blame (error signal).
+        args: neuron: The neuron that will have its weights updated to.
+
+        - First hidden layer uses inputs from training data.
+        - All other neurons use activations from the previous layer.
+        """
+        error_signal = neuron.error_signal
+
+        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
+            adjustment  = prev_value * error_signal *  neuron.learning_rates[i+1] #1 accounts for bias in 0  #So stupid to go down hill they look uphill and go opposite
+            neuron.weights[i] -= adjustment
+
+            # 🔹 Store structured calculation for weights
+            self.distribute_error_calcs.append([
+                # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
+                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
+                prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
+            ])
+
+
+        # Bias update
+        adjustment_bias = neuron.learning_rates[0] * error_signal
+        neuron.bias -= adjustment_bias
+
+        # 🔹 Store structured calculation for bias
+        self.distribute_error_calcs.append([
+        # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
+            self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
+                "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
+            ])
+
     def convert_numpy_scalars_because_python_is_weak(self, row):
         """
         Converts any NumPy scalar values in the given row to their native Python types.
