@@ -16,7 +16,7 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("cached_tooltip", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
@@ -62,11 +62,15 @@ class DisplayModel__Neuron:
         # Conditional visualizer
         self.update_neuron()        # must come before selecting visualizer
         self.neuron_visualizer      = DisplayModel__NeuronWeights(self, self.ez_printer)
-
+        self.text_version           = text_version
         if self.layer == Neuron.output_neuron.layer_id:
-            self.banner_text = "Output Neuron (o1)"
+            self.banner_text = "Out"
+            if self.text_version == "Verbose":
+                self.banner_text = "Output Neuron"
         else:
-            self.banner_text = f"Hidden Neuron {self.label}"
+            self.banner_text = self.label
+            if self.text_version == "Verbose":
+                self.banner_text = f"Hidden Neuron {self.label}"
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
 
     def is_hovered(self, model_x, model_y, mouse_x, mouse_y):
