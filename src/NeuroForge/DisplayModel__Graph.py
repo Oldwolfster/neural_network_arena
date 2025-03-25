@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from src.engine.Utils import draw_gradient_rect
 
 
-class DisplayGraph():
+class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):
     def __init__(self, width, height, left, top, model_surface, model_id):
         """Creates a Graph showing MAE over epoch"""

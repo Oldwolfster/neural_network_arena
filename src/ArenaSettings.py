@@ -32,7 +32,7 @@ class HyperParameters:
     #seed that is all green 529966
     #241709 LR1 converges in 24 friggen epochs!
 
-    random_seed             :int       = 252033   #181026 #393828 #874170  331670
+    random_seed             :int       = 708077   #181026 #393828 #874170  331670
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs
     #311161 gets 3 epochs with adaptive LR and explosion threshold of 5.
     #375655 get 2 epochs
@@ -41,7 +41,7 @@ class HyperParameters:
     #965512 causes error #621575 LR1 gets stuck and free, but itlooks like it doesn't converge properly
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = 1e-12      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
-    accuracy_threshold      :float  = .0000000000001        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
+    accuracy_threshold      :float  = .01        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
     data_labels                     = []        # List to hold the optional data labels
 
     ############################################################
@@ -79,9 +79,9 @@ class HyperParameters:
 #training_pit              = "Predict_Income_2_Inputs"
 
 training_pit                = "XOR"
-training_pit              = "Predict_Income_2_Inputs"
-training_pit                = "Moons"
-#training_pit                = "Predict_Income_2_Inputs_5Coefficents"
+#training_pit              = "Predict_Income_2_Inputs"
+#training_pit                = "Moons"
+training_pit                = "Predict_Income_2_Inputs_5Coefficents"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 
 
@@ -103,8 +103,10 @@ gladiators = [
     #'Simplified_Descent_03_AddingMax_Update'
     #'GBS'
     #'NeuroForge_4Layers'
-    'NeuroForge_Template'
-    ,'NeuroForge_Template_Experiment'
+    'Simplex'
+    #,'GBS'
+    #,'NeuroForge_Template'
+
     #'GBS_Baseline'
     #,'HayabusaTwoWeights'   #2 weights
     #'XORTutorial'
