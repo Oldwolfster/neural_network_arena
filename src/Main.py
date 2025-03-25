@@ -1,3 +1,5 @@
+import snakeviz
+
 from src.ArenaSettings import *
 from src.engine.Engine import run_a_match
 from engine.SQL import list_runs
@@ -17,4 +19,6 @@ def main():
 
 if __name__ == '__main__':
     main() #Normal run
-    #cProfile.run('main()', sort='cumulative') #for profiling
+
+    #cProfile.run('main()', 'profile_stats.prof')
+    # CMD LINE RUN snakeviz src\profile_stats.prof

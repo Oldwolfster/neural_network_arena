@@ -139,6 +139,29 @@ class TrainingData:
             self._cache["max_input"] = max(max(t[:-1]) for t in self.td_original)
         return self._cache["max_input"]
 
+    def everything_max_magnitude(self) -> float:
+        """
+        Returns:
+            float: The largest value across all training data tuples (inputs and outputs).
+        """
+        if not self.td_original:
+            raise ValueError("Training data is empty; cannot compute maximum value.")
+        # Iterate over each tuple, then each element in the tuple, and compute the max.
+        self._cache["everything_max"] = abs(max(item for t in self.td_original for item in t))
+        return self._cache["everything_max"]
+
+    @property
+    def output_max(self) -> float:
+        """
+        Returns:
+            float: The largest input value across all training data tuples.
+        """
+        if "max_output" not in self._cache:
+            if not self.td_original:
+                raise ValueError("Training data is empty; cannot compute max output.")
+            self._cache["max_output"] = max(max(t[:-1]) for t in self.td_original)
+        return self._cache["max_output"]
+
 
     @property
     def sum_of_targets(self) -> int:

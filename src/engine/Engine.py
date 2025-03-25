@@ -16,7 +16,7 @@ from ..Legos.LossFunctions import *
 from ..NeuroForge.NeuroForge import *
 
 
-def run_a_match_orig(gladiators, training_pit):
+def DELETEEMErun_a_match_orig(gladiators, training_pit):
     config                  = ModelConfig(
         hyper   = HyperParameters(),
         db      = prep_RamDB()   # Create a connection to an in-memory SQLite database
@@ -61,6 +61,8 @@ def run_a_match(gladiators, training_pit):
     # Shared resources
     db = prep_RamDB()
     training_data = get_training_data(shared_hyper)
+
+
     record_training_data(training_data.get_list())
 
     print()
@@ -75,10 +77,11 @@ def run_a_match(gladiators, training_pit):
         model_config = ModelConfig(
             hyper=shared_hyper,
             db=db,  # Shared database
-            #training_data=training_data,  # Shared training data
+            training_data=training_data,  # Shared training data
             gladiator_name=gladiator
         )
-        model_config.training_data = training_data
+        model_config.set_defaults()
+        #model_config.training_data = training_data # WHY DID I NEED THIS
 
 
         # Instantiate and train the model
@@ -101,15 +104,15 @@ def run_a_match(gladiators, training_pit):
         model_configs.append(model_config)
 
         # Easy place for quick dirty sql
-        model_config.db.query_print(
-            """ 
+        """ model_config.db.query_print(
+            
                 SELECT  epoch_n as epoch, nid, learning_rates , mean_absolute_error -- ,weight_adjustments 
                 FROM    Neuron N
                 JOIN    EpochSummary S
                 ON      N.epoch_n = S.epoch
                 WHERE   iteration_n == 1 and epoch_n > 10
                 ORDER   BY epoch_n
-                """)
+                """ #)
 
         print(f"{gladiator} completed in {model_config.seconds} based on:{model_config.cvg_condition}")
 

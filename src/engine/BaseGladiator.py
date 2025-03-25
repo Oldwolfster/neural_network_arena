@@ -9,7 +9,7 @@ from datetime import datetime
 
 from src.engine.Utils_DataClasses import Iteration
 from src.Legos.WeightInitializers import *
-from typing import List
+from typing import List, Tuple
 
 """
 
@@ -35,9 +35,9 @@ class Gladiator(ABC):
         self.neurons            = []
         #self.layers             = []                        # Layered structure
         self.neuron_count       = 0                         # Default value
-        self.training_data      . reset_to_default()
+
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.mgr_sql            = MgrSQL(self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
+        self.mgr_sql            = MgrSQL(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
@@ -48,9 +48,12 @@ class Gladiator(ABC):
         self.iteration          = 0
         self.epoch              = 0
         self.too_high_adjst     = self.training_data.input_max * 5 #TODO make 5 hyperparamter
+        self.max_adj            = self.training_data.everything_max_magnitude()
         self.config             = config
-        self.error_signal_calcs = []
-        self.distribute_error_calcs = []
+        self.blame_calculations = []
+        self.weight_update_calculations = []
+
+        self.convergence_phase  = "watch"
         Neuron.reset_layers()
 
 
@@ -75,7 +78,10 @@ class Gladiator(ABC):
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
-                return convg_signal, self._full_architecture
+                if convg_signal == "fix_temporarilydisabled":
+                    self.convergence_phase = "fix"
+                else:
+                    return convg_signal, self._full_architecture
         return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
 
     def validate_output_activation_functionDeleteME(self):
@@ -84,7 +90,7 @@ class Gladiator(ABC):
         """
         # 🚨 Validate activation function before training begins
         allowed_activations = self.config.loss_function.allowed_activation_functions
-        actual_activation = Neuron._output_neuron.activation
+        actual_activation = Neuron.output_neuron.activation
 
         if allowed_activations is not None and actual_activation not in allowed_activations:
             raise ValueError(
@@ -148,85 +154,134 @@ class Gladiator(ABC):
 
         # Step 4: Delegate to models logic for backporop.
         self.back_pass(sample, loss_gradient)  # Call model-specific logic
+        
+        # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
+        self.record_blame_calculations()                    # Write error signal calculations to db for NeuroForge popup
+        self.record_weight_updates()                        # Write distribute error calculations to db for NeuroForge popup
         return error, loss,  loss_gradient
-
-    def watch_for_explosion(self,correction: float) ->float:        # 🚨 Detect gradient explosion
-        if abs(correction) > self.config.hyper.gradient_clip_threshold:
-            print(f"🚨 Gradient Explosion Detected! Clipping correction: {correction}")
-            correction = np.sign(correction) * self.config.hyper.gradient_clip_threshold  # Clip to max allowed
-        return correction
 
     ################################################################################################
     ################################ SECTION 1 - Training Default Methods ##########################
     ################################################################################################
-    def forward_pass(self, training_sample):
+    def forward_pass(self, training_sample: Tuple[float, float, float]) -> None:
         """
-        Computes forward pass for each neuron in the XOR MLP.
+        🚀 Computes forward pass for each neuron in the XOR MLP.
+        🔍 Activation of Output neuron will be considered 'Raw Prediction'
+        Args:
+            training_sample: tuple where first elements are inputs and last element is target (assume one target)
         """
-        #print("🚀Using Default Forward pass - to customize override forward_pass")
+
         input_values = training_sample[:-1]
 
         # 🚀 Compute raw sums + activations for each layer
-        for layer_idx, layer in enumerate(Neuron.layers):  # Exclude output layer
+        for layer_idx, layer in enumerate(Neuron.layers):  # Loop through all layers
             prev_activations = input_values if layer_idx == 0 else [n.activation_value for n in Neuron.layers[layer_idx - 1]]
-
             for neuron in layer:
                 neuron.raw_sum = sum(input_val * weight for input_val, weight in zip(prev_activations, neuron.weights))
                 neuron.raw_sum += neuron.bias
                 neuron.activate()
 
+    def back_pass(self, training_sample : Tuple[float, float, float], loss_gradient: float):
+        """
+        # Step 1: Compute blame for output neuron
+        # Step 2: Compute blame for hidden neurons
+        # Step 3: Adjust weights (Spread the blame)
+        Args:
+            training_sample (Tuple[float, float, float]): All inputs except the last which is the target
+            loss_gradient (float) Derivative of the loss function with respect to the prediction.
+        """
 
-    def back_pass(self, training_sample, loss_gradient: float):
-        #print("🚀Using Default back_pass - to customize override back_pass")
-        output_neuron = Neuron.layers[-1][0]
-
-        # Step 1: Compute error signal for output neuron
+        # 🎯 Step 1: Compute blame (error signal) for output neuron
         self.back_pass__determine_blame_for_output_neuron(loss_gradient)
 
-        # Step 2: Compute error signals for hidden neurons
-        # * MUST go in reverse order!
-        # * MUST be based on weights BEFORE they are updated.(weight as it was during forward prop
-        for layer_index in range(len(Neuron.layers) - 2, -1, -1):  # Exclude output layer
-            for hidden_neuron in Neuron.layers[layer_index]:  # Iterate over current hidden layer
-                self.back_pass__determine_blame_for_hidden_neurons(hidden_neuron)
+        # 🎯 Step 2: Compute blame (error signals) for hidden neurons        #    MUST go in reverse order AND MUST be based on weights BEFORE they are updated.(weight as it was during forward prop
+        for layer_index in range(len(Neuron.layers) - 2, -1, -1):   # Exclude output layer
+            for hidden_neuron in Neuron.layers[layer_index]:        # Iterate over current hidden layer
+                self.back_pass__determine_blame_for_a_hidden_neuron(hidden_neuron)
 
-        # Step 3: Adjust weights for the output neuron
-        self.adjust_weights(training_sample)
-
-        # Step 4: Adjust weights for the hidden neurons (⬅️ Last step we need)
-        self.insert_error_signal_calcs()            # Write error signal calculations to db for NeuroForge popup
-        self.insert_distribute_error_calcs()        # Write distribute error calculations to db for NeuroForge popup
+        # 🎯 Step 3: Adjust weights for the output neuron
+        self.back_pass__spread_the_blame(training_sample)        
 
     def back_pass__determine_blame_for_output_neuron(self, loss_gradient: float):
         """
         Calculate error_signal(gradient) for output neuron.
         Assumes one output neuron and that loss_gradient has already been calculated.
+        Args:
+            training_sample (Tuple[float, float, float]): All inputs except the last which is the target
+            loss_gradient (float) Derivative of the loss function with respect to the prediction.
         """
-        output_neuron               = Neuron.layers[-1][0]
-        activation_gradient         = output_neuron.activation_gradient
-        error_signal                = loss_gradient * activation_gradient
-        output_neuron.error_signal  = error_signal
+        activation_gradient                 = Neuron.output_neuron.activation_gradient
+        blame                               = loss_gradient * activation_gradient
+        Neuron.output_neuron.error_signal   = blame
 
-    def adjust_weights(self, training_sample):
+    def back_pass__determine_blame_for_a_hidden_neuron(self, neuron: Neuron):
         """
-        Adjust weights for all neurons in the network using backpropagation.
-        This works for both perceptrons and MLPs.
+        Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
+        args: neuron:  The neuron we are calculating the error for.
+        """
+        activation_gradient         = neuron.activation_gradient
+        total_backprop_error        = 0  # Sum of (next neuron error * connecting weight)        
+        
+        # 🔄 Loop through each neuron in the next layer
+        for next_neuron in Neuron.layers[neuron.layer_id + 1]:  # Next layer neurons
+            weight_to_next          =  next_neuron.weights_before[neuron.position]  # Connection weight #TODO is weights before requried here?  I dont think so
+            error_from_next         =  next_neuron.error_signal  # Next neuron’s error signal
+            total_backprop_error    += weight_to_next * error_from_next  # Accumulate contributions
+            neuron.error_signal     =  activation_gradient * total_backprop_error # 🔥 Compute final error signal for this hidden neuron
+
+            # 🔹 Store calculation step as a structured tuple, now including weight index
+            self.blame_calculations.append([
+                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, next_neuron.position,
+                weight_to_next, "*", error_from_next, "=", None, None, weight_to_next * error_from_next
+            ])        
+
+    def back_pass__spread_the_blame(self, training_sample : Tuple[float, float, float]):
+        """
+        Loops through all neurons, gathering the information required to update that neurons weights
+        Args:
+            training_sample (Tuple[float, float, float]): All inputs except the last which is the target
         """
         # Iterate backward through all layers, including the output layer
         for layer_index in range(len(Neuron.layers) - 1, -1, -1):  # Start from the output layer
-            if layer_index == 0:
-                # For the first layer (input layer), use raw inputs
-                prev_layer_activations = training_sample[:-1]  # Exclude the label
+            if layer_index == 0:                        # For the first layer (input layer), use raw inputs
+                prev_layer = training_sample[:-1]       # Exclude the target
+            else:                                       # For other layers, use activations from the previous layer
+                prev_layer = [n.activation_value for n in Neuron.layers[layer_index - 1]]
+            for neuron in Neuron.layers[layer_index]:   # Adjust weights for each neuron in the current layer
+                self.back_pass__update_neurons_weights(neuron, prev_layer)
+
+    def back_pass__update_neurons_weights(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
+        """
+        Updates weights for a neuron based on blame (error signal).
+        Args:
+            neuron: The neuron that will have its weights updated to.
+            prev_layer_values: (list[float]) Activations from the previous layer or inputs for first hidden layer
+        """
+        blame = neuron.error_signal                             # Get the culpability assigned to this neuron
+        input_vector = [1.0] + list(prev_layer_values)
+
+        for i, prev_value in enumerate(input_vector):
+            learning_rate = neuron.learning_rates[i]
+            adjustment = prev_value * blame * learning_rate
+
+            # 🔹 Update
+            if i == 0:
+                neuron.bias -= adjustment
             else:
-                # For other layers, use activations from the previous layer
-                prev_layer_activations = [n.activation_value for n in Neuron.layers[layer_index - 1]]
+                neuron.weights[i - 1] -= adjustment
 
-            # Adjust weights for each neuron in the current layer
-            for neuron in Neuron.layers[layer_index]:
-                self.back_pass__distribute_error(neuron, prev_layer_activations)
+            # 🔹 Store structured calculation for weights
+            self.weight_update_calculations.append([
+                self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
+                prev_value, "*", blame, "*", learning_rate, "=", adjustment
+            ])
 
 
-    def back_pass__distribute_errorAdaptive(self, neuron: Neuron, prev_layer_values):
+    #################################################
+    #################################################
+    #################################################
+    #################################################
+    def back_pass__distribute_errorAdaptive(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
         """
         Updates weights for a neuron based on blame (error signal).
         args: neuron: The neuron that will have its weights updated to.
@@ -235,7 +290,6 @@ class Gladiator(ABC):
         - All other neurons use activations from the previous layer.
         """
         error_signal = neuron.error_signal
-
 
         for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
             weight_before = neuron.weights[i]
@@ -253,7 +307,7 @@ class Gladiator(ABC):
             #print(f"trying to find path down{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
 
             # 🔹 Store structured calculation for weights
-            self.distribute_error_calcs.append([
+            self.weight_update_calculations.append([
                 # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
                 self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
                 prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
@@ -270,44 +324,12 @@ class Gladiator(ABC):
         neuron.bias -= adjustment_bias
 
         # 🔹 Store structured calculation for bias
-        self.distribute_error_calcs.append([
+        self.weight_update_calculations.append([
         # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
             self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
                 "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
             ])
 
-    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
-        """
-        Updates weights for a neuron based on blame (error signal).
-        args: neuron: The neuron that will have its weights updated to.
-
-        - First hidden layer uses inputs from training data.
-        - All other neurons use activations from the previous layer.
-        """
-        error_signal = neuron.error_signal
-
-        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
-            adjustment  = prev_value * error_signal *  neuron.learning_rates[i+1] #1 accounts for bias in 0  #So stupid to go down hill they look uphill and go opposite
-            neuron.weights[i] -= adjustment
-
-            # 🔹 Store structured calculation for weights
-            self.distribute_error_calcs.append([
-                # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
-                prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
-            ])
-
-
-        # Bias update
-        adjustment_bias = neuron.learning_rates[0] * error_signal
-        neuron.bias -= adjustment_bias
-
-        # 🔹 Store structured calculation for bias
-        self.distribute_error_calcs.append([
-        # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-            self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
-                "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
-            ])
 
     def convert_numpy_scalars_because_python_is_weak(self, row):
         """
@@ -316,7 +338,7 @@ class Gladiator(ABC):
         """
         return [x.item() if hasattr(x, 'item') else x for x in row]
 
-    def insert_distribute_error_calcs(self):
+    def record_weight_updates(self):
         """
         Inserts all weight update calculations for the current iteration into the database.
         """
@@ -326,63 +348,23 @@ class Gladiator(ABC):
         VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))"""
 
         #print("About to insert")
-        #for row in self.distribute_error_calcs:
+        #for row in self.weight_update_calculations:
         #    print(row)
 
         # Convert each row to ensure any numpy scalars are native Python types
-        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.distribute_error_calcs]
+        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.weight_update_calculations]
         #print(f"converted rows = {converted_rows}")
         self.db.executemany(sql, converted_rows)
-        self.distribute_error_calcs.clear()
+        self.weight_update_calculations.clear()
         #self.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0 ORDER BY weight_index")
 
-    def back_pass__determine_blame_for_hidden_neurons(self, neuron: Neuron):
-        """
-        Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
-        args: neuron:  The neuron we are calculating the error for.
-        """
-        activation_gradient = neuron.activation_gradient
-        total_backprop_error = 0  # Sum of (next neuron error * connecting weight)
-        neuron.error_signal_calcs=""
 
-        #print(f"Calculating error signal epoch/iter:{self.epoch}/{self.iteration} for neuron {to_neuron.layer_id},{to_neuron.position}")
-        # 🔄 Loop through each neuron in the next layer
-
-        memory_efficent_way_to_store_calcs = []
-        for next_neuron in Neuron.layers[neuron.layer_id + 1]:  # Next layer neurons
-            #print (f"
-            # getting weight and error from {to_neuron.layer_id},{to_neuron.position}")
-            weight_to_next = next_neuron.weights_before[neuron.position]  # Connection weight #TODO is weights before requried here?  I dont think so
-            error_from_next = next_neuron.error_signal  # Next neuron’s error signal
-            total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
-            # 🔹 Store calculation step as a structured tuple, now including weight index
-            self.error_signal_calcs.append([
-                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid,
-                next_neuron.position,  # Adding weight index for uniqueness
-                weight_to_next, "*", error_from_next, "=", None, None, weight_to_next * error_from_next
-            ])
-            memory_efficent_way_to_store_calcs.append(f"{smart_format(weight_to_next)}!{smart_format(error_from_next)}@")
-        neuron.error_signal_calcs = ''.join(memory_efficent_way_to_store_calcs)  # Join once instead of multiple string concatenations
-        """
-        print("**********************")
-        print("**********************")
-        print("**********************")
-        for row in self.error_signal_calcs:
-            print(row)
-        print("**********************")
-        print(neuron.error_signal_calcs)
-        for row in memory_efficent_way_to_store_calcs:
-            print(row)
-        # 🔥 Compute final error signal for this hidden neuron
-        """
-        neuron.error_signal = activation_gradient * total_backprop_error
-
-    def insert_error_signal_calcs(self):
+    def record_blame_calculations(self):
         """
         Inserts all backprop calculations for the current iteration into the database.
         """
         #print("********  Distribute Error Calcs************")
-        #for row in self.error_signal_calcs:
+        #for row in self.blame_calculations:
         #    print(row)
 
         sql = """
@@ -398,9 +380,12 @@ class Gladiator(ABC):
         """
 
         # Convert each row to ensure any numpy scalars are native Python types
-        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.error_signal_calcs]
-        self.db.executemany(sql, self.error_signal_calcs)
-        self.error_signal_calcs.clear()
+        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.blame_calculations]
+        #print(f"BLAME {self.blame_calculations}")
+
+        #Heads up, sometimes overflow error look like key violation here
+        self.db.executemany(sql, self.blame_calculations)
+        self.blame_calculations.clear()
 
     def validate_pass(self, target: float, prediction_raw: float):
         """
@@ -473,7 +458,7 @@ class Gladiator(ABC):
 
 
 
-    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, activation_function_for_hidden: ActivationFunction = Activation_Tanh):
+    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, hidden_activation: ActivationFunction = None, output_activation: ActivationFunction = None):
         """
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
 
@@ -490,22 +475,20 @@ class Gladiator(ABC):
         flat_initializers = self.get_flat_initializers(architecture, initializers)
         print(f"Checking flat_initializers: {flat_initializers}")
 
-        input_count = self.training_data.input_count
+        input_count             = self.training_data.input_count
+        hidden_activation       = hidden_activation or self.config.activation_function_for_hidden
+        output_activation       = output_activation or self.config.loss_function.recommended_output_activation #None indicates no restriction
         self._full_architecture = [input_count] + architecture  # Store the full architecture
-
+        nid                     = -1
         self.neurons.clear()
         Neuron.layers.clear()
-        nid = -1
-        output_af = Activation_Sigmoid #Assume binary decision
-        if self.training_data.problem_type !="Binary Decision":
-            output_af = Activation_NoDamnFunction
 
         for layer_index, neuron_count in enumerate(architecture):
             num_of_weights = self._full_architecture[layer_index]
             for neuron_index in range(neuron_count):
                 nid += 1
 
-                activation = output_af if layer_index==len(architecture)-1 else activation_function_for_hidden
+                activation = output_activation if layer_index==len(architecture)-1 else hidden_activation
                 #print(f"Creating Neuron {nid}  in layer{layer_index}  len(architecture)={len(architecture)} - Act = {activation.name}")
                 neuron = Neuron(
                     nid=nid,
@@ -597,8 +580,8 @@ class Gladiator(ABC):
             new_learning_rate (float): The new learning rate to set.
         """
         self._learning_rate = new_learning_rate
-        for neuron in self.neurons:
-            neuron.learning_rate = new_learning_rate
+        for neuron in Neuron.neurons:
+            neuron.set_learning_rate(new_learning_rate)
 
 
 def smart_format(num):

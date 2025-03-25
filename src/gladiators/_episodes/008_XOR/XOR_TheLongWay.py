@@ -123,7 +123,7 @@ class XOR_TheLongWay(Gladiator):
         """
         activation_gradient = to_neuron.activation_gradient
         total_backprop_error = 0  # Sum of (next neuron error * connecting weight)
-        to_neuron.error_signal_calcs=""
+        to_neuron.blame_calculations=""
 
         #print(f"Calculating error signal epoch/iter:{self.epoch}/{self.iteration} for neuron {to_neuron.layer_id},{to_neuron.position}")
         # 🔄 Loop through each neuron in the next layer
@@ -132,9 +132,9 @@ class XOR_TheLongWay(Gladiator):
             weight_to_next = next_neuron.weights_before[to_neuron.position]  # Connection weight
             error_from_next = next_neuron.error_signal  # Next neuron’s error signal
             total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
-            to_neuron.error_signal_calcs= to_neuron.error_signal_calcs + f"{smart_format( weight_to_next)}!{smart_format( error_from_next)}@"
+            to_neuron.blame_calculations= to_neuron.blame_calculations + f"{smart_format( weight_to_next)}!{smart_format( error_from_next)}@"
 
-        #print (f"yoooo{to_neuron.error_signal_calcs}")
+        #print (f"yoooo{to_neuron.blame_calculations}")
         # 🔥 Compute final error signal for this hidden neuron
         to_neuron.error_signal = activation_gradient * total_backprop_error
 

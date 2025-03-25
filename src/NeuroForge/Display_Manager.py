@@ -3,6 +3,7 @@ import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.DisplayArrowsOutsideNeuron import DisplayArrowsOutsideNeuron
 from src.NeuroForge.DisplayBanner import DisplayBanner
+from src.NeuroForge.DisplayGraph import DisplayGraph
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
@@ -100,6 +101,12 @@ class Display_Manager:
         # Add Input and output Arrows (Spans multiple surfaces) - will be full area and not clear)
         arrows = DisplayArrowsOutsideNeuron(self.models[0])
         self.components.append(arrows)
+
+        # Add Graph  # MAE over epoch
+        #moved to display model
+        #self.Graph = DisplayGraph(width_pct=40, height_pct=30, left_pct=60, top_pct=70)
+        #self.components.append(self.Graph)
+
 
     def create_prediction_panels(self): #one needed per model
         for idx, model_config in enumerate(Const.configs):

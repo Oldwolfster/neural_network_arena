@@ -62,7 +62,7 @@
         """
         activation_gradient = neuron.activation_gradient
         total_backprop_error = 0  # Sum of (next neuron error * connecting weight)
-        neuron.error_signal_calcs=""
+        neuron.blame_calculations=""
 
         #print(f"Calculating error signal epoch/iter:{self.epoch}/{self.iteration} for neuron {to_neuron.layer_id},{to_neuron.position}")
         # 🔄 Loop through each neuron in the next layer
@@ -74,9 +74,9 @@
             weight_to_next = next_neuron.weights_before[neuron.position]  # Connection weight #TODO is weights before requried here?  I dont think so
             error_from_next = next_neuron.error_signal  # Next neuron’s error signal
             total_backprop_error += weight_to_next * error_from_next  # Accumulate contributions
-            #OLD WAY neuron.error_signal_calcs= neuron.error_signal_calcs + f"{smart_format( weight_to_next)}!{smart_format( error_from_next)}@"
+            #OLD WAY neuron.blame_calculations= neuron.blame_calculations + f"{smart_format( weight_to_next)}!{smart_format( error_from_next)}@"
             memory_efficent_way_to_store_calcs.append(f"{smart_format(weight_to_next)}!{smart_format(error_from_next)}@")
-        neuron.error_signal_calcs = ''.join(memory_efficent_way_to_store_calcs)  # Join once instead of multiple string concatenations
+        neuron.blame_calculations = ''.join(memory_efficent_way_to_store_calcs)  # Join once instead of multiple string concatenations
 
 
         # 🔥 Compute final error signal for this hidden neuron

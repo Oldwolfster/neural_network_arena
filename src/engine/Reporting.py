@@ -43,7 +43,8 @@ def prep_RamDB():
     dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, prediction_raw=0.1, loss=0.1, loss_gradient=0.1, loss_function="dummy", accuracy_threshold=0.0)
     dummy_neuron = Neuron(0,1,0.0,Initializer_Tiny ,0)
     db.add(dummy_iteration)
-    db.add(dummy_neuron,exclude_keys={"activation"}, model='dummy', epoch_n = 0, iteration_n = 0 )
+
+    db.add(dummy_neuron,exclude_keys={"activation", "output_neuron"}, model='dummy', epoch_n = 0, iteration_n = 0 )
     #db.execute("CREATE INDEX idx_model_epoch_iteration ON Neuron (model, epoch_n, iteration_n);")
     db.execute("CREATE INDEX idx_epoch_iteration ON Neuron (epoch_n, iteration_n);")
     db.execute("CREATE INDEX idx__iteration ON Iteration (iteration);")

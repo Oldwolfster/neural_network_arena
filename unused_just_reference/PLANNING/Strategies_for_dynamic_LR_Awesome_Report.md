@@ -1,3 +1,26 @@
+Mission Statement (Working Draft)
+"Simplex is a self-regulating optimizer that eliminates
+the need for manual learning rate tuning, 
+dynamically prevents gradient explosions,
+can add new Loss functions, activations, and initializers like legos, but calls out 
+incompatible components (for example Hinge and Sigmoid).
+Designed for clarity, speed, and flexibility,
+it works out of the box for regression and binary tasks,
+and adapts to architecture, data, and noise—so you can focus on results, not tweaking knobs.
+Simplex delivers smooth, fast convergence while making fragile networks 'Hard to get wrong'" 
+
+Simplex is a highly performant self-regulating optimizer that eliminates
+the need for manual tuning.  The key to outperforming all other optimizers to date,
+lies in the self regulation as it sets monitors and updates optimum values for hyper
+parameters.
+
+In addition to performance, the self optimizing mechanism makes it "Hard to get wrong"
+with the flexibility to override architecture (in the event an override would prevent 
+success, rather than most optimizers which run and then surprise you with dismal results
+,wasting time and compute, if an override is fatal, will terminate before running and clearly 
+explain incompatibility.   If suboptimal, will warn and allow user to make an informed decision
+
+Ideas to improve it:
 Momentum and Its Coefficient:
 Yes, when you use a momentum coefficient of 0.9, it means 90% of the previous update (the “momentum” term) is carried over and only 10% comes from the current gradient. This strong momentum can smooth out oscillations, though it does mean that historical gradients have a very heavy influence. The balance is crucial—too high, and you risk overshooting if the direction of the gradient changes abruptly.
 
@@ -40,7 +63,7 @@ An increase in the learning rate or a sudden spike in MAE late in training is in
 Rotating Through Strategies When MAE Stalls:
 Implementing a meta-strategy that cycles through different remedies (e.g., adjusting momentum, applying a decay, issuing a burst, etc.) when a plateau is detected is an innovative idea. By testing multiple approaches sequentially, you can identify which adjustment most effectively scrubs the error down again. This dynamic, automated approach could be a cornerstone of a new optimization paradigm that minimizes manual intervention.
 
-In Regression, tanh is super saturated from the hidden weights
+In Regression, Tanh is super saturated from the hidden weights
 
 **** INVESTIGATE  iRprop+ variant
 

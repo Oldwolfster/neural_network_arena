@@ -4,7 +4,7 @@ from src.engine.ModelConfig import ModelConfig
 
 
 class GeneratorNeuron:
-    model= None #Refernce to the Model it is creating neurons for.
+    model = None #Refernce to the Model it is creating neurons for.
 
     @staticmethod
     def create_neurons(the_model: str, max_act: float, margin=20, gap=30, max_neuron_size=350):
@@ -40,6 +40,10 @@ class GeneratorNeuron:
         nid = -1
 
         for layer_index, neuron_count in enumerate(GeneratorNeuron.model.config.architecture):
+            # Inject 1 extra neuron in the last layer to hold graph
+            if layer_index == len(GeneratorNeuron.model.config.architecture) - 1:
+                neuron_count += 1
+
             layer_neurons = []
 
             # 🔹 Compute X coordinate for neurons in this layer
@@ -56,6 +60,12 @@ class GeneratorNeuron:
                 neuron = DisplayModel__Neuron(left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface, max_activation=max_act )
                 layer_neurons.append(neuron)
             GeneratorNeuron.model.neurons.append(layer_neurons)
+        GeneratorNeuron.separate_graph_holder_from_neurons()
+    @staticmethod
+    def separate_graph_holder_from_neurons():
+        graph_slot = GeneratorNeuron.model.neurons[-1][-1]  # Last neuron in last layer
+        GeneratorNeuron.model.graph_holder = graph_slot  # or .graph_panel, .graph_target, etc.
+        GeneratorNeuron.model.neurons[-1].pop()  # Removes it from draw loop if needed
 
     @staticmethod
     def calculate_neuron_size( margin, gap, max_neuron_size):

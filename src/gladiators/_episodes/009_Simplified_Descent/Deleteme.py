@@ -31,14 +31,14 @@ class MLP_Hayabusa(Gladiator):
 
         config.loss_function = Loss_MSE
         super().__init__(config)
-        self.initialize_neurons([2], [Initializer_Xavier]
+        self.initialize_neurons([], [Initializer_Xavier]
                                 , activation_function_for_hidden= Activation_Tanh)
 
 
         self.learning_rate = 4 #TODO silently f ails if called  before self.initalize_neurons
         #self.bd_threshold=0
         #self.bd_class_alpha=3
-        Neuron._output_neuron.set_activation(Activation_NoDamnFunction)
+        Neuron.output_neuron.set_activation(Activation_NoDamnFunction)
 
 
     def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
@@ -72,7 +72,7 @@ class MLP_Hayabusa(Gladiator):
             #print(f"trying to find path down{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
 
             # 🔹 Store structured calculation for weights
-            self.distribute_error_calcs.append([
+            self.weight_update_calculations.append([
                 # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
                 self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
                 prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
@@ -89,7 +89,7 @@ class MLP_Hayabusa(Gladiator):
         neuron.bias -= adjustment_bias
 
         # 🔹 Store structured calculation for bias
-        self.distribute_error_calcs.append([
+        self.weight_update_calculations.append([
         # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
             self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
                 "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias

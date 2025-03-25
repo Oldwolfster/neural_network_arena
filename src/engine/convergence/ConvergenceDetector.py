@@ -1,70 +1,95 @@
-from typing import List
-
+from enum import Enum
+from typing import List, Dict
 from src.ArenaSettings import HyperParameters
 from src.engine.RamDB import RamDB
 from src.engine.TrainingData import TrainingData
+from src.engine.convergence.Signal_Economic import Signal_Economic
 
 from src.engine.convergence.Signal_PerfectAccuracy import Signal_PerfectAccuracy
-from src.engine.convergence.DEAD_Signal_StableAccuracy import Signal_StableAccuracy
-from src.engine.convergence.DEAD_Signal_UnderMeanThreshold_ShortTerm import Signal_UnderMeanThreshold_ShortTerm
-from src.engine.convergence.Signal_RollingMaeImprovement10 import Signal_RollingMaeImprovement10
-    #TODO VERY INTERESING APPROACH.  Add as signal Normalized Convergence Rate Convergence_Rate = (previous_stability - current_stability) / (1 - current_stability)
-    #TODO Oscillation detection Oscillation_Index = variance_of_sign_changes_in_recent_updates / variance_of_magnitude_changes
+from src.engine.convergence.Signal_MostAccurate import Signal_MostAccurate
+from src.engine.convergence.Signal_SweetSpot import Signal_SweetSpot
 
+
+class ROI_Mode(Enum):
+    ECONOMIC            = "economic"  # Stop early, only major gains
+    SWEET_SPOT          = "sweet_spot"  # Default — stop when gains plateau
+    MOST_ACCURATE       = "most_accurate"  # Squeeze every drop
 
 class ConvergenceDetector:
-    def __init__(self, hyper: HyperParameters, td: TrainingData):
-        """
-        Args:
-            hyper (HyperParameters) : Stores hyperparameter configurations.
-            mgr (MetricsMgr)        : Manages and tracks metrics across epochs.
-        """
+    def __init__(self, hyper: HyperParameters, td: TrainingData, config):
         self.hyper = hyper
         self.td = td
-        #self.relative_threshold = self.calculate_relative_threshold()
         self.metrics = []
-        self.triggered_signals = []
-        self.signals = self.create_signals()
+        self.triggered_signals: List[str] = []
+        self.phase = "watch"        # Phase state: 'watch', 'fix', 'done'
 
-    def create_signals(self):
-        return [
-            Signal_PerfectAccuracy (self.hyper.accuracy_threshold, self.metrics),
-            Signal_RollingMaeImprovement10(self.hyper.accuracy_threshold, self.metrics)
-        ]
+        print(f"{config.roi_mode}")
 
-    def check_convergence(self,epoch_current_no: int, epoch_metrics : dict[str, float]) -> str:
+        # Map of phases to signal classes
+        self.phase_signals = {
+            "watch": [
+                Signal_PerfectAccuracy(self.hyper.accuracy_threshold, self.metrics)
+               #,self.get_roi_signal(config.roi_mode, self.hyper, self.metrics)
+            ],
+            "fix": [
+                # Placeholder, no fix signals active yet
+            ],
+            "done": [
+            ]
+        }
+
+        # Track signals that have fired in each phase
+        self.phase_signals_fired: Dict[str, List[str]] = {
+            "watch": [],
+            "fix": [],
+            "done": []
+        }
+
+    def check_convergence(self, epoch_current_no: int, epoch_metrics: dict[str, float]) -> str:
         """
-        Evaluate all signals - for now, if all are true we call it converged.
+        Evaluate signals for the current phase.
         Returns:
-            List[str]: Signal Names that triggered convergence
+            str: "" to continue training, or name of signal (or sentinel) to trigger behavior
         """
-
-        #print(f"epoch metrics={epoch_metrics}")
         self.metrics.append(epoch_metrics)
 
         if len(self.metrics) < self.hyper.min_no_epochs:
-            return ""   # Has not yet met minimum no of epochs per hyper paramater setting
+            return ""
 
-        for signal in self.signals:
-            triggered_signal = signal.evaluate()
-            if triggered_signal:
-                self.triggered_signals.append(triggered_signal)
-        return ", ".join(self.triggered_signals) if self.triggered_signals else ""
+        signals_for_current_phase = self.phase_signals.get(self.phase, [])
 
-    def get_iteration_dict(self, db: RamDB, epoch: int, iteration: int) -> dict:  #Retrieve iteration data from the database."""
-        """
-        NOT CURRENTLY IN USE BUT WE MAY NEED IT
-        """
-        # db.query_print("PRAGMA table_info(Iteration);")
+        for signal in signals_for_current_phase:
+            result = signal.evaluate()
+            if result:
+                self.phase_signals_fired[self.phase].append(result)
+
+        # === TEMP: Preserve old behavior ===
+        # Fire convergence immediately if any signal fired
+        if self.phase_signals_fired[self.phase]:
+            #if self.phase == "watch":
+            #    self.phase = "fix"
+            #    return self.phase
+            return ", ".join(self.phase_signals_fired[self.phase])
+
+        return ""
+
+    def get_iteration_dict(self, db: RamDB, epoch: int, iteration: int) -> dict:
         sql = """  
             SELECT * FROM Iteration 
             WHERE epoch = ? AND iteration = ?  
-        """#TODO ADD MODEL TO CRITERIIA
+        """
         params = (epoch, iteration)
         rs = db.query(sql, params)
+        return rs[0] if rs else {}
 
-        if rs:            #
-            return rs[0]  # Return the first row as a dictionary
+    def get_roi_signal(self, roi_mode: ROI_Mode, hyper, metrics):
+        print (f"roi_mode={roi_mode}")
+        if roi_mode == ROI_Mode.MOST_ACCURATE:
+            return Signal_MostAccurate(hyper.threshold_Signal_MostAccurate, metrics)
+        elif roi_mode == ROI_Mode.SWEET_SPOT:
+            return Signal_SweetSpot(hyper.threshold_Signal_SweetSpot, metrics)
+        elif roi_mode == ROI_Mode.ECONOMIC:
+            return Signal_Economic(hyper.threshold_Signal_Economic, metrics)
+        else:
+            raise ValueError(f"Unsupported ROI mode: {roi_mode}")
 
-        #print(f"No data found for epoch={epoch}, iteration={iteration}")
-        return {}  # Return an empty dictionary if no results

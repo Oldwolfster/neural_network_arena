@@ -1,6 +1,7 @@
 import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.DisplayArrow import DisplayArrow
+from src.NeuroForge.DisplayGraph import DisplayGraph
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
@@ -8,7 +9,7 @@ from src.engine.ModelConfig import ModelConfig
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 
 class DisplayModel(EZSurface):
-    __slots__ = ("config", "neurons", "threshold", "arrows_forward", "model_id")
+    __slots__ = ("config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
     def __init__(self, config: ModelConfig, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -20,6 +21,7 @@ class DisplayModel(EZSurface):
             bg_color            = Const.COLOR_FOR_BACKGROUND
         )
         self.config         = config
+        self.graph          = None
         self.model_id       = config.gladiator_name
         self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.arrows_forward = []  # List of neuron connections
@@ -30,14 +32,20 @@ class DisplayModel(EZSurface):
         """Create neurons and connections based on architecture."""
         max_activation = self.get_max_activation_for_model(self.model_id)
         GeneratorNeuron.create_neurons(self, max_activation)
+        self.graph = self.create_graph(self.graph_holder)# Add Graph  # MAE over epoch
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
+
+    def create_graph(self, gh):
+        return DisplayGraph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height,model_surface=self.surface, model_id=self.model_id)
+
 
     def render(self):
         """Draw neurons and connections."""
         self.clear()
         self.draw_model_name()  # Draw model name in top-right corner
         self.draw_border()
+        self.graph.render()
 #        for connection in self.connections:
 #            connection.draw_connection(self.surface)
         for layer in self.neurons:
@@ -128,43 +136,5 @@ class DisplayModel(EZSurface):
 
                     start_y = from_neuron.location_top+ from_neuron.location_height//2 + y_offset
                     end_y = to_neuron.neuron_visualizer.my_fcking_labels[max_index_to][1] + y_offset # Get Y for correct weight
-
-                    self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
-
-
-    def create_neuron_to_neuron_arrowsOld(self, forward: bool):
-        # Create connections
-        self.arrows_forward = []
-
-        for layer_index in range(1, len(self.config.architecture)):  # Start from the first hidden layer
-            current_layer = self.neurons[layer_index - 1]
-            next_layer = self.neurons[layer_index]
-            for weight_index,from_neuron in enumerate( current_layer):
-                for to_neuron in next_layer:
-                    #ez_debug(from_n=from_neuron, to_n= to_neuron , forward=forward)
-                    ez_debug()
-                    if forward: #forward prop arrows
-                        connection = DisplayModel__Connection(from_neuron=from_neuron, to_neuron=to_neuron, weight_index=weight_index+1, my_screen=self.surface)#the plus one skips the bias
-                    else:   #back prop (reversed)
-                        connection = DisplayModel__Connection(from_neuron=to_neuron, to_neuron=from_neuron, weight_index=weight_index,  my_screen=self.surface)
-                    self.arrows_forward.append(connection)
-
-    def create_neuron_to_neuron_arrows3(self, forward: bool):
-        """Creates neuron-to-neuron arrows using DisplayArrow."""
-        self.arrows_forward = []
-        for layer_index in range(1, len(self.config.architecture)):  # Start from the first hidden layer
-            current_layer = self.neurons[layer_index - 1]
-            next_layer = self.neurons[layer_index]
-            for weight_index, from_neuron in enumerate(current_layer):
-                for to_neuron in next_layer:
-                    start_x = from_neuron.location_left + from_neuron.location_width  # Right edge of from_neuron
-                    end_x = to_neuron.location_left  # Left edge of to_neuron
-
-                    # ✅ Ensure we don’t exceed `my_fcking_labels` length
-                    max_index_from = min(weight_index + 1, len(from_neuron.neuron_visualizer.my_fcking_labels) - 1)
-                    max_index_to = min(weight_index + 1, len(to_neuron.neuron_visualizer.my_fcking_labels) - 1)
-
-                    start_y = from_neuron.neuron_visualizer.my_fcking_labels[max_index_from][1]  # Get Y for correct weight
-                    end_y = to_neuron.neuron_visualizer.my_fcking_labels[max_index_to][1]  # Get Y for correct weight
 
                     self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))

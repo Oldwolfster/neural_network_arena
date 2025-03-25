@@ -27,7 +27,7 @@ class MLP_Hayabusa(Gladiator):
         config.loss_function = Loss_MSE
         #config.training_data.set_normalization_min_max()
         super().__init__(config)
-        self.initialize_neurons([], [Initializer_Xavier], activation_function_for_hidden= Activation_LeakyReLU)
+        self.initialize_neurons([3], [Initializer_Xavier], activation_function_for_hidden= Activation_LeakyReLU)
         #self.bd_threshold=0
         #self.bd_class_alpha=3
         Neuron._output_neuron.set_activation(Activation_NoDamnFunction)

@@ -1,8 +1,11 @@
+import math
+
 from src.Legos.ActivationFunctions import *
 from src.engine.BaseGladiator import Gladiator
 from src.Legos.WeightInitializers import *
 from src.Legos.LossFunctions import *
 from src.engine.Neuron import Neuron
+from src.engine.convergence.ConvergenceDetector import ROI_Mode
 
 """
 Things to test.
@@ -28,19 +31,20 @@ class MLP_Hayabusa(Gladiator):
     def __init__(self, config):
         self.LR_Decay_rate = .5
         self.LR_Grow_rate = 1.05
-
+        config.training_data.set_normalization_min_max()
         config.loss_function = Loss_MSE
+        config.roi_mode = ROI_Mode.MOST_ACCURATE       #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         super().__init__(config)
-        self.initialize_neurons([], [Initializer_Xavier]
-                                , activation_function_for_hidden= Activation_Tanh)
+        self.initialize_neurons([3,3], [Initializer_Xavier]
+                                , activation_function_for_hidden= Activation_LeakyReLU)
 
-        self.learning_rate = 4 #TODO silently f ails if called  before self.initalize_neurons
+        self.learning_rate = .00000001 #TODO silently f ails if called  before self.initalize_neurons
         #self.bd_threshold=0
         #self.bd_class_alpha=3
-        Neuron._output_neuron.set_activation(Activation_NoDamnFunction)
+        Neuron.output_neuron.set_activation(Activation_LeakyReLU)
 
 
-    def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
+    def back_pass__distribute_blame3(self, neuron: Neuron, prev_layer_values):
         """
         Updates weights and bias for a neuron using blame (error signal).
         - First hidden layer uses inputs from training data.
@@ -79,7 +83,7 @@ class MLP_Hayabusa(Gladiator):
                 neuron.weights[i - 1] -= adjustment
 
             # Track structured calc
-            self.distribute_error_calcs.append([
+            self.weight_update_calculations.append([
                 self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
                 prev_value, "*", error_signal, "*", learning_rate, "=", adjustment
             ])
