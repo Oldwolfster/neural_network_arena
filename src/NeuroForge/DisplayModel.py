@@ -1,7 +1,7 @@
 import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.DisplayArrow import DisplayArrow
-from src.NeuroForge.DisplayGraph import DisplayGraph
+from src.NeuroForge.DisplayModel__Graph import DisplayModel__Graph
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
@@ -37,7 +37,7 @@ class DisplayModel(EZSurface):
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
 
     def create_graph(self, gh):
-        return DisplayGraph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height,model_surface=self.surface, model_id=self.model_id)
+        return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, model_id=self.model_id)
 
 
     def render(self):

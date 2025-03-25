@@ -1,41 +1,6 @@
 """
 Good morning, i'd like to make big progress on the NNA today.  It was a fun and educational diversion building the visualizations that animates and illustrates the training process through neuron coloring and completing backprop for SGD.
 
-I need to get back to the heart of NNA, comparing techniques and then really get NeuroForge going by adding the ability to create NNs with point and click.  To do that, I need to get the coding perfectly modularized.  That vision is i want to be able to create a model, ranging from a constructor that simply sets options for BaseGladiator the way a toddler slaps together Legos, to overriding every step of SGD.
-
-I think there are three key steps to achieve this
-1) Move SGD logic to BaseGladiator to use as default process.
-2) Adding loss functions as a settable option via the Strategy Pattern the way we did Cost functions and weight initializers(already have the functions defined in a file loss_functions.
-3) i had a list of three, hopefully i remember by the time we finish these first two.
-
-so for 1) I'd like to stick with these functions, but move them to BaseGladiator
-def forward_pass(self, training_sample):
-validate_pass (pun intended)
-def back_pass(self, training_sample, loss_gradient: float):
-def back_pass__error_signal_for_output(self, loss_gradient: float):
-def back_pass__error_signal_for_hidden(self, neuron: Neuron):
-def back_pass__distribute_error(self, neuron: Neuron, prev_layer_values):
-
-Let's tackle step 1 first.  Here's my plan for accomplishing step 1, please improve or spot problems.
-1) If possible cleanup BaseGladiator
-2) Copy above methods to BaseGladiator and logic to BaseGladiator_SGD
-3) Create new child class model(to serve as a template)
-3A) Constructor utilizing all options available.
-3B) All above methods overriding but simply doing a print to prove they ran and calling the method in the superclass.
-3C) Callbacks such as after batch/epoch, convergence_detection, model state save/load, logging
-4) Then create docstrings and comment out the override methods.  Voila template... but perhaps there is a better way to communicate what is available.  please share thoughts here.
-5) Right now doing binary regression.  it detects problem type based on training data.  Ensure switching to regression works flawlessly.
-
-For reference, here's an example of the constructor in the child class.
-Please help me improve this plan and then lets get started.
-One specific question, what other options make sense to put in the constructor?
-
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.initialize_neurons([4,4,5], [Initializer_Xavier], Tanh)
-        Neuron.layers(1).set_activation(ReLU)
-        self.neurons(1,1).set_activation(Tanh)
-        self.learning_rate = .1
         # Additional options
         Optimizers (Adam, RMSProp, what else?)
         Regularization / Dropout Rate

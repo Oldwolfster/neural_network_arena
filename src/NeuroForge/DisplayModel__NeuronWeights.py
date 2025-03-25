@@ -1,5 +1,5 @@
 import pygame
-from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect
+from src.engine.Utils import *
 from src.NeuroForge import Const
 
 class DisplayModel__NeuronWeights:
@@ -84,12 +84,11 @@ class DisplayModel__NeuronWeights:
         draw_rect_with_border(self.neuron.screen, bar_rect, bar_color, 2)
 
         # 🔹 Writes the activation value inside the neuron, centered on the right wall, with a background for visibility.
-        text = f"{round(self.neuron.activation_value, 2)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
-        draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+        draw_text_with_background(self.neuron.screen, self.neuron.activation_value, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
 
         # 🔹 Writes the raw sum inside the neuron, bottom right corner, with a background for visibility.
         weighted_sum = self.calculate_weighted_sum()
-        text = f" Wt\nSum\n{round(weighted_sum, 2)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
+        text = f" Wt\nSum\n{smart_format(weighted_sum)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
         draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height - 55 , Const.FONT_SIZE_WEIGHT, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
 
     def calculate_weighted_sum(self):
@@ -202,19 +201,15 @@ class DisplayModel__NeuronWeights:
         draw_rect_with_border(self.neuron.screen, global_rect, color1, self.bar_border_thickness)  # Orange (global max)
         draw_rect_with_border(self.neuron.screen, self_rect, color2, self.bar_border_thickness)  # Green (self max)
 
-        # Format label text
-        label_text_global = f"{weight_value:.2f}"
-        label_text_local = f"{weight_value:.2f}"
-
         # Draw labels dynamically based on available space
         label_rects=[]
-        label_space = self.draw_weight_label(label_text_global, global_rect)  # Label for global bar
+        label_space = self.draw_weight_label(weight_value, global_rect)  # Label for global bar
+        # THIS IS READY TO GO ======-> label_space = self.draw_weight_label(weight_value, self_rect)  # Label for self bar
         label_rects.append(label_space)
-        label_space = self.draw_weight_label(label_text_local, self_rect)  # Label for self bar
         label_rects.append(label_space)
         self.draw_weight_index_label(weight_id, y+self.bar_height-9, label_rects)
 
-    def draw_weight_label(self, text, rect):
+    def draw_weight_label(self, value_to_print, rect):
         """
         Draws a weight label with a background for readability.
 
@@ -228,7 +223,7 @@ class DisplayModel__NeuronWeights:
 
         # Create font and render text
         font = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
-        text_surface = font.render(text, True, Const.COLOR_WHITE)  # White text
+        text_surface = font.render(smart_format(value_to_print), True, Const.COLOR_WHITE)  # White text
         text_rect = text_surface.get_rect()
 
         # Determine label placement: inside if enough space, otherwise outside

@@ -18,7 +18,7 @@ def get_text_rect(text: str, font_size: int):
     text_surface = font.render(text, True, (0,0,0))
     return text_surface.get_rect()
 
-def draw_text_with_background(screen, text, x, y, font_size, text_color=(255, 255, 255), bg_color=(0, 0, 0), right_align=False, border_color=None):
+def draw_text_with_background(screen, value_to_print, x, y, font_size, text_color=(255, 255, 255), bg_color=(0, 0, 0), right_align=False, border_color=None):
     """
     Draws text with a background rectangle for better visibility.
 
@@ -26,7 +26,7 @@ def draw_text_with_background(screen, text, x, y, font_size, text_color=(255, 25
     :param border_color: If True, adds a black border
     """
     font = pygame.font.SysFont(None, font_size)
-    text_surface = font.render(text, True, text_color)
+    text_surface = font.render(smart_format(value_to_print), True, text_color)
     text_rect = text_surface.get_rect()
 
     # Original logic if right_align is False
