@@ -1,14 +1,20 @@
 from typing import List
 from dataclasses import dataclass
 
+from enum import Enum
+
+
+
+
 
 @dataclass
 class ModelInfo:
-    model_id: str
-    seconds: float
-    cvg_condition: str
-    full_architecture: List[int]
-    problem_type : str
+    model_id:           str
+    seconds:            float
+    cvg_condition:      str
+    full_architecture:  List[int]
+    problem_type:       str
+
 
 @dataclass
 class Iteration:
@@ -17,18 +23,17 @@ class Iteration:
     iteration: int
     inputs: str  # Serialized as JSON
     target: float
-    prediction: float   #After threshold(step function) is applied
+    prediction: float  # After threshold(step function) is applied
     prediction_raw: float
     loss_function: str
     loss: float
     loss_gradient: float
     # error: float
-    accuracy_threshold : float
+    accuracy_threshold: float
 
     @property
     def error(self):
         return float(self.target - self.prediction_raw)
-
 
     @property
     def absolute_error(self) -> float:
@@ -45,10 +50,10 @@ class Iteration:
     @property
     def is_true(self) -> int:
         if self.target == 0:
-            return self.prediction == 0     #Prevent divide by zero and floating point issues
+            return self.prediction == 0  # Prevent divide by zero and floating point issues
         if self.target == self.prediction:
-            return True                     #for binary decision
-        return int(self.relative_error <= self.accuracy_threshold)
+            return True  # for binary decision
+        return int(self.relative_error <= self.accuracy_threshold)  # for regression
 
     @property
     def is_false(self) -> int:

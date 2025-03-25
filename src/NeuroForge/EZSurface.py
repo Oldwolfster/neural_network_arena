@@ -10,7 +10,7 @@ class EZSurface(ABC):
     2)  An independent surface (similar to "camera" in systems like Unity,
         allowing for independent zooming and positioning.
     """
-    __slots__ = ("screen_width", "screen_height", "left_pct", "width_pct", "height_pct", "width", "height", "left", "top", "surface", "bg_color")
+    __slots__ = ("screen_width", "screen_height", "left_pct", "width_pct", "top_pct", "height_pct", "width", "height", "left", "top", "surface", "bg_color")
     def __init__(self, width_pct=100, height_pct=100, left_pct=0, top_pct=0,bg_color=Const.COLOR_WHITE,transparent=False,
             pixel_adjust_width = 0, pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
 
@@ -19,7 +19,9 @@ class EZSurface(ABC):
         self.screen_height = Const.SCREEN_HEIGHT #TODO remove these
         self.left_pct = left_pct
         self.width_pct = width_pct
+        self.top_pct = top_pct
         self.height_pct = height_pct
+
 
         # Calculate dimensions and position based on percentages
         self.width = int(self.screen_width * (width_pct / 100)) + pixel_adjust_width  #remove the plus 50

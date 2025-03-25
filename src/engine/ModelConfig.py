@@ -3,6 +3,8 @@ from .RamDB import RamDB
 
 from .TrainingData import TrainingData
 from src.Legos.WeightInitializers import *
+from .convergence.ConvergenceDetector import ROI_Mode
+
 from ..ArenaSettings import HyperParameters
 from ..Legos.LossFunctions import *
 
@@ -16,15 +18,20 @@ class ModelConfig:
     training_data: TrainingData = None
 
     # 🔹 Unique components
-    gladiator_name: str         = ""
-    architecture: list          = field(default_factory=lambda: [1])
-    full_architecture: list     = field(default_factory=lambda: [1])
-    initializer: type           = Initializer_Xavier
-    loss_function: LossFunction = Loss_MSE  # Default to MSE  # 🔹 Loss Function
-    #optimizer: str              = "simplified_descent"  # Default to your method
-    activation_function_for_hidden: type = Activation_Tanh
-    seconds: float              = 0.0
-    cvg_condition: str          = ""
+    gladiator_name: str                     = ""
+    architecture: list                      = field(default_factory=lambda: [1])
+    full_architecture: list                 = field(default_factory=lambda: [1])
+    initializer: type                       = Initializer_Xavier
+    loss_function: LossFunction             = Loss_MSE  # Default to MSE for regression and BCE For BD # 🔹 Loss Function
+    activation_function_for_hidden: type    = Activation_Tanh # Default to Tanh for regression and Relu for BD
+    roi_mode                                = ROI_Mode.SWEET_SPOT
+    seconds: float                          = 0.0
+    cvg_condition: str                      = ""
+
+    def set_defaults(self):
+        if self.training_data.problem_type      == "Binary Decision":
+            self.loss_function                  = Loss_BinaryCrossEntropy
+            self.activation_function_for_hidden = Activation_ReLU # Default to Tanh for regression and Relu for BD
 
 #    def __post_init__(self):
 #        """ Initialize training_data AFTER hyper is available. """

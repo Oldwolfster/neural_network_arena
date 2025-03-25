@@ -106,6 +106,12 @@ class LossFunction:
             raise NotImplementedError("Gradient function not implemented for this loss function")
         return self.derivative(y_pred, y_true)
 
+    @property
+    def recommended_output_activation(self):
+        if self.allowed_activation_functions:
+            return self.allowed_activation_functions[0]
+        return Activation_NoDamnFunction  # Safe fallback
+
     def validate_activation_functions(self):
         """
         Ensures the Gladiator is using a valid activation function setup for this loss function.
@@ -113,7 +119,7 @@ class LossFunction:
         - ⚠️ Warnings if the hidden layer activation is suboptimal.
         """
 
-        output_activation = Neuron._output_neuron.activation
+        output_activation = Neuron.output_neuron.activation
         hidden_activations = [neuron.activation for layer in Neuron.layers[:-1] for neuron in layer]  # All except output layer
 
         # 🚨 Hard error for output activation mismatch
@@ -122,6 +128,7 @@ class LossFunction:
                 f"🚨 Invalid output activation {output_activation} for {self.name}. "
                 f"\nAllowed: {', '.join([act.name for act in self.allowed_activation_functions])}"
             )
+        #TODO need to warn example like MSE with sig..
         """ below not working for none
         # ⚠️ Warning for hidden activations (optional)
         if self.recommended_hidden_activations:

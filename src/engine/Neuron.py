@@ -5,8 +5,10 @@ class Neuron:
     """
     Represents a single neuron with weights, bias, and an activation function.
     """
-    layers = []  # Shared across all Gladiators, needs resetting per run
-    _output_neuron = None  #Shared access directly to the output neuron.
+    layers = []             # Shared across all Gladiators, needs resetting per run
+    neurons = []           # Shared across all Gladiators, needs resetting per run NOT INTENDED TO  BE PROTECTED
+    output_neuron = None  #Shared access directly to the output neuron.
+    # DELETE ME _output_neuron
     def __init__(self, nid: int, num_of_weights: int, learning_rate: float, weight_initializer, layer_id: int = 0, activation = None):
         #print(f"creating neuron - nid={nid}")
         self.nid = nid
@@ -20,7 +22,7 @@ class Neuron:
         self.activation_gradient = 0.0  # Store activation gradient from forward pass
         self.error_signal = 1111.11
         self.weight_adjustments = ""
-        self.error_signal_calcs = ""
+        self.blame_calculations = ""
 
         # ✅ Apply weight initializer strategy
         #self.weight_initializer = weight_initializer  # Store the strategy
@@ -30,6 +32,9 @@ class Neuron:
         # ✅ Ensure activation is never None
         self.activation = activation if activation is not None else Activation_NoDamnFunction
         self.activation_name = self.activation.name  # ✅ No more AttributeError
+
+        # add to API collection
+        Neuron.neurons.append(self)
 
         # Ensure layers list is large enough to accommodate this layer_id
         while len(Neuron.layers) <= layer_id:
@@ -41,7 +46,7 @@ class Neuron:
 
         # If this neuron is in the last layer, set it as the output neuron
         if layer_id == len(Neuron.layers) - 1:
-            Neuron._output_neuron = self  # Assign this neuron as the output neuron
+            Neuron.output_neuron = self  # Assign this neuron as the output neuron
 
 
     def initialize_weights(self, weight_initializer):
@@ -69,11 +74,16 @@ class Neuron:
         """Use the derivative for backpropagation."""
         return self.activation.apply_derivative(self.activation_value)
 
+    def set_learning_rate(self, value):
+        # Replace the existing learning_rates list with one where every element is the new value.
+        self.learning_rates = [value] * (self.num_of_weights + 1)# * len(self.learning_rates)
+
     @classmethod
     def reset_layers(cls):
         """ Clears layers before starting a new Gladiator. """
         cls.layers.clear()
-        cls._output_neuron = None
+        cls.output_neuron = None
+        cls._neurons = None
 
 
     @staticmethod

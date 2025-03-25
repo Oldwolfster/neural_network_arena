@@ -11,15 +11,21 @@ class RamDB:
         self.cursor.execute("PRAGMA cache_size = -20000")  # ✅ Set cache size ONCE when initializing
         self.tables = {}  # To track schemas for validation
 
-    def _infer_schema(self, obj):
+    def _infer_schema(self, obj, exclude_keys=None):
         """
         Infer SQLite schema from a Python object, including properties.
         """
+
+        if exclude_keys is None:
+            exclude_keys = set()
+        else:
+            exclude_keys = set(exclude_keys)
+
         schema = {}
         # Get all attributes, including properties
         for attr_name in dir(obj):
             # Skip private and special attributes
-            if attr_name.startswith("_"):
+            if attr_name.startswith("_") or attr_name in exclude_keys:
                 continue
 
             # Get the attribute or property value
@@ -80,7 +86,7 @@ class RamDB:
 
         # Check if the table exists, and create it if necessary
         if table_name not in self.tables:
-            self.create_table(table_name, obj, context)
+            self.create_table(table_name, obj, context, exclude_keys)
 
         # Merge context fields and properties of the object
         if exclude_keys is None:
@@ -132,12 +138,12 @@ class RamDB:
 
 
 
-    def create_table(self, table_name, obj, context):
+    def create_table(self, table_name, obj, context, exclude_keys):
         """
         Create a table dynamically based on the object's attributes and context fields.
         """
         # Generate the schema
-        schema = self.create_schema(obj, context)
+        schema = self.create_schema(obj, context, exclude_keys)
 
         # Generate the SQL for creating the table
         columns = ", ".join([f"{name} {type}" for name, type in schema.items()])
@@ -149,7 +155,7 @@ class RamDB:
         # Track the schema
         self.tables[table_name] = schema
 
-    def create_schema(self, obj, context):
+    def create_schema(self, obj, context, exclude_keys):
         """
         Generate the schema for a table, prioritizing context fields before object fields.
         """
@@ -166,7 +172,7 @@ class RamDB:
                 raise TypeError(f"Unsupported context field type: {type(value)} for '{key}'")
 
         # Infer schema for object fields
-        object_schema = self._infer_schema(obj)
+        object_schema = self._infer_schema(obj, exclude_keys)
 
         # Merge context and object schemas, with context first
         return {**context_schema, **object_schema}

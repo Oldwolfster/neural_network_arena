@@ -15,7 +15,7 @@ from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
 from typing import Dict
 
 class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
-    def __init__(self, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
+    def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
         # Run Level members
         self.training_data          = training_data
         self.model_id               = model_id
@@ -26,7 +26,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
         self.sample_count           = len(self.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
         self.accuracy_threshold     = (hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
-        self.converge_detector     = ConvergenceDetector(hyper,training_data)
+        self.converge_detector     = ConvergenceDetector(hyper,training_data, config)
         self.abs_error_for_epoch = 0
         self.convergence_signal = None      # Will be set by convergence detector
     """
@@ -66,8 +66,8 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                     #for prev in previous_layer:
                     #    print(f"prev.nid={prev.nid}\t{prev.activation_value}")
                 # Add the neuron data to the database
-
-                self.db.add(neuron, exclude_keys={"activation"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
+                #TODO take out 'input_tensor' and delta from exclude keys
+                self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
                 #print("NEURON DATA ADDED")
         #if epoch_num ==2 and iteration_num ==4  :

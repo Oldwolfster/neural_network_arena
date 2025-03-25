@@ -16,7 +16,7 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("cached_tooltip", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "error_signal_calcs", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("cached_tooltip", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
@@ -52,7 +52,7 @@ class DisplayModel__Neuron:
         self.banner_text            = ""
         self.tooltip_columns        = []
         self.weight_adjustments     = ""
-        self.error_signal_calcs     = ""
+        self.blame_calculations     = ""
         self.avg_err_sig_for_epoch  = 0.0
         self.loss_gradient          = 0.0
         self.neuron_build_text      = "fix me"
@@ -63,7 +63,7 @@ class DisplayModel__Neuron:
         self.update_neuron()        # must come before selecting visualizer
         self.neuron_visualizer      = DisplayModel__NeuronWeights(self, self.ez_printer)
 
-        if self.layer == Neuron._output_neuron.layer_id:
+        if self.layer == Neuron.output_neuron.layer_id:
             self.banner_text = "Output Neuron (o1)"
         else:
             self.banner_text = f"Hidden Neuron {self.label}"
@@ -80,8 +80,6 @@ class DisplayModel__Neuron:
 
     def draw_neuron(self):
         """Draw the neuron visualization."""
-        # Define colors
-        #TODO add Gradient body_color = self.get_color_gradient(self.avg_err_sig_for_epoch, mgr.max_error)
 
         # Font setup
         font = pygame.font.Font(None, 30) #TODO remove and use EZ_Print
@@ -145,7 +143,7 @@ class DisplayModel__Neuron:
             return False  # No results found
         self.rs = rs[0]
         self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
-        self.error_signal_calcs = rs[0].get("error_signal_calcs")
+        self.blame_calculations = rs[0].get("blame_calculations")
         self.neuron_inputs = json.loads( rs[0].get("neuron_inputs"))
         #ez_debug(selfneuinp= self.neuron_inputs)
 

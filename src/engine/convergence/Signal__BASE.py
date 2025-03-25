@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Optional, List
 
-
-
-
 class Signal__BASE(ABC):
     """
     Base class for all convergence signals.

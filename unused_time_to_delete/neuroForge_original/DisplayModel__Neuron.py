@@ -41,7 +41,7 @@ class DisplayModel__Neuron:
         self.mouse_y = 0
         self.tooltip_columns = []
         self.weight_adjustments = ""
-        self.error_signal_calcs = ""
+        self.blame_calculations = ""
         self.avg_err_sig_for_epoch = 0.0
 
         # ✅ Create a NeuronWeightVisualizer instance
@@ -105,8 +105,8 @@ class DisplayModel__Neuron:
         try:
             self.weight_text = self.neuron_build_text(rs[0])
             self.loss_gradient =  float(rs[0].get("loss_gradient", 0.0))
-            self.error_signal_calcs = rs[0].get("error_signal_calcs")
-            #print(f"calcsforerror{self.error_signal_calcs}")
+            self.blame_calculations = rs[0].get("blame_calculations")
+            #print(f"calcsforerror{self.blame_calculations}")
             self.banner_text = f"{self.label}  Output: {smart_format( self.activation_value)}"
             #print(f"Query result: {rs}")
             #print(f"PREDICTIONS: {self.weight_text}")
@@ -404,7 +404,7 @@ class DisplayModel__Neuron:
         self.tooltip_columns[4].extend([f"Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
 
     def tooltip_columns_for_error_sig_hiddenlayer(self):
-        weights, err_sig, contributions = self.parse_error_signal(self.error_signal_calcs)
+        weights, err_sig, contributions = self.parse_error_signal(self.blame_calculations)
         from_neurons = self.generate_from_neuron_labels(len(weights), self.layer + 1) #the +1 gets the next layer
         string_ver_weights = [str(w) for w in weights]
         string_ver_err_sig = [str(w) for w in err_sig]
