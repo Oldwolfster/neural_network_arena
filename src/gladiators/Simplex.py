@@ -21,7 +21,7 @@ class MLP_Hayabusa(Gladiator):
 
         self.LR_Decay_rate = .5
         self.LR_Grow_rate = 1.05
-        config.training_data.set_normalization_min_max()
+        #config.training_data.set_normalization_min_max()
         config.loss_function = Loss_MSE
         config.roi_mode = ROI_Mode.MOST_ACCURATE       #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
 
