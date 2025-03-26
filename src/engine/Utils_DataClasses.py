@@ -5,15 +5,67 @@ from enum import Enum
 
 
 
+@dataclass
+class ReproducibilitySnapshot:
+    arena_name: str
+    gladiator_name: str
+    architecture: list
+    problem_type: str
+    loss_function_name: str
+    hidden_activation_name: str
+    output_activation_name: str
+    weight_initializer_name: str
+    normalization_scheme: str
+    seed: int
+    learning_rate: float
+    epoch_count: int
+    convergence_condition: str
+
+    @classmethod
+    def from_config(cls, learning_rate: float, epoch_count: int, config):
+        return cls(
+            arena_name=config.training_data.arena_name,
+            gladiator_name=config.gladiator_name,
+            architecture=config.architecture,
+            problem_type=config.training_data.problem_type,
+            loss_function_name=config.loss_function.__class__.__name__,
+            hidden_activation_name=config.hidden_activation.name,
+            output_activation_name=(
+                    config.output_activation or config.loss_function.recommended_output_activation
+            ).name,
+            weight_initializer_name=config.initializer.name,
+            normalization_scheme=config.training_data.norm_scheme,
+            seed=config.hyper.random_seed,
+            learning_rate=learning_rate,
+            epoch_count=epoch_count,
+            convergence_condition=config.cvg_condition or "None"
+        )
+
+    def display(self):
+        print("\n🧬 Reproducibility Snapshot")
+        print("────────────────────────────")
+        print(f"Arena:             {self.arena_name}")
+        print(f"Gladiator:         {self.gladiator_name}")
+        print(f"Architecture:      {self.architecture}")
+        print(f"Problem Type:      {self.problem_type}")
+        print(f"Loss Function:     {self.loss_function_name}")
+        print(f"Hidden AF:         {self.hidden_activation_name}")
+        print(f"Output AF:         {self.output_activation_name}")
+        print(f"Weight Init:       {self.weight_initializer_name}")
+        print(f"Data Norm Scheme:  {self.normalization_scheme}")
+        print(f"Seed:              {self.seed}")
+        print(f"Learning Rate:     {self.learning_rate}")
+        print(f"Epochs Run:        {self.epoch_count}")
+        print(f"Convergence Rule:  {self.convergence_condition}")
 
 
 @dataclass
 class ModelInfo:
-    model_id:           str
-    seconds:            float
-    cvg_condition:      str
-    full_architecture:  List[int]
-    problem_type:       str
+    model_id: str
+    seconds: float
+    cvg_condition: str
+    full_architecture: List[int]
+    problem_type: str
 
 
 @dataclass

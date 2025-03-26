@@ -23,7 +23,7 @@ class Simplex(Gladiator):     #Model selection goverened by file name
     def initialize(self,config):             # 🚀 All additional initialization here
         self.initialize_neurons(architecture = [2],
                                 initializers = [Initializer_Xavier],
-                                activation_function_for_hidden = Activation_LeakyReLU)
+                                hidden_activation = Activation_LeakyReLU)
 
         Neuron.output_neuron.set_activation(Activation_NoDamnFunction)
 

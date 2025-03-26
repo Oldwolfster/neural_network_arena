@@ -43,6 +43,7 @@ class TrainingData:
         self._cache         = {}                    # Private dictionary for caching values
         self.feature_labels = feature_labels        # Optional feature labels (e.g., ["Credit Score", "Income"])
         self.target_labels  = target_labels         # Optional outcome labels (e.g., ["Repaid", "Defaulted"])
+        self.norm_scheme    = "Not applied"
 
         self.problem_type   = self.determine_problem_type(data)
         if self.problem_type == "Binary Decision" and not self.target_labels: # If it's BD and no labels were provided, assign default labels
@@ -126,8 +127,6 @@ class TrainingData:
         return target_alpha, target_beta, threshold
     #print(f"✅ Binary Decision targets updated: {target_map}")
 
-
-
     @property
     def input_max(self) -> float:
         """
@@ -163,7 +162,6 @@ class TrainingData:
             self._cache["max_output"] = max(max(t[:-1]) for t in self.td_original)
         return self._cache["max_output"]
 
-
     @property
     def sum_of_targets(self) -> int:
         """
@@ -186,7 +184,6 @@ class TrainingData:
             self._cache["input_count"] = len(self.td_original[0])  - 1   #len(self.training_samples[0]) - 1
         return self._cache["input_count"]
 
-
     @property
     def sample_count(self) -> int:
         """
@@ -206,14 +203,13 @@ class TrainingData:
         """
         return self.td_current
 
-
     def reset_to_default(self) -> None:
         """
         Reset the current data list to use the original, unnormalized data.
         This operation is always safe and does not require computation.
         """
         self.td_current = self.td_original
-
+        self.norm_scheme= "Not applied"
 
     def calculate_min_max(self):
         """
@@ -238,7 +234,6 @@ class TrainingData:
 
         return min_values, max_values
 
-
     def set_normalization_min_max(self):
         """
         1) populates list td_minmax with the features (all elements except the last) using min-max scaling.
@@ -247,8 +242,9 @@ class TrainingData:
         Returns:
             td_min_max
         """
-        min_values, max_values = self.calculate_min_max()
-        denominators = []
+        min_values, max_values  = self.calculate_min_max()
+        denominators            = []
+        self.norm_scheme        = "Min-Max"
 
         # Calculate denominators and handle division by zero
         for min_val, max_val in zip(min_values, max_values):

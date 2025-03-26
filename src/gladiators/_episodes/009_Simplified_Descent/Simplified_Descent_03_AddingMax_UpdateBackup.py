@@ -36,7 +36,7 @@ class MLP_Hayabusa(Gladiator):
         config.roi_mode = ROI_Mode.MOST_ACCURATE       #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         super().__init__(config)
         self.initialize_neurons([2], [Initializer_Xavier]
-                                , activation_function_for_hidden= Activation_LeakyReLU)
+                                , hidden_activation= Activation_LeakyReLU)
 
         self.learning_rate = .00000001 #TODO silently f ails if called  before self.initalize_neurons
         #self.bd_threshold=0
