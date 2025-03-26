@@ -20,9 +20,11 @@ class ReproducibilitySnapshot:
     learning_rate: float
     epoch_count: int
     convergence_condition: str
+    runtime_seconds: int
+    final_error: float
 
     @classmethod
-    def from_config(cls, learning_rate: float, epoch_count: int, config):
+    def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
         return cls(
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
@@ -38,7 +40,9 @@ class ReproducibilitySnapshot:
             seed=config.hyper.random_seed,
             learning_rate=learning_rate,
             epoch_count=epoch_count,
-            convergence_condition=config.cvg_condition or "None"
+            convergence_condition=config.cvg_condition or "None",
+            runtime_seconds=-1,
+            final_error=last_error
         )
 
     def display(self):

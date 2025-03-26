@@ -7,6 +7,8 @@ from engine.SQL import list_runs
 
 import cProfile
 
+from src.engine.StoreHistory import list_snapshots
+
 
 def main():
     if instead_of_run_show_past_runs and len(run_previous_training_data) == 0:
@@ -18,7 +20,9 @@ def main():
 
 
 if __name__ == '__main__':
-    main() #Normal run
+
+    #main() #Normal run
+    list_snapshots()
 
     #cProfile.run('main()', 'profile_stats.prof')
     # CMD LINE RUN snakeviz src\profile_stats.prof
