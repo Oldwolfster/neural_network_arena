@@ -7,7 +7,7 @@ from src.engine.Neuron import Neuron
 from datetime import datetime
 
 
-from src.engine.Utils_DataClasses import Iteration
+from src.engine.Utils_DataClasses import Iteration, ReproducibilitySnapshot
 from src.Legos.WeightInitializers import *
 from typing import List, Tuple
 
@@ -44,7 +44,7 @@ class Gladiator(ABC):
         self._bd_threshold       = None
         self._bd_class_alpha     = None
         self._bd_class_beta      = None
-        self.last_lost          = 0
+        self.total_error_for_epoch          = 0
         self.iteration          = 0
         self.epoch              = 0
         self.too_high_adjst     = self.training_data.input_max * 5 #TODO make 5 hyperparamter
@@ -98,10 +98,11 @@ class Gladiator(ABC):
                 if convg_signal == "fix_temporarilydisabled":
                     self.convergence_phase = "fix"
                 else:
-                    #snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.config)
-                    return convg_signal, self._full_architecture
+                    snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
+                    return convg_signal, self._full_architecture, snapshot
         self.print_reproducibility_info(self.number_of_epochs)
-        return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
+        snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
+        return "Did not converge", self._full_architecture, snapshot       # When it does not converge still return info
 
     def validate_output_activation_functionDeleteME(self):
         """
@@ -126,10 +127,13 @@ class Gladiator(ABC):
         Returns:
             convergence_signal (str) : If not converged, empty string, otherwise signal that detected convergence
         """
+
         self.epoch = epoch_num      # Set so the child model has access
         if epoch_num % 100 == 0 and epoch_num!=0:
-                print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_lost} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        self.total_error_for_epoch = 0
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
+            #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
             self.iteration = i      # Set so the model has access
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
@@ -137,7 +141,7 @@ class Gladiator(ABC):
             self.snapshot_weights_as_weights_before()
             error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
-            self.last_lost = loss
+            self.total_error_for_epoch += abs(error)
 
             #If binary decision apply step logic.
             prediction = prediction_raw # Assume regression
@@ -574,7 +578,9 @@ class Gladiator(ABC):
             if self._bd_threshold is None:
                 self._bd_threshold = c
 
-
+    @property
+    def last_epoch_mae(self):
+        return self.total_error_for_epoch/self.config.training_data.sample_count
 
     @property
     def weights(self):

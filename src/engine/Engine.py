@@ -9,6 +9,7 @@ from .SQL import record_training_data
 
 from src.ArenaSettings import *
 from src.ArenaSettings import run_previous_training_data
+from .StoreHistory import record_snapshot
 from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
@@ -88,17 +89,16 @@ def run_a_match(gladiators, training_pit):
         start_time = time.time()
 
         # Actually train model
-        model_config.cvg_condition, model_config.full_architecture = nn.train()
+        model_config.cvg_condition, model_config.full_architecture, snapshot = nn.train()
 
         #Record training details
         model_config.architecture = model_config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
-        #end_time = time.time()  # End timing
-        #run_time = end_time - start_time
         model_config.seconds = time.time() - start_time
         model_details= ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
         model_info_list.append(model_details)
         model_config.db.add(model_details)    #Writes record to ModelInfo table
-
+        snapshot.runtime_seconds = model_config.seconds
+        record_snapshot(snapshot)
         # Store Config for this model
         model_configs.append(model_config)
 

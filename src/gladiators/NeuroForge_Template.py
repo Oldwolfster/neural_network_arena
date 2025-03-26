@@ -9,18 +9,13 @@ from src.engine.Config import Config
 from src.engine.Neuron import Neuron
 from src.engine.convergence.ConvergenceDetector import ROI_Mode
 
-class MLP_Hayabusa(Gladiator):
+class NeuroForge_Template(Gladiator):
     """ ⚡implex: A ⚡imple Yet Powerful Neural Network ⚡
         ✅ Auto-tuned learning rate
         ✅ Supports multiple activation functions
         ✅ Flexible architecture with preconfigured alternatives
+        👉 If you are having problems, comment everything out and try the 'smart defaults'
         """
-    def __init__(self, config):     #👉 be very cautious if you change this line
-        super().__init__(config)    #👉 be very cautious if you change this line
-    # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-    # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹   Above HERE IS ALL BOILERPLATE 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-    # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹   RECOMMEND TO CUSTOMIZE BELOW! 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
-    # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
 
     def configure_model(self, config: Config):
         """ 👉  Anything prior to initializing neurons goes here
