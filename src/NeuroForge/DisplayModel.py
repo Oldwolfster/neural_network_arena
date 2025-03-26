@@ -75,9 +75,15 @@ class DisplayModel(EZSurface):
 
         # Render the model name
         text_surface = font.render(beautify_text(self.config.gladiator_name), True, Const.COLOR_BLACK)
-        text_x = self.width - text_surface.get_width() - 10  # Align to right with margin
+        text_x = 10  # Align to right with margin
         text_y = 5  # Small margin from the top
         self.surface.blit(text_surface, (text_x, text_y))
+
+        # Render the model name
+        #text_surface = font.render(beautify_text(self.config.training_data.arena_name), True, Const.COLOR_BLACK)
+        #text_x = self.width - text_surface.get_width() - 10  # Align to right with margin
+        #text_y = 5  # Small margin from the top
+        #self.surface.blit(text_surface, (text_x, text_y))
 
         if self.config.training_data.problem_type != "Binary Decision":
             return
@@ -88,10 +94,6 @@ class DisplayModel(EZSurface):
         threshold_x = self.width - threshold_surface.get_width() - 10
         threshold_y = text_y + text_surface.get_height() + 3  # Place below the model name with spacing
         self.surface.blit(threshold_surface, (threshold_x, threshold_y))
-
-
-
-
 
     def get_max_activation_for_model(self,  model_id: str):
         """

@@ -5,7 +5,7 @@ from src.Legos.LossFunctions import *
 class MLP_Hayabusa(Gladiator):
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([1], [Initializer_Xavier], activation_function_for_hidden= Linear)
+        self.initialize_neurons([1], [Initializer_Xavier], hidden_activation= Linear)
         self.neurons[0].activation = ReLU
         self.config.loss_function = Loss_BCEWithLogits
 
@@ -15,7 +15,7 @@ class MLP_Hayabusa(Gladiator):
         #what other options should be here?
         #Regularization  will be added soon
 
-        #self.initialize_neurons([4,4,5],   activation_function_for_hidden= Tanh) #Test not specifying initializer
+        #self.initialize_neurons([4,4,5],   hidden_activation= Tanh) #Test not specifying initializer
         #Neuron.layers(1).set_activation(ReLU)
         #self.neurons(1,1).set_activation(Tanh)
         #self.learning_rate = .1

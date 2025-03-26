@@ -16,7 +16,7 @@ class MLP_Hayabusa(Gladiator):
     def __init__(self, config):
         config.loss_function = Loss_MSE
         super().__init__(config)
-        self.initialize_neurons([], [Initializer_Xavier], activation_function_for_hidden= Tanh)
+        self.initialize_neurons([], [Initializer_Xavier], hidden_activation= Tanh)
         #self.neurons[0].set_activation(Linear)
 
 

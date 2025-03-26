@@ -61,6 +61,7 @@ def run_a_match(gladiators, training_pit):
     # Shared resources
     db = prep_RamDB()
     training_data = get_training_data(shared_hyper)
+    training_data.arena_name = training_pit
     record_training_data(training_data.get_list())
 
     print()
@@ -72,11 +73,11 @@ def run_a_match(gladiators, training_pit):
         print(f"Preparing to run model: {gladiator}")
 
         # Create a unique config per model
-        model_config = Config(
-            hyper=shared_hyper,
-            db=db,  # Shared database
-            training_data=training_data,  # Shared training data
-            gladiator_name=gladiator
+        model_config        = Config(
+            hyper           = shared_hyper,
+            db              = db,               # Shared database
+            training_data   = training_data,    # Shared training data
+            gladiator_name  = gladiator,
         )
         model_config.set_defaults()
         #model_config.training_data = training_data # WHY DID I NEED THIS
@@ -130,6 +131,7 @@ def get_training_data(hyper):
     # Instantiate the arena and retrieve data
     arena               = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
     arena.arena_name    = training_pit
+
     result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
     labels              = []
     if isinstance(result, tuple):
@@ -158,8 +160,8 @@ def print_reproducibility_info():
     print(f"Architecture:      {self.config.architecture}")
     print(f"Problem Type:      {self.config.training_data.problem_type}")
     print(f"Loss Function:     {self.config.loss_function.__class__.__name__}")
-    print(f"Hidden AF:         {self.config.activation_function_for_hidden.__name__}")
-    print(f"Output AF:         {self.config.activation_function_for_output.__name__}")
+    print(f"Hidden AF:         {self.config.hidden_activation.__name__}")
+    print(f"Output AF:         {self.config.output_activation.__name__}")
     print(f"Weight Init:       {self.config.initializer.__name__}")
     print(f"Data Norm Scheme:  {self.config.training_data.normalization_scheme}")
     print(f"Seed:              {self.config.hyper.seed}")

@@ -5,7 +5,7 @@ from src.Legos.WeightInitializers import *
 class MLP_Hayabusa(Gladiator):
     def __init__(self, *args):
         super().__init__(*args)
-        self.initialize_neurons([4,4,5], [Initializer_Xavier], activation_function_for_hidden= Tanh)
+        self.initialize_neurons([4,4,5], [Initializer_Xavier], hidden_activation= Tanh)
 
 
         #will add cost function soon.
@@ -13,7 +13,7 @@ class MLP_Hayabusa(Gladiator):
         #what other options should be here?
         #Regularization  will be added soon
 
-        #self.initialize_neurons([4,4,5],   activation_function_for_hidden= Tanh) #Test not specifying initializer
+        #self.initialize_neurons([4,4,5],   hidden_activation= Tanh) #Test not specifying initializer
         #Neuron.layers(1).set_activation(ReLU)
         #self.neurons(1,1).set_activation(Tanh)
         #self.learning_rate = .1

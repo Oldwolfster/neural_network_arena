@@ -65,8 +65,8 @@ class Gladiator(ABC):
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
             initializers=[self.config.initializer],  # <- List of 1 initializer
-            hidden_activation=self.config.activation_function_for_hidden,
-            output_activation=self.config.activation_function_for_output
+            hidden_activation=self.config.hidden_activation,
+            output_activation=self.config.output_activation
             or self.config.loss_function.recommended_output_activation)
 
         self.customize_neurons(self.config)
@@ -75,8 +75,6 @@ class Gladiator(ABC):
         pass
     def customize_neurons(self,config: Config):
         pass
-
-
 
     def train(self) -> tuple[str, list[int]]:
         """
@@ -93,14 +91,16 @@ class Gladiator(ABC):
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
-        #self.print_reproducibility_info()
+
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
                 if convg_signal == "fix_temporarilydisabled":
                     self.convergence_phase = "fix"
                 else:
+                    #snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.config)
                     return convg_signal, self._full_architecture
+        self.print_reproducibility_info(self.number_of_epochs)
         return "Did not converge", self._full_architecture       # When it does not converge still return metrics mgr
 
     def validate_output_activation_functionDeleteME(self):
@@ -475,8 +475,6 @@ class Gladiator(ABC):
         # Invalid case: raise error
         raise ValueError(f"Incompatible number of initializers ({len(initializers)}) for total neurons ({total_neurons})")
 
-
-
     def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, hidden_activation: ActivationFunction = None, output_activation: ActivationFunction = None):
         """
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
@@ -484,7 +482,7 @@ class Gladiator(ABC):
         Args:
             architecture (List[int]): Number of neurons per hidden layer.
             initializers (List[WeightInitializer]): A list of weight initializers.
-            activation_function_for_hidden (ActivationFunction): The activation function for hidden layers.
+            hidden_activation (ActivationFunction): The activation function for hidden layers.
         """
         Neuron.reset_layers()
         if architecture is None:
@@ -496,7 +494,7 @@ class Gladiator(ABC):
         print(f"Checking flat_initializers: {flat_initializers}")
 
         input_count             = self.training_data.input_count
-        hidden_activation       = hidden_activation or self.config.activation_function_for_hidden
+        hidden_activation       = hidden_activation or self.config.hidden_activation
         output_activation       = output_activation or self.config.loss_function.recommended_output_activation #None indicates no restriction
         self._full_architecture = [input_count] + architecture  # Store the full architecture
         nid                     = -1
@@ -511,12 +509,12 @@ class Gladiator(ABC):
                 activation = output_activation if layer_index==len(architecture)-1 else hidden_activation
                 #print(f"Creating Neuron {nid}  in layer{layer_index}  len(architecture)={len(architecture)} - Act = {activation.name}")
                 neuron = Neuron(
-                    nid=nid,
-                    num_of_weights=num_of_weights,
-                    learning_rate=self.hyper.default_learning_rate,
-                    weight_initializer=flat_initializers[nid],  # Assign correct initializer
-                    layer_id=layer_index,
-                    activation=activation
+                    nid                 = nid,
+                    num_of_weights      = num_of_weights,
+                    learning_rate       = self.learning_rate,
+                    weight_initializer  = flat_initializers[nid],  # Assign correct initializer
+                    layer_id            = layer_index,
+                    activation          = activation
                 )
                 self.neurons.append(neuron)
         self.neuron_count = len(self.neurons)
@@ -603,7 +601,7 @@ class Gladiator(ABC):
         for neuron in Neuron.neurons:
             neuron.set_learning_rate(new_learning_rate)
 
-    def print_reproducibility_info(self):
+    def print_reproducibility_info(self, epoch_count):
         print("\n🧬 Reproducibility Snapshot")
         print("────────────────────────────")
         print(f"Arena:             {self.config.training_data.arena_name}")
@@ -611,17 +609,17 @@ class Gladiator(ABC):
         print(f"Architecture:      {self.config.architecture}")
         print(f"Problem Type:      {self.config.training_data.problem_type}")
         print(f"Loss Function:     {self.config.loss_function.__class__.__name__}")
-        print(f"Hidden AF:         {self.config.activation_function_for_hidden.name}")
-        print(f"Output AF:         {self.config.activation_function_for_output.__name__}")
-        print(f"Weight Init:       {self.config.initializer.__name__}")
-        print(f"Data Norm Scheme:  {self.config.training_data.normalization_scheme}")
-        print(f"Seed:              {self.config.hyper.seed}")
-        print(f"Learning Rate:     {self.config.hyper.learning_rate}")
-        print(f"Epochs Run:        {self.config.db.get_epochs_ran(self.config.gladiator_name)}")
+        print(f"Hidden AF:         {self.config.hidden_activation.name}")
+        print(f"Output AF:         {self.config.output_activation.name}")
+        print(f"Weight Init:       {self.config.initializer.name}")
+        print(f"Data Norm Scheme:  {self.config.training_data.norm_scheme}")
+        print(f"Seed:              {self.config.hyper.random_seed}")
+        print(f"Learning Rate:     {self._learning_rate}")
+        print(f"Epochs Run:        {epoch_count}")
         print(f"Convergence Rule:  {self.config.cvg_condition}")
-        print(f"Final Error:       {self.config.db.get_final_mae(self.config.gladiator_name):.4f}")
-        print(f"Final Accuracy:    {self.config.db.get_final_accuracy(self.config.gladiator_name):.2%}")
-        print(f"Runtime (secs):    {self.config.seconds:.2f}")
+        #print(f"Final Error:       {self.config.db.get_final_mae(self.config.gladiator_name):.4f}")
+        #print(f"Final Accuracy:    {self.config.db.get_final_accuracy(self.config.gladiator_name):.2%}")
+        #print(f"Runtime (secs):    {self.config.seconds:.2f}")
 
 
         print("────────────────────────────\n")
