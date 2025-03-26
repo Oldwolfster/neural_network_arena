@@ -17,7 +17,7 @@ from ..NeuroForge.NeuroForge import *
 
 
 def DELETEEMErun_a_match_orig(gladiators, training_pit):
-    config                  = ModelConfig(
+    config                  = Config(
         hyper   = HyperParameters(),
         db      = prep_RamDB()   # Create a connection to an in-memory SQLite database
     )
@@ -61,8 +61,6 @@ def run_a_match(gladiators, training_pit):
     # Shared resources
     db = prep_RamDB()
     training_data = get_training_data(shared_hyper)
-
-
     record_training_data(training_data.get_list())
 
     print()
@@ -74,7 +72,7 @@ def run_a_match(gladiators, training_pit):
         print(f"Preparing to run model: {gladiator}")
 
         # Create a unique config per model
-        model_config = ModelConfig(
+        model_config = Config(
             hyper=shared_hyper,
             db=db,  # Shared database
             training_data=training_data,  # Shared training data
@@ -100,7 +98,7 @@ def run_a_match(gladiators, training_pit):
         model_info_list.append(model_details)
         model_config.db.add(model_details)    #Writes record to ModelInfo table
 
-        # Store ModelConfig for this model
+        # Store Config for this model
         model_configs.append(model_config)
 
         # Easy place for quick dirty sql
@@ -123,22 +121,17 @@ def run_a_match(gladiators, training_pit):
     if shared_hyper.run_neuroForge:
         neuroForge(model_configs)
 
-
-
 def get_training_data(hyper):
     # Check if Arena Settings indicates to retrieve and use past training_data
     if len(run_previous_training_data) > 0:
         return retrieve_training_data(run_previous_training_data)
-        #return [(3.0829800228956428, 4.48830093538644, 30.780635057213185), (19.394768240791976, 4.132484554096511, 99.9506658661515)]
     # If still here, do a run with new training data
 
-    #return TrainingData(arena.generate_training_data_with_or_without_labels())             # Place holder to do any needed analysis on training data
     # Instantiate the arena and retrieve data
-    arena = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
-    #result = TrainingData(arena.generate_training_data_with_or_without_labels())             # Place holder to do any needed analysis on training data
-    result = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
-    #print(f"result={result}")
-    labels = []
+    arena               = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
+    arena.arena_name    = training_pit
+    result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
+    labels              = []
     if isinstance(result, tuple):
         data, labels = result
         td = TrainingData(data)  # Handle if training data has labels
@@ -156,71 +149,30 @@ def get_training_data(hyper):
     hyper.data_labels = labels
     return td
 
-def generate_linearly_separable_data_ClaudeThinksWillLikeGradientDescent(n_samples=1000):
-    # Generate two clusters of points
-    cluster1 = np.random.randn(n_samples // 2, 1) - 2
-    cluster2 = np.random.randn(n_samples // 2, 1) + 2
 
-    X = np.vstack((cluster1, cluster2)).flatten()
-    y = np.hstack((np.zeros(n_samples // 2), np.ones(n_samples // 2)))
+def print_reproducibility_info():
+    print("\n🧬 Reproducibility Snapshot")
+    print("────────────────────────────")
+    print(f"Arena:             {self.config.training_data.arena_name}")
+    print(f"Gladiator:         {self.config.gladiator_name}")
+    print(f"Architecture:      {self.config.architecture}")
+    print(f"Problem Type:      {self.config.training_data.problem_type}")
+    print(f"Loss Function:     {self.config.loss_function.__class__.__name__}")
+    print(f"Hidden AF:         {self.config.activation_function_for_hidden.__name__}")
+    print(f"Output AF:         {self.config.activation_function_for_output.__name__}")
+    print(f"Weight Init:       {self.config.initializer.__name__}")
+    print(f"Data Norm Scheme:  {self.config.training_data.normalization_scheme}")
+    print(f"Seed:              {self.config.hyper.seed}")
+    print(f"Learning Rate:     {self.config.hyper.learning_rate}")
+    print(f"Epochs Run:        {self.config.db.get_epochs_ran(self.config.gladiator_name)}")
+    print(f"Convergence Rule:  {self.config.cvg_condition}")
+    print(f"Final Error:       {self.config.db.get_final_mae(self.config.gladiator_name):.4f}")
+    print(f"Final Accuracy:    {self.config.db.get_final_accuracy(self.config.gladiator_name):.2%}")
+    print(f"Runtime (secs):    {self.config.seconds:.2f}")
 
-    # Shuffle the data
-    shuffle_idx = np.random.permutation(n_samples)
-    X, y = X[shuffle_idx], y[shuffle_idx]
+    # Optional hash to detect drift
+    # from hashlib import sha1
+    # weights_hash = sha1(str(self.get_final_weights()).encode()).hexdigest()[:8]
+    # print(f"Weights Checksum:  {weights_hash}")
 
-    return list(zip(X, y))
-
-def calculate_loss_gradient(self, error: float, input: float) -> float:
-    """
-    Compute the gradient based on the selected loss function (MSE, MAE, RMSE, Cross Entropy, Huber).
-    """
-    if self.loss_function == 'MSE':
-        # Mean Squared Error: Gradient is error * input
-        return error * input
-    elif self.loss_function == 'RMSE':
-        # Root Mean Squared Error has the same gradient as MSE for individual updates
-        return error * input
-    elif self.loss_function == 'MAE':
-        # Mean Absolute Error: Gradient is sign of the error * input
-        return (1 if error >= 0 else -1) * input
-    elif self.loss_function == 'Cross Entropy':
-        # Convert raw prediction to probability using sigmoid
-        pred_prob = 1 / (1 + math.exp(-((input * self.weight) + self.bias)))
-        # Calculate binary cross-entropy gradient
-        return (pred_prob - input) * input  # Gradient for cross-entropy
-    elif self.loss_function == 'Huber':
-        # Huber Loss: behaves like MSE for small errors and MAE for large errors
-        delta = 1.0  # You can adjust this threshold depending on your dataset
-        if abs(error) <= delta:
-            # If error is small, use squared loss (MSE-like)
-            return error * input
-        else:
-            # If error is large, use absolute loss (MAE-like)
-            return delta * (1 if error > 0 else -1) * input
-    else:
-        # Default to MSE if no valid loss function is provided
-        return error * input
-
-@dataclass
-class TrainingDataOld: #Todo this class is not functioning properly.  it should be classifying each sample as outlier or not
-    to_list: Tuple[float, ...]  # Multiple inputs
-    #target: float
-    is_outlier: bool = False
-
-def identify_outlier(td: TrainingData):
-    # Extract targets (last element of each tuple)
-    print("Greetings!!!!!!!!!!!!")
-    targets = [sample[-1] for sample in td.data]
-
-    # Calculate mean and standard deviation of targets
-    mean_target = statistics.mean(targets)
-    stdev_target = statistics.stdev(targets)
-
-    # Check for each sample if the target is beyond 3 standard deviations from the mean
-    for sample in td.data:
-        target_value = sample[-1]
-        if abs(target_value - mean_target) > 3 * stdev_target:
-            td.is_outlier = True
-            break  # If any target is an outlier, mark the data as an outlier
-        else:
-            td.is_outlier = False
+    print("────────────────────────────\n")

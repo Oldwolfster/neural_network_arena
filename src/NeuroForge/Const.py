@@ -1,12 +1,12 @@
 from typing import List
 from typing import TYPE_CHECKING
 #from src.NeuroForge import Display_Manager
-from src.engine.ModelConfig import ModelConfig
+from src.engine.Config import Config
 
 # ==============================
 # Global References
 # ==============================
-configs: List[ModelConfig] = []
+configs: List[Config] = []
 if TYPE_CHECKING:
     from src.NeuroForge.Display_Manager import DisplayManager
 dm: "DisplayManager" = None  # Lazy reference to avoid circular imports

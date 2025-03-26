@@ -1,6 +1,6 @@
 #from src.NeuroForge.DisplayModel import DisplayModel
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
-from src.engine.ModelConfig import ModelConfig
+from src.engine.Config import Config
 
 
 class GeneratorNeuron:
@@ -25,7 +25,9 @@ class GeneratorNeuron:
         #print(f"Neuron size:{size}")
         max_neurons = max(GeneratorNeuron.model.config.architecture)  # Determine the layer with the most neurons
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
-        text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
+        print(f"size={size}")
+        #text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
+        text_version = "Concise" if size > 150 else "Verbose" # Choose appropriate text method based on network size
         width_needed = size * max_layers + (max_layers -1) * gap + margin * 2
         extra_width = GeneratorNeuron.model.width - width_needed
         extra_width_to_center = extra_width / 2

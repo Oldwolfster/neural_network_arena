@@ -22,7 +22,7 @@ Add Sphinx-style docstrings
 Create a model "cookbook" showing common patterns
 Add validation for configuration option
 
-class ModelConfig:
+class Config:
     def __init__(self,
                  # Architecture
                  layer_sizes: List[int],
@@ -81,7 +81,7 @@ from dataclasses import dataclass
 from typing import Optional, Any
 
 @dataclass
-class ModelConfig:
+class Config:
     learning_rate: float = 0.01
     batch_size: int = 32
     epochs: int = 100
@@ -94,7 +94,7 @@ class ModelConfig:
     # No setter for database_connection, making it read-only
 
 # Example usage
-config = ModelConfig(_database_connection="my_db_connection")
+config = Config(_database_connection="my_db_connection")
 
 # This works
 print(config.database_connection)  # Output: my_db_connection
@@ -103,9 +103,9 @@ print(config.database_connection)  # Output: my_db_connection
 config.database_connection = "new_db_connection"  # Error: can't set attribute
 
 
-#################The superclass (BaseGladiator) still accepts a ModelConfig object:
+#################The superclass (BaseGladiator) still accepts a Config object:
 class BaseGladiator:
-    def __init__(self, config: ModelConfig):
+    def __init__(self, config: Config):
         # Assign configuration values to instance attributes
         self.learning_rate = config.learning_rate
         self.batch_size = config.batch_size
@@ -124,9 +124,9 @@ class BaseGladiator:
         Neuron.layers(1).set_activation(ReLU)
         self.neurons(1, 1).set_activation(Tanh)
 
-#############################The framework creates and passes the ModelConfig object:
+#############################The framework creates and passes the Config object:
 # Framework-level configuration
-framework_config = ModelConfig(
+framework_config = Config(
     learning_rate=0.01,
     batch_size=32,
     epochs=100,
@@ -141,7 +141,7 @@ framework_config = ModelConfig(
 )
 *********************Simple child classes
 class ChildClass(BaseGladiator):
-    def __init__(self, config: ModelConfig):
+    def __init__(self, config: Config):
         # Override specific parameters if needed
         config.learning_rate = 0.001  # Custom learning rate
         config.batch_size = 64  # Custom batch size

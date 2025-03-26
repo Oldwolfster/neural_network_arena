@@ -5,12 +5,12 @@ from src.NeuroForge.DisplayModel__Graph import DisplayModel__Graph
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
-from src.engine.ModelConfig import ModelConfig
+from src.engine.Config import Config
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 
 class DisplayModel(EZSurface):
     __slots__ = ("config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
-    def __init__(self, config: ModelConfig, position: dict )   :
+    def __init__(self, config: Config, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
             width_pct=0, height_pct=0, left_pct=0, top_pct=0,  # Ignore percent-based positioning

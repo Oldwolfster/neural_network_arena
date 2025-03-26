@@ -8,7 +8,7 @@ from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
 from src.NeuroForge.GeneratorModel import ModelGenerator
-from src.engine.ModelConfig import ModelConfig
+from src.engine.Config import Config
 from src.engine.RamDB import RamDB
 from src.engine.Utils import ez_debug
 class Display_Manager:
@@ -17,11 +17,11 @@ class Display_Manager:
     1) Initializes all components including Neurons, UI Panels and Controls, Activations(Outputs)
     2) Runs the main "Loops" such as update, render, and event processing
     3) Is a central location for retrieving and making available global data such as iteration and epoch queries
-    It receives all initial needed information in the constructors parameter List[ModelConfigs].
+    It receives all initial needed information in the constructors parameter List[Configs].
     Changing information is retrieved from the in-ram SQL Lite DB that stores the Models states (think VCR Tape of the models training)
     NOTE: The underscore in the class name is deliberate to separate it from the classes it manages (which all are prefixed with 'Display'
     """
-    def __init__(self, configs: List[ModelConfig]):
+    def __init__(self, configs: List[Config]):
         Const.configs       = configs  # Store all model configs
         self.hovered_neuron = None  # ✅ Store the neuron being hovered over
         self.components     = []  # List for EZSurface-based components
@@ -110,7 +110,7 @@ class Display_Manager:
 
     def create_prediction_panels(self): #one needed per model
         for idx, model_config in enumerate(Const.configs):
-            model_id = model_config.gladiator_name  # Assuming ModelConfig has a `model_id` attribute
+            model_id = model_config.gladiator_name  # Assuming Config has a `model_id` attribute
             problem_type = model_config.training_data.problem_type
             #For now, this will show 2 and write the rest over the top of each other.
             top = 10 #Assume 1 model

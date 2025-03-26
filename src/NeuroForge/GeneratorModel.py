@@ -20,7 +20,7 @@ class ModelGenerator:
         """Create DisplayModel instances for each model."""
         ModelGenerator.display_models = []
 
-        for config in Const.configs:  # Loop through stored ModelConfig objects
+        for config in Const.configs:  # Loop through stored Config objects
             model_position = ModelGenerator.model_positions[config.gladiator_name]  # Fetch position
             display_model = DisplayModel(config, model_position)  # Pass both config & position
             display_model.initialize_with_model_info()

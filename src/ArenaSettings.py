@@ -4,9 +4,6 @@ from typing import List
 
 from dataclasses import dataclass, field
 
-
-
-
 @dataclass
 class ReportSelection:
     ############################################################
@@ -15,16 +12,13 @@ class ReportSelection:
     Training_Evolution_with_Multiple_Scales :bool   = True
 
 
-
-
-
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
     #Delete me -- temp note.. 100 training_set_size had mae of 13k
-    epochs_to_run           :int    = 2222      # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 60      # Number of times training run will cycle through all training data
     training_set_size       :int    = 30    # Qty of training data
     default_learning_rate   :float  = .01      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
@@ -78,13 +72,11 @@ class HyperParameters:
 
 #training_pit              = "Predict_Income_2_Inputs"
 
-training_pit                = "XOR"
-#training_pit              = "Predict_Income_2_Inputs"
+#training_pit                = "XOR"
+training_pit              = "Predict_Income_2_Inputs"
 #training_pit                = "Moons"
-##training_pit                = "Predict_Income_2_Inputs_5Coefficents"
+training_pit                = "Predict_Income_2_Inputs_5Coefficents"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
-
-
 ##training_pit              = "Salary2InputsNonlinear"
 #training_pit              = "Manual"
 
@@ -103,9 +95,10 @@ gladiators = [
     #'Simplified_Descent_03_AddingMax_Update'
     #'GBS'
     #'NeuroForge_4Layers'
-    'Simplex'
-    #,'GBS'
-    #'NeuroForge_Template'
+
+    #'Simplex'
+    #'GBS'
+    'NeuroForge_Template'
 
     #'GBS_Baseline'
     #,'HayabusaTwoWeights'   #2 weights
@@ -118,17 +111,7 @@ gladiators = [
     #'GBS_MultipleOutputNeurons'
     #'GBS_one_neuron'
     #'_Template_Simpletron'
-
 ]
-
-
-
-
-
-
-
-
-
 
 ############################################################
 # List or use training data from a previous run            #
