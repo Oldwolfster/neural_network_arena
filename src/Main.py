@@ -21,8 +21,8 @@ def main():
 
 if __name__ == '__main__':
 
-    #main() #Normal run
-    list_snapshots()
+    main() #Normal run
+    #list_snapshots()
 
     #cProfile.run('main()', 'profile_stats.prof')
     # CMD LINE RUN snakeviz src\profile_stats.prof

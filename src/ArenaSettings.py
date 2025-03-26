@@ -96,9 +96,9 @@ gladiators = [
     #'GBS'
     #'NeuroForge_4Layers'
 
-    #'Simplex'
+    'Simplex'
     #'GBS'
-    'NeuroForge_Template'
+    #'NeuroForge_Template'
 
     #'GBS_Baseline'
     #,'HayabusaTwoWeights'   #2 weights

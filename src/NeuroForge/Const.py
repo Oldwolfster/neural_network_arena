@@ -52,10 +52,11 @@ UI_MANAGER      = None
 TOOL_TIP        = None
 FONT            = None
 DISPLAY_MODELS  = []
+
 # ==============================
 # Popup Const
 # ==============================
-TOOLTIP_WIDTH       = 639
+TOOLTIP_WIDTH       = 669
 TOOLTIP_HEIGHT      = 300
 TOOLTIP_PLACEMENT_X =  10
 TOOLTIP_PLACEMENT_Y =  10
@@ -67,6 +68,16 @@ TOOLTIP_ROW_HEIGHT  =  20  # ✅ Standardized row height
 TOOLTIP_HEADER_PAD  =  39  # ✅ Consistent header spacing
 TOOLTIP_COND_COLUMN =   7
 TOOLTIP_ADJUST_PAD  =  20
+
+# ==============================
+# Popup Divider Line Consts
+# ==============================
+TOOLTIP_LINE_BEFORE_BACKPROP       = 6    # After forward prop ends
+TOOLTIP_LINE_AFTER_ADJUST          = 15   # After orig/new before blame calc
+#TOOLTIP_LINE_BEFORE_ACTIVATION     = 6    # Before Act Gradient in fwd pass
+TOOLTIP_LINE_OVER_HEADER_Y        = 0   # Y position under header row
+TOOLTIP_HEADER_DIVIDER_THICKNESS   = 2
+TOOLTIP_COLUMN_DIVIDER_THICKNESS   = 1
 
 
 
@@ -88,6 +99,9 @@ COLOR_BLUE_STEEL        = (70, 130, 180)
 COLOR_BLUE_SKY          = (135, 206, 235)
 COLOR_CRIMSON           = (220, 20, 60)
 COLOR_CYAN              = (0, 255, 255)
+COLOR_GRAY_DIM          = (105, 105, 105)
+COLOR_GRAY_DARK         = (64, 64, 64)
+
 COLOR_GREEN             = (0, 128, 0)
 COLOR_GREEN_FOREST      = (34, 139, 34)
 COLOR_GREEN_JADE        = (60, 179, 113)
@@ -98,6 +112,7 @@ COLOR_ORANGE            = (255, 165, 0)
 COLOR_YELLOW_BRIGHT     = (255, 215, 0)
 COLOR_WHITE             = (255, 255, 255)
 COLOR_CREAM             = (255, 255, 200)
+
 #Below is Colors  by Purpose rather than color name.
 COLOR_FOR_BANNER        = (0, 0, 255)
 COLOR_FOR_SHADOW        = (30, 30, 100)  # Darker blue for depth
@@ -114,3 +129,6 @@ COLOR_FOR_BAR1_POSITIVE  = COLOR_GREEN_KELLY
 COLOR_FOR_BAR1_NEGATIVE  = COLOR_RED_FIREBRICK
 COLOR_FOR_BAR2_POSITIVE = COLOR_GREEN_JADE
 COLOR_FOR_BAR2_NEGATIVE = COLOR_RED_BURGUNDY
+COLOR_eh             = (220, 255, 220)
+COLOR_HIGHLIGHT_FILL    = COLOR_eh
+COLOR_HIGHLIGHT_BORDER  = (218, 165, 32)
