@@ -34,7 +34,7 @@ class MLP_Hayabusa(Gladiator):
             # Great idea output_activation = Activation_LeakyReLU
         )
         #Neuron.output_neuron.set_activation(Activation_NoDamnFunction)  #How to change a neurons activation initialization occured
-        self.learning_rate = .001 #TODO silently f ails if called  before self.initalize_neurons
+        self.learning_rate = .002 #TODO silently f ails if called  before self.initalize_neurons
         #self.bd_threshold=0
         #self.bd_class_alpha=3
 

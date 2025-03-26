@@ -5,7 +5,7 @@ from src.NeuroForge.Display_Manager import Display_Manager
 from src.NeuroForge.VCR import VCR
 
 from src.UI.Menus import create_menu
-from src.engine.ModelConfig import ModelConfig
+from src.engine.Config import Config
 from src.engine.RamDB import RamDB
 from src.ArenaSettings import HyperParameters
 from src.engine.Utils_DataClasses import ModelInfo
@@ -13,7 +13,7 @@ from typing import List
 from src.NeuroForge.ButtonMenu import ButtonMenu, ButtonInfo
 
 
-def neuroForge(configs:  List[ModelConfig]):
+def neuroForge(configs:  List[Config]):
     """Initialize NeuroForge and run the visualization loop."""
     pygame.init()
     Const.SCREEN = pygame.display.set_mode((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))

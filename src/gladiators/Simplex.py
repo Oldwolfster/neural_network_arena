@@ -30,7 +30,7 @@ class MLP_Hayabusa(Gladiator):
         self.initialize_neurons(
             architecture = [2],
             initializers = [Initializer_Xavier],
-            hidden_activation = Activation_Tanh,
+            hidden_activation = Activation_LeakyReLU,
             output_activation=Activation_NoDamnFunction
         )
         #Neuron.output_neuron.set_activation(Activation_NoDamnFunction)  #How to change a neurons activation initialization occured

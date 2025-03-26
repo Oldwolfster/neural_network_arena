@@ -34,6 +34,7 @@ class TrainingData:
             ValueError: If data contains inconsistent feature dimensions
             ValueError: If any numeric values are invalid (NaN or infinite)
         """
+        self.arena_name     = "Unknown"
         self.td_original    = [Tuple[float, ...]]
         self.td_original    = data                  # Store the original data
         self.td_z_score     = [Tuple[float, ...]]   # List in case model requests zscore
@@ -263,7 +264,7 @@ class TrainingData:
                 #print(f"  Feature #{x + 1}: {feature}")
                 norm_value = (feature - min_values[x]) / denominators[x]
                 norm_tuple.append(norm_value)
-                print(f"    Normalized Feature #{x + 1}: {norm_value}")
+                #print(f"    Normalized Feature #{x + 1}: {norm_value}")
             norm_tuple.append(tuple[-1])  # Append the label without normalization
             self.td_min_max.append(norm_tuple)
             #print(f"  Normalized tuple #{idx + 1}: {tuple(norm_tuple)}\n")

@@ -162,8 +162,8 @@ def smart_format(num):
         return f"{num:.1e}"
     elif abs(num) < 1:  # Use 3 decimal places for numbers less than 1
         formatted = f"{num:,.3f}"
-    elif abs(num) > 1e5:  # Use 6 decimal places for small numbers
-        return f"{num:.1e}"
+#    elif abs(num) > 1e5:  # Use 6 decimal places for small numbers
+#        return f"{num:.1e}"
     elif abs(num) > 1000:  # Use no decimal places for large numbers
         formatted = f"{num:,.0f}"
 

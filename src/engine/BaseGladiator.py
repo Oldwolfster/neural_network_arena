@@ -2,7 +2,7 @@ from abc import ABC
 from json import dumps
 from src.Legos.ActivationFunctions import *
 from src.engine.MgrSQL import MgrSQL
-from src.engine.ModelConfig import ModelConfig
+from src.engine.Config import Config
 from src.engine.Neuron import Neuron
 from datetime import datetime
 
@@ -27,7 +27,7 @@ class Gladiator(ABC):
     2) Training Framework - does the brute force tasks of the arena - not intended for overriding
     3) Initialization - Preps everything for the framework and gladiator
 """
-    def __init__(self,  config: ModelConfig):
+    def __init__(self,  config: Config):
         self.gladiator          = config.gladiator_name
         self.db                 = config.db
         self.hyper              = config.hyper
@@ -52,14 +52,32 @@ class Gladiator(ABC):
         self.config             = config
         self.blame_calculations = []
         self.weight_update_calculations = []
-
         self.convergence_phase  = "watch"
-        Neuron.reset_layers()
+        self.retrieve_setup_from_model()
 
 
     ################################################################################################
     ################################ SECTION 1 - pipeline ####################################
     ################################################################################################
+    def retrieve_setup_from_model(self):
+        self.configure_model(self.config)  #Typically overwritten in base class.
+
+        self.initialize_neurons(
+            architecture=self.config.architecture.copy(),  # Avoid mutation
+            initializers=[self.config.initializer],  # <- List of 1 initializer
+            hidden_activation=self.config.activation_function_for_hidden,
+            output_activation=self.config.activation_function_for_output
+            or self.config.loss_function.recommended_output_activation)
+
+        self.customize_neurons(self.config)
+
+    def configure_model(self, config: Config):
+        pass
+    def customize_neurons(self,config: Config):
+        pass
+
+
+
     def train(self) -> tuple[str, list[int]]:
         """
         Main method invoked from Framework to train model.
@@ -75,6 +93,7 @@ class Gladiator(ABC):
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
+        #self.print_reproducibility_info()
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
             convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
             if convg_signal !="":                                 # Converged so end early
@@ -467,6 +486,7 @@ class Gladiator(ABC):
             initializers (List[WeightInitializer]): A list of weight initializers.
             activation_function_for_hidden (ActivationFunction): The activation function for hidden layers.
         """
+        Neuron.reset_layers()
         if architecture is None:
             architecture = []  # Default to no hidden layers
         architecture.append(1)  # Add output neuron
@@ -583,32 +603,25 @@ class Gladiator(ABC):
         for neuron in Neuron.neurons:
             neuron.set_learning_rate(new_learning_rate)
 
-
-def smart_format(num):
-    try:
-        num = float(num)  # Ensure input is a number
-    except (ValueError, TypeError):
-        return str(num)  # If conversion fails, return as is
-
-    if num == 0:
-        return "0"
-    #elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
-    #    return f"{num:.2e}"
-    elif abs(num) < 0.001:  # Use 6 decimal places for small numbers
-        #formatted = f"{num:,.6f}"
-        return f"{num:.1e}"
-    elif abs(num) < 1:  # Use 3 decimal places for numbers less than 1
-        formatted = f"{num:,.3f}"
-    elif abs(num) > 1000:  # Use no decimal places for large numbers
-        formatted = f"{num:,.0f}"
-    else:  # Default to 2 decimal places
-        formatted = f"{num:,.2f}"
-
+    def print_reproducibility_info(self):
+        print("\n🧬 Reproducibility Snapshot")
+        print("────────────────────────────")
+        print(f"Arena:             {self.config.training_data.arena_name}")
+        print(f"Gladiator:         {self.config.gladiator_name}")
+        print(f"Architecture:      {self.config.architecture}")
+        print(f"Problem Type:      {self.config.training_data.problem_type}")
+        print(f"Loss Function:     {self.config.loss_function.__class__.__name__}")
+        print(f"Hidden AF:         {self.config.activation_function_for_hidden.name}")
+        print(f"Output AF:         {self.config.activation_function_for_output.__name__}")
+        print(f"Weight Init:       {self.config.initializer.__name__}")
+        print(f"Data Norm Scheme:  {self.config.training_data.normalization_scheme}")
+        print(f"Seed:              {self.config.hyper.seed}")
+        print(f"Learning Rate:     {self.config.hyper.learning_rate}")
+        print(f"Epochs Run:        {self.config.db.get_epochs_ran(self.config.gladiator_name)}")
+        print(f"Convergence Rule:  {self.config.cvg_condition}")
+        print(f"Final Error:       {self.config.db.get_final_mae(self.config.gladiator_name):.4f}")
+        print(f"Final Accuracy:    {self.config.db.get_final_accuracy(self.config.gladiator_name):.2%}")
+        print(f"Runtime (secs):    {self.config.seconds:.2f}")
 
 
-def store_num(number):
-    formatted = f"{number:.6g}".replace(",", "")
-    return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
-
-def store_num(number):
-    return number
+        print("────────────────────────────\n")
