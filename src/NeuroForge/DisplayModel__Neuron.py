@@ -16,7 +16,7 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
@@ -80,7 +80,6 @@ class DisplayModel__Neuron:
         neuron_x = model_x + self.location_left
         neuron_y = model_y + self.location_top
         return (neuron_x <= mouse_x <= neuron_x + self.location_width) and (neuron_y <= mouse_y <= neuron_y + self.location_height)
-
 
     def draw_neuron(self):
         """Draw the neuron visualization."""
@@ -198,7 +197,7 @@ class DisplayModel__Neuron:
     def initialize_fonts(self):
         self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_HEADER)
         self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
-        self.header_text            = self.font_header.render("Forward Prop           Back Prop", True, Const.COLOR_BLACK)
+        self.header_text            = self.font_header.render("Forward Prop         Back Prop", True, Const.COLOR_BLACK)
 
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
@@ -206,11 +205,101 @@ class DisplayModel__Neuron:
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
+
+################### All popup divider lines #############################
+    def draw_all_popup_dividers(self):
+        self.draw_lines_for_header(0)
+        self.draw_lines_for_header(1)
+        self.draw_lines_for_weighted_sum(0)
+        self.draw_lines_for_weighted_sum(1)
+        self.draw_lines_forward_pass_only(0)
+        self.draw_lines_forward_pass_only(1)
+        self.draw_popup_vertical_divider_between_forward_and_backprop()
+        self.draw_highlighted_popup_cell(len(self.weights)+2, 5)
+        blame_y = 10 if self.layer == self.output_layer else 12
+        self.draw_highlighted_popup_cell(len(self.weights*2)+1, blame_y)
+
+    def draw_lines_for_header(self, extra_row : int):
+        pygame.draw.line(
+            self.cached_tooltip,
+            Const.COLOR_BLACK,
+            (Const.TOOLTIP_PADDING, self.y_coord_for_row(Const.TOOLTIP_LINE_OVER_HEADER_Y + extra_row)),
+            (Const.TOOLTIP_WIDTH - Const.TOOLTIP_PADDING, self.y_coord_for_row(Const.TOOLTIP_LINE_OVER_HEADER_Y+ extra_row)),
+            Const.TOOLTIP_HEADER_DIVIDER_THICKNESS
+        )
+
+    def draw_lines_for_weighted_sum(self, extra_row : int):
+        num_weights = len(self.weights)  # Includes bias and weights
+        row_index = 1 + num_weights  # +1 for the header row
+        y = self.y_coord_for_row(row_index + extra_row)
+
+        pygame.draw.line(
+            self.cached_tooltip,
+            Const.COLOR_GRAY_DARK,
+            (Const.TOOLTIP_PADDING, y),
+            (Const.TOOLTIP_WIDTH - Const.TOOLTIP_PADDING, y),
+            Const.TOOLTIP_HEADER_DIVIDER_THICKNESS
+        )
+
+    def draw_lines_forward_pass_only(self, extra_row : int):
+        num_weights = len(self.weights)  # Includes bias and weights
+        row_index = 4 + num_weights  # +1 for the header row
+        y = self.y_coord_for_row(row_index + extra_row)
+
+        pygame.draw.line(
+            self.cached_tooltip,
+            Const.COLOR_GRAY_DARK,
+            (Const.TOOLTIP_PADDING, y),
+            (self.x_coord_for_col(Const.TOOLTIP_LINE_BEFORE_BACKPROP), y),
+            Const.TOOLTIP_HEADER_DIVIDER_THICKNESS
+        )
+    def draw_popup_vertical_divider_between_forward_and_backprop(self):
+        x = self.x_coord_for_col(Const.TOOLTIP_LINE_BEFORE_BACKPROP)
+        pygame.draw.line(
+            self.cached_tooltip,
+            Const.COLOR_BLACK,
+            (x, Const.TOOLTIP_HEADER_PAD),
+            (x, Const.TOOLTIP_HEIGHT - Const.TOOLTIP_PADDING),
+            Const.TOOLTIP_HEADER_DIVIDER_THICKNESS+2
+        )
+
+    def draw_highlighted_popup_cell(self, row_index: int, col_index: int):
+        x = self.x_coord_for_col(col_index)
+        y = self.y_coord_for_row(row_index)
+        width = self.column_widths[col_index]
+        height = Const.TOOLTIP_ROW_HEIGHT
+
+        # Draw shaded background
+        pygame.draw.rect(
+            self.cached_tooltip,
+            Const.COLOR_HIGHLIGHT_FILL,
+            pygame.Rect(x, y, width, height)
+        )
+
+        # Draw border
+        pygame.draw.rect(
+            self.cached_tooltip,
+            Const.COLOR_HIGHLIGHT_BORDER,
+            pygame.Rect(x, y, width, height),
+            Const.TOOLTIP_HEADER_DIVIDER_THICKNESS
+        )
+
+
+    def y_coord_for_row(self, row_index: int) -> int:
+        return Const.TOOLTIP_HEADER_PAD + (row_index * Const.TOOLTIP_ROW_HEIGHT)
+    def x_coord_for_col(self, index: int) -> int:
+        return Const.TOOLTIP_PADDING + sum(self.column_widths[:index])
+
     def render_tooltip(self):
         """
         Render the tooltip with neuron details.
         Cache the rendered tooltip and only update if epoch or iteration changes.
         """
+                # ✅ Define dynamic column widths (adjust per column)
+        #column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
+        self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
+                         69,15,55,15,60,60,60,100]
+
 
         # ✅ Check if we need to redraw the tooltip
         if not hasattr(self, "cached_tooltip") or self.last_epoch != Const.CUR_EPOCH or self.last_iteration != Const.CUR_ITERATION:
@@ -234,26 +323,33 @@ class DisplayModel__Neuron:
             # ✅ Populate content
             self.tooltip_generate_text()
 
-            # ✅ Define dynamic column widths (adjust per column)
-            #column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
-            column_widths = [40, 50, 10, 60, 15, 70, 50, 10, #ends on first op  in backprop
-                             57,15,50,15,60,60,60,100]   # Example widths for each column
             # ✅ Ensure column widths match number of columns
             #if len(column_widths) < len(self.tooltip_columns):
             #    column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(column_widths)))
-
+            self.draw_all_popup_dividers()
             # ✅ Draw each column with dynamic spacing
             x_offset = Const.TOOLTIP_PADDING
-            for col_index, (column, col_width) in enumerate(zip(self.tooltip_columns, column_widths)):
+            for col_index, (column, col_width) in enumerate(zip(self.tooltip_columns, self.column_widths)):
                 for row_index, text in enumerate(column):
                     text_color = self.get_text_color(col_index, row_index, text)
-                    text = smart_format(text)
+                    text = self.smart_format_for_popup(text)
+                    #label = self.font_body.render(str(text), True, text_color)
+                    #self.cached_tooltip.blit(label, (                        x_offset,                        Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING                    ))
                     label = self.font_body.render(str(text), True, text_color)
-                    self.cached_tooltip.blit(label, (
-                        x_offset,
-                        Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING
-                    ))
+                    text_rect = label.get_rect()
+                    y_pos = Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING
+                    x_pos = x_offset
+
+                    if self.is_right_aligned(text):
+                        text_rect.topright = (x_offset + col_width - Const.TOOLTIP_PADDING, y_pos)
+                    else:
+                        text_rect.topleft = (x_offset + Const.TOOLTIP_PADDING, y_pos)
+
+                    self.cached_tooltip.blit(label, text_rect)
+
                 x_offset += col_width  # ✅ Move X position based on column width
+
+
 
         # ✅ Get mouse position and adjust tooltip placement
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -272,9 +368,16 @@ class DisplayModel__Neuron:
         return Const.COLOR_BLACK
 
     def adjust_position(self, position, size, screen_size):
+        # If the tooltip would overflow to the right
         if position + size > screen_size:
-            return position - size - Const.TOOLTIP_ADJUST_PAD  # 20 is padding
+            position = screen_size - size - Const.TOOLTIP_ADJUST_PAD
+
+        # If the tooltip would overflow to the left
+        if position < Const.TOOLTIP_ADJUST_PAD:
+            position = Const.TOOLTIP_ADJUST_PAD
+
         return position
+
 
     def tooltip_generate_text(self):
         """Clears and regenerates tooltip text columns."""
@@ -287,9 +390,9 @@ class DisplayModel__Neuron:
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
     def tooltip_columns_for_forward_pass_row_labels(self, inputs):
-        labels = [" ", "Bias"]
+        labels = ["Cogs", "Bias"]
         for i,inp in enumerate(inputs[:-2]):
-            labels.append(f"Wt#{i+1}")
+            labels.append(f"Wt {i+1}")
         labels.append("Weighted Sum")
         return labels
 
@@ -339,7 +442,7 @@ class DisplayModel__Neuron:
         row_labels.append( get_activation_derivative_formula(f"{self.activation_function}"))
         #TODO only add below if space permits
         row_labels.extend(["(How much 'Raw Sum' contri-","butes to final prediction)"])        #So, for hidden neurons, a better description might be something like:ow much the neuron's raw sum, after being transformed by its activation function, contributes to the propagation of error through the network."
-        inputs[1] ="N/A" # remove the 1 for bias
+        inputs[1] = " "  #"N/A" # remove the 1 for bias
         return all_columns
 
     def tooltip_column_forward_pass_one_inputs(self,iteration_data):
@@ -353,10 +456,10 @@ class DisplayModel__Neuron:
 
     def tooltip_columns_for_backprop(self):
         all_columns = self.tooltip_columns_for_backprop_error_distribution()
-        weights=["Orig"]
+        weights=  ["    Orig"]
         weights.extend(self.weights_before)
         all_columns.append(weights)
-        weights = ["New"]
+        weights = ["    New"]
         weights.extend(self.weights)
         all_columns.append(weights)
         all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
@@ -391,7 +494,7 @@ class DisplayModel__Neuron:
         col_op2 = ["*"]
         col_lrate = ["LRate"]
         col_op3 = ["="]
-        col_adj = ["Adj"]
+        col_adj = ["      Adj"]
 
         # ✅ Loop through results and populate columns
         for row in results:
@@ -413,7 +516,7 @@ class DisplayModel__Neuron:
         all_columns.append(col_lrate)
         all_columns.append(col_op3)
         all_columns.append(col_adj)
-        col_input[1] = "N/A"    #  remove the 1 for bias
+        col_input[1] = " "     #"N/A"    #  remove the 1 for bias
         col_op1[1] = " "    #  remove the * for bias
         return all_columns
 
@@ -428,15 +531,16 @@ class DisplayModel__Neuron:
             return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
 
     def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Blame Calculation (for OUTPUT layer)")
-        all_cols[0].append("Blame  = Loss Gradient * Activation Gradient")
+        all_cols[0].append("Blame Calculation")
+        all_cols[0].append( f"Blame = Loss Gradient * Activation Gradient")
         all_cols[0].extend([f"Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
         return all_cols
+
     def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
         col_weight = 0
         col_errsig = 3
         col_contri = 6
-        all_cols[col_weight].append("Blame Calculation (for Hidden layer)")
+        all_cols[col_weight].append("Blame Calculation")  #Isthis showing up anywhere?
         all_cols[col_errsig-1].append(" ")
         all_cols[col_errsig].append(" ")
         all_cols[col_contri-1].append(" ")
@@ -453,7 +557,7 @@ class DisplayModel__Neuron:
         all_cols[col_contri].extend(contributions)
         bpe=sum(contributions)
         all_cols[col_weight].append("BackPropagated Error")
-        all_cols[col_weight].append("ErrSig = BPE *  Act Grad")
+        all_cols[col_weight].append("Blame = Act Grad *  BP Err")
         all_cols[col_contri].append(bpe)
         all_cols[col_contri].append(bpe*self.activation_gradient)
         #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
@@ -494,7 +598,8 @@ class DisplayModel__Neuron:
             first_list, second_list = map(list, zip(*elements))
             return first_list, second_list
         return [], []
-    def smart_format(num):
+
+    def smart_format_for_popup(self, num):
         try:
             num = float(num)  # Ensure input is a number
         except (ValueError, TypeError):
@@ -510,7 +615,7 @@ class DisplayModel__Neuron:
             return f"{num:.1e}"
         elif abs(num) < 1:  # Use 3 decimal places for numbers less than 1
             formatted = f"{num:,.3f}"
-        elif abs(num) > 1e5:  # Use 6 decimal places for small numbers
+        elif abs(num) > 1e6:  # Use 6 decimal places for small numbers
             return f"{num:.1e}"
         elif abs(num) > 1000:  # Use no decimal places for large numbers
             formatted = f"{num:,.0f}"
@@ -520,3 +625,11 @@ class DisplayModel__Neuron:
 
         # Remove trailing zeros and trailing decimal point if necessary
         return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
+
+    def is_right_aligned(self, text):
+        if isinstance(text, (int, float)):
+            return True
+        if isinstance(text, str):
+            cleaned = text.replace(",", "").strip()
+            return cleaned.upper() in ["N/A", "NONE"] or cleaned.replace(".", "", 1).replace("-", "", 1).isdigit()
+        return False

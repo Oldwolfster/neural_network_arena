@@ -28,7 +28,7 @@ class MLP_Hayabusa(Gladiator):
     def initialize(self,config):             # 🚀 All additional initialization here
 
         self.initialize_neurons(
-            architecture = [2],
+            architecture = [4,2],
             initializers = [Initializer_Xavier],
             hidden_activation = Activation_LeakyReLU,
             output_activation=Activation_NoDamnFunction
