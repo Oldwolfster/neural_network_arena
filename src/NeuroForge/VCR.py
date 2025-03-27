@@ -1,4 +1,6 @@
 import time
+from bisect import bisect_left
+
 from src.NeuroForge import Const
 import tkinter.messagebox as mb
 
@@ -10,7 +12,51 @@ class VCR:
         self.advance_by_epoch = 1
         self.last_update_time = time.monotonic()
         self.status = "Playing"  # Default to paused
-        Const.CUR_ITERATION = Const.MAX_ITERATION
+        self.recorded_frames = []  # filled from dispaly manager
+        self._cur_epoch = 1             #Moved here when we stopped recording every frame
+        self._cur_iteration = 1         #Moved here when we stopped recording every frame
+
+    def get_nearest_frame(requested_epoch, requested_iter):
+            requested = (requested_epoch, requested_iter)
+            frames = Const.recorded_frames
+
+            if not frames:
+                return requested  # fallback: nothing to snap to
+
+            if requested in frames:
+                return requested
+
+            # Binary search for the first frame > requested
+            idx = bisect_left(frames, requested)
+
+            if idx < len(frames):    # found one after
+                return frames[idx]
+            elif idx > 0:            # fallback to one before
+                return frames[idx - 1]
+            else:                    # no frames at all
+                return frames[0]
+
+    @property
+    def epoch(self):
+        return self._cur_epoch
+
+    @epoch.setter
+    def epoch(self, val):
+        e, i = self.get_nearest_frame(val, self._cur_iteration)
+        self._cur_epoch = e
+        self._cur_iteration = i
+
+    @property
+    def iteration(self):
+        return self._cur_iteration
+
+    @iteration.setter
+    def iteration(self, val):
+        e, i = self.get_nearest_frame(self._cur_epoch, val)
+        self._cur_epoch = e
+        self._cur_iteration = i
+
+
 
     def play(self):
         """Start playback."""

@@ -36,10 +36,27 @@ MENU_ACTIVE   = False
 # ==============================
 # Training State
 # ==============================
-MAX_EPOCH       = 0
-CUR_EPOCH       = 1
-MAX_ITERATION   = 0
-CUR_ITERATION   = 1
+def set_vcr_instance(instance):
+    global vcr
+    vcr = instance
+
+def get_CUR_EPOCH():
+    return vcr.epoch
+
+def set_CUR_EPOCH(val):
+    vcr.epoch = val
+
+def get_CUR_ITERATION():
+    return vcr.iteration
+
+def set_CUR_ITERATION(val):
+    vcr.iteration = val
+
+CUR_EPOCH = property(get_CUR_EPOCH, set_CUR_EPOCH)
+CUR_ITERATION = property(get_CUR_ITERATION, set_CUR_ITERATION)
+
+
+
 MAX_WEIGHT      = 0.0
 MAX_ACTIVATION  = 0.0
 MAX_ERROR       = 0.0

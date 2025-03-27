@@ -37,6 +37,8 @@ class Display_Manager:
         Const.dm = self
 
         # Compute global max values across all models using Metrics module
+        self.get_max_epoch_per_model(self.db) #TODO this can probably be deleted
+        self.populate_list_of_avaiable_frames()
         Const.MAX_EPOCH     = self.get_max_epoch(self.db)
         Const.MAX_ITERATION = self.get_max_iteration(self.db)
         Const.MAX_WEIGHT    = self.get_max_weight(self.db)
@@ -46,6 +48,9 @@ class Display_Manager:
         self.query_dict_iteration()
         self.query_dict_epoch()
         self.initialize_components()
+
+    def populate_list_of_avaiable_frames(self):
+        Const.vcr. recorded_frames = self.db.query("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration",as_dict=False)
 
     def update(self):
         Const.vcr.play_the_tape()
@@ -174,8 +179,20 @@ class Display_Manager:
         rs = db.query(sql)
         return rs[0].get("error_signal")
 
+    def get_max_epoch_per_model(self, db: RamDB) -> None:
+        """
+        Retrieves the highest epoch per model from EpochSummary and stores it in each config's final_epoch.
+        """
+        for config in Const.configs:
+            #model_id =   # Or whatever uniquely identifies this model in EpochSummary
+            sql = "SELECT MAX(epoch) as max_epoch FROM EpochSummary WHERE model_id = ?"
+            result = db.query(sql, (config.gladiator_name,))
+            max_epoch = result[0].get("max_epoch") or 0
+            config.final_epoch = max_epoch
+
     def get_max_epoch(self, db: RamDB) -> int:
-        """Retrieve highest epoch."""
+        """Retrieve highest epoch for all models."""
+
         sql = "SELECT MAX(epoch) as max_epoch FROM Iteration"
         rs = db.query(sql)
         return rs[0].get("max_epoch")

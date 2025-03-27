@@ -138,7 +138,7 @@ class Gladiator(ABC):
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
             target = sample[-1]
-            self.snapshot_weights_as_weights_before()
+            self.snapshot_weights("", "_before")
             error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.total_error_for_epoch += abs(error)
@@ -164,6 +164,7 @@ class Gladiator(ABC):
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
+            # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
         return self.mgr_sql.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def optimizer_simplified_descent(self, sample, inputs, target):
@@ -423,15 +424,44 @@ class Gladiator(ABC):
     ################################ SECTION 3 - Initialization ####################################
     ################################################################################################
 
-    def snapshot_weights_as_weights_before(self):
+    def snapshot_weights(self, from_suffix: str, to_suffix: str):
         """
-         Stores copy of weights and bias for comparison reporting
-         """
-        for layer_index, current_layer in enumerate(Neuron.layers):
-            for neuron in current_layer:
-                # Capture "before" state for debugging and backpropagation
-                neuron.weights_before = np.copy(neuron.weights)
-                neuron.bias_before = neuron.bias
+        Copies weights and biases from one named attribute to another for all neurons.
+        Example:
+            snapshot_weights("", "_best")      # Save current as best
+            snapshot_weights("_best", "")      # Restore best into active
+        """
+        for layer in Neuron.layers:
+            for neuron in layer:
+                from_weights = getattr(neuron, f"weights{from_suffix}")
+                from_bias    = getattr(neuron, f"bias{from_suffix}")
+
+                setattr(neuron, f"weights{to_suffix}", np.copy(from_weights))
+                setattr(neuron, f"bias{to_suffix}", from_bias)
+
+
+    def update_best_weights_if_new_lowest_error(self, current_error: float):
+        """
+        Checks if the current error is the lowest seen so far, and if so,
+        stores weights and bias as the new best.
+        """
+        if not hasattr(self, 'lowest_error') or current_error < self.lowest_error:
+            self.lowest_error = current_error
+            self.snapshot_weights("", "_best")
+
+    def restore_best_weights_from_run(self):
+        """
+        Restores the best weights and biases recorded during the run.
+        Assumes snapshot_weights("_best", "") was used to store them.
+        """
+        if not hasattr(self, 'lowest_error'):
+            print("⚠️ No best weights found — 'lowest_error' was never set.")
+            return
+
+
+
+
+
 
     def get_flat_initializers(self, architecture: List[int], initializers: List[WeightInitializer]) -> List[WeightInitializer]:
         """
@@ -629,3 +659,14 @@ class Gladiator(ABC):
 
 
         print("────────────────────────────\n")
+        def on_epoch_end(self, epoch, error_summary):
+            """
+            Optional override: Called after each epoch.
+            """
+            pass
+
+        def on_training_complete(self):
+            """
+            Optional override: Called after training run completes.
+            """
+            pass

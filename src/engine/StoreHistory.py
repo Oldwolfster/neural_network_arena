@@ -20,13 +20,13 @@ def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
 
     cursor.execute('''
     INSERT INTO reproducibility_snapshots (
-        run_id, timestamp, arena_name, gladiator_name, architecture, problem_type, 
+        timestamp, arena_name, gladiator_name, architecture, problem_type, 
         loss_function_name, hidden_activation_name, output_activation_name, 
         weight_initializer_name, normalization_scheme, seed, learning_rate, 
         epoch_count, convergence_condition, runtime_seconds, final_error
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        run_id, timestamp, snapshot.arena_name, snapshot.gladiator_name,
+         timestamp, snapshot.arena_name, snapshot.gladiator_name,
         repr(snapshot.architecture), snapshot.problem_type, snapshot.loss_function_name,
         snapshot.hidden_activation_name, snapshot.output_activation_name,
         snapshot.weight_initializer_name, snapshot.normalization_scheme,
@@ -41,7 +41,9 @@ def list_snapshots():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''
-    SELECT * FROM reproducibility_snapshots ORDER BY timestamp
+                        SELECT seed as _seed,* FROM reproducibility_snapshots
+                        ORDER BY timestamp DESC
+                        LIMIT 10
     ''')
     rows = cursor.fetchall()
     headers = [description[0] for description in cursor.description]
@@ -53,7 +55,7 @@ def create_snapshot_table(conn):
     cursor = conn.cursor()
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS reproducibility_snapshots (
-        run_id TEXT PRIMARY KEY,
+        run_id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp DATETIME,
         arena_name TEXT,
         gladiator_name TEXT,

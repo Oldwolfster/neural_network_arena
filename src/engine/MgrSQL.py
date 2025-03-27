@@ -29,26 +29,36 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.converge_detector     = ConvergenceDetector(hyper,training_data, config)
         self.abs_error_for_epoch = 0
         self.convergence_signal = None      # Will be set by convergence detector
-    """
-    @property    
-    def converge_detector(self):
-    
-        Provides lazy instantiation of converge_detector so it can pass it(CD) a copy of itself (MMgr)
-        
-        if self._converge_detector is None:
-            # Lazy import to avoid circular reference
-            from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
-            self._converge_detector = ConvergenceDetector(self.hyper, self.training_data, self)
-        return self._converge_detector
-    """
+
+    def should_record_sample(self, epoch: int, sample_index: int) -> bool:
+        # ✅ Always record the first sample of every epoch
+        if sample_index == 1:
+            return True
+
+        strategy = self.hyper.record_sample_strategy
+
+        # ✅ If no override for this epoch, do not record
+        if epoch not in strategy:
+            return False
+
+        # ✅ Record if the sample is explicitly listed (or all are, via -1)
+        samples = strategy[epoch]
+        return -1 in samples or sample_index in samples
 
     def record_iteration(self, iteration_data: Iteration, layers: List[List[Neuron]]):
-        # Add the current iteration data to the database
-        #print(f"iteration_data={iteration_data}")
-        self.db.add(iteration_data)
-        self.abs_error_for_epoch += abs(iteration_data.error)
+        """
+        Add the current iteration data to the database
+        """
+
         epoch_num = iteration_data.epoch
         iteration_num = iteration_data.iteration
+        #print(f"Deciding {epoch_num}\t {iteration_num}")
+        if not self.should_record_sample(epoch_num, iteration_num):
+            return
+        print(f"still here {epoch_num}\t {iteration_num}")
+        self.db.add(iteration_data)
+        self.abs_error_for_epoch += abs(iteration_data.error)
+
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):
 
@@ -69,9 +79,6 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 #TODO take out 'input_tensor' and delta from exclude keys
                 self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
-                #print("NEURON DATA ADDED")
-        #if epoch_num ==2 and iteration_num ==4  :
-        #    self.db.query_print("Select * from Neuron WHERE nid   = 0")
 
 
     def finish_epoch(self, epoch: int):

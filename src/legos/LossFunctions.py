@@ -356,3 +356,53 @@ Loss_LogCosh = LossFunction(
 )
 
 
+def half_wit_loss(y_pred, y_true):
+    """
+    Computes the same value as MSE — this is a placeholder to match structure.
+    """
+    return np.mean((y_pred - y_true) ** 2)  # Or replace with np.mean(abs(y_pred - y_true)) if desired
+
+def half_wit_derivative(y_pred, y_true):
+    """
+    Computes the raw error: (prediction - target) — skipping the 2x and division.
+    """
+    return (y_pred - y_true)
+
+Loss_HalfWit = LossFunction(
+    loss=half_wit_loss,
+    derivative=half_wit_derivative,
+    name="Half Wit Error",
+    short_name="HalfWit",
+    desc="Returns the raw error instead of a true gradient. Half the math, all the charm.",
+    when_to_use="When you want an honest answer.",
+    best_for="Situations where clarity or interpretability of error is preferred.",
+    allowed_activations=None,
+    derivative_formula="(prediction - target)"
+)
+
+def schrodinger_loss(y_pred, y_true):
+    """
+    Schrodinger Loss: Absolutely no idea which direction to go.
+    Calculates the average absolute error but discards all sign information.
+    """
+    return np.mean(np.abs(y_pred - y_true))
+
+def schrodinger_derivative(y_pred, y_true):
+    """
+    Derivative of Schrodinger Loss — the optimizer is blindfolded.
+    Outputs all +1s (because abs() removes direction), regardless of prediction accuracy.
+    """
+    n = _get_n(y_true)
+    return np.ones_like(y_pred) / n  # No idea whether it's over or under — just nudge it forward
+
+Loss_Schrodinger = LossFunction(
+    loss=schrodinger_loss,
+    derivative=schrodinger_derivative,
+    name="Schrödinger's Loss",
+    short_name="TheCat",
+    desc="Punishes error but gives no indication which way to go. Not recommended unless you're trolling your optimizer.",
+    when_to_use="When you want maximum confusion and minimum utility.  Uhhh, Mundo no remember Mundo's name",
+    best_for="Philosophical debates, not machine learning.  Exception: finding your cat",
+    allowed_activations=None,
+    derivative_formula="1 / n  (for all values — direction is lost to the void)"
+)

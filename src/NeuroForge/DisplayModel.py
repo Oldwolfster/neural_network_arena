@@ -33,11 +33,12 @@ class DisplayModel(EZSurface):
         max_activation = self.get_max_activation_for_model(self.model_id)
         GeneratorNeuron.create_neurons(self, max_activation)
         self.graph = self.create_graph(self.graph_holder)# Add Graph  # MAE over epoch
+        Const.dm.eventors.append(self.graph)
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
 
     def create_graph(self, gh):
-        return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, model_id=self.model_id)
+        return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, model_id=self.model_id, my_model=self)
 
 
     def render(self):
