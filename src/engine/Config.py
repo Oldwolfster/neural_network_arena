@@ -25,6 +25,7 @@ class Config:
     roi_mode                                = ROI_Mode.SWEET_SPOT
     seconds: float                          = 0.0
     cvg_condition: str                      = "None"
+    final_epoch: int                        =   0 # Last epoch to run
 
     def set_defaults(self):
         if self.training_data.problem_type == "Binary Decision":

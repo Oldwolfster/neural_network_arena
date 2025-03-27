@@ -20,8 +20,11 @@ def neuroForge(configs:  List[Config]):
     pygame.display.set_caption("Neural Network Visualization")
 
     Const.UI_MANAGER = pygame_gui.UIManager((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
-    Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
     Const.vcr = VCR()  # Handles event processing
+    Const.set_vcr_instance(Const.vcr)
+
+    Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
+
     menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
     menu_button = ButtonMenu()
     info_button = ButtonInfo()

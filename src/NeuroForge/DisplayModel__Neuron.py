@@ -6,6 +6,10 @@ from src.engine.Neuron import Neuron
 from src.engine.Utils import smart_format, draw_gradient_rect, is_numeric
 from src.NeuroForge import Const
 import json
+
+from src.engine.Utils_DataClasses import ez_debug
+
+
 class DisplayModel__Neuron:
     """
     DisplayModel__Neuron is created by DisplayModel.
@@ -197,7 +201,7 @@ class DisplayModel__Neuron:
     def initialize_fonts(self):
         self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_HEADER)
         self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
-        self.header_text            = self.font_header.render("Forward Prop         Back Prop", True, Const.COLOR_BLACK)
+        self.header_text            = self.font_header.render("Prediction               Adjust Weights To Improve", True, Const.COLOR_BLACK)
 
 ############################### BELOW HERE IS POP UP WINDOW ##################################
 ############################### BELOW HERE IS POP UP WINDOW ##################################
@@ -213,7 +217,7 @@ class DisplayModel__Neuron:
         self.draw_lines_for_weighted_sum(0)
         self.draw_lines_for_weighted_sum(1)
         self.draw_lines_forward_pass_only(0)
-        self.draw_lines_forward_pass_only(1)
+        self.draw_lines_forward_pass_only(2)
         self.draw_popup_vertical_divider_between_forward_and_backprop()
         self.draw_highlighted_popup_cell(len(self.weights)+2, 5)
         blame_y = 10 if self.layer == self.output_layer else 12
@@ -390,10 +394,10 @@ class DisplayModel__Neuron:
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
     def tooltip_columns_for_forward_pass_row_labels(self, inputs):
-        labels = ["Cogs", "Bias"]
+        labels = ["Cog", "Bias"]
         for i,inp in enumerate(inputs[:-2]):
             labels.append(f"Wt {i+1}")
-        labels.append("Weighted Sum")
+        labels.append("Raw Sum")
         return labels
 
     def tooltip_columns_for_forward_pass(self):
@@ -415,7 +419,8 @@ class DisplayModel__Neuron:
         weights.extend(self.weights_before)
         #ez_debug(wt_with_lbl = weights)
         all_columns.append(weights)
-        all_columns.append(["="] * (len(inputs) + 1) ) # col_op1
+        all_columns.append(["="] * (len(inputs) + 2) ) # col_op1
+        #all_columns.extend([["="] * (len(inputs) + 1)," ", "=" ) # col_op1
 
 
         # weighted product
@@ -423,6 +428,7 @@ class DisplayModel__Neuron:
         inputs_sliced = inputs[2:]  # Slices from index 2 to the end
         wt_before_sliced = weights[2:]  # Slices from index 1 to the end
         products = [inp * wt for inp, wt in zip(inputs_sliced, wt_before_sliced)]
+        ez_debug(cjf=weights)
         product_col = ["Product", weights[1]]    #Label and bias
         product_col.extend(products)
         weighted_sum = sum(product_col[1:])     # Sums everything except the first element - calculate weighted sum
@@ -490,7 +496,7 @@ class DisplayModel__Neuron:
         # ✅ Initialize columns for backpropagation
         col_input = ["Input"]
         col_op1 = ["*"]
-        col_err_sig = ["Blame"]
+        col_err_sig = ["MyResp"]
         col_op2 = ["*"]
         col_lrate = ["LRate"]
         col_op3 = ["="]
@@ -521,8 +527,13 @@ class DisplayModel__Neuron:
         return all_columns
 
     def tooltip_columns_for_error_signal_calculation(self, all_cols):
-        for i in range(9):
-            all_cols[i].append(" ")
+        # Row in the box between adj and blame
+        for i in range(9):  #Do entire row
+            if i == 0:
+                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
+            else:
+                all_cols[i].append(" ")
+
 
 
         if self.layer == self.output_layer: # This is an output neuron
@@ -530,8 +541,10 @@ class DisplayModel__Neuron:
         else:
             return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
 
+    # Better Terms for backprob... blame, yelling, accepted blame
+
     def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Blame Calculation")
+        all_cols[0].append("Receiving Blame")
         all_cols[0].append( f"Blame = Loss Gradient * Activation Gradient")
         all_cols[0].extend([f"Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
         return all_cols
@@ -540,14 +553,15 @@ class DisplayModel__Neuron:
         col_weight = 0
         col_errsig = 3
         col_contri = 6
-        all_cols[col_weight].append("Blame Calculation")  #Isthis showing up anywhere?
+        all_cols[col_weight].append("Receiving Blame")  #Isthis showing up anywhere?
         all_cols[col_errsig-1].append(" ")
         all_cols[col_errsig].append(" ")
         all_cols[col_contri-1].append(" ")
         all_cols[col_contri].append(" ")
-        all_cols[col_weight].append("Weight")
-        all_cols[col_errsig].append("Err Sig")
-        all_cols[col_contri].append("Contribution")
+        # IWFM = It's weight From Me
+        all_cols[col_weight].append("IWFM")
+        all_cols[col_errsig].append("It's Blame")
+        all_cols[col_contri].append("My Share of it's blame")
         arg_1, arg_2 = self.get_elements_of_backproped_error()
         contributions = [a * b for a, b in zip(arg_1, arg_2)]
         all_cols[col_weight].extend(arg_1)
@@ -556,8 +570,8 @@ class DisplayModel__Neuron:
         all_cols[col_contri-1].extend("=" * (len(arg_1)+3))
         all_cols[col_contri].extend(contributions)
         bpe=sum(contributions)
-        all_cols[col_weight].append("BackPropagated Error")
-        all_cols[col_weight].append("Blame = Act Grad *  BP Err")
+        all_cols[col_weight].append("My Blame from All")
+        all_cols[col_weight].append("Accp Blame = MBFA * Act Grad")
         all_cols[col_contri].append(bpe)
         all_cols[col_contri].append(bpe*self.activation_gradient)
         #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")

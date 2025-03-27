@@ -83,13 +83,14 @@ class DisplayModel__NeuronWeights:
         # 🔹 Draw the activation bar
         draw_rect_with_border(self.neuron.screen, bar_rect, bar_color, 2)
 
-        # 🔹 Writes the activation value inside the neuron, centered on the right wall, with a background for visibility.
-        draw_text_with_background(self.neuron.screen, self.neuron.activation_value, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
-
         # 🔹 Writes the raw sum inside the neuron, bottom right corner, with a background for visibility.
         weighted_sum = self.calculate_weighted_sum()
         text = f" Wt\nSum\n{smart_format(weighted_sum)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
         draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height - 55 , Const.FONT_SIZE_WEIGHT, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+
+        # 🔹 Writes the activation value inside the neuron, centered on the right wall, with a background for visibility.
+        draw_text_with_background(self.neuron.screen, self.neuron.activation_value, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+
 
     def calculate_weighted_sum(self):
         """

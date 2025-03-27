@@ -9,10 +9,11 @@ from src.engine.Utils import draw_gradient_rect
 
 class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):
-    def __init__(self, width, height, left, top, model_surface, model_id):
+    def __init__(self, width, height, left, top, model_surface, model_id ,my_model):
         """Creates a Graph showing MAE over epoch"""
         #super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color=Const.COLOR_BLUE)
         #super().__init__(width_pct=0, left_pct=0, top_pct=0, height_pct=0,                         pixel_adjust_width=width, pixel_adjust_left=left,                         pixel_adjust_top=top, pixel_adjust_height=height)
+        self.my_model               = my_model #reference to DisplayManager__Model object
         self.model_surface          = model_surface
 
         # Positioning
@@ -26,10 +27,43 @@ class DisplayModel__Graph():
         # Build and store the plot surface once.
         self.plot_surface = self.create_plot_surface_from_results()
 
+    def process_an_event(self, event):
+        """Handles UI events and sends commands to VCR.
+        Also ensures pygame_gui receives events.
+        """
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left click
+            self.check_click(self.my_model.left,self.my_model.top)
+
+    def check_click(self, model_x, model_y):
+        """
+        Check if the mouse is over this neuron.
+        """
+        mouse_x, mouse_y = pygame.mouse.get_pos()
+        neuron_x = model_x + self.location_left
+        neuron_y = model_y + self.location_top
+        if (neuron_x <= mouse_x <= neuron_x + self.location_width) and (neuron_y <= mouse_y <= neuron_y + self.location_height):
+            #print (f"You click me at {mouse_x - self.my_model.left - self.location_left } of {self.location_width}")
+            click_ratio = (mouse_x - self.my_model.left - self.location_left) / self.location_width
+            click_ratio = max(0, min(click_ratio, 1))  # Clamp to [0, 1]
+            target_epoch = int(click_ratio * self.my_model.config.final_epoch)
+            Const.vcr.jump_to_epoch(target_epoch)
+
+
+
+
+
+
+
+
+
+
+
     def create_plot_surface_from_results(self):
         # Prepare the data
         epochs = [r['epoch'] for r in self.results]
         mae_values = [r['mean_absolute_error'] for r in self.results]
+
+
 
         dpi = 100
         figsize = (self.location_width / dpi, self.location_height / dpi)
@@ -40,9 +74,28 @@ class DisplayModel__Graph():
 
         ax = fig.add_subplot(111)
         ax.set_facecolor("none")  # Transparent plot background
+        # Scale properly in Y dimension
+        #max_error = max(mae_values)
+
 
         # 🔹 Plot the error line
         ax.plot(epochs, mae_values, marker='o', linestyle='-', color=(1,0,1))
+        # Force consistent vertical scaling
+        max_error = max(mae_values)
+        min_error = min(mae_values)
+
+        if max_error == min_error:
+            # Flat line, pad artificially
+            max_error += 1e-3
+        # SAME AXIS FOR ALL ax.set_ylim(0, Const.GRAPH_FIXED_MAX_ERROR)  # Define a fixed height if helpful
+        ax.set_ylim(min_error - 0.05 * abs(max_error), max_error + 0.05 * abs(max_error))
+        ax.set_ylim(0, max_error * 1.05)  # ⬅️ slight buffer above the highest point
+        #ax.set_ylim(0, Const.GRAPH_FIXED_MAX_ERROR)  # Define a fixed height if helpful
+
+
+        fig.tight_layout(pad=0)
+        plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+
 
         # 🔹 Remove padding, ticks, labels, and borders
         ax.set_xticks([])
@@ -54,7 +107,7 @@ class DisplayModel__Graph():
         plt.subplots_adjust(left=0, right=1, top=.97, bottom=0)
 
         # 🔹 Force y-axis to start at 0
-        ax.set_ylim(bottom=0)
+        #ax.set_ylim(bottom=0)
 
         # 🔹 Render to ARGB and convert to RGBA for Pygame
         canvas = FigureCanvas(fig)

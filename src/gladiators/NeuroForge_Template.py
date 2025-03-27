@@ -14,15 +14,15 @@ class NeuroForge_Template(Gladiator):
         ✅ Auto-tuned learning rate
         ✅ Supports multiple activation functions
         ✅ Flexible architecture with preconfigured alternatives
-        👉 If you are having problems, comment everything out and try the 'smart defaults'
+        🛡️ If you are having problems, comment everything out and try the 'smart defaults'
         """
 
     def configure_model(self, config: Config):
         """ 👉  Anything prior to initializing neurons goes here
             💪  For example setting config options.        """
 
-        #config.architecture         = [2]                       # Neurons in hidden layer output added automatically
-        #self.learning_rate          = .002
+        config.architecture         = []                       # Neurons in hidden layer output added automatically
+        self.learning_rate          = .000001
         #config.initializer          = Initializer_Xavier
         #config.output_activation    = Activation_Tanh
         #config.loss_function        = Loss_MAE
@@ -54,8 +54,15 @@ class NeuroForge_Template(Gladiator):
 4) In fact, by default sets correct activation function for the loss function.
 
 
-🥂 toasting
-🐉
+🥂   toasting
+🐉   dragon
 💪
-🚀
+🚀💯
+🐍💥❤️
+😈   devil
+😂   laugh
+⚙️   cog
+🔍
+🧠   brain
+🥩   steak
 """

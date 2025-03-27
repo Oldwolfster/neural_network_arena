@@ -103,15 +103,11 @@ def run_a_match(gladiators, training_pit):
         model_configs.append(model_config)
 
         # Easy place for quick dirty sql
-        """ model_config.db.query_print(
-            
-                SELECT  epoch_n as epoch, nid, learning_rates , mean_absolute_error -- ,weight_adjustments 
-                FROM    Neuron N
-                JOIN    EpochSummary S
-                ON      N.epoch_n = S.epoch
-                WHERE   iteration_n == 1 and epoch_n > 10
-                ORDER   BY epoch_n
-                """ #)
+        #model_config.db.query_print("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration")
+
+        #recorded_frames = model_config.db.query("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration",as_dict=False)
+        #print("frames")
+        #print( recorded_frames)
 
         print(f"{gladiator} completed in {model_config.seconds} based on:{model_config.cvg_condition}")
 
