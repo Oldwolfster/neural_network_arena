@@ -21,7 +21,7 @@ def neuroForge(configs:  List[Config]):
 
     Const.UI_MANAGER = pygame_gui.UIManager((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     Const.vcr = VCR()  # Handles event processing
-    Const.set_vcr_instance(Const.vcr)
+
 
     Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
 

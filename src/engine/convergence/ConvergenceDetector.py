@@ -30,7 +30,7 @@ class ConvergenceDetector:
         self.phase_signals = {
             "watch": [
                 Signal_PerfectAccuracy(self.hyper.accuracy_threshold, self.metrics)
-                ,Signal_CornerCatch(.1, self.metrics)
+                #,Signal_CornerCatch(.1, self.metrics)
                #,self.get_roi_signal(config.roi_mode, self.hyper, self.metrics)
             ],
             "fix": [

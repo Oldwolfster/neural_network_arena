@@ -11,6 +11,7 @@ class ReproducibilitySnapshot:
     gladiator_name: str
     architecture: list
     problem_type: str
+    best_mae: float
     loss_function_name: str
     hidden_activation_name: str
     output_activation_name: str
@@ -29,6 +30,7 @@ class ReproducibilitySnapshot:
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
             architecture=config.architecture,
+            best_mae= config.lowest_error,
             problem_type=config.training_data.problem_type,
             loss_function_name=config.loss_function.__class__.__name__,
             hidden_activation_name=config.hidden_activation.name,
@@ -46,7 +48,7 @@ class ReproducibilitySnapshot:
         )
 
     def display(self):
-        print("\n🧬 Reproducibility Snapshot")
+        print("\n🧬 Reproducibility Snapshot1")
         print("────────────────────────────")
         print(f"Arena:             {self.arena_name}")
         print(f"Gladiator:         {self.gladiator_name}")

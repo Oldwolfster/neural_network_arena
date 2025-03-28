@@ -10,12 +10,15 @@ from dataclasses import dataclass, field
 @dataclass
 class Config:
     # 🔹 Shared components for all models
-    hyper: HyperParameters         = field(default_factory=HyperParameters)
-    db: RamDB                      = field(default_factory=RamDB)
-    training_data: TrainingData    = None
+    hyper: HyperParameters                  = field(default_factory=HyperParameters)
+    db: RamDB                               = field(default_factory=RamDB)
+    training_data: TrainingData             = None
+    lowest_error: float                     = 1e50
+    lowest_error_epoch                      = 0
 
     # 🔹 Unique components
     gladiator_name: str                     = ""
+
     architecture: list                      = field(default_factory=lambda: [1])
     full_architecture: list                 = field(default_factory=lambda: [1,1])
     initializer: type                       = Initializer_Xavier

@@ -11,8 +11,10 @@ from src.engine.StoreHistory import list_snapshots
 
 
 def main():
-    if instead_of_run_show_past_runs and len(run_previous_training_data) == 0:
-        list_runs()
+    #if instead_of_run_show_past_runs and len(run_previous_training_data) == 0:
+    if history_to_show > 0:
+        list_snapshots(history_to_show)
+        #list_runs()
     else:
         run_a_match(gladiators, training_pit)
         #from src.backprop.tutorial.nn_xor import run_tutorial
@@ -20,9 +22,7 @@ def main():
 
 
 if __name__ == '__main__':
-
     main() #Normal run
-    #list_snapshots()
 
     #cProfile.run('main()', 'profile_stats.prof')
     # CMD LINE RUN snakeviz src\profile_stats.prof

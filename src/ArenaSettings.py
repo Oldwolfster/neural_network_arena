@@ -1,18 +1,21 @@
 from typing import List
 from dataclasses import dataclass, field
 
+history_to_show = 2
+history_to_show = 0
+
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 5      # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 50      # Number of times training run will cycle through all training data
     training_set_size       :int    = 30    # Qty of training data
     default_learning_rate   :float  = .01      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
-    random_seed             :int       = 930324   #181026 #393828 #874170  331670
+    random_seed             :int       = 0   #181026 #393828 #874170  331670
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
     #311161 gets 3 epochs with adaptive LR and explosion threshold of 5.
     #375655 get 2 epochs
@@ -34,7 +37,7 @@ class HyperParameters:
     threshold_Signal_SweetSpot      = .01       # The larger the quicker it converges
     converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
     converge_threshold      :float  = 1e-12      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
-    accuracy_threshold      :float  = .01        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
+    accuracy_threshold      :float  = .000005        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
     data_labels                     = []        # List to hold the optional data labels
 
     ##############################################################
@@ -52,12 +55,14 @@ gladiators = [
     #'Simplified_Descent_03_AddingMax_Update'
     #'GBS'
     #'NeuroForge_4Layers'
-    #'Schrodinger'
+    #'NeuroForge_CaliforniaHousing'
     'Simplex'
-    #,'Simplex2'
-    #'GBS'
-    #'NeuroForge_Template'
+    #,'Simplex_Exact_copy'
+    ,'Simplex2'
 
+    #'GBS'
+    #,'NeuroForge_Template'
+    #'NeuroForge_CaliforniaHousing'
     #'GBS_Baseline'
     #'GBS_XOR'
     #'HayabusaNormalizer'
@@ -71,10 +76,13 @@ gladiators = [
 training_pit                = "XOR"
 training_pit              = "Predict_Income_2_Inputs"
 #training_pit                = "Moons"
-training_pit                = "Predict_Income_2_Inputs_5Coefficents"
+#training_pit                = "Predict_Income_2_Inputs_5Coefficents"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 ##training_pit              = "Salary2InputsNonlinear"
 #training_pit              = "Manual"
+#training_pit                = "California_Housing"
+
+
 
 ############################################################
 # List or use training data from a previous run            #

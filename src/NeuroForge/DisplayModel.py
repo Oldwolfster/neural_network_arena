@@ -7,6 +7,7 @@ from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
 from src.engine.Config import Config
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
+from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
     __slots__ = ("config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
@@ -78,6 +79,13 @@ class DisplayModel(EZSurface):
         text_surface = font.render(beautify_text(self.config.gladiator_name), True, Const.COLOR_BLACK)
         text_x = 10  # Align to right with margin
         text_y = 5  # Small margin from the top
+        self.surface.blit(text_surface, (text_x, text_y))
+
+        # Render the model name
+        text_val = f"{smart_format(self.config.lowest_error)} at {self.config.lowest_error_epoch}"
+        text_surface = font.render(beautify_text(text_val), True, Const.COLOR_BLACK)
+        text_x = 10  # Align to right with margin
+        text_y = 10 + text_surface.height  # Small margin from the top
         self.surface.blit(text_surface, (text_x, text_y))
 
         # Render the model name

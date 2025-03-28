@@ -20,13 +20,13 @@ def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
 
     cursor.execute('''
     INSERT INTO reproducibility_snapshots (
-        timestamp, arena_name, gladiator_name, architecture, problem_type, 
+        final_error, timestamp, arena_name, gladiator_name, architecture, problem_type, 
         loss_function_name, hidden_activation_name, output_activation_name, 
         weight_initializer_name, normalization_scheme, seed, learning_rate, 
         epoch_count, convergence_condition, runtime_seconds, final_error
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-         timestamp, snapshot.arena_name, snapshot.gladiator_name,
+         snapshot.best_mae, timestamp, snapshot.arena_name, snapshot.gladiator_name,
         repr(snapshot.architecture), snapshot.problem_type, snapshot.loss_function_name,
         snapshot.hidden_activation_name, snapshot.output_activation_name,
         snapshot.weight_initializer_name, snapshot.normalization_scheme,
@@ -37,14 +37,12 @@ def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
     print(f"Snapshot saved with run_id: {run_id}")
 
 
-def list_snapshots():
+def list_snapshots(result_rows: int):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('''
-                        SELECT seed as _seed,* FROM reproducibility_snapshots
-                        ORDER BY timestamp DESC
-                        LIMIT 10
-    ''')
+    cursor.execute(f"SELECT seed as _seed,* FROM reproducibility_snapshots ORDER BY timestamp DESC LIMIT {result_rows} ")
+
+
     rows = cursor.fetchall()
     headers = [description[0] for description in cursor.description]
     print(tabulate(rows, headers=headers, tablefmt="grid"))
@@ -55,23 +53,23 @@ def create_snapshot_table(conn):
     cursor = conn.cursor()
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS reproducibility_snapshots (
-        run_id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp DATETIME,
+        runtime_seconds REAL,
+        final_error REAL,        
         arena_name TEXT,
         gladiator_name TEXT,
-        architecture TEXT,
-        problem_type TEXT,
+        architecture TEXT,        
         loss_function_name TEXT,
         hidden_activation_name TEXT,
         output_activation_name TEXT,
         weight_initializer_name TEXT,
         normalization_scheme TEXT,
-        seed INTEGER,
         learning_rate REAL,
         epoch_count INTEGER,
-        convergence_condition TEXT,
-        runtime_seconds REAL,
-        final_error REAL
+        convergence_condition TEXT,        
+        problem_type TEXT,
+        seed INTEGER,
+        run_id INTEGER PRIMARY KEY AUTOINCREMENT
     )
     ''')
     conn.commit()
