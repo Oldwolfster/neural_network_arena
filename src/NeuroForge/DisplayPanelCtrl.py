@@ -62,12 +62,12 @@ class DisplayPanelCtrl(EZForm):
         self.handle_enter_key(event)
 
         key_mapping = {
-            pygame.K_q: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(-1)),
-            pygame.K_w: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(1)),
-            pygame.K_a: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-1)),
-            pygame.K_s: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(1)),
-            pygame.K_z: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-100)),
-            pygame.K_x: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(100)),
+            pygame.K_q: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(-1, True)),
+            pygame.K_w: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(1, True)),
+            pygame.K_a: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-1, True)),
+            pygame.K_s: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(1, True)),
+            pygame.K_z: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-100, True)),
+            pygame.K_x: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(100, True)),
             pygame.K_e: lambda: self.toggle_playback(),
             pygame.K_CAPSLOCK: lambda: self.toggle_reverse(),
         }
@@ -88,17 +88,17 @@ class DisplayPanelCtrl(EZForm):
             elif event.ui_element == self.reverse_button:
                 self.toggle_reverse()
             elif event.ui_element == self.step_forward:
-                Const.vcr.step_x_iteration(1)
+                Const.vcr.step_x_iteration(1, True)
             elif event.ui_element == self.step_back:
-                Const.vcr.step_x_iteration(-1)
+                Const.vcr.step_x_iteration(-1, True)
             elif event.ui_element == self.step_forward_epoch:
-                Const.vcr.step_x_epochs(1)
+                Const.vcr.step_x_epochs(1, True)
             elif event.ui_element == self.step_back_epoch:
-                Const.vcr.step_x_epochs(-1)
+                Const.vcr.step_x_epochs(-1, True)
             elif event.ui_element == self.step_forward_big:
-                Const.vcr.step_x_epochs(100)
+                Const.vcr.step_x_epochs(100, True)
             elif event.ui_element == self.step_back_big:
-                Const.vcr.step_x_epochs(-100)
+                Const.vcr.step_x_epochs(-100, True)
 
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == self.speed_dropdown:
             self.set_playback_speed(self.speed_dropdown.selected_option)

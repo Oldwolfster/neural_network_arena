@@ -22,6 +22,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         self.hyper                  = hyper
         self.neurons                = neurons
         self.db                     = ramDb
+        self.config                 = config
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
         self.sample_count           = len(self.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
@@ -53,9 +54,8 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         epoch_num = iteration_data.epoch
         iteration_num = iteration_data.iteration
         #print(f"Deciding {epoch_num}\t {iteration_num}")
-        if not self.should_record_sample(epoch_num, iteration_num):
-            return
-        print(f"still here {epoch_num}\t {iteration_num}")
+        #if not self.should_record_sample(epoch_num, iteration_num):
+        #    return
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
 
@@ -83,6 +83,11 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
+        if mae < self.config.lowest_error:    # New lowest error
+            self.config.lowest_error = mae
+            self.config.lowest_error_epoch = epoch
+
+
         self.abs_error_for_epoch = 0 # Reset for next epoch
         epoch_metrics = self.get_metrics_from_ramdb(epoch)
         #print(f"MgrSQL ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")

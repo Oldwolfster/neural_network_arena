@@ -36,6 +36,7 @@ MENU_ACTIVE   = False
 # ==============================
 # Training State
 # ==============================
+"""
 def set_vcr_instance(instance):
     global vcr
     vcr = instance
@@ -54,7 +55,7 @@ def set_CUR_ITERATION(val):
 
 CUR_EPOCH = property(get_CUR_EPOCH, set_CUR_EPOCH)
 CUR_ITERATION = property(get_CUR_ITERATION, set_CUR_ITERATION)
-
+"""
 
 
 MAX_WEIGHT      = 0.0

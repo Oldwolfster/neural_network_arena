@@ -100,7 +100,6 @@ class Gladiator(ABC):
                 else:
                     snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
                     return convg_signal, self._full_architecture, snapshot
-        self.print_reproducibility_info(self.number_of_epochs)
         snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
         return "Did not converge", self._full_architecture, snapshot       # When it does not converge still return info
 
@@ -142,6 +141,9 @@ class Gladiator(ABC):
             error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.total_error_for_epoch += abs(error)
+            #if error < self.config.lowest_error:    # New lowest error
+            #    self.config.lowest_error = error
+            #    self.config.lowest_error_epoch = epoch_num
 
             #If binary decision apply step logic.
             prediction = prediction_raw # Assume regression
@@ -518,6 +520,7 @@ class Gladiator(ABC):
             initializers (List[WeightInitializer]): A list of weight initializers.
             hidden_activation (ActivationFunction): The activation function for hidden layers.
         """
+        print("Initializing!!!!!!!!!!!!!!!!!")
         Neuron.reset_layers()
         if architecture is None:
             architecture = []  # Default to no hidden layers

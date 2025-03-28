@@ -267,6 +267,40 @@ class TrainingData:
         #print(f"Normalized data{self.td_min_max}")
         self.td_current = self.td_min_max # Point "Current mode" to the min max list
 
+    def set_normalization_z_score(self):
+        """
+        Normalizes features using Z-score scaling:
+            (value - mean) / std
+        Applies to all elements except the last (target value).
+        Sets `td_z_score` and updates `td_current`.
+        """
+        if not self.td_current:
+            raise ValueError("No data available for normalization.")
+
+        self.norm_scheme = "Z-Score"
+        num_features = len(self.td_current[0]) - 1
+        means = [0.0] * num_features
+        stds = [0.0] * num_features
+
+        # Step 1: Compute means
+        for i in range(num_features):
+            means[i] = sum(sample[i] for sample in self.td_current) / len(self.td_current)
+
+        # Step 2: Compute stds
+        for i in range(num_features):
+            variance = sum((sample[i] - means[i]) ** 2 for sample in self.td_current) / (len(self.td_current) - 1)
+            stds[i] = variance ** 0.5 if variance > 0 else 1.0  # Prevent divide by zero
+
+        # Step 3: Normalize data
+        self.td_z_score = []
+        for sample in self.td_current:
+            z_scaled = [(sample[i] - means[i]) / stds[i] for i in range(num_features)]
+            z_scaled.append(sample[-1])  # Preserve target
+            self.td_z_score.append(tuple(z_scaled))
+
+        self.td_current = self.td_z_score
+
+
     @property
     def sum_of_inputs(self) -> List[float]:
         """

@@ -9,7 +9,7 @@ from src.engine.Config import Config
 from src.engine.Neuron import Neuron
 from src.engine.convergence.ConvergenceDetector import ROI_Mode
 
-class NeuroForge_Template(Gladiator):
+class NeuroForge_GoingBackToCali(Gladiator):
     """ ⚡implex: A ⚡imple Yet Powerful Neural Network ⚡
         ✅ Auto-tuned learning rate
         ✅ Supports multiple activation functions
@@ -21,19 +21,24 @@ class NeuroForge_Template(Gladiator):
         """ 👉  Anything prior to initializing neurons goes here
             💪  For example setting config options.        """
 
-        config.architecture         = [2]                       # Neurons in hidden layer output added automatically
-        self.learning_rate          = .000001
-        #config.initializer          = Initializer_Xavier
-        #config.output_activation    = A
-        config.hidden_activation     = Activation_Sigmoid
-        #config.loss_function        = Loss_MAE
-        #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
-        #config.training_data        . set_normalization_min_max()
+        #Advice on California data
+        # hidden_layers = [16, 8]
+        # activation = "tanh"        output_activation = "linear"        loss_function = "mae"
+        config.architecture         = [6,8]                       # Neurons in hidden layer output added automatically
+        self.learning_rate          = .001 #If not included defaults to value in ArenaSettings
+        config.initializer          = Initializer_Xavier
+        config.output_activation    = Activation_NoDamnFunction
+        config.loss_function        = Loss_MAE
+        config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
+        config.training_data        . set_normalization_z_score()
 
     def customize_neurons(self, config: Config):
         """ 🚀 Anything after initializing neurons
             🐉 but before training goes here  i.e manually setting a weight  """
         #Neuron.output_neuron.set_activation(Activation_NoDamnFunction)  #How to change a neurons activation initialization occured
+        for layer in Neuron.layers[:-1]:  # Hidden layers
+            for neuron in layer:
+                neuron.bias= 525252
 
 
     # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹

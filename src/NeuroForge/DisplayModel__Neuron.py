@@ -144,7 +144,7 @@ class DisplayModel__Neuron:
             WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
             ORDER BY epoch, iteration, model, nid 
         """
-        rs = self.db.query(SQL, (self.model_id, Const.CUR_ITERATION, Const.CUR_EPOCH, self.nid)) # Execute query
+        rs = self.db.query(SQL, (self.model_id, Const.vcr.CUR_ITERATION, Const.vcr.CUR_EPOCH, self.nid)) # Execute query
         # ✅ Check if `rs` is empty before accessing `rs[0]`
         if not rs:
             return False  # No results found
@@ -169,7 +169,7 @@ class DisplayModel__Neuron:
         epoch_n = ? and  -- Replace with the current epoch(ChatGPT is trolling us)
         nid     = ?      
         """
-        params = (self.model_id,  Const.CUR_EPOCH, self.nid)
+        params = (self.model_id,  Const.vcr.CUR_EPOCH, self.nid)
         rs = self.db.query(SQL, params)  # Execute query
 
         # ✅ Check if `rs` is empty before accessing `rs[0]`
@@ -188,7 +188,7 @@ class DisplayModel__Neuron:
             WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
             ORDER BY weight_id ASC
         """
-        weights_data = self.db.query(SQL, (self.model_id, self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), False)
+        weights_data = self.db.query(SQL, (self.model_id, self.nid, Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION), False)
 
         if weights_data:
             self.weights = [column[1] for column in weights_data]  # Extract values
@@ -306,9 +306,9 @@ class DisplayModel__Neuron:
 
 
         # ✅ Check if we need to redraw the tooltip
-        if not hasattr(self, "cached_tooltip") or self.last_epoch != Const.CUR_EPOCH or self.last_iteration != Const.CUR_ITERATION:
-            self.last_epoch = Const.CUR_EPOCH  # ✅ Update last known epoch
-            self.last_iteration = Const.CUR_ITERATION  # ✅ Update last known iteration
+        if not hasattr(self, "cached_tooltip") or self.last_epoch != Const.vcr.CUR_EPOCH or self.last_iteration != Const.vcr.CUR_ITERATION:
+            self.last_epoch = Const.vcr.CUR_EPOCH  # ✅ Update last known epoch
+            self.last_iteration = Const.vcr.CUR_ITERATION  # ✅ Update last known iteration
 
             # ✅ Tooltip dimensions
             tooltip_width = Const.TOOLTIP_WIDTH
@@ -428,7 +428,6 @@ class DisplayModel__Neuron:
         inputs_sliced = inputs[2:]  # Slices from index 2 to the end
         wt_before_sliced = weights[2:]  # Slices from index 1 to the end
         products = [inp * wt for inp, wt in zip(inputs_sliced, wt_before_sliced)]
-        ez_debug(cjf=weights)
         product_col = ["Product", weights[1]]    #Label and bias
         product_col.extend(products)
         weighted_sum = sum(product_col[1:])     # Sums everything except the first element - calculate weighted sum
@@ -484,10 +483,10 @@ class DisplayModel__Neuron:
         WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
         ORDER BY weight_index ASC
         """
-        #ez_debug(epoch=Const.CUR_EPOCH, iter=Const.CUR_ITERATION,model= self.model_id, nid=self.nid)
+        #ez_debug(epoch=Const.vcr.CUR_EPOCH, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
         #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM DistributeErrorCalcs GROUP BY epoch, iteration ")
         #Const.dm.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0")
-        results = Const.dm.db.query(sql, (Const.CUR_EPOCH, Const.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        results = Const.dm.db.query(sql, (Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
         if not results:
             return []  # ✅ No data found, exit early
 
@@ -586,7 +585,7 @@ class DisplayModel__Neuron:
             WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
             ORDER BY weight_id ASC
         """
-        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, Const.CUR_EPOCH, Const.CUR_ITERATION), False)
+        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION), False)
 
         if backprop_error_elements:             # Split the elements into two lists using the helper function
             list1, list2 = self.split_error_elements(backprop_error_elements)

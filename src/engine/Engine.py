@@ -148,29 +148,3 @@ def get_training_data(hyper):
     return td
 
 
-def print_reproducibility_info():
-    print("\n🧬 Reproducibility Snapshot")
-    print("────────────────────────────")
-    print(f"Arena:             {self.config.training_data.arena_name}")
-    print(f"Gladiator:         {self.config.gladiator_name}")
-    print(f"Architecture:      {self.config.architecture}")
-    print(f"Problem Type:      {self.config.training_data.problem_type}")
-    print(f"Loss Function:     {self.config.loss_function.__class__.__name__}")
-    print(f"Hidden AF:         {self.config.hidden_activation.__name__}")
-    print(f"Output AF:         {self.config.output_activation.__name__}")
-    print(f"Weight Init:       {self.config.initializer.__name__}")
-    print(f"Data Norm Scheme:  {self.config.training_data.normalization_scheme}")
-    print(f"Seed:              {self.config.hyper.seed}")
-    print(f"Learning Rate:     {self.config.hyper.learning_rate}")
-    print(f"Epochs Run:        {self.config.db.get_epochs_ran(self.config.gladiator_name)}")
-    print(f"Convergence Rule:  {self.config.cvg_condition}")
-    print(f"Final Error:       {self.config.db.get_final_mae(self.config.gladiator_name):.4f}")
-    print(f"Final Accuracy:    {self.config.db.get_final_accuracy(self.config.gladiator_name):.2%}")
-    print(f"Runtime (secs):    {self.config.seconds:.2f}")
-
-    # Optional hash to detect drift
-    # from hashlib import sha1
-    # weights_hash = sha1(str(self.get_final_weights()).encode()).hexdigest()[:8]
-    # print(f"Weights Checksum:  {weights_hash}")
-
-    print("────────────────────────────\n")
