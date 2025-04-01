@@ -89,3 +89,15 @@ Initializer_Huge = WeightInitializer(
     best_for="Any activation."
 )
 
+def xavier_kill_relu(shape):
+    return np.random.uniform(-2, -1, size=shape)
+
+Initializer_KillRelu = WeightInitializer(
+    method=xavier_kill_relu,
+    bias_method=lambda: -1.0,
+    name="Xavier Kill ReLU",
+    desc="Creates high chance of dead ReLU via negative initialization",
+    when_to_use="Testing dead ReLU scenarios",
+    best_for="Diagnostics"
+)
+

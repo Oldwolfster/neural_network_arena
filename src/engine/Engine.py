@@ -53,11 +53,12 @@ def DELETEEMErun_a_match_orig(gladiators, training_pit):
         #neuroForge(config.db, config.training_data, config.hyper, model_info_list)
         neuroForge(config, model_info_list)
 
+def run_batch_of_matches(gladiators, training_pit, shared_hyper, number_of_matches):
+    pass
 
+def run_a_match(gladiators, training_pit, shared_hyper):
 
-def run_a_match(gladiators, training_pit):
-    shared_hyper = HyperParameters()  # Create ONE instance
-    seed = set_seed( shared_hyper.random_seed)
+    seed = set_seed(shared_hyper.random_seed)
 
     # Shared resources
     db = prep_RamDB()

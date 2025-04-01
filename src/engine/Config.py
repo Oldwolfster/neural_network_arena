@@ -2,6 +2,7 @@ from src.Legos.ActivationFunctions import *
 from .RamDB import RamDB
 from .TrainingData import TrainingData
 from src.Legos.WeightInitializers import *
+from src.Legos.Optimizers import *
 from .convergence.ConvergenceDetector import ROI_Mode
 from ..ArenaSettings import HyperParameters
 from ..Legos.LossFunctions import *
@@ -18,7 +19,7 @@ class Config:
 
     # 🔹 Unique components
     gladiator_name: str                     = ""
-
+    optimizer: Optimizer                    = Optimizer_SGD
     architecture: list                      = field(default_factory=lambda: [1])
     full_architecture: list                 = field(default_factory=lambda: [1,1])
     initializer: type                       = Initializer_Xavier

@@ -23,10 +23,10 @@ class NeuroForge_Template(Gladiator):
             💪  For example setting config options.        """
 
         config.architecture         = [2]                       # Neurons in hidden layer output added automatically
-        self.learning_rate          = .0000001
+        self.learning_rate          = 1
         config.initializer          = Initializer_Xavier
         #config.output_activation    = A
-        config.optimizer            = Optimizer_SGD
+        config.optimizer            = Optimizer_Adam
         config.hidden_activation     = Activation_LeakyReLU
         #config.loss_function        = Loss_MAE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
@@ -56,7 +56,7 @@ class NeuroForge_Template(Gladiator):
 3) Does not allow incompatible output activtation function with loss functions
 4) In fact, by default sets correct activation function for the loss function.
 
-    
+
 🥂   toasting
 🐉   dragon
 💪
