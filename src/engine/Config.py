@@ -32,11 +32,46 @@ class Config:
     final_epoch: int                        =   0 # Last epoch to run
 
     def set_defaults(self):
+        self.loss_function      = self.suggest_loss_function()
+        self.hidden_activation  = self.suggest_activation_hidden()
+        self.initializer        = self.suggest_initializer()
+        self.output_activation  = self.loss_function.recommended_output_activation
+    def suggest_loss_function(self) -> LossFunction:
         if self.training_data.problem_type == "Binary Decision":
-            self.loss_function = Loss_BinaryCrossEntropy
-            self.hidden_activation = Activation_ReLU
+            return Loss_BinaryCrossEntropy
         else:
-            self.loss_function = Loss_MSE
-            self.hidden_activation = Activation_Tanh
-        self.output_activation = self.loss_function.recommended_output_activation
-        print (f"Set Default")
+            return Loss_MSE
+
+    def suggest_activation_hidden(self):
+        # Base on the loss and output needs
+        if self.loss_function == Loss_BinaryCrossEntropy:
+            return Activation_ReLU
+        elif self.loss_function == Loss_MSE:
+            return Activation_Tanh
+        # add more...
+
+
+    """
+    def suggest_activation_output(self):
+        # Base on the loss and output needs
+        if self.loss_function == Loss_BinaryCrossEntropy:
+            return Activation_Sigmoid
+        elif self.loss_function == Loss_Hinge:
+            return Activation_Tanh
+        else:
+            return Activation_NoDamnFunction
+        # add more...
+    """
+
+    def suggest_initializer(self):
+        if self.hidden_activation in [Activation_LeakyReLU, Activation_ReLU]:
+            return Initializer_He
+        if self.hidden_activation in [Activation_Sigmoid, Activation_Tanh]:
+            return Initializer_Xavier
+        return Initializer_Normal
+
+    def suggest_optimizer(self) -> Optimizer:
+        if self.training_data.problem_type == "Regression":
+            return Optimizer_Adam
+        return Optimizer_SGD
+

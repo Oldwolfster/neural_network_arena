@@ -6,7 +6,7 @@ from src.engine.BaseArena import BaseArena
 
 class Salary2InputsPiecewise(BaseArena):
     """
-    Generates regression training data for a two-input neural network with a single target,
+    Generates regression training data with a single target,
     introducing nonlinear dependencies between experience, college, and salary.
 
     Loss Function: Mean squared error (for the single target).

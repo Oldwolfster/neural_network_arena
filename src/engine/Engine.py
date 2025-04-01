@@ -15,46 +15,62 @@ from src.engine.Reporting import generate_reports
 from src.engine.Reporting import prep_RamDB
 from ..Legos.LossFunctions import *
 from ..NeuroForge.NeuroForge import *
+import os
+import importlib
 
 
-def DELETEEMErun_a_match_orig(gladiators, training_pit):
-    config                  = Config(
-        hyper   = HyperParameters(),
-        db      = prep_RamDB()   # Create a connection to an in-memory SQLite database
-    )
+def discover_gladiators(package="src.gladiators.regression"):
+    """Dynamically load all gladiators from a given package."""
+    path = package.replace(".", "/")
+    gladiator_files = [
+        f[:-3] for f in os.listdir(path)
+        if f.endswith(".py") and not f.startswith("__")
+    ]
+    gladiators = []
+    for name in gladiator_files:
+        mod = importlib.import_module(f"{package}.{name}")
+        for attr in dir(mod):
+            obj = getattr(mod, attr)
+            if isinstance(obj, type) and issubclass(obj, Gladiator) and obj is not Gladiator:
+                gladiators.append(obj)
+    return gladiators
 
-    seed                    = set_seed(config.hyper.random_seed)
-    config.training_data    =  get_training_data(config.hyper)
-    record_training_data(config.training_data.get_list())
-
-    print()
-    model_info_list = [] # Initialize an empty list to store ModelInfo objects #TODO remove me
-    model_configs = []
-    for gladiator in gladiators:    # Loop through the NNs competing.
-        set_seed(seed)      #reset for each gladiator
-        print(f"Preparing to run model:{gladiator}")
-        config.gladiator_name = gladiator
-        #nn = dynamic_instantiate(gladiator, 'gladiators', gladiator, hyper, training_data, db)
-        nn = dynamic_instantiate(gladiator, 'gladiators',config)
-
-        start_time = time.time()  # Start timing
-        cvg_condition,full_architecture = nn.train()
-        end_time = time.time()  # End timing
-        run_time = end_time - start_time
-        model_details= ModelInfo(gladiator, run_time, cvg_condition, full_architecture, config.training_data.problem_type )
-        config.db.add(model_details)    #TODO this looks wrong
-        model_info_list.append(model_details)
-
-        print (f"{gladiator} completed in {run_time}")
-
-    generate_reports(config.db, config.training_data, config.hyper, model_info_list)
-    print(f"🛠️ Using Random Seed: {seed}")
-    if config.hyper.run_neuroForge:
-        #neuroForge(config.db, config.training_data, config.hyper, model_info_list)
-        neuroForge(config, model_info_list)
+def run_all_matchups(training_pit, shared_hyper):
+    all_gladiators = discover_gladiators()
+    for i, A in enumerate(all_gladiators):
+        for B in all_gladiators[i+1:]:
+            print(f"\n⚔️  {A.__name__} vs {B.__name__}")
+            run_batch_of_matches(
+                gladiators=[A(), B()],
+                training_pit=training_pit,
+                shared_hyper=shared_hyper,
+                number_of_matches=10
+            )
 
 def run_batch_of_matches(gladiators, training_pit, shared_hyper, number_of_matches):
-    pass
+    """
+    Runs multiple training sessions (matches) to account for stochastic variability.
+    This helps validate optimizer stability, convergence behavior, and final accuracy.
+
+    Args:
+        gladiators (list): List of Gladiator classes or factory functions to instantiate models.
+        training_pit (Arena): The data arena used to generate training data.
+        shared_hyper (Config): Shared hyperparameters like learning rate, loss function, etc.
+        number_of_matches (int): How many independent training runs to execute.
+
+    Notes:
+        - Seeds can be randomized each time or incremented.
+        - Results are automatically logged via SQL integration.
+    """
+    print(f"⚔️ Running {number_of_matches} matches for each gladiator...")
+    for match_index in range(number_of_matches):
+        print(f"  ➤ Match {match_index + 1}/{number_of_matches}")
+
+        # Optional: Change the seed slightly each match if you want to test randomness
+        shared_hyper.random_seed += 1  # Or random.randint(...) if you want total chaos
+
+        run_a_match(gladiators, training_pit, shared_hyper)
+
 
 def run_a_match(gladiators, training_pit, shared_hyper):
 
