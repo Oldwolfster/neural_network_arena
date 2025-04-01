@@ -56,12 +56,13 @@ gladiators = [
     #'GBS'
     #'NeuroForge_4Layers'
     #'NeuroForge_CaliforniaHousing'
-    'Simplex'
-    #,'Simplex_Exact_copy'
-    ,'Simplex2'
+    #'Simplex'
+    'NeuroShepherd'
+    #,'Simplex2'
 
     #'GBS'
     #,'NeuroForge_Template'
+    #,'Adam_Template'
     #'NeuroForge_CaliforniaHousing'
     #'GBS_Baseline'
     #'GBS_XOR'
@@ -75,6 +76,7 @@ gladiators = [
 ############################################################
 training_pit                = "XOR"
 training_pit              = "Predict_Income_2_Inputs"
+training_pit                = "Predict_Income_Piecewise_Growth"
 #training_pit                = "Moons"
 #training_pit                = "Predict_Income_2_Inputs_5Coefficents"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score

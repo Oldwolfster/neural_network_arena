@@ -49,24 +49,13 @@ class DisplayModel__Graph():
             Const.vcr.jump_to_epoch(target_epoch)
 
 
-
-
-
-
-
-
-
-
-
     def create_plot_surface_from_results(self):
         # Prepare the data
         epochs = [r['epoch'] for r in self.results]
         mae_values = [r['mean_absolute_error'] for r in self.results]
 
-
-
         dpi = 100
-        figsize = (self.location_width / dpi, self.location_height / dpi)
+        figsize = (self.location_width / dpi, self.location_height* .8 / dpi)
 
         # 🔹 Create the figure and axis
         fig = plt.figure(figsize=figsize, dpi=dpi)

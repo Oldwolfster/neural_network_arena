@@ -1,7 +1,7 @@
 import snakeviz
 
 from src.ArenaSettings import *
-from src.engine.Engine import run_a_match
+from src.engine.Engine import run_a_match, run_batch_of_matches
 from engine.SQL import list_runs
 
 
@@ -12,11 +12,13 @@ from src.engine.StoreHistory import list_snapshots
 
 def main():
     #if instead_of_run_show_past_runs and len(run_previous_training_data) == 0:
+    shared_hyper = HyperParameters()
     if history_to_show > 0:
         list_snapshots(history_to_show)
         #list_runs()
     else:
-        run_a_match(gladiators, training_pit)
+        #run_batch_of_matches(gladiators, training_pit)
+        run_a_match(gladiators, training_pit, shared_hyper)
         #from src.backprop.tutorial.nn_xor import run_tutorial
         #run_tutorial()
 

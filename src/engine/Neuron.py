@@ -17,6 +17,7 @@ class Neuron:
         #self.learning_rate = learning_rate
         self.learning_rates = [learning_rate] * (num_of_weights + 1)   # going to stick bias LR in element 0 even though it offsets all the indexes by 1
         self.raw_sum = 0.0
+        self.dead_counter = 0
         self.activation_value = 0.0
         #self.activation =  activation or Activation_Linear         # function
         self.activation_gradient = 0.0  # Store activation gradient from forward pass
@@ -50,10 +51,16 @@ class Neuron:
 
 
     def initialize_weights(self, weight_initializer):
-
         self.weights, self.bias = weight_initializer((self.num_of_weights,))
         self.weights_before = self.weights.copy()
         self.bias_before = self.bias
+
+        #TODO only allocate the arrays when adam is the optimizer?
+        # 🔹 Adam optimizer state (momentum and RMS terms)
+        total_params = self.num_of_weights + 1  # +1 for bias
+        self.m = [0.0] * total_params
+        self.v = [0.0] * total_params
+
 
     def reinitialize(self, new_initializer):
         """Reinitialize weights & bias using a different strategy."""
@@ -64,6 +71,48 @@ class Neuron:
         """Applies the activation function."""
         self.activation_value = self.activation(self.raw_sum)
         self.activation_gradient = self.activation.apply_derivative(self.activation_value)  # Store gradient!
+        #self.check_for_dead_relu() # ☠️ Dead ReLU Detection (Optional: toggle via config or debug flag
+
+    """
+    def check_for_dead_relu(self, dead_threshold = 10):
+        " ""☠️ Tracks persistent ReLU death before triggering reset."" "
+        if self.activation != Activation_ReLU:
+            if self.activation_value != 0:
+                if abs(self.error_signal) > 1e-6:
+                    self.dead_counter = 0           # 🎉 Still alive
+                    return                          # 🎉 Still alive
+
+        #print(f"checking if N{self.nid} is dead - dead_counter={self.dead_counter}")
+        self.dead_counter += 1
+        if self.dead_counter >= dead_threshold:
+            self.maybe_soft_reset()
+
+
+
+    def maybe_soft_reset(self):
+        " ""💀 Optional: Soft-reset weights if ReLU is completely dead." ""
+        if (
+            self.activation_name == "ReLU"
+            and self.activation_value == 0
+            and abs(self.error_signal) < 1e-6
+        ):
+            print(f"🔁 Soft-resetting dead neuron {self.nid}")
+            # Option A: Small nudge
+            #self.weights += np.random.uniform(-0.01, 0.01, size=self.weights.shape)
+            #self.bias += np.random.uniform(-0.01, 0.01)
+
+
+            # Option B: Stronger nudge (helps break death loop)
+            self.weights += np.random.uniform(0.5, 1.0, size=self.weights.shape)
+            self.bias += np.random.uniform(0.5, 1.0)
+
+            # Option C: Full reinit (if you'd rather go nuclear)
+            # self.weights = np.random.uniform(-0.5, 0.5, size=self.weights.shape)
+            # self.bias = np.random.uniform(-0.5, 0.5)
+
+            self.dead_counter = 0
+            """
+
 
     def set_activation(self, activation_function):
         """Dynamically update the activation function."""
@@ -114,58 +163,3 @@ class Neuron:
             #print(f"Query for weights: {sql_query}")
             db.execute(sql_query)
 
-
-    """
-    the below methods restrict experimenting to much.
-    def forward(self, inputs: np.ndarray) -> float:
-        "" "
-        Compute the neuron's output given the inputs.
-        "" "
-        weighted_sum = np.dot(self.weights, inputs) + self.bias
-        return self.activation_function(weighted_sum)
-
-    def update(self, inputs: np.ndarray, error: float):
-        "" "
-        Update the weights and bias based on the error.
-        "" "
-        self.weights += self.learning_rate * error * inputs
-        self.bias += self.learning_rate * error
-"""
-
-import numpy as np
-
-
-
-
-
-# 1. Uniform Random Initialization (between -1 and 1)
-def initialize_uniform_random(neurons):
-    for neuron in neurons:
-        neuron.weights = np.random.uniform(-1, 1, size=len(neuron.weights))
-        neuron.bias = np.random.uniform(-1, 1)
-
-# 2. Normal Distribution Initialization (mean=0, std=1)
-def initialize_normal_random(neurons):
-    for neuron in neurons:
-        neuron.weights = np.random.normal(0, 1, size=len(neuron.weights))
-        neuron.bias = np.random.normal(0, 1)
-
-# 3. Xavier/Glorot Initialization (good for sigmoid/tanh activations)
-def initialize_xavier(neurons):
-    for neuron in neurons:
-        limit = np.sqrt(6 / (len(neuron.weights) + 1))  # +1 for bias
-        neuron.weights = np.random.uniform(-limit, limit, size=len(neuron.weights))
-        neuron.bias = np.random.uniform(-limit, limit)
-
-# 4. He Initialization (good for ReLU activations)
-def initialize_he(neurons):
-    for neuron in neurons:
-        limit = np.sqrt(2 / len(neuron.weights))
-        neuron.weights = np.random.normal(0, limit, size=len(neuron.weights))
-        neuron.bias = np.random.normal(0, limit)
-
-# 5. Small Random Values (close to zero)
-def initialize_small_random(neurons):
-    for neuron in neurons:
-        neuron.weights = np.random.randn(len(neuron.weights)) * 0.01
-        neuron.bias = np.random.randn() * 0.01

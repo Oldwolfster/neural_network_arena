@@ -35,7 +35,7 @@ class Gladiator(ABC):
         self.neurons            = []
         #self.layers             = []                        # Layered structure
         self.neuron_count       = 0                         # Default value
-
+        self.total_iterations   = 1                         # Timestep for optimizers such as adam
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         self.mgr_sql            = MgrSQL(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
@@ -276,7 +276,48 @@ class Gladiator(ABC):
             for neuron in Neuron.layers[layer_index]:   # Adjust weights for each neuron in the current layer
                 self.back_pass__update_neurons_weights(neuron, prev_layer)
 
+
     def back_pass__update_neurons_weights(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
+        blame = neuron.error_signal
+        input_vector = [1.0] + list(prev_layer_values)
+
+
+        self.weight_update_calculations.extend(
+            self.config.optimizer.update(
+                neuron, input_vector, blame, self.total_iterations ,
+                config=self.config,
+                epoch=self.epoch + 1,
+                iteration=self.iteration + 1,
+                gladiator=self.gladiator
+            )
+        )
+        self.total_iterations += len(input_vector)
+
+
+
+    def back_pass__update_neurons_weightsv1(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
+        blame = neuron.error_signal
+        input_vector = [1.0] + list(prev_layer_values)
+        t = 0 # self.epoch * self.total_iterations + self.iteration + 1
+
+        adjustments = self.config.optimizer.update(neuron, input_vector, blame, t, self.config)
+
+        for i, adj in enumerate(adjustments):
+            self.weight_update_calculations.append([
+                self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
+                input_vector[i], "*", blame, "*", neuron.learning_rates[i], "=", adj
+            ])
+
+        """  
+            # Optional: Capture the actual adjustment if desired
+            adjustment = grad * neuron.learning_rates[i]  # Only accurate for SGD
+            self.weight_update_calculations.append([
+                self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
+                prev_value, "*", blame, "*", neuron.learning_rates[i], "=", adjustment
+            ])
+            """
+
+    def back_pass__update_neurons_weights_NoOptimizer(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
         """
         Updates weights for a neuron based on blame (error signal).
         Args:

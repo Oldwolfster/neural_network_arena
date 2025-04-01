@@ -27,7 +27,7 @@ class NeuroForge_Template(Gladiator):
         config.initializer          = Initializer_Xavier
         #config.output_activation    = A
         config.optimizer            = Optimizer_SGD
-        config.hidden_activation     = Activation_LeakyReLU
+        config.hidden_activation     = Activation_ReLU
         #config.loss_function        = Loss_MAE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         #config.training_data        . set_normalization_min_max()
