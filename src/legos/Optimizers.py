@@ -1,4 +1,5 @@
 class Optimizer:
+    #TODO ADD Pitfalls
     def __init__(self, update_function, name="", desc="", when_to_use="", best_for=""):
         """
         🚀 Encapsulates optimizer strategies.

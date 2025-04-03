@@ -64,7 +64,7 @@ class DisplayBanner(EZSurface):
     def update_me(self):
         """Update the banner text dynamically and trigger a re-render."""
         iteration = Const.vcr.CUR_ITERATION
-        epoch = Const.vcr.CUR_EPOCH
-        self.banner_text_rite = f"{self.problem_type}"
+        epoch = Const.vcr.CUR_EPOCH_MASTER
+        self.banner_text_rite = f"{Const.configs[0].training_data.arena_name}: {self.problem_type}"
 
-        self.banner_text_left = f"Epoch: {epoch}/{self.max_epoch} Iteration: {iteration}/{self.max_iteration}"
+        self.banner_text_left = f"Epoch: {epoch}/{self.max_epoch} Sample: {iteration}/{self.max_iteration}"

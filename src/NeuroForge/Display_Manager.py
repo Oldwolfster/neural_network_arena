@@ -37,7 +37,7 @@ class Display_Manager:
         Const.dm = self
 
         # Compute global max values across all models using Metrics module
-        self.get_max_epoch_per_model(self.db) #TODO this can probably be deleted
+        self.get_max_epoch_per_model(self.db)
         self.populate_list_of_avaiable_frames()
         Const.MAX_EPOCH     = self.get_max_epoch(self.db)
         Const.MAX_ITERATION = self.get_max_iteration(self.db)
@@ -54,10 +54,10 @@ class Display_Manager:
 
     def update(self):
         Const.vcr.play_the_tape()
-        if self.last_iteration == Const.vcr.CUR_ITERATION and self.last_epoch == Const.vcr.CUR_EPOCH:
+        if self.last_iteration == Const.vcr.CUR_ITERATION and self.last_epoch == Const.vcr.CUR_EPOCH_MASTER:
             return #No change so no need to update
         self.last_iteration = Const.vcr.CUR_ITERATION   # Set them to current values
-        self.last_epoch     = Const.vcr.CUR_EPOCH       # Set them to current values
+        self.last_epoch     = Const.vcr.CUR_EPOCH_MASTER       # Set them to current values
         for component in self.components:
             component.update_me()
 
@@ -131,7 +131,7 @@ class Display_Manager:
             SELECT * FROM Iteration 
             WHERE epoch = ? AND iteration = ?  
         """
-        params = (Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION)
+        params = (Const.vcr.CUR_EPOCH_MASTER, Const.vcr.CUR_ITERATION)
         rs = self.db.query(sql, params)
 
         self.data_iteration = {}
@@ -145,7 +145,7 @@ class Display_Manager:
             SELECT * FROM EpochSummary            
             WHERE epoch=? and 1=?
         """
-        params = (Const.vcr.CUR_EPOCH, 1)
+        params = (Const.vcr.CUR_EPOCH_MASTER, 1)
 
         rs = self.db.query(sql, params)
         self.data_epoch = {}

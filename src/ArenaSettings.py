@@ -9,7 +9,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 500      # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 20      # Number of times training run will cycle through all training data
     training_set_size       :int    = 3    # Qty of training data
     default_learning_rate   :float  = .01      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
@@ -17,6 +17,7 @@ class HyperParameters:
     run_neuroForge          :bool = True
     random_seed             :int       = 0   #181026 #393828 #874170  331670
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
+    #for seed 946824, 366706 we got it in one!
     #311161 gets 3 epochs with adaptive LR and explosion threshold of 5.
     #375655 get 2 epochs
 
@@ -63,6 +64,7 @@ gladiators = [
     #'GBS'
     #,'NeuroForge_Template'
     #,'Adam_Template'
+    ,'Adam_XOR'
     #'NeuroForge_CaliforniaHousing'
     #'GBS_Baseline'
     #'GBS_XOR'

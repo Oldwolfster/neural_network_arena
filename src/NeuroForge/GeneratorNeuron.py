@@ -7,7 +7,7 @@ class GeneratorNeuron:
     model = None #Refernce to the Model it is creating neurons for.
 
     @staticmethod
-    def create_neurons(the_model: str, max_act: float, margin=20, gap=30, max_neuron_size=350):
+    def create_neurons(the_model, max_act: float, margin=20, gap=30, max_neuron_size=350):
         """
         Create neuron objects, dynamically positioning them based on architecture.
 
@@ -19,6 +19,7 @@ class GeneratorNeuron:
         """
         # 🔹 Compute neuron size and spacing
         GeneratorNeuron.model = the_model
+        print(f"GeneratorNeuron.model = {GeneratorNeuron.model }")
         #print(f"Before calculate_neuron_size: margin={margin}, gap={gap}, max_neuron_size={max_neuron_size}")
 
         size = GeneratorNeuron.calculate_neuron_size( margin, gap, max_neuron_size)
@@ -59,7 +60,8 @@ class GeneratorNeuron:
                 y_coord = size * neuron_index + gap *   neuron_index + margin/696969 + extra_height_to_center
 
                 # 🔹 Instantiate Neuron (DisplayModel)
-                neuron = DisplayModel__Neuron(left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface, max_activation=max_act )
+                print(f"GENERATING NEURON 1 = { GeneratorNeuron.model}")
+                neuron = DisplayModel__Neuron( GeneratorNeuron.model, left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface, max_activation=max_act )
                 layer_neurons.append(neuron)
             GeneratorNeuron.model.neurons.append(layer_neurons)
         GeneratorNeuron.separate_graph_holder_from_neurons()
@@ -142,7 +144,7 @@ class GeneratorNeuron:
             for neuron_index in range(neuron_count):
                 nid += 1
                 y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
-
+                print("GENERATING NEURON 2")
                 neuron = DisplayModel__Neuron(
                     nid=nid, layer=layer_index, position=neuron_index,
                     output_layer=len(architecture) - 1, db=Const.dm.db, model_id=self.model_id

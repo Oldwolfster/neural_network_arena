@@ -1,4 +1,5 @@
 from typing import List
+from enum import Enum, auto
 import pygame
 import pygame_gui
 from pygame_gui.elements import UIButton, UITextEntryLine, UIDropDownMenu
@@ -6,240 +7,183 @@ from src.NeuroForge import Const
 from src.NeuroForge.EZFormLEFT import EZForm
 
 
+class Action(Enum):
+    STEP_BACK_SAMPLE    = auto()
+    STEP_FORWARD_SAMPLE = auto()
+    STEP_BACK_EPOCH     = auto()
+    STEP_FORWARD_EPOCH  = auto()
+    STEP_BACK_BIG       = auto()
+    STEP_FORWARD_BIG    = auto()
+    TOGGLE_PLAY         = auto()
+    TOGGLE_REVERSE      = auto()
+    EXIT_NEUROFORGE     = auto()
+
+
 class DisplayPanelCtrl(EZForm):
-    """
-    UI Control Panel for managing playback, jumping to epochs, and speed control.
-    Inherits from EZForm to maintain consistent UI styling.
-    """
     def __init__(self, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
         fields = {
             "Playback Speed": "1x",
             " ": "",
             "Current Mode": "Playing"
         }
-
         super().__init__(fields, width_pct, height_pct, left_pct, top_pct, banner_text="Controls")
 
-        self.is_playing = True  # Track playback state
-        self.is_reversed = False  # Track playback direction
-
-        # Create interactive UI elements
-        self.play_button        = None
-        self.reverse_button     = None
-        self.step_forward       = None
-        self.step_back          = None
-        self.step_forward_epoch = None
-        self.step_back_epoch    = None
-        self.epoch_input        = None
-        self.speed_dropdown     = None
+        self.is_playing             = True
+        self.is_reversed            = False
+        self.buttons                = {}
+        self.epoch_input            = None
+        self.speed_dropdown         = None
         self.create_ui_elements()
 
     def process_an_event(self, event):
-        """Handles UI events and sends commands to VCR.
-        Also ensures pygame_gui receives events.
-        """
         self.process_mouse_events(event)
         if event.type == pygame.KEYDOWN:
             self.process_keyboard_events(event)
 
-    def handle_key(self, key_function=None):
-        """
-        Handles keyboard input. If playback is running, stops it first.
-        If playback is not running, executes the provided key function.
+    def perform_action(self, action: Action):
+        if action == Action.TOGGLE_PLAY:
+            self.toggle_playback()
+        elif action == Action.TOGGLE_REVERSE:
+            self.toggle_reverse()
+        elif action == Action.STEP_BACK_SAMPLE:
+            Const.vcr.step_x_iteration(-1, True)
+        elif action == Action.STEP_FORWARD_SAMPLE:
+            Const.vcr.step_x_iteration(1, True)
+        elif action == Action.STEP_BACK_EPOCH:
+            Const.vcr.step_x_epochs(-1, True)
+        elif action == Action.STEP_FORWARD_EPOCH:
+            Const.vcr.step_x_epochs(1, True)
+        elif action == Action.STEP_BACK_BIG:
+            Const.vcr.step_x_epochs(-100, True)
+        elif action == Action.STEP_FORWARD_BIG:
+            Const.vcr.step_x_epochs(100, True)
+        elif action == Action.EXIT_NEUROFORGE:
+            Const.IS_RUNNING = False
 
-        Args:
-            key_function (callable, optional): A function to execute when not playing.
-        """
+
+
+    def handle_key(self, key_function=None):
         if self.is_playing:
             self.toggle_playback()
-        elif key_function:  # Only run if a function was provided
+        elif key_function:
             key_function()
 
     def process_keyboard_events(self, event):
-        """Handles UI events and sends commands to VCR.
-        Also ensures pygame_gui receives events.
-        """
         self.handle_enter_key(event)
 
-        key_mapping = {
-            pygame.K_q: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(-1, True)),
-            pygame.K_w: lambda: self.handle_key(lambda: Const.vcr.step_x_iteration(1, True)),
-            pygame.K_a: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-1, True)),
-            pygame.K_s: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(1, True)),
-            pygame.K_z: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(-100, True)),
-            pygame.K_x: lambda: self.handle_key(lambda: Const.vcr.step_x_epochs(100, True)),
-            pygame.K_e: lambda: self.toggle_playback(),
-            pygame.K_CAPSLOCK: lambda: self.toggle_reverse(),
+        key_map = {
+            pygame.K_q:         Action.STEP_BACK_SAMPLE,
+            pygame.K_w:         Action.STEP_FORWARD_SAMPLE,
+            pygame.K_a:         Action.STEP_BACK_EPOCH,
+            pygame.K_s:         Action.STEP_FORWARD_EPOCH,
+            pygame.K_z:         Action.STEP_BACK_BIG,
+            pygame.K_x:         Action.STEP_FORWARD_BIG,
+            pygame.K_e:         Action.TOGGLE_PLAY,
+            pygame.K_TAB:       Action.TOGGLE_REVERSE,
+            pygame.K_ESCAPE:    Action.EXIT_NEUROFORGE
         }
 
-        if event.key in key_mapping:
-            key_mapping[event.key]()  # Execute the mapped function
-
-
+        action = key_map.get(event.key)
+        if action:
+            self.perform_action(action)
 
     def process_mouse_events(self, event):
-        """Handles UI events and sends commands to VCR.
-        Also ensures pygame_gui receives events.
-        """
-
         if event.type == pygame_gui.UI_BUTTON_PRESSED:
-            if event.ui_element == self.play_button:
-                self.toggle_playback()
-            elif event.ui_element == self.reverse_button:
-                self.toggle_reverse()
-            elif event.ui_element == self.step_forward:
-                Const.vcr.step_x_iteration(1, True)
-            elif event.ui_element == self.step_back:
-                Const.vcr.step_x_iteration(-1, True)
-            elif event.ui_element == self.step_forward_epoch:
-                Const.vcr.step_x_epochs(1, True)
-            elif event.ui_element == self.step_back_epoch:
-                Const.vcr.step_x_epochs(-1, True)
-            elif event.ui_element == self.step_forward_big:
-                Const.vcr.step_x_epochs(100, True)
-            elif event.ui_element == self.step_back_big:
-                Const.vcr.step_x_epochs(-100, True)
+            for action, button in self.buttons.items():
+                if event.ui_element == button:
+                    self.perform_action(action)
+                    break
 
         elif event.type == pygame_gui.UI_DROP_DOWN_MENU_CHANGED and event.ui_element == self.speed_dropdown:
             self.set_playback_speed(self.speed_dropdown.selected_option)
 
-    def toggle_reverse(self):
-        """Toggles the playback direction (Reverse/Forward)."""
-        self.is_reversed = not self.is_reversed
-        Const.vcr.reverse()
-        self.reverse_button.set_text("Forward" if self.is_reversed else "Reverse")
-
-    def set_playback_speed(self, speed: str):
-        """
-        Updates playback speed based on dropdown selection.
-        """
-        #print(f"speed={speed}")
-        Const.vcr.advance_by_epoch = 1 # assume epoch unless determined otherwise below
-        if speed[0]=="Iteration":
-            Const.vcr.advance_by_epoch = 0
-            Const.vcr.set_speed(1)
-            return  #switching to iteration mode
-        try:
-            new_speed = int(speed[0].replace("x", ""))  # Remove 'x' and convert to int
-            Const.vcr.set_speed(new_speed)
-            self.epoch_input.set_text("")  # Clear input box after processing
-        except ValueError:
-            pass  # Ignore invalid inputs
-
-    def handle_enter_key(self, event: pygame.event.Event):
-        """
-        Handles 'Enter' key press for the epoch input box.
-        """
-        if not (event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN):
-            return
-        epoch_text = self.epoch_input.get_text().strip()
-
-        if epoch_text == "":
-            self.epoch_input.focus()
-        else:
-            print(f"Jumping to epoch {epoch_text}")
-            self.epoch_input.set_text("")  # Clear text box after processing
-            Const.vcr.jump_to_epoch(epoch_text)
-
     def toggle_playback(self):
-        """Toggles between play and pause modes."""
         self.is_playing = not self.is_playing
         if self.is_playing:
             Const.vcr.play()
-            self.play_button.set_text("Pause")
+            self.buttons[Action.TOGGLE_PLAY].set_text("Pause")
             self.fields["Current Mode"] = "Playing"
         else:
             Const.vcr.pause()
-            self.play_button.set_text("Play")
+            self.buttons[Action.TOGGLE_PLAY].set_text("Play")
             self.fields["Current Mode"] = "Paused"
 
+    def toggle_reverse(self):
+        self.is_reversed = not self.is_reversed
+        Const.vcr.reverse()
+        self.buttons[Action.TOGGLE_REVERSE].set_text("Forward" if self.is_reversed else "Reverse")
+
+    def set_playback_speed(self, speed: str):
+        Const.vcr.advance_by_epoch = 1
+        if speed[0] == "Iteration":
+            Const.vcr.advance_by_epoch = 0
+            Const.vcr.set_speed(1)
+            return
+        try:
+            new_speed = int(speed[0].replace("x", ""))
+            Const.vcr.set_speed(new_speed)
+            self.epoch_input.set_text("")
+        except ValueError:
+            pass
+
+    def handle_enter_key(self, event):
+        if not (event.type == pygame.KEYDOWN and event.key == pygame.K_RETURN):
+            return
+        epoch_text = self.epoch_input.get_text().strip()
+        if epoch_text:
+            Const.vcr.jump_to_epoch(epoch_text)
+            self.epoch_input.set_text("")
+        else:
+            self.epoch_input.focus()
+
     def create_ui_elements(self):
-        """Initializes the UI elements (buttons, text boxes, dropdowns) inside the control panel."""
         panel_x, panel_y = self.left, self.top
+        button_height, button_width = 25, 69
+        row_offsets = [80, 102, 124, 146]
+        x_offsets = [8, 77]
 
-        button_height = 25
-        button_width  = 69
-        button_row_1 = 80
-        button_row_2 = 102
-        button_row_3 = 124
-        button_row_4 = 146
-        button_xoff1 = 8
-        button_xoff2 = 77
+        tooltips = {
+            Action.TOGGLE_PLAY: "(E) Play/Pause",
+            Action.TOGGLE_REVERSE: "(TAB) Reverse Playback",
+            Action.STEP_BACK_SAMPLE: "(Q) Step Back Sample",
+            Action.STEP_FORWARD_SAMPLE: "(W) Step Forward Sample",
+            Action.STEP_BACK_EPOCH: "(A) Step Back Epoch",
+            Action.STEP_FORWARD_EPOCH: "(S) Step Forward Epoch",
+            Action.STEP_BACK_BIG: "(Z) Back 100 Epochs",
+            Action.STEP_FORWARD_BIG: "(X) Forward 100 Epochs",
+        }
 
-        # Speed Dropdown (1x, 2x, 4x, etc.)
         self.speed_dropdown = UIDropDownMenu(
             options_list=["Iteration", "0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
             starting_option="1x",
-            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + 49), (138, 32)),
-            manager=Const.UI_MANAGER
+            relative_rect=pygame.Rect((panel_x + x_offsets[0], panel_y + 49), (138, 32)),
+            manager=Const.UI_MANAGER,
         )
 
-        # Play button
-        self.play_button = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_1), (button_width, button_height)),
-            text="Pause",
-            manager=Const.UI_MANAGER
-        )
+        def add_button(action, label, x_index, row):
+            self.buttons[action] = UIButton(
+                relative_rect=pygame.Rect(
+                    (panel_x + x_offsets[x_index], panel_y + row_offsets[row]),
+                    (button_width, button_height),
+                ),
+                text=label,
+                manager=Const.UI_MANAGER,
+                tool_tip_text=tooltips.get(action, "")
+            )
 
-        # Reverse button
-        self.reverse_button = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_1), (button_width, button_height)),
-            text="Reverse",
-            manager=Const.UI_MANAGER
-        )
+        add_button(Action.TOGGLE_PLAY, "Pause", 0, 0)
+        add_button(Action.TOGGLE_REVERSE, "Reverse", 1, 0)
+        add_button(Action.STEP_BACK_SAMPLE, "<", 0, 1)
+        add_button(Action.STEP_FORWARD_SAMPLE, ">", 1, 1)
+        add_button(Action.STEP_BACK_EPOCH, "<<", 0, 2)
+        add_button(Action.STEP_FORWARD_EPOCH, ">>", 1, 2)
+        add_button(Action.STEP_BACK_BIG, "<<<<", 0, 3)
+        add_button(Action.STEP_FORWARD_BIG, ">>>>", 1, 3)
 
-        # Step Forward button
-        self.step_forward = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_2), (button_width, button_height)),
-            text=">",
-            manager=Const.UI_MANAGER
-        )
-
-        # Step Back button
-        self.step_back = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_2), (button_width, button_height)),
-            text="<",
-            manager=Const.UI_MANAGER
-        )
-
-        # Step Forward BIG button
-        self.step_forward_epoch = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_3), (button_width, button_height)),
-            text=">>",
-            manager=Const.UI_MANAGER
-        )
-
-        # Step Back BIG button
-        self.step_back_epoch = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_3), (button_width, button_height)),
-            text="<<",
-            manager=Const.UI_MANAGER
-        )
-
-        # Step Forward BIG button
-        self.step_forward_big = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff2, panel_y + button_row_4), (button_width, button_height)),
-            text=">>>>",
-            manager=Const.UI_MANAGER
-        )
-
-        # Step Back BIG button
-        self.step_back_big = UIButton(
-            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + button_row_4), (button_width, button_height)),
-            text="<<<<",
-            manager=Const.UI_MANAGER
-        )
-
-        # Epoch Jump Input Box
         self.epoch_input = UITextEntryLine(
-            relative_rect=pygame.Rect((panel_x + button_xoff1, panel_y + 169), (138, 36)),
-            manager=Const.UI_MANAGER
+            relative_rect=pygame.Rect((panel_x + x_offsets[0], panel_y + 169), (138, 36)),
+            manager=Const.UI_MANAGER,
         )
 
     def update_me(self):
-        """
-        Updates the display panel UI fields dynamically.
-        """
-
-
         self.fields["Current Mode"] = "Playing" if self.is_playing else "Paused"

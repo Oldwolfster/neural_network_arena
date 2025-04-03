@@ -10,7 +10,7 @@ from src.engine.Utils import draw_rect_with_border, draw_text_with_background, e
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    __slots__ = ("last_epoch", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
     def __init__(self, config: Config, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -22,17 +22,45 @@ class DisplayModel(EZSurface):
             bg_color            = Const.COLOR_FOR_BACKGROUND
         )
         self.config         = config
+        self.last_epoch     = config.final_epoch
+        print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
         self.model_id       = config.gladiator_name
         self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.arrows_forward = []  # List of neuron connections
         _, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
+    @property
+    def display_epoch(self):
+        """
+        Returns the appropriate epoch to display based on the global VCR state.
+        If the model converged early, it freezes at its last recorded epoch.
+        """
+        if self.last_epoch is None:
+            return Const.vcr.CUR_EPOCH_MASTER
+        return min(Const.vcr.CUR_EPOCH_MASTER, self.last_epoch)
+
+    @property
+    def display_iteration(self):
+        """
+        Same logic as display_epoch but for iteration display.
+        You could optionally track last_iteration if you want extra granularity.
+        """
+        return min(Const.vcr.CUR_ITERATION, self.last_iteration or Const.vcr.CUR_ITERATION)
+
+    def update_last_epoch(self, epoch):
+        self.last_epoch = epoch
+
+    def update_last_iteration(self, iteration):
+        self.last_iteration = iteration
 
     def initialize_with_model_info(self):
         """Create neurons and connections based on architecture."""
         max_activation = self.get_max_activation_for_model(self.model_id)
         GeneratorNeuron.create_neurons(self, max_activation)
+        for layer in self.neurons:
+            for neuron in layer:
+                neuron.my_model = self
         self.graph = self.create_graph(self.graph_holder)# Add Graph  # MAE over epoch
         Const.dm.eventors.append(self.graph)
         self.render()   #Run once so everything is created

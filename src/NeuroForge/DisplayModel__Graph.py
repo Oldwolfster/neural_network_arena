@@ -55,7 +55,7 @@ class DisplayModel__Graph():
         mae_values = [r['mean_absolute_error'] for r in self.results]
 
         dpi = 100
-        figsize = (self.location_width / dpi, self.location_height* .8 / dpi)
+        figsize = (self.location_width / dpi, self.location_height* .769 / dpi)
 
         # 🔹 Create the figure and axis
         fig = plt.figure(figsize=figsize, dpi=dpi)
