@@ -37,11 +37,11 @@ class VCR:
                 return frames[0]
 
     @property
-    def CUR_EPOCH(self):
+    def CUR_EPOCH_MASTER(self):
         return self._cur_epoch
 
-    @CUR_EPOCH.setter
-    def CUR_EPOCH(self, val):
+    @CUR_EPOCH_MASTER.setter
+    def CUR_EPOCH_MASTER(self, val):
         e, i = self.get_nearest_frame(val, self._cur_iteration)
         self._cur_epoch = e
         self._cur_iteration = i
@@ -119,7 +119,7 @@ class VCR:
             self.pause()
 
 
-        Const.vcr.CUR_EPOCH += step
+        Const.vcr.CUR_EPOCH_MASTER += step
         #Const.vcr.CUR_ITERATION = 1  # Reset iteration when jumping epochs
         self.validate_epoch_or_iteration_change_and_sync_data()
 
@@ -147,13 +147,13 @@ class VCR:
 
     def validate_epoch_or_iteration_change_and_sync_data(self):
         """Ensure epoch and iteration values stay within valid bounds."""
-        if Const.vcr.CUR_EPOCH > Const.MAX_EPOCH:
-            Const.vcr.CUR_EPOCH = Const.MAX_EPOCH
+        if Const.vcr.CUR_EPOCH_MASTER > Const.MAX_EPOCH:
+            Const.vcr.CUR_EPOCH_MASTER = Const.MAX_EPOCH
             Const.vcr.CUR_ITERATION = Const.MAX_ITERATION
             self.pause()
 
-        if Const.vcr.CUR_EPOCH < 1:
-            Const.vcr.CUR_EPOCH = 1
+        if Const.vcr.CUR_EPOCH_MASTER < 1:
+            Const.vcr.CUR_EPOCH_MASTER = 1
             Const.vcr.CUR_ITERATION = 1
             self.pause()
 

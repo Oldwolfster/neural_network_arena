@@ -18,21 +18,16 @@ def neuroForge(configs:  List[Config]):
     pygame.init()
     Const.SCREEN = pygame.display.set_mode((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     pygame.display.set_caption("Neural Network Visualization")
-
     Const.UI_MANAGER = pygame_gui.UIManager((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     Const.vcr = VCR()  # Handles event processing
-
-
     Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
-
     menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
     menu_button = ButtonMenu()
     info_button = ButtonInfo()
 
     clock = pygame.time.Clock()
-    running = True
 
-    while running:
+    while Const.IS_RUNNING:
         time_delta = clock.tick(120) / 1000.0  # Convert to seconds        #print(clock.get_fps())  # See FPS impact capped at 60
         events = pygame.event.get()
 

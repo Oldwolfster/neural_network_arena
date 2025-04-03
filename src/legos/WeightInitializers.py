@@ -48,7 +48,7 @@ Initializer_Xavier = WeightInitializer(
     desc="Scales weights based on number of inputs/outputs to maintain signal propagation.",
     when_to_use="Good for Sigmoid/Tanh activations in shallow networks.",
     best_for="Sigmoid, Tanh."
-)
+) #    pitfalls="Breaks with ReLU-based activations. Use He instead.",
 
 # 🔹 **4. He (Kaiming) Initialization** - Optimized for **ReLU-based activations**
 Initializer_He = WeightInitializer(

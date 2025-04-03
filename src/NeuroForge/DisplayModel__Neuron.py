@@ -1,5 +1,6 @@
 import pygame
 from src.Legos.ActivationFunctions import get_activation_derivative_formula
+
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
 from src.engine.Neuron import Neuron
@@ -20,13 +21,15 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("my_model", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
         return f"Neuron {self.label})"
-    def __init__(self, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float):
+    def __init__(self, my_model, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float):
         self.model_id               = model_id
+        self.my_model               = my_model
+        print (f"In DM_Neuron {self.my_model} ")
         self.screen                 = screen
         self.db                     = Const.dm.db
         self.rs                     = None  # Store result of querying Iteration/Neuron table for this iteration/epoch
@@ -144,7 +147,7 @@ class DisplayModel__Neuron:
             WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
             ORDER BY epoch, iteration, model, nid 
         """
-        rs = self.db.query(SQL, (self.model_id, Const.vcr.CUR_ITERATION, Const.vcr.CUR_EPOCH, self.nid)) # Execute query
+        rs = self.db.query(SQL, (self.model_id, Const.vcr.CUR_ITERATION, self.my_model.display_epoch, self.nid)) # Execute query
         # ✅ Check if `rs` is empty before accessing `rs[0]`
         if not rs:
             return False  # No results found
@@ -169,7 +172,8 @@ class DisplayModel__Neuron:
         epoch_n = ? and  -- Replace with the current epoch(ChatGPT is trolling us)
         nid     = ?      
         """
-        params = (self.model_id,  Const.vcr.CUR_EPOCH, self.nid)
+        print(f"In update_avg_error  self.my_model={self.my_model}")
+        params = (self.model_id,  self.my_model.display_epoch, self.nid)
         rs = self.db.query(SQL, params)  # Execute query
 
         # ✅ Check if `rs` is empty before accessing `rs[0]`
@@ -188,7 +192,7 @@ class DisplayModel__Neuron:
             WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
             ORDER BY weight_id ASC
         """
-        weights_data = self.db.query(SQL, (self.model_id, self.nid, Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION), False)
+        weights_data = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
 
         if weights_data:
             self.weights = [column[1] for column in weights_data]  # Extract values
@@ -306,8 +310,8 @@ class DisplayModel__Neuron:
 
 
         # ✅ Check if we need to redraw the tooltip
-        if not hasattr(self, "cached_tooltip") or self.last_epoch != Const.vcr.CUR_EPOCH or self.last_iteration != Const.vcr.CUR_ITERATION:
-            self.last_epoch = Const.vcr.CUR_EPOCH  # ✅ Update last known epoch
+        if not hasattr(self, "cached_tooltip") or self.last_epoch != self.my_model.display_epoch or self.last_iteration != Const.vcr.CUR_ITERATION:
+            self.last_epoch = self.my_model.display_epoch  # ✅ Update last known epoch
             self.last_iteration = Const.vcr.CUR_ITERATION  # ✅ Update last known iteration
 
             # ✅ Tooltip dimensions
@@ -483,10 +487,10 @@ class DisplayModel__Neuron:
         WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
         ORDER BY weight_index ASC
         """
-        #ez_debug(epoch=Const.vcr.CUR_EPOCH, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
+        #ez_debug(epoch=self.my_model.display_epoch, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
         #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM DistributeErrorCalcs GROUP BY epoch, iteration ")
         #Const.dm.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0")
-        results = Const.dm.db.query(sql, (Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
         if not results:
             return []  # ✅ No data found, exit early
 
@@ -585,7 +589,7 @@ class DisplayModel__Neuron:
             WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
             ORDER BY weight_id ASC
         """
-        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, Const.vcr.CUR_EPOCH, Const.vcr.CUR_ITERATION), False)
+        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
 
         if backprop_error_elements:             # Split the elements into two lists using the helper function
             list1, list2 = self.split_error_elements(backprop_error_elements)
