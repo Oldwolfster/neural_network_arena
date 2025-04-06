@@ -85,18 +85,18 @@ class Display_Manager:
         """Initialize UI components like EZForm-based input panels and model displays."""
         display_banner = DisplayBanner(Const.configs[0].training_data, Const.MAX_EPOCH, Const.MAX_ITERATION)
         self.components.append(display_banner)
-
+        panel_width = 8
         # Add Input Panel  # Storing reference for arrows from input to first layer of neurons
-        self.input_panel = DisplayPanelInput(width_pct=12, height_pct=39, left_pct=1, top_pct=10)
+        self.input_panel = DisplayPanelInput(width_pct=panel_width, height_pct=39, left_pct=1, top_pct=10)
         self.components.append(self.input_panel)
 
         # Add Control Panel
-        panel = DisplayPanelCtrl( width_pct=12, height_pct=44, left_pct=1, top_pct=51)
+        panel = DisplayPanelCtrl( width_pct=panel_width, height_pct=44, left_pct=1, top_pct=51)
         self.components.append(panel)
         self.eventors.append(panel)
 
         # Add Prediction Panels for each model
-        self.create_prediction_panels()
+        self.create_prediction_panels(panel_width)
 
         # Create Models
         #self.components.extend(ModelGenerator.create_models())  # This will process all layout calculations #create models
@@ -113,7 +113,7 @@ class Display_Manager:
         #self.components.append(self.Graph)
 
 
-    def create_prediction_panels(self): #one needed per model
+    def create_prediction_panels(self, panel_width): #one needed per model
         for idx, model_config in enumerate(Const.configs):
             model_id = model_config.gladiator_name  # Assuming Config has a `model_id` attribute
             problem_type = model_config.training_data.problem_type
@@ -122,10 +122,10 @@ class Display_Manager:
             if idx == 1:    #move 2nd box down (0 based)
                 top = 52
             if idx <2:      #Only show two prediction panels
-                panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=12, height_pct=39, left_pct=86, top_pct=top)
+                panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
 
-    def query_dict_iteration(self):
+    def query_dict_iterationOld(self):
         """Retrieve iteration data from the database and return it as a nested dictionary indexed by model_id."""
         sql = """  
             SELECT * FROM Iteration 
@@ -139,7 +139,41 @@ class Display_Manager:
             model_id = row["model_id"]
             self.data_iteration[model_id] = row  # Store each model's data separately
 
-    def query_dict_epoch(self ):  #Retrieve iteration data from the database."""
+    def query_dict_iteration(self):
+        """Retrieve iteration data for each model from the latest valid epoch."""
+        sql = """
+            SELECT i.*
+            FROM Iteration i
+            JOIN (
+                SELECT model_id, MAX(epoch) AS latest_epoch
+                FROM Iteration
+                WHERE epoch <= ?
+                GROUP BY model_id
+            ) latest ON i.model_id = latest.model_id AND i.epoch = latest.latest_epoch
+            WHERE i.iteration = ?
+        """
+        params = (Const.vcr.CUR_EPOCH_MASTER, Const.vcr.CUR_ITERATION)
+        rs = self.db.query(sql, params)
+
+        self.data_iteration = {row["model_id"]: row for row in rs}
+
+
+    def query_dict_epoch(self):
+        sql = """
+            SELECT e.*
+            FROM EpochSummary e
+            JOIN (
+                SELECT model_id, MAX(epoch) AS latest_epoch
+                FROM EpochSummary
+                WHERE epoch <= ?
+                GROUP BY model_id
+            ) latest ON e.model_id = latest.model_id AND e.epoch = latest.latest_epoch
+        """
+        rs = self.db.query(sql, (Const.vcr.CUR_EPOCH_MASTER,))
+        self.data_epoch = {row["model_id"]: row for row in rs}
+
+
+    def query_dict_epoch_OLD(self ):  #failed for a model that converged and had no data for later epochs.
         # db.query_print("PRAGMA table_info(Iteration);")
         sql = """  
             SELECT * FROM EpochSummary            

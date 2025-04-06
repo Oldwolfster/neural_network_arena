@@ -11,17 +11,18 @@ class Neuron:
     # DELETE ME _output_neuron
     def __init__(self, nid: int, num_of_weights: int, learning_rate: float, weight_initializer, layer_id: int = 0, activation = None):
         #print(f"creating neuron - nid={nid}")
-        self.nid = nid
-        self.layer_id = layer_id  # Add layer_id to identify which layer the neuron belongs to
-        self.num_of_weights = num_of_weights
-        #self.learning_rate = learning_rate
-        self.learning_rates = [learning_rate] * (num_of_weights + 1)   # going to stick bias LR in element 0 even though it offsets all the indexes by 1
-        self.raw_sum = 0.0
-        self.dead_counter = 0
-        self.activation_value = 0.0
-        #self.activation =  activation or Activation_Linear         # function
-        self.activation_gradient = 0.0  # Store activation gradient from forward pass
-        self.error_signal = 1111.11
+        self.nid                = nid
+        self.layer_id           = layer_id  # Add layer_id to identify which layer the neuron belongs to
+        self.num_of_weights     = num_of_weights
+        #self.learning_rate     = learning_rate
+        self.learning_rates     = [learning_rate] * (num_of_weights + 1)   # going to stick bias LR in element 0 even though it offsets all the indexes by 1
+        self.raw_sum            = 0.0
+        self.dead_counter       = 0
+        self.activation_value   = 0.0
+
+        #self.activation        =  activation or Activation_Linear         # function
+        self.activation_gradient= 0.0  # Store activation gradient from forward pass
+        self.error_signal       = 1111.11
         self.weight_adjustments = ""
         self.blame_calculations = ""
 
@@ -29,6 +30,7 @@ class Neuron:
         #self.weight_initializer = weight_initializer  # Store the strategy
         self.initialize_weights(weight_initializer)
         self.neuron_inputs = np.zeros_like(self.weights)
+
 
         # ✅ Ensure activation is never None
         self.activation = activation if activation is not None else Activation_NoDamnFunction
@@ -58,8 +60,9 @@ class Neuron:
         #TODO only allocate the arrays when adam is the optimizer?
         # 🔹 Adam optimizer state (momentum and RMS terms)
         total_params = self.num_of_weights + 1  # +1 for bias
-        self.m = [0.0] * total_params
-        self.v = [0.0] * total_params
+        self.m                  = [0.0] * total_params
+        self.v                  = [0.0] * total_params
+        self.accumulated_accepted_blame  = [0.0] * total_params
 
 
     def reinitialize(self, new_initializer):

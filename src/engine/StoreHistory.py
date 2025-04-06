@@ -4,7 +4,7 @@ import datetime
 import ast  # For safely evaluating strings back to data structures
 from tabulate import tabulate
 from src.engine.Utils_DataClasses import ReproducibilitySnapshot
-
+from datetime import datetime
 
 def record_snapshot(snapshot: ReproducibilitySnapshot):
     conn = get_db_connection()
@@ -15,8 +15,9 @@ def record_snapshot(snapshot: ReproducibilitySnapshot):
 
 def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
     cursor = conn.cursor()
-    run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    timestamp = datetime.datetime.now()
+    #run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now()
 
     cursor.execute('''
     INSERT INTO reproducibility_snapshots (
@@ -37,17 +38,54 @@ def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
     print(f"Snapshot saved with run_id: {run_id}")
 
 
-def list_snapshots(result_rows: int):
+def list_snapshots_in_console(result_rows: int):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(f"SELECT seed as _seed,* FROM reproducibility_snapshots ORDER BY timestamp DESC LIMIT {result_rows} ")
-
 
     rows = cursor.fetchall()
     headers = [description[0] for description in cursor.description]
     print(tabulate(rows, headers=headers, tablefmt="grid"))
     conn.close()
 
+import csv
+
+def list_snapshots(result_rows: int, filename="snapshots.csv"):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"""
+        SELECT seed AS _seed, *
+        FROM reproducibility_snapshots
+        ORDER BY timestamp DESC
+        LIMIT {result_rows}
+    """)
+
+    rows = cursor.fetchall()
+    headers = [description[0] for description in cursor.description]
+
+    # 👇 Generate timestamp
+    from pathlib import Path
+    from datetime import datetime
+
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    log_folder = Path("..") / "gladiator_matches"
+    log_folder.mkdir(parents=True, exist_ok=True)  # Ensure folder exists
+
+    filename = log_folder / f"GladiatorMatches_logfile_{timestamp}.csv"
+
+    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
+
+        writer = csv.writer(csvfile)
+        writer.writerow(headers)
+        writer.writerows(rows)
+
+    print(f"✅ Exported {len(rows)} rows to {filename}")
+    conn.close()
+
+    import os
+
+    # Right after conn.close()
+    os.startfile(filename)
 
 def create_snapshot_table(conn):
     cursor = conn.cursor()

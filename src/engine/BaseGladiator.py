@@ -1,6 +1,7 @@
 from abc import ABC
 from json import dumps
 from src.Legos.ActivationFunctions import *
+from src.Legos.Optimizers import Optimizer_Adam
 from src.engine.MgrSQL import MgrSQL
 from src.engine.Config import Config
 from src.engine.Neuron import Neuron
@@ -59,9 +60,14 @@ class Gladiator(ABC):
     ################################################################################################
     ################################ SECTION 1 - pipeline ####################################
     ################################################################################################
+    def setup_backprop_headers(self): # MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+        if self.config.optimizer.backprop_popup_headers is not None:
+            self.config.backprop_headers = self.config.optimizer.backprop_popup_headers
+
+
     def retrieve_setup_from_model(self):
         self.configure_model(self.config)  #Typically overwritten in base class.
-
+        self.setup_backprop_headers()
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
             initializers=[self.config.initializer],  # <- List of 1 initializer
@@ -409,10 +415,19 @@ class Gladiator(ABC):
         """
         Inserts all weight update calculations for the current iteration into the database.
         """
-        sql = """
-        INSERT INTO DistributeErrorCalcs 
-        (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-        VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))"""
+
+        if self.config.optimizer == Optimizer_Adam:
+            sql = """
+                INSERT INTO DistributeErrorCalcs 
+                (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+        else:
+            sql = """
+                INSERT INTO DistributeErrorCalcs 
+                (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+                VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))
+            """
 
         #print("About to insert")
         #for row in self.weight_update_calculations:

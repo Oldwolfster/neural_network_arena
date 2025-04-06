@@ -100,15 +100,44 @@ class VCR:
             self.pause()
             mb.showinfo("⚠️ Invalid input!", "Please enter a valid epoch number.")
 
-    def step_x_iteration(self, step: int, pause_me = False):
+    def step_x_iteration(self, step: int, pause_me=False):
+        """Move a specified number of iterations forward or backward."""
+        if pause_me:
+            self.pause()
+
+        # Normalize to previous/next epoch if needed
+        if step < 0 and Const.vcr.CUR_ITERATION == 1:
+            if Const.vcr.CUR_EPOCH_MASTER > 1:
+                Const.vcr.CUR_EPOCH_MASTER -= 1
+                Const.vcr.CUR_ITERATION = Const.MAX_ITERATION
+            else:
+                return  # Already at start
+        elif step > 0 and Const.vcr.CUR_ITERATION == Const.MAX_ITERATION:
+            if Const.vcr.CUR_EPOCH_MASTER < Const.MAX_EPOCH:
+                Const.vcr.CUR_EPOCH_MASTER += 1
+                Const.vcr.CUR_ITERATION = 1
+            else:
+                return  # Already at end
+        else:
+            Const.vcr.CUR_ITERATION += step
+
+        # Snap to nearest real frame (some might be skipped)
+        snapped_epoch, snapped_iter = self.get_nearest_frame(Const.vcr.CUR_EPOCH_MASTER, Const.vcr.CUR_ITERATION)
+        Const.vcr.CUR_EPOCH_MASTER = snapped_epoch
+        Const.vcr.CUR_ITERATION = snapped_iter
+
+        self.validate_epoch_or_iteration_change_and_sync_data()
+
+
+    def step_x_iterationorig(self, step: int, pause_me = False):
         """Move a specified number of iterations forward or backward."""
         if pause_me:
             self.pause()
         # Check if trying to move past end
-        if step > 0 and Const.vcr.CUR_ITERATION == Const.MAX_ITERATION and Const.vcr.CUR_EPOCH == Const.MAX_EPOCH:
+        if step > 0 and Const.vcr.CUR_ITERATION == Const.MAX_ITERATION and Const.vcr.CUR_EPOCH_MASTER == Const.MAX_EPOCH:
             return
         # Check if trying to move before start
-        if step < 0 and Const.vcr.CUR_ITERATION == 1 and Const.vcr.CUR_EPOCH == 1:
+        if step < 0 and Const.vcr.CUR_ITERATION == 1 and Const.vcr.CUR_EPOCH_MASTER == 1:
             return
         Const.vcr.CUR_ITERATION += step
         self.validate_epoch_or_iteration_change_and_sync_data()
@@ -158,11 +187,11 @@ class VCR:
             self.pause()
 
         if Const.vcr.CUR_ITERATION > Const.MAX_ITERATION:
-            Const.vcr.CUR_EPOCH = min(Const.vcr.CUR_EPOCH + 1, Const.MAX_EPOCH)
+            Const.vcr.CUR_EPOCH_MASTER = min(Const.vcr.CUR_EPOCH_MASTER + 1, Const.MAX_EPOCH)
             Const.vcr.CUR_ITERATION = 1
 
         if Const.vcr.CUR_ITERATION < 1:
-            Const.vcr.CUR_EPOCH = max(1, Const.vcr.CUR_EPOCH - 1)
+            Const.vcr.CUR_EPOCH_MASTER = max(1, Const.vcr.CUR_EPOCH_MASTER - 1)
             Const.vcr.CUR_ITERATION = Const.MAX_ITERATION
 
         # Fetch the latest iteration data after stepping

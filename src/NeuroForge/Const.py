@@ -19,7 +19,7 @@ vcr: "VCR" = None
 # ==============================
 # UI Constants
 # ==============================
-SCREEN_WIDTH  = 1200
+SCREEN_WIDTH  = 1900
 SCREEN_HEIGHT = 900
 
 MODEL_AREA_PERCENT_LEFT     = 0.15
@@ -76,7 +76,7 @@ DISPLAY_MODELS  = []
 # ==============================
 # Popup Const
 # ==============================
-TOOLTIP_WIDTH       = 669
+TOOLTIP_WIDTH       = 969 #669
 TOOLTIP_HEIGHT      = 300
 TOOLTIP_PLACEMENT_X =  10
 TOOLTIP_PLACEMENT_Y =  10

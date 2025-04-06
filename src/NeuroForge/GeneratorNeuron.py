@@ -19,7 +19,7 @@ class GeneratorNeuron:
         """
         # 🔹 Compute neuron size and spacing
         GeneratorNeuron.model = the_model
-        print(f"GeneratorNeuron.model = {GeneratorNeuron.model }")
+        #print(f"GeneratorNeuron.model = {GeneratorNeuron.model }")
         #print(f"Before calculate_neuron_size: margin={margin}, gap={gap}, max_neuron_size={max_neuron_size}")
 
         size = GeneratorNeuron.calculate_neuron_size( margin, gap, max_neuron_size)
@@ -60,7 +60,7 @@ class GeneratorNeuron:
                 y_coord = size * neuron_index + gap *   neuron_index + margin/696969 + extra_height_to_center
 
                 # 🔹 Instantiate Neuron (DisplayModel)
-                print(f"GENERATING NEURON 1 = { GeneratorNeuron.model}")
+                #print(f"GENERATING NEURON 1 = { GeneratorNeuron.model}")
                 neuron = DisplayModel__Neuron( GeneratorNeuron.model, left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface, max_activation=max_act )
                 layer_neurons.append(neuron)
             GeneratorNeuron.model.neurons.append(layer_neurons)

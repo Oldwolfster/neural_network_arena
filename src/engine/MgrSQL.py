@@ -14,6 +14,9 @@ from .Utils_DataClasses import Iteration
 from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
 from typing import Dict
 
+from ..Legos.Optimizers import BatchMode
+
+
 class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
     def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
         # Run Level members
@@ -79,10 +82,15 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 #TODO take out 'input_tensor' and delta from exclude keys
                 self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
+        if (iteration_num) % self.config.batch_size == 0:
+            self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
 
 
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
+        if self.config.batch_mode >= BatchMode.MINI_ORDERED:
+            self.config.optimizer.finalizer_function        (self.config,epoch, self.config.gladiator_name)
+
         if mae < self.config.lowest_error:    # New lowest error
             self.config.lowest_error = mae
             self.config.lowest_error_epoch = epoch
