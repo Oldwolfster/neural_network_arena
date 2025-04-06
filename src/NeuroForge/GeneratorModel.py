@@ -40,6 +40,7 @@ class ModelGenerator:
             print(f"🚨 Unsupported model count: {ModelGenerator.model_count}")  # Placeholder for future expansion
         #print(f"{ModelGenerator.model_count} Models:Calculated Positions: {ModelGenerator.model_positions}")
 
+
     @staticmethod
     def get_model_shapes():
         """Extracts shape details for each model to determine visualization layout."""
@@ -47,11 +48,12 @@ class ModelGenerator:
 
         for config in Const.configs:
             layer_count = len(config.architecture)
-            max_neurons = max(config.architecture)
+
+            # Enforce minimum 2 neurons per layer for visualization purposes
+            padded_architecture = [max(2, n) for n in config.architecture]
+            max_neurons = max(padded_architecture)
 
             ModelGenerator.model_shapes[config.gladiator_name] = (layer_count, max_neurons)
-
-        #print(f"Model Shapes: {ModelGenerator.model_shapes}")
 
 class LayoutSelector_single_model:
     @staticmethod

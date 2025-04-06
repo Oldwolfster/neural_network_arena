@@ -16,13 +16,18 @@ class Config:
     training_data: TrainingData             = None
     lowest_error: float                     = 1e50
     lowest_error_epoch                      = 0
+    backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
+                                                #chg config to Input
 
     # 🔹 Unique components
     gladiator_name: str                     = ""
     optimizer: Optimizer                    = Optimizer_SGD
+    batch_mode: BatchMode                   = BatchMode.SINGLE_ORDERED
+    batch_size: int                         = 2
     architecture: list                      = field(default_factory=lambda: [1])
     full_architecture: list                 = field(default_factory=lambda: [1,1])
     initializer: type                       = Initializer_Xavier
+
     loss_function: LossFunction             = Loss_MSE  # Default to MSE for regression and BCE For BD
     hidden_activation: type    = None  # Default to Tanh for regression and ReLU for BD
     output_activation: type    = None  # Will default to loss_function.recommended_output_activation if None

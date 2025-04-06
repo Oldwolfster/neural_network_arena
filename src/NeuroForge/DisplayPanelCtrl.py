@@ -78,8 +78,8 @@ class DisplayPanelCtrl(EZForm):
             pygame.K_s:         Action.STEP_FORWARD_EPOCH,
             pygame.K_z:         Action.STEP_BACK_BIG,
             pygame.K_x:         Action.STEP_FORWARD_BIG,
-            pygame.K_e:         Action.TOGGLE_PLAY,
-            pygame.K_TAB:       Action.TOGGLE_REVERSE,
+            pygame.K_TAB:         Action.TOGGLE_PLAY,
+            pygame.K_e:       Action.TOGGLE_REVERSE,
             pygame.K_ESCAPE:    Action.EXIT_NEUROFORGE
         }
 
@@ -143,8 +143,8 @@ class DisplayPanelCtrl(EZForm):
         x_offsets = [8, 77]
 
         tooltips = {
-            Action.TOGGLE_PLAY: "(E) Play/Pause",
-            Action.TOGGLE_REVERSE: "(TAB) Reverse Playback",
+            Action.TOGGLE_PLAY: "(TAB) Play/Pause",
+            Action.TOGGLE_REVERSE: "(E) Reverse Playback",
             Action.STEP_BACK_SAMPLE: "(Q) Step Back Sample",
             Action.STEP_FORWARD_SAMPLE: "(W) Step Forward Sample",
             Action.STEP_BACK_EPOCH: "(A) Step Back Epoch",

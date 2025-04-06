@@ -1,5 +1,6 @@
 import pygame
 from src.Legos.ActivationFunctions import get_activation_derivative_formula
+from src.Legos.Optimizers import *
 
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
@@ -21,7 +22,8 @@ class DisplayModel__Neuron:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("my_model", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("my_model", "config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
@@ -29,7 +31,8 @@ class DisplayModel__Neuron:
     def __init__(self, my_model, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float):
         self.model_id               = model_id
         self.my_model               = my_model
-        print (f"In DM_Neuron {self.my_model} ")
+        self.config                 = self.my_model.config
+        #print (f"In DM_Neuron {self.my_model} ")
         self.screen                 = screen
         self.db                     = Const.dm.db
         self.rs                     = None  # Store result of querying Iteration/Neuron table for this iteration/epoch
@@ -172,7 +175,7 @@ class DisplayModel__Neuron:
         epoch_n = ? and  -- Replace with the current epoch(ChatGPT is trolling us)
         nid     = ?      
         """
-        print(f"In update_avg_error  self.my_model={self.my_model}")
+        #print(f"In update_avg_error  self.my_model={self.my_model}")
         params = (self.model_id,  self.my_model.display_epoch, self.nid)
         rs = self.db.query(SQL, params)  # Execute query
 
@@ -304,9 +307,13 @@ class DisplayModel__Neuron:
         Cache the rendered tooltip and only update if epoch or iteration changes.
         """
                 # ✅ Define dynamic column widths (adjust per column)
-        #column_widths = [50, 20, 60, 20, 70, 30, 50, 60]  # Example widths for each column
+        #TODO check correct model
+        #if Const.configs[0].optimizer != Optimizer_SGD:
         self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
-                         69,15,55,15,60,60,60,100]
+                                        69, 15, 55, 15, 60, 60, 60, 100]
+        #else:
+        #self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
+        #                 69, 15, 155, 115, 160, 60, 60, 100]
 
 
         # ✅ Check if we need to redraw the tooltip
@@ -497,13 +504,14 @@ class DisplayModel__Neuron:
         #ez_debug(results=results)
 
         # ✅ Initialize columns for backpropagation
-        col_input = ["Input"]
-        col_op1 = ["*"]
-        col_err_sig = ["MyResp"]
-        col_op2 = ["*"]
-        col_lrate = ["LRate"]
-        col_op3 = ["="]
-        col_adj = ["      Adj"]
+        print (f"self.config.backprop_headers={self.config.backprop_headers}")
+        col_input = [self.config.backprop_headers[0]] #col_input = ["Input1"]
+        col_op1 = [self.config.backprop_headers[1]] #col_op1 = ["*"]
+        col_err_sig = [self.config.backprop_headers[2]] # col_err_sig = ["Accp Blm"]
+        col_op2 = [self.config.backprop_headers[3]] # col_op2 = ["*"]
+        col_lrate = [self.config.backprop_headers[4]] # col_lrate = ["LRate"]
+        col_op3 = [self.config.backprop_headers[5]] # col_op3 = ["="]
+        col_adj = [self.config.backprop_headers[6]] # col_adj = ["      Adj"]
 
         # ✅ Loop through results and populate columns
         for row in results:
@@ -547,16 +555,16 @@ class DisplayModel__Neuron:
     # Better Terms for backprob... blame, yelling, accepted blame
 
     def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Receiving Blame")
-        all_cols[0].append( f"Blame = Loss Gradient * Activation Gradient")
-        all_cols[0].extend([f"Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+        all_cols[0].append("Accepted Blame Calculation Below")
+        all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
+        all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
         return all_cols
 
     def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
         col_weight = 0
         col_errsig = 3
         col_contri = 6
-        all_cols[col_weight].append("Receiving Blame")  #Isthis showing up anywhere?
+        all_cols[col_weight].append("Accepted Blame Calculation Below")
         all_cols[col_errsig-1].append(" ")
         all_cols[col_errsig].append(" ")
         all_cols[col_contri-1].append(" ")

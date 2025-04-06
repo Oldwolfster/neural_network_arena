@@ -23,7 +23,7 @@ class DisplayModel(EZSurface):
         )
         self.config         = config
         self.last_epoch     = config.final_epoch
-        print(f"self.last_epoch = {self.last_epoch}")
+        #print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
         self.model_id       = config.gladiator_name
         self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
@@ -69,7 +69,6 @@ class DisplayModel(EZSurface):
     def create_graph(self, gh):
         return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, model_id=self.model_id, my_model=self)
 
-
     def render(self):
         """Draw neurons and connections."""
         self.clear()
@@ -99,12 +98,28 @@ class DisplayModel(EZSurface):
             (0, 0, self.width, self.height), 3
         )
 
+    def get_name_with_convergence(self) -> str:
+        """
+        Returns the model name, optionally augmented with convergence info.
+        If the model has converged, adds the epoch and convergence condition.
+        """
+        base_name = beautify_text(self.config.gladiator_name)
+
+        #if hasattr(self.config, "last_epoch") and self.config.last_epoch:
+        if self.config.cvg_condition.lower() == "did not converge":
+            return f"{base_name}: Did Not Converge"
+        else:
+            return f"{base_name}: Converged at {self.last_epoch} via {self.config.cvg_condition}"
+
+
+
+
     def draw_model_name(self):
         """Draw the model's name and threshold in the top-right corner of the model area."""
         font = pygame.font.Font(None, 28)
 
         # Render the model name
-        text_surface = font.render(beautify_text(self.config.gladiator_name), True, Const.COLOR_BLACK)
+        text_surface = font.render(self.get_name_with_convergence(), True, Const.COLOR_BLACK)
         text_x = 10  # Align to right with margin
         text_y = 5  # Small margin from the top
         self.surface.blit(text_surface, (text_x, text_y))

@@ -91,11 +91,11 @@ def prep_RamDB():
                     nid          INTEGER NOT NULL,
                     weight_index INTEGER NOT NULL,
                     arg_1        REAL NOT NULL,
-                    op_1         TEXT NOT NULL CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
+                    op_1         TEXT NOT NULL, -- CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
                     arg_2        REAL NOT NULL,
-                    op_2         TEXT NOT NULL CHECK (op_2 IN ('+', '-', '*', '/', '=')),
+                    op_2         TEXT NOT NULL, -- CHECK (op_2 IN ('+', '-', '*', '/', '=')),
                     arg_3        REAL DEFAULT NULL,
-                    op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    op_3         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
                     result       REAL NOT NULL,
                     PRIMARY KEY (epoch, iteration, model_id, nid, weight_index)  -- Ensures unique weight update calculations
                 );""")

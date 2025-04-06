@@ -1,0 +1,51 @@
+_seed,timestamp,runtime_seconds,final_error,arena_name,gladiator_name,architecture,loss_function_name,hidden_activation_name,output_activation_name,weight_initializer_name,normalization_scheme,learning_rate,epoch_count,convergence_condition,problem_type,seed,run_id
+0,2025-04-03 21:34:34.441375,0.7140419483184814,0.4233739165106093,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,391
+0,2025-04-03 21:34:20.402986,0.7250330448150635,0.4328992401417088,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,390
+0,2025-04-03 21:34:11.308445,0.7189991474151611,0.4180392740543267,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,389
+0,2025-04-03 21:34:05.621249,0.735999584197998,0.4250467117370096,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,388
+0,2025-04-03 21:34:00.457896,0.713472843170166,0.48314958657985024,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,387
+0,2025-04-03 21:33:54.039306,0.7320346832275391,0.49770239971912666,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,386
+0,2025-04-03 21:32:44.923895,0.7489995956420898,0.4445281777154437,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,221,None,Binary Decision,0,385
+0,2025-04-03 21:18:37.292700,0.6830315589904785,0.4798631186866047,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,214,None,Binary Decision,0,384
+0,2025-04-03 16:49:15.314972,36.25973296165466,458.4413301379261,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.0001,221,None,Regression,0,383
+0,2025-04-03 16:21:17.694430,33.50799894332886,521.8255936919201,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.0001,221,None,Regression,0,382
+0,2025-04-03 15:52:19.773007,0.3229987621307373,8655.209929618955,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.0001,221,None,Regression,0,381
+0,2025-04-03 15:39:33.403522,0.4029965400695801,0.40568521050234047,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,133,None,Binary Decision,0,380
+0,2025-04-03 15:39:32.985555,0.004999637603759766,0.967212161335351,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,1,None,Binary Decision,0,379
+0,2025-04-03 15:37:45.077359,0.36396217346191406,0.3857788859099083,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,106,None,Binary Decision,0,378
+0,2025-04-03 15:37:44.699360,0.14999794960021973,0.5452779635133234,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,57,None,Binary Decision,0,377
+0,2025-04-03 15:34:59.494734,0.8869976997375488,204138.30466747648,Predict_Income_2_Inputs,NeuroForge_Template,"[2, 2]",LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.0001,221,None,Regression,0,376
+0,2025-04-03 15:34:36.548568,0.892890214920044,248340.06518000775,Predict_Income_2_Inputs,NeuroForge_Template,"[2, 2]",LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.0001,221,None,Regression,0,375
+0,2025-04-03 15:34:09.273787,0.8990311622619629,142981.07402102803,Predict_Income_2_Inputs,NeuroForge_Template,"[2, 2]",LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.001,221,None,Regression,0,374
+0,2025-04-03 15:06:37.130181,0.34399962425231934,1458.1632045926915,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.001,221,None,Regression,0,373
+0,2025-04-03 15:06:28.159591,0.3220405578613281,421591.95187734376,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.001,221,None,Regression,0,372
+0,2025-04-03 15:05:45.111789,0.32700157165527344,4689.828898879699,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.001,221,None,Regression,0,371
+0,2025-04-03 15:05:17.599465,0.6120007038116455,2666.7547804148926,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.001,332,None,Regression,0,370
+0,2025-04-03 15:03:49.563495,0.5940487384796143,14129.58231994021,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,1e-05,332,None,Regression,0,369
+160995,2025-04-03 15:02:13.134531,0.5900030136108398,4802.46193940924,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,1e-05,332,None,Regression,160995,368
+160995,2025-04-03 15:00:25.356392,0.572002649307251,4803.159656407272,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,LeakyReLU,No Act,He (Kaiming),Not applied,1e-05,332,None,Regression,160995,367
+160995,2025-04-03 14:59:38.164221,5.161463737487793,4690.534311634333,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,LeakyReLU,No Act,He (Kaiming),Not applied,1e-05,1221,None,Regression,160995,366
+160995,2025-04-03 14:59:07.516165,5.200012922286987,171548.65833269406,Predict_Income_2_Inputs,NeuroForge_Template,[],LossFunction,LeakyReLU,No Act,He (Kaiming),Not applied,1e-07,1221,None,Regression,160995,365
+160995,2025-04-03 14:57:28.837010,9.756627082824707,4452.895516201544,Predict_Income_2_Inputs,NeuroForge_Template,[2],LossFunction,LeakyReLU,No Act,Xavier (Glorot),Not applied,1e-07,1221,None,Regression,160995,364
+160995,2025-04-03 14:56:07.266895,1.248033046722412,467929.6976374588,Predict_Income_2_Inputs,NeuroForge_Template,[2],LossFunction,LeakyReLU,No Act,Xavier (Glorot),Not applied,1e-07,332,None,Regression,160995,363
+160995,2025-04-03 13:34:41.947665,1.444002389907837,0.4327446583405279,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,160995,362
+160995,2025-04-03 13:34:40.488661,0.045995473861694336,0.46368016118445554,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,18,None,Binary Decision,160995,361
+160995,2025-04-03 13:34:24.911772,1.4120070934295654,0.4327446583405279,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,160995,360
+160995,2025-04-03 13:34:23.479772,0.047000885009765625,0.46368016118445554,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,18,None,Binary Decision,160995,359
+160995,2025-04-03 13:33:43.380720,1.395996332168579,0.4327446583405279,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,160995,358
+160995,2025-04-03 13:33:41.971732,0.05100703239440918,0.46368016118445554,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,18,None,Binary Decision,160995,357
+0,2025-04-03 13:26:03.712524,1.3540000915527344,0.4327446583405279,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,0,356
+0,2025-04-03 13:26:02.348526,0.051999568939208984,0.46368016118445554,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,18,None,Binary Decision,0,355
+0,2025-04-03 13:25:52.137598,0.1290144920349121,0.43545969095604375,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,48,None,Binary Decision,0,354
+0,2025-04-03 13:25:51.998578,0.009996891021728516,2.1460435761351015,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,3,None,Binary Decision,0,353
+0,2025-04-03 13:25:47.262705,0.7389974594116211,0.395648147777138,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,218,None,Binary Decision,0,352
+0,2025-04-03 13:25:46.514707,0.02699756622314453,0.43088198163644326,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,9,None,Binary Decision,0,351
+0,2025-04-03 13:25:40.546680,1.2899975776672363,0.413731652799532,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,0,350
+0,2025-04-03 13:25:39.245677,0.008998394012451172,0.3756054642632463,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,3,None,Binary Decision,0,349
+0,2025-04-03 13:25:33.936510,0.3979976177215576,0.4702112079015271,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,118,None,Binary Decision,0,348
+0,2025-04-03 13:25:33.527507,0.08299803733825684,0.3567690582694039,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,31,None,Binary Decision,0,347
+0,2025-04-03 13:25:26.333851,1.3150274753570557,0.4020030833091393,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,0,346
+0,2025-04-03 13:25:25.007823,0.02099895477294922,0.4481157439399813,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,7,None,Binary Decision,0,345
+0,2025-04-03 13:25:13.878020,0.5890088081359863,0.4458468505891186,XOR,Adam_XOR,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,0.01,158,None,Binary Decision,0,344
+0,2025-04-03 13:25:13.278012,0.04997420310974121,1.5337185415601546,XOR,Simplex,[2],LossFunction,Tanh,No Act,Xavier (Glorot),Not applied,4.0,19,None,Binary Decision,0,343
+0,2025-04-03 12:51:16.584580,1.3680002689361572,0.41580992003087336,XOR,Adam_XOR,[2],LossFunction,Tanh,Sigmoid,Xavier (Glorot),Not applied,0.01,332,None,Binary Decision,0,342
