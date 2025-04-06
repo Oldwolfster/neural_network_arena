@@ -60,6 +60,7 @@ class Gladiator(ABC):
     ################################################################################################
     ################################ SECTION 1 - pipeline ####################################
     ################################################################################################
+    #TODO Deleteme
     def setup_backprop_headers(self): # MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
         if self.config.optimizer.backprop_popup_headers is not None:
             self.config.backprop_headers = self.config.optimizer.backprop_popup_headers
@@ -67,7 +68,7 @@ class Gladiator(ABC):
 
     def retrieve_setup_from_model(self):
         self.configure_model(self.config)  #Typically overwritten in base class.
-        self.setup_backprop_headers()
+        self.config.configure_optimizer()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
             initializers=[self.config.initializer],  # <- List of 1 initializer
@@ -425,8 +426,8 @@ class Gladiator(ABC):
         else:
             sql = """
                 INSERT INTO DistributeErrorCalcs 
-                (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-                VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))
+                (epoch, iteration, model_id, nid, weight_index, batch_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+                VALUES (?, ?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))
             """
 
         #print("About to insert")

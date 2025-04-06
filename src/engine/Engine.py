@@ -120,6 +120,40 @@ def run_a_match(gladiators, training_pit, shared_hyper):
         model_configs.append(model_config)
 
         # Easy place for quick dirty sql
+        #"SELECT * FROM        DistributeErrorCalcs where nid = 0 and weight_index = 0")
+        model_config.db.query_print(
+        """
+        SELECT
+  A.*,
+  B.result AS batch_total
+FROM DistributeErrorCalcs A
+JOIN DistributeErrorCalcs B
+  ON A.model_id = B.model_id
+  AND A.epoch = B.epoch
+  AND A.nid = B.nid
+  AND A.weight_index = B.weight_index
+  AND (
+    B.iteration = ((A.iteration - 1) / 2 + 1) * 2
+    OR B.iteration = (
+      SELECT MAX(iteration)
+      FROM DistributeErrorCalcs
+      WHERE model_id = A.model_id
+        AND epoch = A.epoch
+        AND nid = A.nid
+        AND weight_index = A.weight_index
+    )
+  )
+WHERE A.model_id = 'TestBatch'
+  AND A.epoch = 1
+  AND A.nid = 0
+  AND A.weight_index = 0
+ORDER BY A.iteration, A.weight_index
+
+"""
+)
+
+
+
         #model_config.db.query_print("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration")
 
         #recorded_frames = model_config.db.query("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration",as_dict=False)

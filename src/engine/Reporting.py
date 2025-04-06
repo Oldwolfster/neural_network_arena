@@ -90,6 +90,7 @@ def prep_RamDB():
                     model_id     TEXT NOT NULL,
                     nid          INTEGER NOT NULL,
                     weight_index INTEGER NOT NULL,
+                    batch_id     INTEGER NOT NULL DEFAULT 0,  -- ✅ New: batch number for joining/finalization
                     arg_1        REAL NOT NULL,
                     op_1         TEXT NOT NULL, -- CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
                     arg_2        REAL NOT NULL,
@@ -99,9 +100,12 @@ def prep_RamDB():
                     result       REAL NOT NULL,
                     PRIMARY KEY (epoch, iteration, model_id, nid, weight_index)  -- Ensures unique weight update calculations
                 );""")
-
-
-    #db.query_print("PRAGMA table_info(Iteration);")
+    # ✅ Add an index for fast batch lookups (especially when joining or plotting)
+    db.execute("""
+        CREATE INDEX IF NOT EXISTS idx_batch_lookup
+        ON DistributeErrorCalcs (epoch, batch_id, model_id, nid, weight_index);
+        """)
+        #db.query_print("PRAGMA table_info(Iteration);")
 
 
     sql= """ #temp saving insert

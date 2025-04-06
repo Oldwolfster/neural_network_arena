@@ -120,6 +120,33 @@ Glossary_Accusation = Glossary(
         """
 )
 
+Glossary_BatchTotal = Glossary(
+    old_name="N/A (no consistent term for this in traditional ML)",
+    new_name="Batch Total",
+    why_old_name_sucks="""
+        There isn’t even a standard name for this — which is wild, considering how critical it is.
+        Most frameworks quietly accumulate gradients across a batch without ever surfacing them.
+        That hides the connection between per-sample adjustments and the final weight change.
+        """,
+    definition="""
+        Batch Total is the **sum of raw adjustments across all samples in the current batch** for a given weight.
+
+        It answers the question:
+        “Across this entire batch, how much are we being told to adjust this weight?”
+
+        Raw Adjustment = Input × Accepted Blame  
+        Batch Total    = Σ Raw Adjustments (one per sample)
+
+        This value is what ultimately gets scaled by the learning rate to produce the final weight update.
+
+        → Final Adjustment = Batch Total × Learning Rate
+
+        NeuroForge shows this explicitly to maintain full auditability in batch training modes — no math hidden behind the curtain.
+        """
+)
+
+
+
 Glossary_ConnectionWeight = Glossary(
     old_name="Weight between neurons",
     new_name="Connection Weight",

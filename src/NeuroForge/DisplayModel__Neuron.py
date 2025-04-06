@@ -309,8 +309,8 @@ class DisplayModel__Neuron:
                 # ✅ Define dynamic column widths (adjust per column)
         #TODO check correct model
         #if Const.configs[0].optimizer != Optimizer_SGD:
-        self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
-                                        69, 15, 55, 15, 60, 60, 60, 100]
+        self.column_widths = [45, 50, 10, 69, 15, 69,   #This ends the forward prop columns
+                              69, 10, 69, 15, 69, 15, 69, 69, 60, 100]
         #else:
         #self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
         #                 69, 15, 155, 115, 160, 60, 60, 100]
@@ -505,13 +505,16 @@ class DisplayModel__Neuron:
 
         # ✅ Initialize columns for backpropagation
         print (f"self.config.backprop_headers={self.config.backprop_headers}")
-        col_input = [self.config.backprop_headers[0]] #col_input = ["Input1"]
-        col_op1 = [self.config.backprop_headers[1]] #col_op1 = ["*"]
+        col_input   = [self.config.backprop_headers[0]] #col_input = ["Input1"]
+        col_op1     = [self.config.backprop_headers[1]] #col_op1 = ["*"]
         col_err_sig = [self.config.backprop_headers[2]] # col_err_sig = ["Accp Blm"]
-        col_op2 = [self.config.backprop_headers[3]] # col_op2 = ["*"]
-        col_lrate = [self.config.backprop_headers[4]] # col_lrate = ["LRate"]
-        col_op3 = [self.config.backprop_headers[5]] # col_op3 = ["="]
-        col_adj = [self.config.backprop_headers[6]] # col_adj = ["      Adj"]
+        col_op2     = [self.config.backprop_headers[3]] # col_op2 = ["*"]
+        col_lrate   = [self.config.backprop_headers[4]] # col_lrate = ["LRate"]
+        col_op3     = [self.config.backprop_headers[5]] # col_op3 = ["="]
+        col_adj     = [self.config.backprop_headers[6]] # col_adj = ["      Adj"]
+
+
+
 
         # ✅ Loop through results and populate columns
         for row in results:

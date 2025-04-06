@@ -88,8 +88,8 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
-        if self.config.batch_mode >= BatchMode.MINI_ORDERED:
-            self.config.optimizer.finalizer_function        (self.config,epoch, self.config.gladiator_name)
+        #Call for any left over
+        self.config.optimizer.finalizer_function(self.config,epoch, self.config.gladiator_name)
 
         if mae < self.config.lowest_error:    # New lowest error
             self.config.lowest_error = mae
