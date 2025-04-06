@@ -3,6 +3,10 @@ import sqlite3
 
 import numpy as np
 from tabulate import tabulate
+from datetime import datetime
+from pathlib import Path
+import csv
+import os
 
 class RamDB:
     def __init__(self):
@@ -228,7 +232,7 @@ class RamDB:
             raise RuntimeError(f"SQL query failed: {e}")
 
 
-    def query_print(self, sql, as_dict=True, surpress_call_stack = False):
+    def query_printold(self, sql, as_dict=True, surpress_call_stack = False):
         data = self.query(sql)    # Fetch the data from the database
         if data:
             report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
@@ -240,6 +244,59 @@ class RamDB:
             return data
         else:
             print(f"No results found. ==>{sql}")
+
+
+
+
+
+
+
+    def query_print(self, sql, as_dict=True, surpress_call_stack=False, use_excel=False):
+        data = self.query(sql, as_dict=as_dict)  # Fetch the data from the database
+
+        if not data:
+            print(f"No results found. ==>{sql}")
+            return
+
+        if use_excel:
+            headers = []
+            rows = []
+
+            if as_dict:
+                headers = list(data[0].keys())
+                rows = [list(row.values()) for row in data]
+            else:
+                headers = [f"Col_{i}" for i in range(len(data[0]))]
+                rows = [list(row) for row in data]  # Unpack tuple into list
+
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+            log_folder = Path("..") / "gladiator_matches/prints"
+            log_folder.mkdir(parents=True, exist_ok=True)
+            filename = log_folder / f"QueryExport_{timestamp}.csv"
+
+            with open(filename, "w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(headers)
+                writer.writerows(rows)
+
+            print(f"✅ Exported {len(rows)} rows to {filename}")
+            os.startfile(filename)
+
+        else:
+            from tabulate import tabulate
+            report = tabulate(data, headers="keys" if as_dict else [], tablefmt="fancy_grid")
+            if not surpress_call_stack:
+                print(f"PRINTING FROM RamDB query_print")
+                # print_call_stack()  # 🔹 Uncomment if needed
+            print(report)
+
+        return data
+
+
+
+
+
+
 
     def list_tables(self, detail_level=2):
         """

@@ -489,18 +489,14 @@ class DisplayModel__Neuron:
 
         # Query weight updates from DB
         sql = """
-        SELECT  epoch , iteration, model_id , nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result 
+        SELECT weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result 
         FROM DistributeErrorCalcs 
-        -- WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
-        WHERE  epoch = 1 AND iteration = 1 AND model_id = 'TestBatch' AND nid = 0
+        WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
         ORDER BY weight_index ASC
         """
 
-        #Const.dm.db.query_print(sql, use_excel=True)
-
-        sql3 = """
-        SELECT A.epoch ,  A.iteration ,  A.model_id , 'TestBatch' , A.nid , 
-        A.weight_index, A.arg_1, A.op_1, A.arg_2,A.op_2,A.arg_3,A.op_3, A.result--, B.arg_3 AS batch_arg_3         -- 🧠 Pulled from last sample in batch
+        sql2 = """
+        SELECT A.weight_index, A.arg_1, A.op_1, A.arg_2,A.op_2,A.arg_3,A.op_3, A.result--, B.arg_3 AS batch_arg_3         -- 🧠 Pulled from last sample in batch
         FROM DistributeErrorCalcs A
         JOIN DistributeErrorCalcs B
           ON A.model_id = B.model_id
@@ -515,45 +511,10 @@ class DisplayModel__Neuron:
                 AND nid = A.nid
                 AND weight_id = A.weight_index
                 AND B.batch_id = A.batch_id       )
-        -- WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?        
-        -- WHERE  A.epoch = 1 AND A.iteration = 1 AND A.model_id = 'TestBatch' AND A.nid = 0
-        ORDER BY A.weight_index ASC
+        WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?        ORDER BY A.weight_index ASC
         """
-        sql="""
-SELECT 
-    --A.epoch,    A.iteration,    A.model_id,    'TestBatch',    A.nid,
-    A.weight_index,
-    A.arg_1,
-    A.op_1,
-    A.arg_2,
-    A.op_2,
-    A.arg_3,
-    A.op_3,
-    A.result, B.arg_3 as batch_total
-FROM DistributeErrorCalcs A
-JOIN DistributeErrorCalcs B
-  ON A.model_id = B.model_id
-  AND A.epoch = B.epoch
-  AND A.nid = B.nid
-  AND A.weight_index = B.weight_index
-  AND A.batch_id = B.batch_id
-  AND B.iteration = (
-      SELECT MAX(iteration)
-      FROM DistributeErrorCalcs   -- ✅ was ErrorSignalCalcs, now fixed
-      WHERE epoch = A.epoch
-        AND model_id = A.model_id
-        AND nid = A.nid
-        AND weight_index = A.weight_index
-        AND batch_id = A.batch_id   -- ✅ qualified and consistent
-  )
-  WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?
-ORDER BY A.weight_index ASC
-
-"""
 
 
-
-        #Const.dm.db.query_print(sql2)
         #ez_debug(epoch=self.my_model.display_epoch, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
         #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM DistributeErrorCalcs GROUP BY epoch, iteration ")
         #Const.dm.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0")
@@ -578,7 +539,7 @@ ORDER BY A.weight_index ASC
 
         # ✅ Loop through results and populate columns
         for row in results:
-            weight_index, arg_1, op_1, arg_2, op_2, arg_3,      op_3, batch_total,result_value = row
+            weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result_value = row
             col_input.append(arg_1)  # Input
             col_op1.append(op_1)  # ×
             col_err_sig.append(arg_2)  # Blame
@@ -602,8 +563,8 @@ ORDER BY A.weight_index ASC
 
     def tooltip_columns_for_error_signal_calculation(self, all_cols):
         # Row in the box between adj and blame
-        print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
-        for i in range(8):  #Do entire row
+        #print(f"len(all_cols)={len(all_cols)}")
+        for i in range(len(all_cols)):  #Prints blank row, empty space in each cell
             if i == 0:
                 all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
             else:
