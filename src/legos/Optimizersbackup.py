@@ -6,12 +6,13 @@ from src.engine.Neuron import Neuron
 
 
 class BatchMode(IntEnum):
-    SINGLE_SAMPLE           = auto()  # One sample at a time, fixed order
-    MINI_BATCH              = auto()  # Mini-batches in fixed order
-    FULL_BATCH              = auto()  # All samples per update (no shuffling)
-    #MINI_SHUFFLED           = auto()  # Mini-batches with fresh shuffle each epoch
-    #MINI_SHUFFLED_STICKY    = auto()  # Mini-batches using same shuffled order each epoch
-
+    SINGLE_ORDERED           = auto()  # One sample at a time, fixed order
+    SINGLE_SHUFFLED          = auto()  # One sample at a time, reshuffle each epoch
+    SINGLE_SHUFFLED_STICKY   = auto()  # One sample at a time, shuffled once and reused
+    MINI_ORDERED             = auto()  # Mini-batches in fixed order
+    MINI_SHUFFLED            = auto()  # Mini-batches with fresh shuffle each epoch
+    MINI_SHUFFLED_STICKY     = auto()  # Mini-batches using same shuffled order each epoch
+    FULL_BATCH               = auto()  # All samples per update (no shuffling)
 
 
 #TODO ADD Pitfalls
@@ -26,8 +27,7 @@ class Optimizer:
             , when_to_use=""
             , best_for=""
             , pitfalls=""
-            , backprop_popup_headers_single=None
-            , backprop_popup_headers_batch=None
+            , backprop_popup_headers=None
     ):
         """
         🚀 Encapsulates optimizer strategies.
@@ -41,6 +41,8 @@ class Optimizer:
             pitfalls:  Everywhere
             backprop_popup_headers = Column headers in popup.  Defaults to SGD style but can override in optimizers like headers.
         """
+        if backprop_popup_headers is None:
+            backprop_popup_headers = ["", ""]
         self.update = update_function #and apply correct function here with parameter for sticky and shuffled
 
         self.finalizer_function = finalizer_function
@@ -50,10 +52,8 @@ class Optimizer:
         self.when_to_use = when_to_use
         self.best_for = best_for
         self.pitfalls = "everywhere"
-        self.backprop_popup_headers_batch   = backprop_popup_headers_batch
-        self.backprop_popup_headers_single  = backprop_popup_headers_single
-
-
+        if backprop_popup_headers is not None:
+            self.backprop_popup_headers = backprop_popup_headers
 
 
     """
@@ -65,14 +65,6 @@ class Optimizer:
                 setattr(optimizer, f"update_function_{mode}", func)
     """
 
-def update_sgdorig(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
-    if config.batch_mode == BatchMode.SINGLE_ORDERED:
-        return update_sgd_single_ordered(neuron, input_vector, blame, t, config, epoch, iteration, gladiator)
-    elif config.batch_mode >= BatchMode.MINI_ORDERED:
-        return update_sgd_full_batch(neuron, input_vector, blame, t, config, epoch, iteration, gladiator)
-    else:
-        raise ValueError(f"Optimizer 'Gradient Descent' does not support mode: ({config.batch_mode})")
-
 def update_sgd(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
     if config.batch_mode == BatchMode.SINGLE_ORDERED:
         return update_sgd_single_ordered(neuron, input_vector, blame, t, config, epoch, iteration, gladiator)
@@ -82,57 +74,7 @@ def update_sgd(neuron, input_vector, blame, t, config, epoch, iteration, gladiat
         raise ValueError(f"Optimizer 'Gradient Descent' does not support mode: ({config.batch_mode})")
 
 
-def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration, gladiator):
-    """
-    Full Batch SGD — accumulate gradients during backprop,
-    apply the final adjustment once per batch using average blame.
-    This method is called **during each sample**, to accumulate blame.
-    """
-    logs = []
-    if config.batch_size > 1:  # Batch Mode
-        op_1 = "="
-        op_2 = " "
-    else:                           # Single Sample Mode
-        op_1 = "*"
-        op_2 = ""
-    batch_id = (iteration - 1) // config.batch_size
-    for i, x in enumerate(input_vector):
-        raw_adjustment = x * accepted_blame
-        neuron.accumulated_accepted_blame[i] += raw_adjustment  # Accumulate for batch
-
-
-        logs.append([
-            epoch, iteration, gladiator, neuron.nid, i,  batch_id,
-            x, "*", accepted_blame, op_1, raw_adjustment, op_2, neuron.accumulated_accepted_blame[i]
-        ])
-    return logs
-
-def sgd_finalize(config, epoch, gladiator):
-    """
-    Called once per batch to apply the average accumulated blame.
-    Resets the accumulation afterward.
-    """
-    logs = []
-    #batch_size = config.training_data.sample_count  # Full batch
-    batch_size = config.batch_size  # Full batch
-
-    for layer in Neuron.layers:
-        for neuron in layer:
-            for i, grad_sum in enumerate(neuron.accumulated_accepted_blame):
-                avg_grad = grad_sum / batch_size
-                adjustment = neuron.learning_rates[i] * avg_grad
-
-                if i == 0:
-                    neuron.bias -= adjustment
-                else:
-                    neuron.weights[i - 1] -= adjustment
-
-            # ✅ Fix: move inside the neuron loop
-            neuron.accumulated_accepted_blame = [0.0] * len(neuron.accumulated_accepted_blame)
-
-    return logs
-
-def update_sgd_single_orderedOLD(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
+def update_sgd_single_ordered(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
     """
     SGD update across all weights (including bias).
     input_vector[0] is assumed to be the bias input (usually 1.0).
@@ -155,16 +97,60 @@ def update_sgd_single_orderedOLD(neuron, input_vector, blame, t, config, epoch, 
 
     return logs
 
+def update_sgd_full_batch(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
+    """
+    Full Batch SGD — accumulate gradients during backprop,
+    apply the final adjustment once per batch using average blame.
+    This method is called **during each sample**, to accumulate blame.
+    """
+    logs = []
+    for i, x in enumerate(input_vector):
+        grad = x * blame
+        neuron.accumulated_accepted_blame[i] += grad  # Accumulate for batch
+
+        logs.append([
+            epoch, iteration, gladiator, neuron.nid, i,
+            x, "*", blame, "*", grad, "=", neuron.accumulated_accepted_blame[i]
+        ])
+    return  logs
+
+def finalize_sgd_full_batch(config, epoch, gladiator):
+    """
+    Called once per batch to apply the average accumulated blame.
+    Resets the accumulation afterward.
+    """
+    logs = []
+    batch_size = config.training_data.sample_count #Full batch
+
+    for layer in Neuron.layers:
+        for neuron in layer:
+            for i, grad_sum in enumerate(neuron.accumulated_accepted_blame):
+                avg_grad = grad_sum / batch_size
+                adjustment = neuron.learning_rates[i] * avg_grad
+
+                if i == 0:
+                    neuron.bias -= adjustment
+                else:
+                    neuron.weights[i - 1] -= adjustment
+
+        #logs.append([
+        #    epoch, iteration, gladiator, neuron.nid, i,
+        #    "Σblame", grad_sum, "/", batch_size,
+        #    "LR", neuron.learning_rates[i], "=", adjustment
+        #])
+
+        # Clear accumulated blame for next batch
+        neuron.accumulated_accepted_blame = [0.0] * len(neuron.accumulated_accepted_blame)
+    return logs
+
 
 Optimizer_SGD = Optimizer(
-    update_function=sgd_update,
-    finalizer_function=sgd_finalize,
+    update_function=update_sgd,
+    finalizer_function=finalize_sgd_full_batch,
     name="Stochastic Gradient Descent",
     desc="Updates weights using the raw gradient scaled by learning rate.",
     when_to_use="Simple problems, shallow networks, or when implementing your own optimizer.",
-    best_for="Manual tuning, simple models, or teaching tools.",
-    backprop_popup_headers_single=["Input", "*", "Accp Blm", "=", "LR", "LR", "=", "Final Adj"],
-    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "=", "Raw Adj", "Batch Total", "=", "Final Adj"]
+    best_for="Manual tuning, simple models, or teaching tools."
 )
 
 def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
@@ -250,7 +236,7 @@ Optimizer_Adam = Optimizer(
     desc="Adaptive Moment Estimation optimizer with per-weight momentum and scale tracking.",
     when_to_use="Ideal for noisy gradients or sparse data. Frequently the best default.",
     best_for="Most deep learning tasks with minimal tuning.",
-    backprop_popup_headers_single=["t", "m", "v", "m̂", "v̂", "Adj"]
+    backprop_popup_headers=["t", "m", "v", "m̂", "v̂", "Adj"]
 )
 
 def update_adabelief(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):

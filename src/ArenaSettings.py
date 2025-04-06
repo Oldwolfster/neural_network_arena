@@ -15,7 +15,7 @@ class HyperParameters:
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
-    random_seed             :int       = 0 #160995   #181026 #393828 #874170  331670
+    random_seed             :int       = 160995 #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
     #for seed 946824, 366706 we got it in one!
@@ -64,7 +64,7 @@ gladiators = [
 
     #'GBS'
     'TestBatch'
-    ,'NeuroForge_Template'
+    #,'NeuroForge_Template'
 
     #,'Adam_Template'
     #'Adam_XOR_DEBUG_2'

@@ -22,7 +22,7 @@ class Config:
     # 🔹 Unique components
     gladiator_name: str                     = ""
     optimizer: Optimizer                    = Optimizer_SGD
-    batch_mode: BatchMode                   = BatchMode.SINGLE_ORDERED
+    batch_mode: BatchMode                   = BatchMode.SINGLE_SAMPLE
     batch_size: int                         = 2
     architecture: list                      = field(default_factory=lambda: [1])
     full_architecture: list                 = field(default_factory=lambda: [1,1])
@@ -41,6 +41,44 @@ class Config:
         self.hidden_activation  = self.suggest_activation_hidden()
         self.initializer        = self.suggest_initializer()
         self.output_activation  = self.loss_function.recommended_output_activation
+
+    """
+    def configure_optimizer(self):
+        # BATCH MODE is just syntactic sugar for setting Batch_size.   Single
+        #TODO Add warnings if user overwrites the below batchsize.
+        print(f"BEFORE/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
+        if self.batch_mode == BatchMode.FULL_BATCH:
+            self.batch_size = self.training_data.sample_count
+        if self.batch_mode == BatchMode.SINGLE_SAMPLE:
+            self.batch_size=1
+            if self.optimizer.backprop_popup_headers_single is not None:
+                self.backprop_headers = self.optimizer.backprop_popup_headers_single
+        else: # set headers forbatch modes.
+            if self.optimizer.backprop_popup_headers_batch is not None:
+                self.backprop_headers = self.optimizer.backprop_popup_headers_batch
+        print(f"AFTER/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
+    """
+    def configure_optimizer(self):
+        print(f"BEFORE/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
+
+        if self.batch_mode == BatchMode.FULL_BATCH:
+            self.batch_size = self.training_data.sample_count
+            if self.optimizer.backprop_popup_headers_batch is not None:
+                self.backprop_headers = self.optimizer.backprop_popup_headers_batch
+
+        elif self.batch_mode == BatchMode.SINGLE_SAMPLE:
+            self.batch_size = 1
+            if self.optimizer.backprop_popup_headers_single is not None:
+                self.backprop_headers = self.optimizer.backprop_popup_headers_single
+
+        else:
+            # All other minibatch options
+            if self.optimizer.backprop_popup_headers_batch is not None:
+                self.backprop_headers = self.optimizer.backprop_popup_headers_batch
+
+        print(f"AFTER/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
+
+
     def suggest_loss_function(self) -> LossFunction:
         if self.training_data.problem_type == "Binary Decision":
             return Loss_BinaryCrossEntropy
