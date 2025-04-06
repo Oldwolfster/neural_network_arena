@@ -94,16 +94,16 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
         op_2 = " "
     else:                           # Single Sample Mode
         op_1 = "*"
-        op_2 = ""
+        op_2 = " "
     batch_id = (iteration - 1) // config.batch_size
-    for i, x in enumerate(input_vector):
-        raw_adjustment = x * accepted_blame
+    for i, input_x in enumerate(input_vector):
+        raw_adjustment = input_x * accepted_blame
         neuron.accumulated_accepted_blame[i] += raw_adjustment  # Accumulate for batch
 
 
         logs.append([
-            epoch, iteration, gladiator, neuron.nid, i,  batch_id,
-            x, "*", accepted_blame, op_1, raw_adjustment, op_2, neuron.accumulated_accepted_blame[i]
+            epoch, iteration, gladiator, neuron.nid, i      ,  batch_id,
+            input_x, "*", accepted_blame, op_1, raw_adjustment, op_2, neuron.accumulated_accepted_blame[i]
         ])
     return logs
 
