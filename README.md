@@ -43,8 +43,8 @@ run-arena
    - The goal is to isolate various ML techniques and examine their effects on the models.
    - Each Gladiator inherits from a base class that defines their shared behavior.
 
-2. **Training Pits**:
-   - Training Pits are the algorithms responsible for producing the test and training data.
+2. **Arenas**:
+   - Arenas are the algorithms responsible for producing the test and training data.
    - Various types of pits are available, including linear, quadratic, binary decision, and regression models.
    - Each pit inherits from a base class that defines their shared behavior.
 
