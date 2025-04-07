@@ -405,41 +405,85 @@ class Gladiator(ABC):
             ])
 
 
-    def convert_numpy_scalars_because_python_is_weak(self, row):
+    def convert_numpy_scalars_because_python_is_shit(self, row):
         """
         Converts any NumPy scalar values in the given row to their native Python types.
         Friggen ridiculous it was converting either 0 to null or 1 to 0.... what a joke this language is
         """
         return [x.item() if hasattr(x, 'item') else x for x in row]
 
-    def record_weight_updates(self):
+    def record_weight_updates_ORIGINAL(self):
         """
         Inserts all weight update calculations for the current iteration into the database.
         """
 
         if self.config.optimizer == Optimizer_Adam:
             sql = """
-                INSERT INTO DistributeErrorCalcs 
+                INSERT INTO WeightAdjustments 
                 (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
         else:
             sql = """
-                INSERT INTO DistributeErrorCalcs 
-                (epoch, iteration, model_id, nid, weight_index, batch_id, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+                INSERT INTO WeightAdjustments 
+                (epoch, iteration, model_id, nid, weight_index, batch_id, arg_1, op_1
+                , arg_2, op_2, arg_3, op_3, result)
                 VALUES (?, ?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))
             """
-
-        #print("About to insert")
-        #for row in self.weight_update_calculations:
-        #    print(row)
 
         # Convert each row to ensure any numpy scalars are native Python types
         converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.weight_update_calculations]
         #print(f"converted rows = {converted_rows}")
         self.db.executemany(sql, converted_rows)
         self.weight_update_calculations.clear()
-        #self.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0 ORDER BY weight_index")
+
+    def build_weight_update_field_list(self, sample_row):
+        base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
+        arg_op_fields = []
+
+        # Start at 6 because first 6 are base fields
+        for i in range(6, len(sample_row), 2):
+            arg_n = (i - 6) // 2 + 1
+            arg_op_fields.append(f"arg_{arg_n}")
+            if i + 1 < len(sample_row):
+                arg_op_fields.append(f"op_{arg_n}")
+
+        return ", ".join(base_fields + arg_op_fields)
+
+
+    def build_weight_update_placeholders(self, sample_row):
+        base_placeholders = ["?"] * 6
+        arg_op_placeholders = []
+
+        for i in range(6, len(sample_row), 2):
+            arg_op_placeholders.append("CAST(? AS REAL)")  # arg
+            if i + 1 < len(sample_row):
+                arg_op_placeholders.append("?")  # op
+
+        return ", ".join(base_placeholders + arg_op_placeholders)
+
+
+    def record_weight_updates(self):
+        """
+        Inserts weight update calculations for the current iteration into the database.
+        Compatible with arbitrary arg/op chains.
+        """
+        if not self.weight_update_calculations:
+            return
+
+        sample_row = self.weight_update_calculations[0]
+        fields = self.build_weight_update_field_list(sample_row)
+        placeholders = self.build_weight_update_placeholders(sample_row)
+
+        sql = f"""
+            INSERT INTO WeightAdjustments
+            ({fields})
+            VALUES ({placeholders})
+        """
+
+        converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in self.weight_update_calculations]
+        self.db.executemany(sql, converted_rows)
+        self.weight_update_calculations.clear()
 
 
     def record_blame_calculations(self):
@@ -463,7 +507,7 @@ class Gladiator(ABC):
         """
 
         # Convert each row to ensure any numpy scalars are native Python types
-        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.blame_calculations]
+        converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in self.blame_calculations]
         #print(f"BLAME {self.blame_calculations}")
 
         #Heads up, sometimes overflow error look like key violation here

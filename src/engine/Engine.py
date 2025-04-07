@@ -121,7 +121,7 @@ def run_a_match(gladiators, training_pit, shared_hyper):
 
         # Easy place for quick dirty sql
         #
-        #model_config.db.query_print("SELECT * FROM        DistributeErrorCalcs where nid = 0 and weight_index = 0")
+        #model_config.db.query_print("SELECT * FROM        WeightAdjustments where nid = 0 and weight_index = 0")
 
 
 

@@ -90,11 +90,11 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
     """
     logs = []
     if config.batch_size > 1:  # Batch Mode
-        op_1 = "="
-        op_2 = " "
+        symbol_1 = "="
+        symbol_2 = " "
     else:                           # Single Sample Mode
-        op_1 = "*"
-        op_2 = " "
+        symbol_1 = "*"
+        symbol_2 = " "
     batch_id = (iteration - 1) // config.batch_size
     for i, input_x in enumerate(input_vector):
         raw_adjustment = input_x * accepted_blame
@@ -102,8 +102,13 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
 
 
         logs.append([
-            epoch, iteration, gladiator, neuron.nid, i      ,  batch_id,
-            input_x, "*", accepted_blame, op_1, raw_adjustment, op_2, neuron.accumulated_accepted_blame[i]
+            epoch, iteration, gladiator, neuron.nid, i ,  batch_id,
+            input_x, "*",                               # arg1
+            accepted_blame, symbol_1,                   # arg2
+            raw_adjustment, symbol_2,                   # arg3
+            neuron.accumulated_accepted_blame[i], "|",  # arg4
+            neuron.learning_rates[i], " ",              # arg5
+            neuron.weights[i-1]
         ])
     return logs
 
@@ -164,7 +169,8 @@ Optimizer_SGD = Optimizer(
     when_to_use="Simple problems, shallow networks, or when implementing your own optimizer.",
     best_for="Manual tuning, simple models, or teaching tools.",
     backprop_popup_headers_single=["Input", "*", "Accp Blm", "=", "LR", "LR", "=", "Final Adj"],
-    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "=", "Raw Adj", "Batch Total", "=", "Final Adj"]
+    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "=", "Raw Adj", " ", "Cum.", "|",  "Batch Tot", "*", "Lrn Rt", "=", "Final Adj", "|", "GBS",   "Curr Weight", "New Weight","the","quick","brown","fox"]
+    #backprop_popup_headers_batch =["Input", "*", "Accp Blm", "*", "Lrn Rt", "=", "Batch Total", "Adj","=", "Final Total", "*", "Lrn Rt", "=", "Final Adj", "Current", "New Weight"]
 )
 
 def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
@@ -230,7 +236,7 @@ def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladia
 
             # for the moment, lets put this creaee an if for Optimizer_Adam vs everything else...
             # sql = """
-            #    INSERT INTO DistributeErrorCalcs
+            #    INSERT INTO WeightAdjustments
             #    (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
             # VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))"""
             #

@@ -490,15 +490,15 @@ class DisplayModel__Neuron:
         # Query weight updates from DB
         sql = """
         SELECT weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result 
-        FROM DistributeErrorCalcs 
+        FROM WeightAdjustments 
         WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
         ORDER BY weight_index ASC
         """
 
         sql2 = """
         SELECT A.weight_index, A.arg_1, A.op_1, A.arg_2,A.op_2,A.arg_3,A.op_3, A.result--, B.arg_3 AS batch_arg_3         -- 🧠 Pulled from last sample in batch
-        FROM DistributeErrorCalcs A
-        JOIN DistributeErrorCalcs B
+        FROM WeightAdjustments A
+        JOIN WeightAdjustments B
           ON A.model_id = B.model_id
           AND A.epoch = B.epoch
           AND A.nid = B.nid
@@ -516,8 +516,8 @@ class DisplayModel__Neuron:
 
 
         #ez_debug(epoch=self.my_model.display_epoch, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
-        #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM DistributeErrorCalcs GROUP BY epoch, iteration ")
-        #Const.dm.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0")
+        #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM WeightAdjustments GROUP BY epoch, iteration ")
+        #Const.dm.db.query_print("SELECT * FROM WeightAdjustments WHERE iteration = 2 and nid = 0")
         results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
         if not results:
             return []  # ✅ No data found, exit early
