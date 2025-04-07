@@ -13,7 +13,7 @@ from src.Legos.WeightInitializers import *
 def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo] ):
     summary_report_launch(db)
     print(training_data.get_list())
-    #db.query_print("SELECT * FROM DistributeErrorCalcs")
+    #db.query_print("SELECT * FROM WeightAdjustments")
 """ 
     db.query_print(  # Examines weight table
        
@@ -84,7 +84,7 @@ def prep_RamDB():
         );""")
 
 
-    db.execute("""CREATE TABLE DistributeErrorCalcs (
+    db.execute("""CREATE TABLE WeightAdjustments (
                     epoch        INTEGER NOT NULL,
                     iteration    INTEGER NOT NULL,
                     model_id     TEXT NOT NULL,
@@ -97,13 +97,22 @@ def prep_RamDB():
                     op_2         TEXT NOT NULL, -- CHECK (op_2 IN ('+', '-', '*', '/', '=')),
                     arg_3        REAL DEFAULT NULL,
                     op_3         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
-                    result       REAL NOT NULL,
+                    arg_4        REAL DEFAULT NULL,
+                    op_4         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_5        REAL DEFAULT NULL,
+                    op_5         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_6        REAL DEFAULT NULL,
+                    op_6         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_7        REAL DEFAULT NULL,
+                    op_7         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_8        REAL DEFAULT NULL,
+                    op_8         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
                     PRIMARY KEY (epoch, iteration, model_id, nid, weight_index)  -- Ensures unique weight update calculations
                 );""")
     # ✅ Add an index for fast batch lookups (especially when joining or plotting)
     db.execute("""
         CREATE INDEX IF NOT EXISTS idx_batch_lookup
-        ON DistributeErrorCalcs (epoch, batch_id, model_id, nid, weight_index);
+        ON WeightAdjustments (epoch, batch_id, model_id, nid, weight_index);
         """)
         #db.query_print("PRAGMA table_info(Iteration);")
 

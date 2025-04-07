@@ -216,7 +216,7 @@ def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladia
 
             # for the moment, lets put this creaee an if for Optimizer_Adam vs everything else...
             # sql = """
-            #    INSERT INTO DistributeErrorCalcs
+            #    INSERT INTO WeightAdjustments
             #    (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
             # VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))"""
             #

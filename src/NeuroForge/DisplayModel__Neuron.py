@@ -310,7 +310,7 @@ class DisplayModel__Neuron:
         #TODO check correct model
         #if Const.configs[0].optimizer != Optimizer_SGD:
         self.column_widths = [45, 50, 10, 69, 15, 69,   #This ends the forward prop columns
-                              69, 10, 69, 15, 69, 15, 69, 69, 60, 100]
+                              69, 10, 69, 10, 69, 10, 69, 10,69, 10, 69, 10, 69, 10, 69, 10,]
         #else:
         #self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
         #                 69, 15, 155, 115, 160, 60, 60, 100]
@@ -475,13 +475,61 @@ class DisplayModel__Neuron:
         weights=  ["    Orig"]
         weights.extend(self.weights_before)
         all_columns.append(weights)
-        weights = ["    New"]
-        weights.extend(self.weights)
-        all_columns.append(weights)
-        all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
+        #weights = ["    New"]
+        #weights.extend(self.weights)
+        #all_columns.append(weights)
+        #all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
         return all_columns
 
     def tooltip_columns_for_backprop_error_distribution(self):
+        sql="""
+
+SELECT 
+  A.arg_1               as Input,        A.op_1,            -- Input
+  A.arg_2               as Accepted,     A.op_2,            -- Accepted Blame
+  A.arg_3               as Raw,          A.op_3,            -- Raw Adjustment
+  A.arg_4               as Cumulative,   A.op_4,            -- Cumulative
+  B.arg_4               as BatchTotal,   B.op_4,            -- Batch Total
+  A.arg_5               as Learning,     A.op_5,            -- Learning Rate
+  B.arg_4 * A.arg_5  AS final_adj,    'z' AS op_7,       -- Final Adjustment
+  A.op_5 - (B.arg_4 * A.arg_5) AS new_weight, '=' AS op_8 -- New Weight
+  , A.arg_6 AS curr_weight
+FROM WeightAdjustments A
+JOIN WeightAdjustments B
+  ON A.model_id = B.model_id
+  AND A.epoch = B.epoch
+  AND A.nid = B.nid
+  AND A.weight_index = B.weight_index
+  AND A.batch_id = B.batch_id
+  AND B.iteration = (
+      SELECT MAX(iteration)
+      FROM WeightAdjustments
+      WHERE epoch = A.epoch
+        AND model_id = A.model_id
+        AND nid = A.nid
+        AND weight_index = A.weight_index
+        AND batch_id = A.batch_id
+  )
+        WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ? 
+        --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
+        ORDER BY A.weight_index ASC
+        """
+
+        #sql= "SELECT * FROM WeightAdjustments A WHERE A.epoch = 1 AND A.iteration <10 AND A.model_id     = 'TestBatch' AND A.nid = 0 and A.weight_index=0"
+        #Const.dm.db.query_print(sql)
+
+        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        columns = [[header] for header in self.config.backprop_headers]
+        print(f"Headers: {len(self.config.backprop_headers)}, SQL cols: {len(results[0])}")
+
+        for row in results:
+            for i, value in enumerate(row):
+                columns[i].append(value)
+        return columns
+
+
+
+    def tooltip_columns_for_backprop_error_distributionFedUP(self):
         """
         Populates tooltip columns with backprop calculations for the hovered neuron.
         Queries the database using nid, model_id, epoch, iteration and orders by weight_id.
@@ -490,98 +538,91 @@ class DisplayModel__Neuron:
         # Query weight updates from DB
         sql = """
         SELECT  epoch , iteration, model_id , nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result 
-        FROM DistributeErrorCalcs 
+        FROM WeightAdjustments 
         -- WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
         WHERE  epoch = 1 AND iteration = 1 AND model_id = 'TestBatch' AND nid = 0
         ORDER BY weight_index ASC
         """
 
-        #Const.dm.db.query_print(sql, use_excel=True)
-
-        sql3 = """
-        SELECT A.epoch ,  A.iteration ,  A.model_id , 'TestBatch' , A.nid , 
-        A.weight_index, A.arg_1, A.op_1, A.arg_2,A.op_2,A.arg_3,A.op_3, A.result--, B.arg_3 AS batch_arg_3         -- 🧠 Pulled from last sample in batch
-        FROM DistributeErrorCalcs A
-        JOIN DistributeErrorCalcs B
+        sql = """
+        SELECT 
+            --A.epoch,    A.iteration,    A.model_id,    'TestBatch',    A.nid,
+            A.weight_index,
+            A.arg_1,
+            A.op_1,
+            A.arg_2,
+            A.op_2,
+            A.arg_3,
+            A.op_3,
+            A.arg_4,
+            A.arg_5,
+            A.result, B.arg_3 as batch_total
+        FROM WeightAdjustments A
+        JOIN WeightAdjustments B
           ON A.model_id = B.model_id
           AND A.epoch = B.epoch
           AND A.nid = B.nid
           AND A.weight_index = B.weight_index
           AND A.batch_id = B.batch_id
-          AND B.iteration = (SELECT MAX(iteration)
-              FROM ErrorSignalCalcs
+          AND B.iteration = (
+              SELECT MAX(iteration)
+              FROM WeightAdjustments   -- ✅ was ErrorSignalCalcs, now fixed
               WHERE epoch = A.epoch
                 AND model_id = A.model_id
                 AND nid = A.nid
-                AND weight_id = A.weight_index
-                AND B.batch_id = A.batch_id       )
-        -- WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?        
-        -- WHERE  A.epoch = 1 AND A.iteration = 1 AND A.model_id = 'TestBatch' AND A.nid = 0
+                AND weight_index = A.weight_index
+                AND batch_id = A.batch_id   -- ✅ qualified and consistent
+          )
+          WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?
         ORDER BY A.weight_index ASC
         """
-        sql="""
-SELECT 
-    --A.epoch,    A.iteration,    A.model_id,    'TestBatch',    A.nid,
-    A.weight_index,
-    A.arg_1,
-    A.op_1,
-    A.arg_2,
-    A.op_2,
-    A.arg_3,
-    A.op_3,
-    A.result, B.arg_3 as batch_total
-FROM DistributeErrorCalcs A
-JOIN DistributeErrorCalcs B
-  ON A.model_id = B.model_id
-  AND A.epoch = B.epoch
-  AND A.nid = B.nid
-  AND A.weight_index = B.weight_index
-  AND A.batch_id = B.batch_id
-  AND B.iteration = (
-      SELECT MAX(iteration)
-      FROM DistributeErrorCalcs   -- ✅ was ErrorSignalCalcs, now fixed
-      WHERE epoch = A.epoch
-        AND model_id = A.model_id
-        AND nid = A.nid
-        AND weight_index = A.weight_index
-        AND batch_id = A.batch_id   -- ✅ qualified and consistent
-  )
-  WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?
-ORDER BY A.weight_index ASC
-
-"""
 
 
-
-        #Const.dm.db.query_print(sql2)
-        #ez_debug(epoch=self.my_model.display_epoch, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
-        #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM DistributeErrorCalcs GROUP BY epoch, iteration ")
-        #Const.dm.db.query_print("SELECT * FROM DistributeErrorCalcs WHERE iteration = 2 and nid = 0")
         results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        """
+        if not results:
+            return []  # ✅ No data found, exit early
+        # Dynamically build columns from backprop headers
+        # Add the header as the first item.
+        columns = [[header] for header in self.config.backprop_headers]
+
+        # Map result values to the correct columns
+        for row in results:
+            for i, value in enumerate(row):
+                columns[i].append(value)
+
+        # Patch column 0 and 1 (for bias) as before
+        if len(columns[0]) > 1:  # Safety check
+            columns[0][1] = " "   # Remove Input for Bias
+            columns[1][1] = " "   # Remove '*' for Bias
+
+        return columns
+        """
+
+
+
+        #OLD WAY
+        
         if not results:
             return []  # ✅ No data found, exit early
 
         #ez_debug(results=results)
-
-        # ✅ Initialize columns for backpropagation
-        print (f"self.config.backprop_headers={self.config.backprop_headers}")
         col_input   = [self.config.backprop_headers[0]] #col_input = ["Input1"]
         col_op1     = [self.config.backprop_headers[1]] #col_op1 = ["*"]
-        col_err_sig = [self.config.backprop_headers[2]] # col_err_sig = ["Accp Blm"]
+        col_blame   = [self.config.backprop_headers[2]] # col_blame = ["Accp Blm"]
         col_op2     = [self.config.backprop_headers[3]] # col_op2 = ["*"]
-        col_lrate   = [self.config.backprop_headers[4]] # col_lrate = ["LRate"]
-        col_op3     = [self.config.backprop_headers[5]] # col_op3 = ["="]
-        col_adj     = [self.config.backprop_headers[6]] # col_adj = ["      Adj"]
+        col_lrate   = [self.config.backprop_headers[4]] # col_lrate = ["LRate"] # RAW ADJUTMENT IN BATCH
+        col_op3     = [self.config.backprop_headers[5]] # col_op3 = ["="]  #Batch Total
+        col_adj     = [self.config.backprop_headers[6]] # col_adj = ["      Adj"] # "Op 4 in batch
 
-
-
+        print (f"self.config.backprop_headers={self.config.backprop_headers}")
 
         # ✅ Loop through results and populate columns
         for row in results:
-            weight_index, arg_1, op_1, arg_2, op_2, arg_3,      op_3, batch_total,result_value = row
+            weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, arg_4, op_4, batch_total,result_value = row
             col_input.append(arg_1)  # Input
             col_op1.append(op_1)  # ×
-            col_err_sig.append(arg_2)  # Blame
+            col_blame.append(arg_2)  # Blame
             col_op2.append(op_2)  # ×
             col_lrate.append(arg_3)  # Learning Rate
             col_op3.append(op_3)  # =
@@ -591,15 +632,35 @@ ORDER BY A.weight_index ASC
         all_columns = []
         all_columns.append(col_input)
         all_columns.append(col_op1)
-        all_columns.append(col_err_sig)
+        all_columns.append(col_blame)
         all_columns.append(col_op2)
         all_columns.append(col_lrate)
         all_columns.append(col_op3)
         all_columns.append(col_adj)
-        col_input[1] = " "     #"N/A"    #  remove the 1 for bias
-        col_op1[1] = " "    #  remove the * for bias
+        col_input[1] = " "              #"N/A"    #  remove the 1 for bias
+        col_op1[1] = " "                #  remove the * for bias
         return all_columns
+    """
+    def new_way(self):
+        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        if not results:
+            return []  # ✅ No data found, exit early
+        # Dynamically build columns from backprop headers
+        # Add the header as the first item.
+        columns = [[header] for header in self.config.backprop_headers]
 
+        # Map result values to the correct columns
+        for row in results:
+            for i, value in enumerate(row):
+                columns[i].append(value)
+
+        # Patch column 0 and 1 (for bias) as before
+        if len(columns[0]) > 1:  # Safety check
+            columns[0][1] = " "   # Remove Input for Bias
+            columns[1][1] = " "   # Remove '*' for Bias
+        
+        return columns
+        """
     def tooltip_columns_for_error_signal_calculation(self, all_cols):
         # Row in the box between adj and blame
         print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
