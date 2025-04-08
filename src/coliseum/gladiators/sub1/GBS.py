@@ -22,14 +22,12 @@ class NeuroForge_Template(Gladiator):
         """ 👉  Anything prior to initializing neurons goes here
             💪  For example setting config options.        """
 
-        #config.architecture         = []               # Neurons in hidden layers - output neuron(s) added automatically
-        #self.learning_rate          = .0001
-        #config.initializer          = Initializer_He
+        config.architecture         = [2]                       # Neurons in hidden layer output added automatically
+        self.learning_rate          = .0000001
+        config.initializer          = Initializer_Xavier
         #config.output_activation    = A
-        #config.optimizer            = Optimizer_Vanilla_GBS
-        #config.batch_size           = 1
-        #config.batch_mode           = BatchMode.SINGLE_SAMPLE   #NOTE single_sample or full overwrite batch_size
-        #config.hidden_activation     = Activation_LeakyReLU
+        config.optimizer            = Optimizer_SGD
+        config.hidden_activation     = Activation_LeakyReLU
         #config.loss_function        = Loss_MAE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         #config.training_data        . set_normalization_min_max()
@@ -56,16 +54,13 @@ class NeuroForge_Template(Gladiator):
 1) Self setting LR
 2) No expoding gradient
 3) Does not allow incompatible output activtation function with loss functions
-4) In fact, by default sets correct activation function for the loss function. 
+4) In fact, by default sets correct activation function for the loss function.
 
-☠️ 
-👨‍🏫🍗🔥👑
-🖼️  framed 
-🔬  Microscope
+    
 🥂   toasting
 🐉   dragon
 💪
-🚀💯🐶👨‍🍳
+🚀💯
 🐍💥❤️
 😈   devil
 😂   laugh

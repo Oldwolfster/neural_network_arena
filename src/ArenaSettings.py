@@ -22,15 +22,6 @@ class HyperParameters:
     #311161 gets 3 epochs with adaptive LR and explosion threshold of 5.
     #375655 get 2 epochs
 
-    ############################################################
-    # Record Sample Strategy - Default is first sample only    #
-    ############################################################
-    record_sample_strategy = {      # Epoch: Samples to record
-        1: [0, 1, 2, 3, 4],         # Always record first 5 in epoch 0
-        77775: [-1],                # Record ALL samples in epoch 75
-        77776: [-1],                # Repeat for range if needed
-        77777: [8],                 # Just sample 8 (e.g. weird behavior)
-    }
     ##############################################################
     # Convergence Thresholds                                     #
     ##############################################################

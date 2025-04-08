@@ -109,7 +109,7 @@ def prep_RamDB():
                     op_8         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
                     PRIMARY KEY (epoch, iteration, model_id, nid, weight_index)  -- Ensures unique weight update calculations
                 );""")
-    # ✅ Add an index for fast batch lookups (especially when joining or plotting)
+
     db.execute("""
         CREATE INDEX IF NOT EXISTS idx_batch_lookup
         ON WeightAdjustments (epoch, batch_id, model_id, nid, weight_index);

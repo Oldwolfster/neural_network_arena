@@ -3,14 +3,17 @@ import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.DisplayArrowsOutsideNeuron import DisplayArrowsOutsideNeuron
 from src.NeuroForge.DisplayBanner import DisplayBanner
-from src.NeuroForge.DisplayModel__Graph import DisplayModel__Graph
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
+
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
+from src.NeuroForge.ui.FormMatches import FormMatches
 from src.NeuroForge.GeneratorModel import ModelGenerator
+
 from src.engine.Config import Config
 from src.engine.RamDB import RamDB
-from src.engine.Utils import ez_debug
+
+
 class Display_Manager:
     """
     This class is the heart of NeuroForge.  It does the following.
@@ -86,6 +89,8 @@ class Display_Manager:
         display_banner = DisplayBanner(Const.configs[0].training_data, Const.MAX_EPOCH, Const.MAX_ITERATION)
         self.components.append(display_banner)
         panel_width = 8
+
+
         # Add Input Panel  # Storing reference for arrows from input to first layer of neurons
         self.input_panel = DisplayPanelInput(width_pct=panel_width, height_pct=39, left_pct=1, top_pct=10)
         self.components.append(self.input_panel)
@@ -112,6 +117,11 @@ class Display_Manager:
         #self.Graph = DisplayGraph(width_pct=40, height_pct=30, left_pct=60, top_pct=70)
         #self.components.append(self.Graph)
 
+        # Add window Match
+        self.form_matches = FormMatches(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
+                                        background_image_path="assets/form_backgrounds/coliseum_glow.png")
+        self.components.append(self.form_matches)
+
 
     def create_prediction_panels(self, panel_width): #one needed per model
         for idx, model_config in enumerate(Const.configs):
@@ -124,6 +134,8 @@ class Display_Manager:
             if idx <2:      #Only show two prediction panels
                 panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
+
+
 
     def query_dict_iterationOld(self):
         """Retrieve iteration data from the database and return it as a nested dictionary indexed by model_id."""
