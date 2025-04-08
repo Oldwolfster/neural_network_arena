@@ -76,7 +76,7 @@ DISPLAY_MODELS  = []
 # ==============================
 # Popup Const
 # ==============================
-TOOLTIP_WIDTH       = 1069 #669
+TOOLTIP_WIDTH       = 969 #669
 TOOLTIP_HEIGHT      = 300
 TOOLTIP_PLACEMENT_X =  10
 TOOLTIP_PLACEMENT_Y =  10

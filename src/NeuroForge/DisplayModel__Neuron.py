@@ -227,7 +227,7 @@ class DisplayModel__Neuron:
         self.draw_popup_vertical_divider_between_forward_and_backprop()
         self.draw_highlighted_popup_cell(len(self.weights)+2, 5)
         blame_y = 10 if self.layer == self.output_layer else 12
-        self.draw_highlighted_popup_cell(len(self.weights*2)+1, blame_y)
+        #TODO Fix this self.draw_highlighted_popup_cell(len(self.weights*2)+1, blame_y)
 
     def draw_lines_for_header(self, extra_row : int):
         pygame.draw.line(
@@ -309,7 +309,7 @@ class DisplayModel__Neuron:
         # ✅ Define dynamic column widths (adjust per column)
         col_w = 65
         self.column_widths = [45, 50, 10, col_w, 15, col_w,   #This ends the forward prop columns
-                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10, col_w,  10, col_w, 10, #this ends custom optomizer backprop columns
+                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10, col_w,  10,  #this ends custom optomizer backprop columns
                                col_w, col_w, col_w] #these are the standard last row.
 
         # ✅ Check if we need to redraw the tooltip
@@ -421,8 +421,8 @@ class DisplayModel__Neuron:
               A.arg_3               as Raw,          A.op_3,            -- Raw Adjustment
               A.arg_4               as Cumulative,   A.op_4,            -- Cumulative
               B.arg_4               as BatchTotal,   B.op_4,            -- Batch Total
-              A.arg_5               as Learning,     A.op_5,            -- Learning Rate              
-              B.arg_4 * A.arg_5 AS final_adj,' '
+              A.arg_5               as Learning,     A.op_5            -- Learning Rate              
+              -- B.arg_4 * A.arg_5 AS final_adj,' '
               
             FROM WeightAdjustments A
             JOIN WeightAdjustments B

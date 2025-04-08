@@ -16,15 +16,6 @@
     }
 """
 
- #Let's Rename the Popup Fields (Bottom-Right Quadrant)
-"""
-Current Label	Proposed New Label	Why It Works
-Receiving Blame	Accusation	Clear, emotional, intuitive — makes you question your influence
-It’s Blame × MyResp	My Share	Like child says, "You’re 40% responsible"
-My Blame from All	Total Accusation	Could keep MBFA label, just rephrased
-Acop Blame = MBFA × AG	Accepted Blame	Final amount I admit was my fault
-
-"""
 
 class Glossary:
     """
@@ -74,21 +65,94 @@ Glossary_RawAdjustment = Glossary(
     """
 )
 
-Glossary_Accepted_Blame = Glossary(
-    old_name="Error Signal",
-    new_name="Accepted Blame",
-    why_old_name_sucks=(
-        "'Error Signal' is vague and sounds like a generic alert. "
-        "It doesn't capture the idea that the neuron is *receiving* responsibility from downstream."
-    ),
+Glossary_BlameShare = Glossary(
+    old_name="Weighted Error" or "Part of the chain rule",
+    new_name="Blame Share",
+    why_old_name_sucks="""
+        Most sources don’t name this step at all, or call it something vague like 'weighted error'.
+        But it’s the clearest part of the process: passing on your blame proportionally.
+        """,
     definition="""
-        Accepted Blame is the total amount of responsibility a neuron inherits from the next layer during backpropagation.
-        It tells the neuron: "Based on how you influenced the output, this much of the total mistake is yours."
-        
-        It is calculated by summing up the blame passed backward from all connected neurons in the next layer.
-        This value is then used (along with the activation function's gradient) to determine how each incoming weight should be adjusted.
-    """
+        After a neuron receives its own blame, it divides that blame among the neurons that fed into it.
+
+        This process is based on how much influence each input had.  
+        → `Blame Share = My Blame × Input Weight to that neuron`
+
+        Think of blame as a pie:  
+        This neuron slices it up based on who helped it make the mistake.
+        Each upstream neuron receives their **Blame Share**.
+        """
 )
+
+
+Glossary_IncomingBlame = Glossary(
+    old_name="Pre-activation error signal",
+    new_name="Incoming Blame",
+    why_old_name_sucks="""
+        Most resources just gloss over this — they leap straight to ‘delta’ or ‘error’.
+        But this is a *real number with real meaning*: raw responsibility.
+        """,
+    definition="""
+        Incoming Blame is the total amount of responsibility this neuron receives from downstream neurons.
+
+        It’s a sum of **Blame Shares** sent by all connected children:
+        → `Incoming Blame = Σ (Child’s Blame × Weight to this neuron)`
+
+        It represents what the next layer is saying:
+        “Here’s how much your actions contributed to our mistake.”
+        """
+)
+
+Glossary_AcceptedBlame = Glossary(
+    old_name="Delta",
+    new_name="Accepted Blame",
+    why_old_name_sucks="""
+        ‘Delta’ is abstract and mathematical. What’s really happening here is a neuron choosing to *own* part of the mistake — based on how ready it was to change.
+        """,
+    definition="""
+        Accepted Blame is how much of the Incoming Blame a neuron agrees to take on.
+
+        It’s the Incoming Blame scaled by how sensitive the neuron was (i.e., its activation gradient):
+        → `Accepted Blame = Incoming Blame × Activation Gradient`
+
+        This is what the neuron uses to adjust its own weights — it’s saying:
+        “Okay, given how active I was, this is how much of the mistake I’ll take responsibility for.”
+        """
+)
+
+
+
+Glossary_ChainRule = Glossary(
+    old_name="Chain Rule",
+    new_name="Blame Cascade",
+    why_old_name_sucks="""
+        'Chain rule' makes it sound like dry calculus. In backprop, it’s how blame travels.
+        Without it, you'd never know how upstream decisions affected downstream results.
+        """,
+    definition="""
+        The Blame Cascade shows how small changes early in the network impact the final result.
+        It's like tracing back: “If you hadn’t done that, we wouldn’t have ended up here.”
+
+        It works by multiplying how much each layer influenced the next,
+        allowing blame to be fairly split across multiple contributors.
+        """
+)
+Glossary_GD = Glossary(
+    old_name="Gradient Descent",
+    new_name="Blame-Following Trick",
+    why_old_name_sucks="""
+        'Descent' implies a hill, but this isn’t geography. There’s no landscape, just numbers.
+        It hides how indirect and unstable the process really is.
+        """,
+    definition="""
+        This strategy changes weights by following the direction of increasing blame.
+        It doesn’t know where the best settings are — it just reacts to how bad things are right now.
+
+        Think of it as adjusting dials to make the pain stop.
+        It can work — but it’s not graceful.
+        """
+)
+
 
 Glossary_Accusation = Glossary(
     old_name="There is no term for this",
