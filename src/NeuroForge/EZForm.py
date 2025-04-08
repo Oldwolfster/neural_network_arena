@@ -3,28 +3,24 @@ import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.EZSurface import EZSurface
 from src.engine.Utils import get_darker_color
-
+import os
 
 class EZForm(EZSurface):
     """Wrapper for rendering dynamic UI forms with auto-positioning and scaling."""
 
+
     def __init__(
         self,
-        fields: Dict[str, str],
-        width_pct: int,
-        height_pct: int,
-        left_pct: int,
-        top_pct: int,
-        banner_text="Form",
-        banner_color=Const.COLOR_BLUE,
-        bg_color=Const.COLOR_FOR_BACKGROUND,
-        font_color=Const.COLOR_BLACK,
-        shadow_offset_x=5,  # Can be negative for left-side shadows
-        #shadow_offset_y=5
-    ):
+        fields: Dict[str, str], width_pct: int,height_pct: int,left_pct: int,top_pct: int,banner_text="Form",        banner_color=Const.COLOR_BLUE,
+        bg_color=Const.COLOR_FOR_BACKGROUND,        font_color=Const.COLOR_BLACK,        shadow_offset_x=5,  # Can be negative for left-side shadows
+        background_image_path: str = None,        ):
+        #END OF FUNCTION SIGNATURE-----------------------------------------------------------
+
+        self.background_image = None
+
         #Store the simple stuff
         self.child_name = self.__class__.__name__  # Store the subclass name
-        self.shadow_offset_x = shadow_offset_x                
+        self.shadow_offset_x = shadow_offset_x
         self.need_label_coord = True    # Track first-time label positions for arrows
         self.label_y_positions = []      # Track first-time label positions for arrows
         #self.shadow_offset_y = shadow_offset_y
@@ -37,57 +33,29 @@ class EZForm(EZSurface):
         self.spacing = 10
         self.shadow_color = Const.COLOR_FOR_SHADOW
 
-        # Calculate dimensions and position based on percentages
-        self.form_width = int(Const.SCREEN_WIDTH * (width_pct / 100))
-        self.form_height = int(Const.SCREEN_HEIGHT * (height_pct / 100))
-        form_left = int(Const.SCREEN_WIDTH * (left_pct / 100))
-        form_top = int(Const.SCREEN_HEIGHT * (top_pct / 100))
 
-        # Convert shadow offsets from pixels to percentages (rounding up)
-        #shadow_x_pct = round((shadow_offset_x / Const.SCREEN_WIDTH) * 100)
-        #shadow_y_pct = round((shadow_offset_y / Const.SCREEN_HEIGHT) * 100)
-
-        # Calculate new width, height, left, and top including shadow expansion
-        #width_pct_shad = width_pct + shadow_x_pct
-        #height_pct_shad = height_pct + shadow_y_pct
-        #left_pct_shad = left_pct - shadow_x_pct if shadow_offset_x < 0 else left_pct
-        #top_pct_shad = top_pct - shadow_y_pct if shadow_offset_y < 0 else top_pct
-
-        # Calculate final surface dimensions and placement
-        #width_pct_surf = max(width_pct, width_pct_shad)
-        #height_pct_surf = max(height_pct, height_pct_shad)
-        #left_pct_surf = min(left_pct, left_pct_shad)
-        #top_pct_surf = min(top_pct, top_pct_shad)
 
         # Initialize EZSurface with the total surface space
         #super().__init__(width_pct_surf , height_pct_surf, left_pct_surf, top_pct_surf, bg_color)
         super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color, False,
                          shadow_offset_x, shadow_offset_x,0,0)
 
+        # Calculate dimensions and position based on percentages
+        self.form_width = int(Const.SCREEN_WIDTH * (width_pct / 100))
+        self.form_height = int(Const.SCREEN_HEIGHT * (height_pct / 100))
+        self.form_left = int(Const.SCREEN_WIDTH * (left_pct / 100))
+        self.form_top = int(Const.SCREEN_HEIGHT * (top_pct / 100))
 
         # Store main and shadow rectangles for rendering
-        #self.form_rect = pygame.Rect(0, 0, self.width, self.height) #these are pulling from EZSurface
-        #self.form_rect = pygame.Rect(form_left, form_top, form_width, form_height)
         self.form_rect = pygame.Rect(0, 0, self.form_width, self.form_height)
-        #self.shadow_rect = pygame.Rect(abs(shadow_offset_x), abs(shadow_offset_y), self.width, self.height)
         self.shadow_rect = pygame.Rect(shadow_offset_x, shadow_offset_x, self.form_width, self.form_height)
-        #self.surface_rect = pygame.Rect(0, 0, self.width, self.height)  # Surface dimensions
-        #self.surface_rect = pygame.Rect(left_pct_surf, top_pct_surf,width_pct_surf,height_pct_surf)
 
         #Calculate Banner Rect
         banner_surface = self.banner_font.render(self.banner_text, True, Const.COLOR_WHITE)
         self.banner_height = banner_surface.get_height() + 8
-        self.banner_text_rect = banner_surface.get_rect(center=(self.width // 2, self.banner_height // 2))
+        self.banner_text_rect = banner_surface.get_rect(center=(self.width // 2, self.banner_height // 2+4))
         self.banner_rect = pygame.Rect(0, 0, self.form_width, self.banner_height)
-
-        #print("New FORM!!!!")
-        #print(f"shadow_offset_x={shadow_offset_x}\tleft_pct={left_pct}\tleft_pct_shad={left_pct_shad} ")
-        #print(f"width_pct_surf={width_pct_surf}\theight_pct_surf={height_pct_surf}\tleft_pct_surf={left_pct_surf}\ttop_pct_surf={top_pct_surf}")
-        #print(f"self.form_rect={self.form_rect}")
-        #print(f"self.shadow_rect={self.shadow_rect}")
-        #print(f"shadow_offset_x={shadow_offset_x}")
-        #print(f"self.surface_rect={self.surface_rect}")
-
+        self.load_background(background_image_path)
         self.render() # Necessary to capture the label positions
 
     def set_colors(self, correct: int):  #Called from DisplayPanelPrediction
@@ -102,9 +70,37 @@ class EZForm(EZSurface):
         else:
             self.banner_color = get_darker_color(Const.COLOR_FOR_ACT_NEGATIVE)
 
+    def resolve_local_asset(self, relative_path: str) -> str:
+        """
+        Resolves a path relative to the current file (NeuroForge).
+        Assumes assets are already under 'NeuroForge/assets'.
+        """
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.normpath(os.path.join(current_dir, relative_path))
+
+    def load_background(self, background_image_path):
+        if background_image_path:
+
+            image_path = self.resolve_local_asset(background_image_path)
+            self.background_image = pygame.image.load(image_path).convert()
+            self.background_image = pygame.transform.scale(self.background_image, (self.form_width, self.form_height))
+
+            # After self.background_image is loaded and scaled
+            overlay = pygame.Surface((self.form_width, self.form_height), flags=pygame.SRCALPHA)
+            overlay.fill((0, 0, 0, 140))  # RGBA: black with alpha=140 (tweak this as needed)
+            self.background_image.blit(overlay, (0, 0))
+
+
     def render(self):
         """Render the form with a banner, background, shadow, and dynamic fields."""
         self.clear()
+#        print(f"in render for many objects{self}")
+
+
+        # Translucent overlay to soften the image
+        overlay = pygame.Surface((self.form_width, self.form_height), flags=pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 160))  # RGBA (black with alpha 160)
+        self.surface.blit(overlay, (0, 0))
 
         # 1️⃣ Draw Shadow (offset in the correct direction)
         #shadow_x = self.shadow_offset if self.shadow_offset > 0 else 0
@@ -124,6 +120,11 @@ class EZForm(EZSurface):
         # 2️⃣ Fill Background AFTER Shadow (only inside form area)
         form_rect = pygame.Rect(0, 0, self.width, self.height)
         pygame.draw.rect(self.surface, Const.COLOR_FOR_BACKGROUND, self.form_rect, border_radius=4)
+
+        # 0️⃣ Draw Background Image with translucent overlay (if present)
+        if self.background_image:
+            self.surface.blit(self.background_image, (0, 0))
+
 
         # 3️⃣ Render Banner
         banner_surface = self.banner_font.render(self.banner_text, True, Const.COLOR_WHITE)
@@ -169,3 +170,16 @@ class EZForm(EZSurface):
         if self.label_y_positions:
             self.need_label_coord = False
 
+        self.draw_inner_border()
+
+    def draw_inner_border(self, width: int = 7, color=Const.COLOR_BLACK):
+        """
+        Draws a solid inner border *inside* the form area without increasing surface size.
+
+        Args:
+            width (int): Thickness of the border in pixels.
+            color: The border color.
+        """
+        # Shrink the rect inward so it doesn’t overlap the shadow or overflow the surface
+        inner_rect = self.form_rect.inflate(-2 * width, -2 * width)
+        pygame.draw.rect(self.surface, color, self.form_rect, width, border_radius=4)
