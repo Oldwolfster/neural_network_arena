@@ -2,7 +2,7 @@ from enum import IntEnum, auto
 
 from src.engine import Neuron
 from src.engine.Neuron import Neuron
-
+standard_gbs_headers =["Input", "*", "Accp Blm", "= ", "Raw Adj", " ", "Cum.", " ",  "Batch Tot", "*", "Lrn Rt", "= "]#, "Adij", " "]
 
 
 class BatchMode(IntEnum):
@@ -90,26 +90,22 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
             neuron.learning_rates[i], "="                  # arg5
         ])
     return logs
-def sgd_finalize(config, epoch, gladiator):
+def sgd_finalize(batch_size):
     """
     Called once per batch to apply the average accumulated blame.
     Resets the accumulation afterward.
     """
     logs = []
-    batch_size = config.batch_size  # Full batch
-
+    # MOVED TO ENGINE batch_size = config.batch_size  # Full batch
     for layer in Neuron.layers:
         for neuron in layer:
-            for i, grad_sum in enumerate(neuron.accumulated_accepted_blame):
-                avg_grad = grad_sum / batch_size    #TODO WARNING!!! If there are leftovers, use that not batch size
-                adjustment = neuron.learning_rates[i] * avg_grad
+            for i, blame_sum in enumerate(neuron.accumulated_accepted_blame):
+                avg_blame = blame_sum / batch_size    #TODO WARNING!!! If there are leftovers, use that not batch size
+                adjustment = neuron.learning_rates[i] * avg_blame
                 if i == 0:
                     neuron.bias -= adjustment
-
                 else:
                     neuron.weights[i - 1] -= adjustment
-
-            # ✅ Fix: move inside the neuron loop
             neuron.accumulated_accepted_blame = [0.0] * len(neuron.accumulated_accepted_blame)
     return logs
 
@@ -122,8 +118,8 @@ Optimizer_SGD = Optimizer(
     when_to_use="Simple problems, shallow networks, or when implementing your own optimizer.",
     best_for="Manual tuning, simple models, or teaching tools.",
     #backprop_popup_headers_single=["Input", "*", "Accp Blm", "= ", "LR", "LR", "= ", "Final Adj"],
-    backprop_popup_headers_single =["Input", "*", "Accp Blm", "*", "Lrn Rt", "=", "Batch Total", "Adj","=", "Final Total", "*", "Lrn Rt", "=", "Final Adj", "Current", "New Weight"],
-    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "= ", "Raw Adj", " ", "Cum.", " ",  "Batch Tot", "*", "Lrn Rt", "= ", "Adj", " "]#, "GBS",   "Curr Weight", "New Weight"]#,"the","quick","brown","fox"]
+    backprop_popup_headers_single =["Input", "*", "Accp Blm", "*", "Lrn Rt", "=", "Batch Total", "Adj","=", "Final Total", "*", "Lrn Rt", "=", "F1nal Adj", "Current", "New Weight"],
+    backprop_popup_headers_batch =standard_gbs_headers
 )
 def vanilla_GBS_update(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
     """
@@ -156,10 +152,9 @@ def vanilla_GBS_update(neuron, input_vector, blame, t, config, epoch, iteration,
 
     return logs
 
-def vanilla_GBS_finalize(config, epoch, gladiator):
+def vanilla_GBS_finalize(batch_size):
     """It will be called - but in vanilla update occurs immediately"""
     pass
-
 
 Optimizer_Vanilla_GBS = Optimizer(
     update_function=vanilla_GBS_update,
@@ -168,8 +163,8 @@ Optimizer_Vanilla_GBS = Optimizer(
     desc="Old school Gradient Bull Shit.",
     when_to_use="Never - maybe to debug Batch mode",
     best_for="Trying to sound smart",
-    backprop_popup_headers_single =["Input", "*", "Accp Blm", "= ", "Raw Adj", " ", "Cum.", " ",  "Batch Tot", "*", "Lrn Rt", "= ", "Adj", " "],
-    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "= ", "Raw Adj", " ", "Cum.", " ",  "Batch Tot", "*", "Lrn Rt", "= ", "Adj", " "] #, "GBS",   "Curr Weight", "New Weight"]#,"the","quick","brown","fox"]
+    backprop_popup_headers_single =standard_gbs_headers,
+    backprop_popup_headers_batch =standard_gbs_headers
 )
 
 

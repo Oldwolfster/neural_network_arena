@@ -27,7 +27,8 @@ class NeuroForge_Template(Gladiator):
         config.initializer          = Initializer_He
         #config.output_activation    = A
         config.optimizer            = Optimizer_Vanilla_GBS
-        config.batch_mode           = BatchMode.SINGLE_SAMPLE
+        config.batch_size           = 1
+        config.batch_mode           = BatchMode.SINGLE_SAMPLE   #NOTE single_sample or full overwrite batch_size
         #config.hidden_activation     = Activation_LeakyReLU
         #config.loss_function        = Loss_MAE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE

@@ -60,8 +60,10 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         #if not self.should_record_sample(epoch_num, iteration_num):
         #    return
 
-        if (iteration_num) % self.config.batch_size == 0: #maybe rename update weights.
-            self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
+        #if (iteration_num) % self.config.batch_size == 0: #maybe rename update weights.
+            #self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
+        #    self.config.optimizer.finalizer_function(self.config.batch_size)
+        self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count,            self.config.batch_size,    self.config.optimizer.finalizer_function)
 
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
@@ -87,17 +89,21 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
 
+    def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn):
+        if iteration_num % batch_size == 0:
+            # Finalize normal batch
+            finalizer_fn(batch_size)
+        elif iteration_num == total_samples:
+            remainder = total_samples % batch_size
+            if remainder > 0:
+                finalizer_fn(remainder) # Finalize leftovers
 
 
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
-        #Call for any left over
-        self.config.optimizer.finalizer_function(self.config,epoch, self.config.gladiator_name)
-
         if mae < self.config.lowest_error:    # New lowest error
             self.config.lowest_error = mae
             self.config.lowest_error_epoch = epoch
-
 
         self.abs_error_for_epoch = 0 # Reset for next epoch
         epoch_metrics = self.get_metrics_from_ramdb(epoch)
