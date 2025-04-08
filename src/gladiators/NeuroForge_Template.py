@@ -26,7 +26,7 @@ class NeuroForge_Template(Gladiator):
         self.learning_rate          = .0001
         config.initializer          = Initializer_He
         #config.output_activation    = A
-        config.optimizer            = Optimizer_SGD
+        config.optimizer            = Optimizer_Vanilla_GBS
         config.batch_mode           = BatchMode.SINGLE_SAMPLE
         #config.hidden_activation     = Activation_LeakyReLU
         #config.loss_function        = Loss_MAE

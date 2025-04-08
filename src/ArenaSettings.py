@@ -9,8 +9,8 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 22      # Number of times training run will cycle through all training data
-    training_set_size       :int    = 33    # Qty of training data
+    epochs_to_run           :int    = 55      # Number of times training run will cycle through all training data
+    training_set_size       :int    = 333    # Qty of training data
     default_learning_rate   :float  = .01      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
@@ -63,8 +63,9 @@ gladiators = [
     #,'Simplex2'
 
     #'GBS'
-    'TestBatch'
-    #,'NeuroForge_Template'
+    'NeuroForge_Template'
+    ,'TestBatch'
+
 
     #,'Adam_Template'
     #'Adam_XOR_DEBUG_2'

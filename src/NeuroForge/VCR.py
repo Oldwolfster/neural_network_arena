@@ -50,6 +50,11 @@ class VCR:
     def CUR_ITERATION(self):
         return self._cur_iteration
 
+    @property
+    def now(self):
+        return f"Epoch:{self._cur_epoch} Sample:{self._cur_iteration}"
+
+
     @CUR_ITERATION.setter
     def CUR_ITERATION(self, val):
         e, i = self.get_nearest_frame(self._cur_epoch, val)
