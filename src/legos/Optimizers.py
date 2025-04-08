@@ -107,8 +107,9 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
             accepted_blame, symbol_1,                   # arg2
             raw_adjustment, symbol_2,                   # arg3
             neuron.accumulated_accepted_blame[i], "|",  # arg4
-            neuron.learning_rates[i], " ",              # arg5
-            neuron.weights[i-1]
+            neuron.learning_rates[i], "="                  # arg5
+
+            #neuron.weights[i-1]
         ])
     return logs
 
@@ -169,7 +170,7 @@ Optimizer_SGD = Optimizer(
     when_to_use="Simple problems, shallow networks, or when implementing your own optimizer.",
     best_for="Manual tuning, simple models, or teaching tools.",
     backprop_popup_headers_single=["Input", "*", "Accp Blm", "=", "LR", "LR", "=", "Final Adj"],
-    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "=", "Raw Adj", " ", "Cum.", "|",  "Batch Tot", "*", "Lrn Rt", "=", "Final Adj", "|", "GBS",   "Curr Weight", "New Weight"]#,"the","quick","brown","fox"]
+    backprop_popup_headers_batch =["Input", "*", "Accp Blm", "=", "Raw Adj", " ", "Cum.", "|",  "Batch Tot", "*", "Lrn Rt", "=", "Final Adj", "|"]#, "GBS",   "Curr Weight", "New Weight"]#,"the","quick","brown","fox"]
     #backprop_popup_headers_batch =["Input", "*", "Accp Blm", "*", "Lrn Rt", "=", "Batch Total", "Adj","=", "Final Total", "*", "Lrn Rt", "=", "Final Adj", "Current", "New Weight"]
 )
 
