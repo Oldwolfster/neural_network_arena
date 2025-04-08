@@ -305,16 +305,12 @@ class DisplayModel__Neuron:
         Render the tooltip with neuron details.
         Cache the rendered tooltip and only update if epoch or iteration changes.
         """
-                # ✅ Define dynamic column widths (adjust per column)
-        #TODO check correct model
-        #if Const.configs[0].optimizer != Optimizer_SGD:
-        col_w = 63
+
+        # ✅ Define dynamic column widths (adjust per column)
+        col_w = 65
         self.column_widths = [45, 50, 10, col_w, 15, col_w,   #This ends the forward prop columns
-                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w, 10,#believe this ends batch total
-                              col_w, 10, col_w, 10, col_w, 10,col_w, 10, col_w, 10, col_w, 10,]
-        #else:
-        #self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
-        #                 69, 15, 155, 115, 160, 60, 60, 100]
+                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10,#believe this ends batch total
+                              col_w,  10, col_w, 10, col_w, 10,col_w, 10, col_w, 10, col_w, 10,]
 
         # ✅ Check if we need to redraw the tooltip
         if not hasattr(self, "cached_tooltip") or self.last_epoch != self.my_model.display_epoch or self.last_iteration != Const.vcr.CUR_ITERATION:
@@ -337,13 +333,10 @@ class DisplayModel__Neuron:
 
             # ✅ Populate content
             self.tooltip_generate_text()
-
-            # ✅ Ensure column widths match number of columns
-            #if len(column_widths) < len(self.tooltip_columns):
-            #    column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(column_widths)))
             self.draw_all_popup_dividers()
-            # ✅ Draw each column with dynamic spacing
             x_offset = Const.TOOLTIP_PADDING
+
+            # ✅ Draw each column with dynamic spacing
             for col_index, (column, col_width) in enumerate(zip(self.tooltip_columns, self.column_widths)):
                 for row_index, text in enumerate(column):
                     text_color = self.get_text_color(col_index, row_index, text)
@@ -359,9 +352,7 @@ class DisplayModel__Neuron:
                         text_rect.topright = (x_offset + col_width - Const.TOOLTIP_PADDING, y_pos)
                     else:
                         text_rect.topleft = (x_offset + Const.TOOLTIP_PADDING, y_pos)
-
                     self.cached_tooltip.blit(label, text_rect)
-
                 x_offset += col_width  # ✅ Move X position based on column width
 
         # ✅ Get mouse position and adjust tooltip placement
@@ -391,14 +382,126 @@ class DisplayModel__Neuron:
 
         return position
 
-
     def tooltip_generate_text(self):
         """Clears and regenerates tooltip text columns."""
-        #print("Generating text")
         self.tooltip_columns.clear()
         self.tooltip_columns.extend(self.tooltip_columns_for_forward_pass())
         self.tooltip_columns.extend(self.tooltip_columns_for_backprop())  # 🔹 Uncomment when backprop data is ready
 
+################### Gather Values for Back Pass #############################
+################### Gather Values for Back Pass #############################
+################### Gather Values for Back Pass #############################
+
+    def tooltip_columns_for_backprop(self):
+        all_columns = self.tooltip_columns_for_backprop_error_distribution()
+        #weights=  ["    Orig"]
+        #weights.extend(self.weights_before)
+        #all_columns.append(weights)
+        #weights = ["    New"]
+        #weights.extend(self.weights)
+        #all_columns.append(weights)
+        #all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
+        return all_columns
+
+    def tooltip_columns_for_backprop_error_distribution(self):
+        sql="""
+            SELECT 
+              A.arg_1               as Input,        A.op_1,            -- Input
+              A.arg_2               as Accepted,     A.op_2,            -- Accepted Blame
+              A.arg_3               as Raw,          A.op_3,            -- Raw Adjustment
+              A.arg_4               as Cumulative,   A.op_4,            -- Cumulative
+              B.arg_4               as BatchTotal,   B.op_4,            -- Batch Total
+              A.arg_5               as Learning,     A.op_5,            -- Learning Rate
+              -- A.arg_6 AS curr_weight,
+              B.arg_4 * A.arg_5 AS final_adj,' '
+              -- A.arg_6 + (B.arg_4 * A.arg_5) AS new_weight,                '=' AS op_eq
+            FROM WeightAdjustments A
+            JOIN WeightAdjustments B
+              ON A.model_id = B.model_id
+              AND A.epoch = B.epoch AND A.nid = B.nid AND A.weight_index = B.weight_index AND A.batch_id = B.batch_id
+              AND B.iteration = (
+                  SELECT MAX(iteration)
+                  FROM WeightAdjustments
+                  WHERE epoch = A.epoch
+                    AND model_id = A.model_id AND nid = A.nid AND weight_index = A.weight_index AND batch_id = A.batch_id)
+            WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?   --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
+            ORDER BY A.weight_index ASC
+        """        #Const.dm.db.query_print(sql)
+
+        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
+        print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
+
+        columns = [[header] for header in self.config.backprop_headers]
+        for row in results:
+            for i, value in enumerate(row):
+                columns[i].append(value)
+        return columns
+
+    def tooltip_columns_for_error_signal_calculation(self, all_cols):
+        # Row in the box between adj and blame
+        print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
+        for i in range(8):  #Do entire row
+            if i == 0:
+                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
+            else:
+                all_cols[i].append(" ")
+
+        if self.layer == self.output_layer: # This is an output neuron
+            return self.tooltip_columns_for_error_sig_outputlayer(all_cols)
+        else:
+            return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
+
+    def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
+        all_cols[0].append("Accepted Blame Calculation Below")
+        all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
+        all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+        return all_cols
+
+    def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
+        col_weight = 0
+        col_errsig = 3
+        col_contri = 6
+        all_cols[col_weight].append("Accepted Blame Calculation Below")
+        all_cols[col_errsig-1].append(" ")
+        all_cols[col_errsig].append(" ")
+        all_cols[col_contri-1].append(" ")
+        all_cols[col_contri].append(" ")
+        # IWFM = It's weight From Me
+        all_cols[col_weight].append("IWFM")
+        all_cols[col_errsig].append("It's Blame")
+        all_cols[col_contri].append("My Share of it's blame")
+        arg_1, arg_2 = self.get_elements_of_backproped_error()
+        contributions = [a * b for a, b in zip(arg_1, arg_2)]
+        all_cols[col_weight].extend(arg_1)
+        all_cols[col_errsig-1].extend("*" * (len(arg_1)+1))
+        all_cols[col_errsig].extend(arg_2)
+        all_cols[col_contri-1].extend("=" * (len(arg_1)+3))
+        all_cols[col_contri].extend(contributions)
+        bpe=sum(contributions)
+        all_cols[col_weight].append("My Blame from All")
+        all_cols[col_weight].append("Accp Blame = MBFA * Act Grad")
+        all_cols[col_contri].append(bpe)
+        all_cols[col_contri].append(bpe*self.activation_gradient)
+        #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
+        #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
+        return all_cols
+
+    def get_elements_of_backproped_error(self):
+        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
+        SQL = """
+            SELECT arg_1, arg_2
+            FROM ErrorSignalCalcs
+            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            ORDER BY weight_id ASC
+        """
+        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
+
+        if backprop_error_elements:             # Split the elements into two lists using the helper function
+            list1, list2 = self.split_error_elements(backprop_error_elements)
+            return list1, list2
+        else:
+            return [],[]
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
@@ -463,136 +566,6 @@ class DisplayModel__Neuron:
         input_col =["Input","1"]
         input_col.extend(self.neuron_inputs)
         return input_col
-
-################### Gather Values for Back Pass #############################
-################### Gather Values for Back Pass #############################
-################### Gather Values for Back Pass #############################
-
-    def tooltip_columns_for_backprop(self):
-        all_columns = self.tooltip_columns_for_backprop_error_distribution()
-        #weights=  ["    Orig"]
-        #weights.extend(self.weights_before)
-        #all_columns.append(weights)
-        #weights = ["    New"]
-        #weights.extend(self.weights)
-        #all_columns.append(weights)
-        #all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
-        return all_columns
-
-    def tooltip_columns_for_backprop_error_distribution(self):
-        sql="""
-            SELECT 
-              A.arg_1               as Input,        A.op_1,            -- Input
-              A.arg_2               as Accepted,     A.op_2,            -- Accepted Blame
-              A.arg_3               as Raw,          A.op_3,            -- Raw Adjustment
-              A.arg_4               as Cumulative,   A.op_4,            -- Cumulative
-              B.arg_4               as BatchTotal,   B.op_4,            -- Batch Total
-              A.arg_5               as Learning,     A.op_5,            -- Learning Rate
-              B.arg_4 * A.arg_5  AS final_adj,    'z' AS op_7,       -- Final Adjustment
-              A.op_5 - (B.arg_4 * A.arg_5) AS new_weight, '=' AS op_8 -- New Weight
-              , A.arg_6 AS curr_weight
-            FROM WeightAdjustments A
-            JOIN WeightAdjustments B
-              ON A.model_id = B.model_id
-              AND A.epoch = B.epoch
-              AND A.nid = B.nid
-              AND A.weight_index = B.weight_index
-              AND A.batch_id = B.batch_id
-              AND B.iteration = (
-                  SELECT MAX(iteration)
-                  FROM WeightAdjustments
-                  WHERE epoch = A.epoch
-                    AND model_id = A.model_id
-                    AND nid = A.nid
-                    AND weight_index = A.weight_index
-                    AND batch_id = A.batch_id
-              )
-            WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ? 
-            --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
-            ORDER BY A.weight_index ASC
-        """
-
-        #sql= "SELECT * FROM WeightAdjustments A WHERE A.epoch = 1 AND A.iteration <10 AND A.model_id     = 'TestBatch' AND A.nid = 0 and A.weight_index=0"
-        #Const.dm.db.query_print(sql)
-
-        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
-        print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
-        print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
-
-        columns = [[header] for header in self.config.backprop_headers]
-        for row in results:
-            for i, value in enumerate(row):
-                columns[i].append(value)
-        return columns
-
-    def tooltip_columns_for_error_signal_calculation(self, all_cols):
-        # Row in the box between adj and blame
-        print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
-        for i in range(8):  #Do entire row
-            if i == 0:
-                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
-            else:
-                all_cols[i].append(" ")
-
-
-
-        if self.layer == self.output_layer: # This is an output neuron
-            return self.tooltip_columns_for_error_sig_outputlayer(all_cols)
-        else:
-            return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
-
-    # Better Terms for backprob... blame, yelling, accepted blame
-
-    def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Accepted Blame Calculation Below")
-        all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
-        all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
-        return all_cols
-
-    def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
-        col_weight = 0
-        col_errsig = 3
-        col_contri = 6
-        all_cols[col_weight].append("Accepted Blame Calculation Below")
-        all_cols[col_errsig-1].append(" ")
-        all_cols[col_errsig].append(" ")
-        all_cols[col_contri-1].append(" ")
-        all_cols[col_contri].append(" ")
-        # IWFM = It's weight From Me
-        all_cols[col_weight].append("IWFM")
-        all_cols[col_errsig].append("It's Blame")
-        all_cols[col_contri].append("My Share of it's blame")
-        arg_1, arg_2 = self.get_elements_of_backproped_error()
-        contributions = [a * b for a, b in zip(arg_1, arg_2)]
-        all_cols[col_weight].extend(arg_1)
-        all_cols[col_errsig-1].extend("*" * (len(arg_1)+1))
-        all_cols[col_errsig].extend(arg_2)
-        all_cols[col_contri-1].extend("=" * (len(arg_1)+3))
-        all_cols[col_contri].extend(contributions)
-        bpe=sum(contributions)
-        all_cols[col_weight].append("My Blame from All")
-        all_cols[col_weight].append("Accp Blame = MBFA * Act Grad")
-        all_cols[col_contri].append(bpe)
-        all_cols[col_contri].append(bpe*self.activation_gradient)
-        #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
-        #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
-        return all_cols
-
-    def get_elements_of_backproped_error(self):
-        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
-        SQL = """
-            SELECT arg_1, arg_2
-            FROM ErrorSignalCalcs
-            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
-            ORDER BY weight_id ASC
-        """
-        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
-
-        if backprop_error_elements:             # Split the elements into two lists using the helper function
-            list1, list2 = self.split_error_elements(backprop_error_elements)
-            return list1, list2
-        else:
-            return [],[]
 
     def split_error_elements(self,elements):
         """
