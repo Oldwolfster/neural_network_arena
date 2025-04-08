@@ -309,8 +309,8 @@ class DisplayModel__Neuron:
         # ✅ Define dynamic column widths (adjust per column)
         col_w = 65
         self.column_widths = [45, 50, 10, col_w, 15, col_w,   #This ends the forward prop columns
-                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10,#believe this ends batch total
-                              col_w,  10, col_w, 10, col_w, 10,col_w, 10, col_w, 10, col_w, 10,]
+                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10, col_w,  10, col_w, 10, #this ends custom optomizer backprop columns
+                               col_w, col_w, col_w] #these are the standard last row.
 
         # ✅ Check if we need to redraw the tooltip
         if not hasattr(self, "cached_tooltip") or self.last_epoch != self.my_model.display_epoch or self.last_iteration != Const.vcr.CUR_ITERATION:
@@ -348,7 +348,7 @@ class DisplayModel__Neuron:
                     y_pos = Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING
                     x_pos = x_offset
 
-                    if self.is_right_aligned(text):
+                    if self.is_right_aligned(text, row_index):
                         text_rect.topright = (x_offset + col_width - Const.TOOLTIP_PADDING, y_pos)
                     else:
                         text_rect.topleft = (x_offset + Const.TOOLTIP_PADDING, y_pos)
@@ -393,17 +393,27 @@ class DisplayModel__Neuron:
 ################### Gather Values for Back Pass #############################
 
     def tooltip_columns_for_backprop(self):
-        all_columns = self.tooltip_columns_for_backprop_error_distribution()
-        #weights=  ["    Orig"]
-        #weights.extend(self.weights_before)
-        #all_columns.append(weights)
-        #weights = ["    New"]
-        #weights.extend(self.weights)
-        #all_columns.append(weights)
-        #all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
+        all_columns = self.tooltip_columns_for_backprop_custom()
+        standard_finale = self.tooltip_columns_for_backprop_standard_finale()
+        all_columns.extend(standard_finale)
+        all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
         return all_columns
 
-    def tooltip_columns_for_backprop_error_distribution(self):
+    def tooltip_columns_for_backprop_standard_finale(self) -> list:
+        col_delta = ["Adj"] # Δ
+        col_before = ["Before"]
+        col_after = ["After"]
+
+        for i in range(len(self.weights)):
+            adjustment = self.weights_before[i] - self.weights[i]
+            col_delta.append(self.smart_format_for_popup(adjustment))
+            col_before.append(self.smart_format_for_popup(self.weights_before[i]))
+            col_after.append(self.smart_format_for_popup(self.weights[i]))
+
+        return [col_delta, col_before, col_after]
+
+
+    def tooltip_columns_for_backprop_custom(self):
         sql="""
             SELECT 
               A.arg_1               as Input,        A.op_1,            -- Input
@@ -411,10 +421,9 @@ class DisplayModel__Neuron:
               A.arg_3               as Raw,          A.op_3,            -- Raw Adjustment
               A.arg_4               as Cumulative,   A.op_4,            -- Cumulative
               B.arg_4               as BatchTotal,   B.op_4,            -- Batch Total
-              A.arg_5               as Learning,     A.op_5,            -- Learning Rate
-              -- A.arg_6 AS curr_weight,
+              A.arg_5               as Learning,     A.op_5,            -- Learning Rate              
               B.arg_4 * A.arg_5 AS final_adj,' '
-              -- A.arg_6 + (B.arg_4 * A.arg_5) AS new_weight,                '=' AS op_eq
+              
             FROM WeightAdjustments A
             JOIN WeightAdjustments B
               ON A.model_id = B.model_id
@@ -429,8 +438,8 @@ class DisplayModel__Neuron:
         """        #Const.dm.db.query_print(sql)
 
         results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
-        print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
-        print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
+        #print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
+        #print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
 
         columns = [[header] for header in self.config.backprop_headers]
         for row in results:
@@ -440,7 +449,7 @@ class DisplayModel__Neuron:
 
     def tooltip_columns_for_error_signal_calculation(self, all_cols):
         # Row in the box between adj and blame
-        print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
+        #print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
         for i in range(8):  #Do entire row
             if i == 0:
                 all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
@@ -613,10 +622,19 @@ class DisplayModel__Neuron:
         # Remove trailing zeros and trailing decimal point if necessary
         return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
 
-    def is_right_aligned(self, text):
+    def is_right_aligned(self, text, row_index):
+        if row_index == 0:
+            return True
+        if text == "=":
+            return True
         if isinstance(text, (int, float)):
             return True
         if isinstance(text, str):
             cleaned = text.replace(",", "").strip()
-            return cleaned.upper() in ["N/A", "NONE"] or cleaned.replace(".", "", 1).replace("-", "", 1).isdigit()
+            try:
+                float(cleaned)
+                return True
+            except ValueError:
+                return cleaned.upper() in ["N/A", "NONE"]
         return False
+

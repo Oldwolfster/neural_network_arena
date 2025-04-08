@@ -59,6 +59,10 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         #print(f"Deciding {epoch_num}\t {iteration_num}")
         #if not self.should_record_sample(epoch_num, iteration_num):
         #    return
+
+        if (iteration_num) % self.config.batch_size == 0: #maybe rename update weights.
+            self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
+
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
 
@@ -82,8 +86,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
                 #TODO take out 'input_tensor' and delta from exclude keys
                 self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
-        if (iteration_num) % self.config.batch_size == 0:
-            self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
+
 
 
     def finish_epoch(self, epoch: int):

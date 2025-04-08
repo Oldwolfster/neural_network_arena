@@ -145,7 +145,8 @@ class Gladiator(ABC):
             inputs = sample[:-1]
             target = sample[-1]
             self.snapshot_weights("", "_before")
-            error, loss,  loss_gradient = self.optimizer_simplified_descent(sample, inputs, target)
+
+            error, loss,  loss_gradient = self.training_cycle(sample, inputs, target)
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.total_error_for_epoch += abs(error)
             #if error < self.config.lowest_error:    # New lowest error
@@ -172,11 +173,15 @@ class Gladiator(ABC):
                 loss_gradient=loss_gradient,
                 accuracy_threshold=self.hyper.accuracy_threshold,
             )
+            #print("Should be different after backpass")
+            #print(f"weights_before are {Neuron.neurons[1].weights_before}")
+            #print(f"weights are        {Neuron.neurons[1].weights}")
             self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
             # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
+
         return self.mgr_sql.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
-    def optimizer_simplified_descent(self, sample, inputs, target):
+    def training_cycle(self, sample, inputs, target):
         # Step 1: Forward pass
         self.forward_pass(sample)  # Call model-specific logic
         prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
@@ -185,9 +190,14 @@ class Gladiator(ABC):
         error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
         #loss_gradient = self.watch_for_explosion(loss_gradient)
 
-        # Step 4: Delegate to models logic for backporop.
+        # Step 4: Delegate to models logic for backprop or call default if not overridden
+        #print(f"Should be same as prior to backpass - epoch{self.epoch+1} iteration{self.iteration+1}")
+        #print(f"weights_before are {Neuron.neurons[1].weights_before}")
+        #print(f"weights are        {Neuron.neurons[1].weights}")
         self.back_pass(sample, loss_gradient)  # Call model-specific logic
-        
+
+
+
         # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
         self.record_blame_calculations()                    # Write error signal calculations to db for NeuroForge popup
         self.record_weight_updates()                        # Write distribute error calculations to db for NeuroForge popup
