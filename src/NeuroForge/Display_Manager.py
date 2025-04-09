@@ -7,7 +7,7 @@ from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
 
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
-from src.NeuroForge.ui.FormMatches import FormMatches
+from src.NeuroForge.ui.BaseWindow import BaseWindow
 from src.NeuroForge.GeneratorModel import ModelGenerator
 
 from src.engine.Config import Config
@@ -37,7 +37,8 @@ class Display_Manager:
         self.last_iteration = 0
         self.last_epoch     = 0
         self.input_panel    = None
-        Const.dm = self
+        self.base_window    = None
+        Const.dm            = self
 
         # Compute global max values across all models using Metrics module
         self.get_max_epoch_per_model(self.db)
@@ -118,9 +119,9 @@ class Display_Manager:
         #self.components.append(self.Graph)
 
         # Add window Match
-        self.form_matches = FormMatches(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
-                                        background_image_path="assets/form_backgrounds/coliseum_glow.png")
-        self.components.append(self.form_matches)
+        self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
+                                      background_image_path="assets/form_backgrounds/coliseum_glow.png")
+        self.components.append(self.base_window)
 
 
     def create_prediction_panels(self, panel_width): #one needed per model
