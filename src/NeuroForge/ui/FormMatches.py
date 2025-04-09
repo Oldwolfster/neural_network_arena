@@ -6,7 +6,7 @@ from pygame_gui.elements import UIButton, UITextEntryLine, UIDropDownMenu
 from src.NeuroForge import Const
 from src.NeuroForge.EZForm import EZForm
 from src.NeuroForge.EZSurface import EZSurface
-from src.NeuroForge.ui.HoloPanel import HoloPanel
+#from src.NeuroForge.ui.HoloPanel import HoloPanel
 
 class Action(Enum): #This goes at top of file
     STEP_BACK_SAMPLE    = auto()
@@ -32,14 +32,7 @@ class FormMatches(EZForm):
                     ):
         fields = { }
         super().__init__(fields, width_pct, height_pct, left_pct, top_pct,shadow_offset_x=0, banner_text=banner_text, background_image_path=background_image_path)
-        self.holo_gladiators = HoloPanel(
-            parent_surface=self.surface,
-            title="🏛️ Gladiators",
-            left_pct=5,
-            top_pct=10,
-            width_pct=40,
-            height_pct=60
-        )
+        #self.holo_gladiators = HoloPanel(            parent_surface=self.surface,            title="🏛️ Gladiators",            left_pct=5,            top_pct=10,            width_pct=40,            height_pct=60        )
 
     def update_me(self):
         pass
