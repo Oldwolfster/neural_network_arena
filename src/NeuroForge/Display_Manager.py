@@ -120,6 +120,7 @@ class Display_Manager:
         #                              background_image_path="assets/form_backgrounds/coliseum_glow.png")
         win_matches = WindowMatches()
         self.components.append(win_matches)
+        self.eventors.append(win_matches)
 
 
 

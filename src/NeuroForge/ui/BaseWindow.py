@@ -69,3 +69,5 @@ class BaseWindow(EZSurface):
 
     def render(self):
         self.render_standard_window_items()
+        for child in self.children:
+            child.render()
