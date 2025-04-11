@@ -2,6 +2,7 @@
 from src.NeuroForge.ui.BaseWindow import BaseWindow
 from src.NeuroForge.ui.HoloPanel import HoloPanel
 from src.NeuroForge.ui.TreePanel import TreePanel
+from src.engine.BaseGladiator import Gladiator
 
 
 class WindowMatches(BaseWindow):
@@ -24,14 +25,16 @@ class WindowMatches(BaseWindow):
         #    width_pct=17,
         #    height_pct=90
         #)
+
+        import os
+
+        base_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "coliseum", "gladiators"))
+        print(f"Base_Path={base_path}")
         self.gladiator_browser = TreePanel(
             parent_surface=self.surface,
             title="Available Gladiators",
-            data={
-                "BasicModels": ["Simplex", "Simplex2", "GBS"],
-                "Advanced": ["Hayabusa", "NeuroShepherd"],
-                "Templates": ["NeuroForge_Template", "Adam_Template"],
-            },
+            path=base_path,
+            superclass=Gladiator,
             left_pct=2,
             top_pct=10,
             width_pct=45,
