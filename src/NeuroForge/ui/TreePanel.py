@@ -35,6 +35,7 @@ class TreePanel(HoloPanel):
         self.row_rects = []
         self.scroll_offset_y = 0
         self.scroll_speed = 30
+        self.SCROLL_START_Y = 40
 
     def draw_me(self):
         self.render()
@@ -50,14 +51,19 @@ class TreePanel(HoloPanel):
                 current = current.setdefault(part, {})
 
             for f in sorted(files):
-                if f.endswith(".py") and not f.startswith("__") and "__pycache__" not in f:
+                if (
+                    f.endswith(".py")
+                    and not f.startswith("__")
+                    and "__pycache__" not in f
+                    and not os.path.isdir(os.path.join(root, f))
+                ):
                     current[f] = None  # File leaf
 
         return tree
 
     def rebuild_row_rects(self):
         self.row_rects = []
-        self._rebuild_row_rects_recursive(self.data, 40 - self.scroll_offset_y, 0)
+        self._rebuild_row_rects_recursive(self.data, self.SCROLL_START_Y - self.scroll_offset_y, 0)
 
     def _rebuild_row_rects_recursive(self, subtree, y, indent):
         for key, value in subtree.items():
@@ -77,11 +83,11 @@ class TreePanel(HoloPanel):
         super().render()
         self.surface.fill((0, 0, 0, 0))
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 140))
+        overlay.fill((0, 0, 0, 100))  # Less opaque so background shows through more
         self.surface.blit(overlay, (0, 0))
         pygame.draw.rect(self.surface, Const.COLOR_BLACK, self.surface.get_rect(), 5, border_radius=6)
 
-        self._render_recursive(self.data, 40 - self.scroll_offset_y, 0)
+        self._render_recursive(self.data, self.SCROLL_START_Y - self.scroll_offset_y, 0)
         self.blit_to_parent()
         self.rebuild_row_rects()
 
@@ -101,7 +107,7 @@ class TreePanel(HoloPanel):
         self.handle_scroll(event)
 
     def handle_click(self, event, parent_offset_x=0, parent_offset_y=0):
-        if event.type != pygame.MOUSEBUTTONDOWN:
+        if event.type != pygame.MOUSEBUTTONDOWN or event.button != 1:
             return
 
         mouse_x, mouse_y = pygame.mouse.get_pos()
