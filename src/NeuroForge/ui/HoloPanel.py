@@ -39,15 +39,15 @@ class HoloPanel:
 
     def render(self):
         #print(f"In HoloPanel update - {self.title}")
-        self.surface.fill((0, 0, 0, 0))  # Clear with transparency
+        #self.surface.fill((0, 0, 0, 0))  # Clear with transparency
 
         # 🔹 Transparent black overlay
         overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 140))  # Lower alpha = more see-through
-        self.surface.blit(overlay, (0, 0))
+        overlay.fill((0, 0, 0, 20))  # Lower alpha = more see-through
+        self.surface.blit(overlay, (0, 0))  #TODO this is where it isn't ta
 
         # 🔹 Optional: A faint inner border
-        pygame.draw.rect(self.surface, Const.COLOR_BLACK, self.surface.get_rect(), 5, border_radius=6)
+        #pygame.draw.rect(self.surface, Const.COLOR_BLACK, self.surface.get_rect(), 5, border_radius=6)
 
         # 🔹 Title text
         #banner_surface = self.banner_font.render(self.title, True, Const.COLOR_WHITE)

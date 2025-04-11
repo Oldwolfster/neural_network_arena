@@ -2,6 +2,7 @@
 from src.NeuroForge.ui.BaseWindow import BaseWindow
 from src.NeuroForge.ui.HoloPanel import HoloPanel
 from src.NeuroForge.ui.TreePanel import TreePanel
+from src.engine import BaseArena
 from src.engine.BaseGladiator import Gladiator
 
 
@@ -29,26 +30,38 @@ class WindowMatches(BaseWindow):
         import os
 
         base_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "coliseum", "gladiators"))
-        print(f"Base_Path={base_path}")
+        #print(f"Base_Path={base_path}")
         self.gladiator_browser = TreePanel(
             parent_surface=self.surface,
             title="Available Gladiators",
             path=base_path,
             superclass=Gladiator,
             left_pct=2,
-            top_pct=10,
-            width_pct=45,
-            height_pct=80
+            top_pct=2,
+            width_pct=30,
+            height_pct=70
         )
         self.selected_gladiators = HoloPanel(
             parent_surface=self.surface,
             title="Selected Gladiators",
-            left_pct=82,
-            top_pct=10,
-            width_pct=45,
-            height_pct=80
+            left_pct=2,
+            top_pct=75,
+            width_pct=30,
+            height_pct=23
         )
-        self.children.extend([self.gladiator_browser, self.selected_gladiators])
+        base_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "coliseum", "arenas"))
+        self.arena_browser = TreePanel(
+            parent_surface=self.surface,
+            title="Available Arenas",
+            path=base_path,
+            superclass=BaseArena,
+            left_pct=40,
+            top_pct=25,
+            width_pct=25,
+            height_pct=70
+        )
+
+        self.children.extend([self.gladiator_browser, self.selected_gladiators, self.arena_browser])
 
     def process_an_event(self, event):
         self.gladiator_browser.handle_events(event, self.left, self.top)
