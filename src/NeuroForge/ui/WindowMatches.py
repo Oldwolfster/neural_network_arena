@@ -31,6 +31,7 @@ class WindowMatches(BaseWindow):
 
         base_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "coliseum", "gladiators"))
         #print(f"Base_Path={base_path}")
+
         self.gladiator_browser = TreePanel(
             parent_surface=self.surface,
             title="Available Gladiators",
@@ -65,7 +66,7 @@ class WindowMatches(BaseWindow):
 
     def process_an_event(self, event):
         self.gladiator_browser.handle_events(event, self.left, self.top)
-
+        self.arena_browser.handle_events(event, self.left, self.top)
 
     def update_me(self):
         super().update_me()  # Handles any dynamic logic for panels

@@ -31,7 +31,7 @@ class HoloPanel:
         self.panel_rect = pygame.Rect(self.left, self.top, self.width, self.height)
         self.surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
 
-        self.banner_font = pygame.font.Font(None, 28)
+        self.banner_font = pygame.font.Font(None, 32)
         self.label_font = pygame.font.Font(None, 22)
         self.spacing = 10
 
