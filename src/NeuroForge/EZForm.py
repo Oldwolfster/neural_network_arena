@@ -53,7 +53,7 @@ class EZForm(EZSurface):
         #Calculate Banner Rect
         banner_surface = self.banner_font.render(self.banner_text, True, Const.COLOR_WHITE)
         self.banner_height = banner_surface.get_height() + 8
-        self.banner_text_rect = banner_surface.get_rect(center=(self.width // 2, self.banner_height // 2+4))
+        self.banner_text_rect = banner_surface.get_rect(center=(self.width // 2, self.banner_height // 2))
         self.banner_rect = pygame.Rect(0, 0, self.form_width, self.banner_height)
         self.load_background(background_image_path)
         self.render() # Necessary to capture the label positions

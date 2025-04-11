@@ -22,7 +22,6 @@ class EZSurface(ABC):
         self.top_pct = top_pct
         self.height_pct = height_pct
 
-
         # Calculate dimensions and position based on percentages
         self.width = int(self.screen_width * (width_pct / 100)) + pixel_adjust_width  #remove the plus 50
         self.height = int(self.screen_height * (height_pct / 100)) + pixel_adjust_height
