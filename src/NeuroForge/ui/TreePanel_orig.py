@@ -78,7 +78,7 @@ class TreePanel(HoloPanel):
 
     def render(self):
         if not hasattr(self, "data") or not self.data:
-            print("⏭️ Skipping TreePanel render — self.data not yet set or is empty.")
+            #print("⏭️ Skipping TreePanel render — self.data not yet set or is empty.")
             return
 
         super().render()

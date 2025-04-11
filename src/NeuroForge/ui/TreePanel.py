@@ -2,6 +2,7 @@ from src.NeuroForge.ui.HoloPanel import HoloPanel
 from src.NeuroForge import Const
 import pygame
 import os
+import time
 
 class TreePanel(HoloPanel):
     def __init__(
@@ -15,6 +16,7 @@ class TreePanel(HoloPanel):
         width_pct,
         height_pct,
         banner_color=Const.COLOR_BLUE,
+        on_file_selected=None,
     ):
         super().__init__(
             parent_surface=parent_surface,
@@ -25,18 +27,24 @@ class TreePanel(HoloPanel):
             height_pct=height_pct,
             fields=[],
             banner_color=banner_color,
+
         )
         self.path = path
         self.superclass = superclass
+        self.on_file_selected = on_file_selected
         self.font = pygame.font.Font(None, 22)
         self.data = {}  # Initialize early to prevent attribute errors
-        self.data = self.load_tree_data(path)
-        print(f"Tree{self.data}")
+        self.data = {} if path is None else self.load_tree_data(path)
+        #print(f"Tree{self.data}")
         self.expanded = set()
         self.row_rects = []
         self.scroll_offset_y = 0
         self.scroll_speed = 30
         self.SCROLL_START_Y = 40
+
+        self.last_click_time = 0
+        self.last_clicked_path = None
+        self.double_click_threshold = 0.3  # seconds
 
     def draw_me(self):
         self.render()
@@ -78,8 +86,8 @@ class TreePanel(HoloPanel):
         return y
 
     def render(self):
-        if not hasattr(self, "data") or not self.data:
-            print("⏭️ Skipping TreePanel render — self.data not yet set or is empty.")
+        if not hasattr(self, "data"): # or not self.data:
+            #print("⏭️ Skipping TreePanel render — self.data not yet set or is empty.")
             return
 
         super().render()
@@ -102,12 +110,18 @@ class TreePanel(HoloPanel):
         for key, value in subtree.items():
             is_folder = isinstance(value, dict)
             full_path = parent_path + (key,)
-            label = f"[{'-' if full_path in self.expanded else '+'}] {key}" if is_folder else f"⚔️ {key}"
+
+            # ⬇️ Strip .py from file labels, but leave folder names unchanged
+            display_key = key[:-3] if not is_folder and key.endswith(".py") else key
+            label = f"[{'-' if full_path in self.expanded else '+'}] {display_key}" if is_folder else f"⚔️ {display_key}"
+
             text_surf = self.font.render(label, True, Const.COLOR_WHITE)
             self.surface.blit(text_surf, (10 + indent * 20, y))
             y += 30
+
             if is_folder and full_path in self.expanded:
                 y = self._render_recursive(value, y, indent + 1, full_path)
+
         return y
 
     def handle_events(self, event, parent_offset_x=0, parent_offset_y=0):
@@ -131,6 +145,14 @@ class TreePanel(HoloPanel):
                     else:
                         self.expanded.add(full_path)
                     self.render()
+                else:
+                    now = time.time()
+                    if full_path == self.last_clicked_path and now - self.last_click_time <= self.double_click_threshold:
+                        if self.on_file_selected:
+                            self.on_file_selected(full_path[-1])  # Safely pass only the filename string
+                    else:
+                        self.last_click_time = now
+                        self.last_clicked_path = full_path
                 break
 
 
@@ -145,6 +167,16 @@ class TreePanel(HoloPanel):
                 self.scroll_offset_y -= event.y * self.scroll_speed
                 self.scroll_offset_y = max(0, self.scroll_offset_y)
                 self.render()
+
+    def add_file(self, filename: str):
+        """Adds a file to the root level of the TreePanel (flat list only)."""
+        # Ensure .py is stripped (we store keys as display-ready)
+        if filename.endswith(".py"):
+            filename = filename[:-3]
+
+        self.data[filename] = None
+        self.render()
+
 
 
     def debug_print_row_map(self):
