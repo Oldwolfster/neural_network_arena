@@ -177,6 +177,8 @@ class TreePanel(HoloPanel):
         self.data[filename] = None
         self.render()
 
+    def get_selected_files(self):
+        return list(self.data.keys())
 
 
     def debug_print_row_map(self):

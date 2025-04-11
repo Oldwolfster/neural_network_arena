@@ -1,5 +1,6 @@
 from src.NeuroForge.ui.HoloPanel import HoloPanel
 import pygame
+from src.NeuroForge import Const
 
 class LabelInputPanel(HoloPanel):
     def __init__(
@@ -28,14 +29,14 @@ class LabelInputPanel(HoloPanel):
         initial_values = initial_values or {}
         self.inputs = {label: initial_values.get(label, "") for label in self.fields}
         self.active_field = None
-        self.font = pygame.font.Font(None, 22)
-        self.input_width_pct = input_width_pct
+        self.font = pygame.font.Font(None, 26)
+        self.input_width_pct = 30
         self.render()
 
     def render(self):
         super().render()  # Draw background, title, etc.
         if not hasattr(self, "font"):
-            print("⏭️ Skipping TreePanel render — self.data not yet set or is empty.")
+            #print("⏭️ Skipping TreePanel render — self.data not yet set or is empty.")
             return
 
         for i, label in enumerate(self.fields):
