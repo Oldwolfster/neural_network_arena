@@ -1,17 +1,17 @@
 from typing import List
 import pygame
+
+
+from src.engine.Config import Config
+from src.engine.RamDB import RamDB
 from src.NeuroForge import Const
 from src.NeuroForge.DisplayArrowsOutsideNeuron import DisplayArrowsOutsideNeuron
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
 from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
-
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
-from src.NeuroForge.ui.BaseWindow import BaseWindow
 from src.NeuroForge.GeneratorModel import ModelGenerator
-
-from src.engine.Config import Config
-from src.engine.RamDB import RamDB
+from src.NeuroForge.ui.WindowMatches import WindowMatches
 
 
 class Display_Manager:
@@ -113,15 +113,14 @@ class Display_Manager:
         arrows = DisplayArrowsOutsideNeuron(self.models[0])
         self.components.append(arrows)
 
-        # Add Graph  # MAE over epoch
-        #moved to display model
-        #self.Graph = DisplayGraph(width_pct=40, height_pct=30, left_pct=60, top_pct=70)
-        #self.components.append(self.Graph)
 
         # Add window Match
-        self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
-                                      background_image_path="assets/form_backgrounds/coliseum_glow.png")
-        self.components.append(self.base_window)
+
+        #self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
+        #                              background_image_path="assets/form_backgrounds/coliseum_glow.png")
+        win_matches = WindowMatches()
+        self.components.append(win_matches)
+
 
 
     def create_prediction_panels(self, panel_width): #one needed per model
