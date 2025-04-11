@@ -1,5 +1,6 @@
 import pygame
 from src.NeuroForge import Const
+from src.NeuroForge.ui.GlowText import GlowText
 from src.engine.Utils import get_darker_color
 
 
@@ -14,12 +15,10 @@ class HoloPanel:
         height_pct: int,
         fields=None,
         banner_color=Const.COLOR_BLUE,
-        translucent_overlay: bool = True,
     ):
         self.parent = parent_surface
         self.title = title
         self.banner_color = banner_color
-        self.translucent_overlay = translucent_overlay
         self.fields = fields or []
 
         # Percent-based positioning relative to parent surface
@@ -39,18 +38,31 @@ class HoloPanel:
         self.render()
 
     def render(self):
-        self.surface.fill((0, 0, 0, 0))  # Transparent clear
+        #print(f"In HoloPanel update - {self.title}")
+        self.surface.fill((0, 0, 0, 0))  # Clear with transparency
 
-        if self.translucent_overlay:
-            overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-            overlay.fill((0, 0, 0, 160))  # Black w/ transparency
-            self.surface.blit(overlay, (0, 0))
+        # 🔹 Transparent black overlay
+        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 140))  # Lower alpha = more see-through
+        self.surface.blit(overlay, (0, 0))
 
-        pygame.draw.rect(self.surface, Const.COLOR_FOR_BACKGROUND, self.surface.get_rect(), border_radius=6)
-        pygame.draw.rect(self.surface, self.banner_color, self.surface.get_rect(), 3, border_radius=6)
+        # 🔹 Optional: A faint inner border
+        pygame.draw.rect(self.surface, Const.COLOR_BLACK, self.surface.get_rect(), 5, border_radius=6)
 
-        banner_surface = self.banner_font.render(self.title, True, Const.COLOR_WHITE)
-        self.surface.blit(banner_surface, (self.spacing, self.spacing))
+        # 🔹 Title text
+        #banner_surface = self.banner_font.render(self.title, True, Const.COLOR_WHITE)
+        #self.surface.blit(banner_surface, (self.spacing, self.spacing))
+        title_glow = GlowText(
+            text=self.title,
+            x=self.spacing,
+            y=self.spacing,
+            font=self.banner_font,
+            surface=self.surface
+        )
+        title_glow.draw_me()
+
+        # 👇 Always blit to parent
+        self.blit_to_parent()
 
     def get_total_rect(self):
         return self.panel_rect
