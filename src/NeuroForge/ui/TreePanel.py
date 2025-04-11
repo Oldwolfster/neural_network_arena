@@ -31,6 +31,7 @@ class TreePanel(HoloPanel):
         self.font = pygame.font.Font(None, 22)
         self.data = {}  # Initialize early to prevent attribute errors
         self.data = self.load_tree_data(path)
+        print(f"Tree{self.data}")
         self.expanded = set()
         self.row_rects = []
         self.scroll_offset_y = 0
@@ -65,14 +66,15 @@ class TreePanel(HoloPanel):
         self.row_rects = []
         self._rebuild_row_rects_recursive(self.data, self.SCROLL_START_Y - self.scroll_offset_y, 0)
 
-    def _rebuild_row_rects_recursive(self, subtree, y, indent):
+    def _rebuild_row_rects_recursive(self, subtree, y, indent, parent_path=()):
         for key, value in subtree.items():
             is_folder = isinstance(value, dict)
+            full_path = parent_path + (key,)
             rect = pygame.Rect(10 + indent * 20, y, self.width - 20, 26)
-            self.row_rects.append((rect, is_folder, key))
+            self.row_rects.append((rect, is_folder, full_path))
             y += 30
-            if is_folder and key in self.expanded:
-                y = self._rebuild_row_rects_recursive(value, y, indent + 1)
+            if is_folder and full_path in self.expanded:
+                y = self._rebuild_row_rects_recursive(value, y, indent + 1, full_path)
         return y
 
     def render(self):
@@ -81,30 +83,37 @@ class TreePanel(HoloPanel):
             return
 
         super().render()
-        self.surface.fill((0, 0, 0, 0))
-        overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        overlay.fill((0, 0, 0, 100))  # Less opaque so background shows through more
-        self.surface.blit(overlay, (0, 0))
-        pygame.draw.rect(self.surface, Const.COLOR_BLACK, self.surface.get_rect(), 5, border_radius=6)
+
+        # Only fill below the banner to allow background and title to shine through
+        scroll_area = pygame.Rect(0, self.SCROLL_START_Y, self.width, self.height - self.SCROLL_START_Y)
+        overlay = pygame.Surface((scroll_area.width, scroll_area.height), pygame.SRCALPHA)
+        overlay.fill((0, 0, 0, 100))  # Soft translucent black
+        self.surface.blit(overlay, scroll_area.topleft)
+
+        # Optional: draw inner border just around scroll area (or remove this)
+        pygame.draw.rect(self.surface, Const.COLOR_BLACK, scroll_area, 3, border_radius=4)
 
         self._render_recursive(self.data, self.SCROLL_START_Y - self.scroll_offset_y, 0)
         self.blit_to_parent()
         self.rebuild_row_rects()
 
-    def _render_recursive(self, subtree, y, indent):
+
+    def _render_recursive(self, subtree, y, indent, parent_path=()):
         for key, value in subtree.items():
             is_folder = isinstance(value, dict)
-            label = f"[{'-' if key in self.expanded else '+'}] {key}" if is_folder else f"⚔️ {key}"
+            full_path = parent_path + (key,)
+            label = f"[{'-' if full_path in self.expanded else '+'}] {key}" if is_folder else f"⚔️ {key}"
             text_surf = self.font.render(label, True, Const.COLOR_WHITE)
             self.surface.blit(text_surf, (10 + indent * 20, y))
             y += 30
-            if is_folder and key in self.expanded:
-                y = self._render_recursive(value, y, indent + 1)
+            if is_folder and full_path in self.expanded:
+                y = self._render_recursive(value, y, indent + 1, full_path)
         return y
 
     def handle_events(self, event, parent_offset_x=0, parent_offset_y=0):
         self.handle_click(event, parent_offset_x, parent_offset_y)
-        self.handle_scroll(event)
+        self.handle_scroll(event, parent_offset_x, parent_offset_y)
+
 
     def handle_click(self, event, parent_offset_x=0, parent_offset_y=0):
         if event.type != pygame.MOUSEBUTTONDOWN or event.button != 1:
@@ -114,21 +123,29 @@ class TreePanel(HoloPanel):
         local_x = mouse_x - self.left - parent_offset_x
         local_y = mouse_y - self.top - parent_offset_y
 
-        for rect, is_folder, key in self.row_rects:
+        for rect, is_folder, full_path in self.row_rects:
             if rect.collidepoint(local_x, local_y):
                 if is_folder:
-                    if key in self.expanded:
-                        self.expanded.remove(key)
+                    if full_path in self.expanded:
+                        self.expanded.remove(full_path)
                     else:
-                        self.expanded.add(key)
+                        self.expanded.add(full_path)
                     self.render()
                 break
 
-    def handle_scroll(self, event):
+
+    def handle_scroll(self, event, parent_offset_x=0, parent_offset_y=0):
         if event.type == pygame.MOUSEWHEEL:
-            self.scroll_offset_y -= event.y * self.scroll_speed
-            self.scroll_offset_y = max(0, self.scroll_offset_y)
-            self.render()
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+            local_x = mouse_x - self.left - parent_offset_x
+            local_y = mouse_y - self.top - parent_offset_y
+
+            # Only scroll if the mouse is actually over this panel
+            if 0 <= local_x <= self.width and 0 <= local_y <= self.height:
+                self.scroll_offset_y -= event.y * self.scroll_speed
+                self.scroll_offset_y = max(0, self.scroll_offset_y)
+                self.render()
+
 
     def debug_print_row_map(self):
         print("\n=== Row Rect Debug ===")
