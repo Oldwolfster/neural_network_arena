@@ -51,7 +51,7 @@ class WindowMatches(BaseWindow):
         self.children.extend([self.gladiator_browser, self.selected_gladiators])
 
     def process_an_event(self, event):
-        self.gladiator_browser.handle_click(event, self.left, self.top)
+        self.gladiator_browser.handle_events(event, self.left, self.top)
 
 
     def update_me(self):

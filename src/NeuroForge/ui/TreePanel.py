@@ -33,6 +33,8 @@ class TreePanel(HoloPanel):
         self.data = self.load_tree_data(path)
         self.expanded = set()
         self.row_rects = []
+        self.scroll_offset_y = 0
+        self.scroll_speed = 30
 
     def draw_me(self):
         self.render()
@@ -48,14 +50,14 @@ class TreePanel(HoloPanel):
                 current = current.setdefault(part, {})
 
             for f in sorted(files):
-                if f.endswith(".py") and not f.startswith("__"):
+                if f.endswith(".py") and not f.startswith("__") and "__pycache__" not in f:
                     current[f] = None  # File leaf
 
         return tree
 
     def rebuild_row_rects(self):
         self.row_rects = []
-        self._rebuild_row_rects_recursive(self.data, 40, 0)
+        self._rebuild_row_rects_recursive(self.data, 40 - self.scroll_offset_y, 0)
 
     def _rebuild_row_rects_recursive(self, subtree, y, indent):
         for key, value in subtree.items():
@@ -79,7 +81,7 @@ class TreePanel(HoloPanel):
         self.surface.blit(overlay, (0, 0))
         pygame.draw.rect(self.surface, Const.COLOR_BLACK, self.surface.get_rect(), 5, border_radius=6)
 
-        self._render_recursive(self.data, 40, 0)
+        self._render_recursive(self.data, 40 - self.scroll_offset_y, 0)
         self.blit_to_parent()
         self.rebuild_row_rects()
 
@@ -93,6 +95,10 @@ class TreePanel(HoloPanel):
             if is_folder and key in self.expanded:
                 y = self._render_recursive(value, y, indent + 1)
         return y
+
+    def handle_events(self, event, parent_offset_x=0, parent_offset_y=0):
+        self.handle_click(event, parent_offset_x, parent_offset_y)
+        self.handle_scroll(event)
 
     def handle_click(self, event, parent_offset_x=0, parent_offset_y=0):
         if event.type != pygame.MOUSEBUTTONDOWN:
@@ -111,6 +117,12 @@ class TreePanel(HoloPanel):
                         self.expanded.add(key)
                     self.render()
                 break
+
+    def handle_scroll(self, event):
+        if event.type == pygame.MOUSEWHEEL:
+            self.scroll_offset_y -= event.y * self.scroll_speed
+            self.scroll_offset_y = max(0, self.scroll_offset_y)
+            self.render()
 
     def debug_print_row_map(self):
         print("\n=== Row Rect Debug ===")
