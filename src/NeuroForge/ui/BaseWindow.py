@@ -37,6 +37,7 @@ class BaseWindow(EZSurface):
             15,
             font=self.font_large,
             surface=self.surface,
+            center=True
         )
         ############ END OF CONSTRUCTOR ############
 
@@ -45,6 +46,7 @@ class BaseWindow(EZSurface):
             image_path = self.resolve_local_asset(background_image_path)
             self.background_image = pygame.image.load(image_path).convert()
             self.background_image = pygame.transform.scale(self.background_image, (self.form_width, self.form_height))
+            #Add translucent overlay to background
             overlay = pygame.Surface((self.form_width, self.form_height), flags=pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 140))
             self.background_image.blit(overlay, (0, 0))

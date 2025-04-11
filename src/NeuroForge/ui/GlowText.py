@@ -1,7 +1,7 @@
 import pygame
 
 class GlowText:
-    def __init__(self, text, x , y, font, surface,  color=(255, 50, 0), glow_color=(255, 150, 50), glow_strength=5):
+    def __init__(self, text, x , y, font, surface,  color=(255, 50, 0), glow_color=(255, 150, 50), glow_strength=5, center=False):
         self.text = text
         self.surface=surface
         self.font = font
@@ -11,6 +11,10 @@ class GlowText:
         self.y = y
         self.glow_strength = glow_strength
         self.glow_surface, self.text_surface = self.create_glow()
+
+        # If centering is requested, override x
+        if center:
+            self.x = (self.surface.get_width() - self.text_surface.get_width()) // 2
 
     def create_glow(self):
         base = self.font.render(self.text, True, self.color)
