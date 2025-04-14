@@ -87,8 +87,9 @@ class GeneratorNeuron:
             int: Optimized neuron size.
         """
         #print(f"Inside calculate_neuron_size: margin={margin}, gap={gap}, max_neuron_size={max_neuron_size}")
-
-        max_neurons = max(GeneratorNeuron.model.config.architecture)  # Determine the layer with the most neurons
+        # Force a minimum of 2 neurons per layer for display (even if the model has only 1)
+        padded_architecture = [max(2, n) for n in GeneratorNeuron.model.config.architecture]
+        max_neurons = max(padded_architecture)  # Determine the layer with the most neurons
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
 
         # 🔹 Compute maximum available height and width
