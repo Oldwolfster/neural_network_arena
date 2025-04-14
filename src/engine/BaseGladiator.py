@@ -56,15 +56,9 @@ class Gladiator(ABC):
         self.convergence_phase  = "watch"
         self.retrieve_setup_from_model()
 
-
     ################################################################################################
     ################################ SECTION 1 - pipeline ####################################
     ################################################################################################
-    #TODO Deleteme
-    def setup_backprop_headers(self): # MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-        if self.config.optimizer.backprop_popup_headers is not None:
-            self.config.backprop_headers = self.config.optimizer.backprop_popup_headers
-
 
     def retrieve_setup_from_model(self):
         self.configure_model(self.config)  #Typically overwritten in base class.
@@ -94,8 +88,8 @@ class Gladiator(ABC):
         """
 
         self.config.loss_function.validate_activation_functions()
-        self.config.optimizer.prepare_optimizer(self.config)
-        if self.neuron_count == 0:
+
+        if self.neuron_count == 0:  #TODO I don't think this is possible anymore.
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
@@ -147,7 +141,7 @@ class Gladiator(ABC):
             target = sample[-1]
             self.snapshot_weights("", "_before")
 
-            error, loss,  loss_gradient = self.training_cycle(sample, inputs, target)
+            error, loss,  loss_gradient = self.process_a_sample(sample, inputs, target)
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.total_error_for_epoch += abs(error)
             #if error < self.config.lowest_error:    # New lowest error
@@ -182,7 +176,7 @@ class Gladiator(ABC):
 
         return self.mgr_sql.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
-    def training_cycle(self, sample, inputs, target):
+    def process_a_sample(self, sample, inputs, target):
         # Step 1: Forward pass
         self.forward_pass(sample)  # Call model-specific logic
         prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
@@ -325,11 +319,24 @@ class Gladiator(ABC):
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
 
+
+
+        # now to merge it here... self.config.gladiator_name
         sql = f"""
             INSERT INTO WeightAdjustments
             ({fields})
             VALUES ({placeholders})
         """
+
+
+        table_name = f"WeightAdjustments_{self.config.gladiator_name}" #TODO susceptible to SQL injection
+        sql = f"""
+            INSERT INTO {table_name}
+            ({fields})
+            VALUES ({placeholders})
+        """
+
+
 
         converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in self.weight_update_calculations]
         #print(f"sql={sql}")

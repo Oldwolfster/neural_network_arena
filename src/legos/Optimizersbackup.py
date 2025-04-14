@@ -107,7 +107,6 @@ def sgd_finalize(batch_size):
             neuron.accumulated_accepted_blame = [0.0] * len(neuron.accumulated_accepted_blame)
     return logs
 
-
 Optimizer_SGD = Optimizer(
     update_function=sgd_update,
     finalizer_function=sgd_finalize,
@@ -120,52 +119,7 @@ Optimizer_SGD = Optimizer(
     backprop_popup_headers_batch =standard_gbs_headers_batch,
     backprop_popup_operators_batch = standard_gbs_operators
 )
-def vanilla_GBS_update(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
-    """
-    SGD update across all weights (including bias).
-    input_vector[0] is assumed to be the bias input (usually 1.0).
-    """
-    logs = []
 
-    for i, x in enumerate(input_vector):
-        grad = x * blame
-        adjustment = neuron.learning_rates[i] * grad
-
-        if i == 0:
-            neuron.bias -= adjustment
-        else:
-            neuron.weights[i - 1] -= adjustment
-
-        #logs.append([
-        #    epoch, iteration, gladiator, neuron.nid, i,
-        #    x, "*", blame, "*", neuron.learning_rates[i], "=", adjustment
-        #])
-        logs.append([
-            epoch, iteration, gladiator, neuron.nid, i ,  0,
-            x, "*",                               # arg1
-            blame, "B",                   # arg2
-            adjustment, "S",                   # arg3
-            neuron.accumulated_accepted_blame[i], " ",  # arg4
-            neuron.learning_rates[i], "="                  # arg5
-        ])
-
-    return logs
-"""
-def vanilla_GBS_finalize(batch_size):
-    "" "It will be called - but in vanilla update occurs immediately"" "
-    pass
-
-Optimizer_Vanilla_GBS = Optimizer(
-    update_function=vanilla_GBS_update,
-    finalizer_function=vanilla_GBS_finalize,
-    name="Vanilla_GBS",
-    desc="Old school Gradient Bull Shit.",
-    when_to_use="Never - maybe to debug Batch mode",
-    best_for="Trying to sound smart",
-    backprop_popup_headers_single =standard_gbs_headers_batch,
-    backprop_popup_headers_batch =standard_gbs_operators
-)
-"""
 
 
 def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
@@ -174,10 +128,8 @@ def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladia
     Returns detailed logs for each weight update.
     """
     logs = []
-    #beta1 = .9 #config.optimizer_beta1  # e.g. 0.9
-    #beta2 = .999 #config.optimizer_beta2  # e.g. 0.999
-    beta1 = .5 #config.optimizer_beta1  # e.g. 0.9
-    beta2 = .9 #config.optimizer_beta2  # e.g. 0.999
+    beta1 = .9 #config.optimizer_beta1  # e.g. 0.9
+    beta2 = .999 #config.optimizer_beta2  # e.g. 0.999
     epsilon = 1e-8# config.optimizer_epsilon  # e.g. 1e-8
 
     for i, x in enumerate(input_vector):
@@ -213,37 +165,20 @@ def update_adam(neuron, input_vector, blame, t, config, epoch, iteration, gladia
         adj	Final adjustment applied to the weight or bias
         """
         logs.append([
-            #below two work...
-            #epoch, iteration, gladiator, neuron.nid, i,
-            #x, "*", blame, "*", lr, "=", adjustment
-
-
-
             epoch, iteration, gladiator, neuron.nid, i,
             #f"grad: {x:.3f}*{blame:.3f}={grad:.3f}",
-            "XX",
             f"m:{neuron.m[i]:.3f}",
             f"v:{neuron.v[i]:.3f}",
             f"t:{t}",
             f"mh:{m_hat:.3f}",
-            f"vh:{v_hat:.3f}",
-            "",  # <-- Pad for visual grouping
+            f"vh:{v_hat:.3f}"
 
-            # for the moment, lets put this creaee an if for Optimizer_Adam vs everything else...
-            # sql = """
-            #    INSERT INTO WeightAdjustments
-            #    (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-            # VALUES (?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))"""
-            #
         ])
         #for reference
         #x, "*", blame, "=", grad,
         #"m", neuron.m[i], "v", neuron.v[i], "t", t,
         #"m̂", m_hat, "v̂", v_hat,
-
     return logs
-
-
 
 Optimizer_Adam = Optimizer(
     update_function=update_adam,

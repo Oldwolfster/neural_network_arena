@@ -58,8 +58,8 @@ class DisplayArrowsOutsideNeuron(EZSurface):
             start_y = model.top + target_neuron.location_top + (target_neuron.location_height // 2) + 6.9  # Center Y
 
             # ✅ Fixed prediction panel coordinates
-            end_x = 1040
-            end_y = 206.9
+            end_x = Const.SCREEN_WIDTH *.91
+            end_y = 239.96
 
             # ✅ Now create an arrow using the correct X and Y values
             self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))

@@ -35,6 +35,8 @@ class Config:
     seconds: float                          = 0.0
     cvg_condition: str                      = "None"
     final_epoch: int                        =   0 # Last epoch to run
+    popup_headers                           = None
+    popup_operators                         = None
 
     def set_defaults(self):
         self.loss_function      = self.suggest_loss_function()
@@ -42,41 +44,8 @@ class Config:
         self.initializer        = self.suggest_initializer()
         self.output_activation  = self.loss_function.recommended_output_activation
 
-    """
     def configure_optimizer(self):
-        # BATCH MODE is just syntactic sugar for setting Batch_size.   Single
-        #TODO Add warnings if user overwrites the below batchsize.
-        print(f"BEFORE/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
-        if self.batch_mode == BatchMode.FULL_BATCH:
-            self.batch_size = self.training_data.sample_count
-        if self.batch_mode == BatchMode.SINGLE_SAMPLE:
-            self.batch_size=1
-            if self.optimizer.backprop_popup_headers_single is not None:
-                self.backprop_headers = self.optimizer.backprop_popup_headers_single
-        else: # set headers forbatch modes.
-            if self.optimizer.backprop_popup_headers_batch is not None:
-                self.backprop_headers = self.optimizer.backprop_popup_headers_batch
-        print(f"AFTER/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
-    """
-    def configure_optimizer(self):
-        print(f"BEFORE/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
-
-        if self.batch_mode == BatchMode.FULL_BATCH:
-            self.batch_size = self.training_data.sample_count
-            if self.optimizer.backprop_popup_headers_batch is not None:
-                self.backprop_headers = self.optimizer.backprop_popup_headers_batch
-
-        elif self.batch_mode == BatchMode.SINGLE_SAMPLE:
-            self.batch_size = 1
-            if self.optimizer.backprop_popup_headers_single is not None:
-                self.backprop_headers = self.optimizer.backprop_popup_headers_single
-
-        else:
-            # All other minibatch options
-            if self.optimizer.backprop_popup_headers_batch is not None:
-                self.backprop_headers = self.optimizer.backprop_popup_headers_batch
-
-        print(f"AFTER/Batch CONFIG self.backprop_headers = {self.backprop_headers}\tself.optimizer.backprop_popup_headers_batch={self.optimizer.backprop_popup_headers_batch} ")
+        self.popup_headers, self.popup_operators = self.optimizer.configure_optimizer(self)
 
 
     def suggest_loss_function(self) -> LossFunction:
