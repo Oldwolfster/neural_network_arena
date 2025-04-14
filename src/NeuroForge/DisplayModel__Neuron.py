@@ -305,13 +305,7 @@ class DisplayModel__Neuron:
         Render the tooltip with neuron details.
         Cache the rendered tooltip and only update if epoch or iteration changes.
         """
-
-        # ✅ Define dynamic column widths (adjust per column)
-        col_w = 65
-        self.column_widths = [45, 50, 10, col_w, 15, col_w,   #This ends the forward prop columns
-                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10, col_w,  10,  #this ends custom optomizer backprop columns
-                               col_w, col_w, col_w] #these are the standard last row.
-
+        self.set_column_widths()
         # ✅ Check if we need to redraw the tooltip
         if not hasattr(self, "cached_tooltip") or self.last_epoch != self.my_model.display_epoch or self.last_iteration != Const.vcr.CUR_ITERATION:
             self.last_epoch = self.my_model.display_epoch  # ✅ Update last known epoch
@@ -388,16 +382,152 @@ class DisplayModel__Neuron:
         self.tooltip_columns.extend(self.tooltip_columns_for_forward_pass())
         self.tooltip_columns.extend(self.tooltip_columns_for_backprop())  # 🔹 Uncomment when backprop data is ready
 
+    def set_column_widths(self):
+        """✅ Define dynamic column widths (adjust per column) based on the config.
+        The layout is split into three segments:
+          1. Forward propagation columns (fixed).
+          2. Custom backprop columns: for each custom field defined in the config,
+             a pair of columns is added: one for the data (width col_w) and one for the operator (width 10).
+          3. The final standard columns (fixed).
+        """
+        col_w = 65
+
+        # 1. Forward propagation columns (as before)
+        forward_cols = [45, 50, 10, col_w, 15, col_w]
+
+        # 2. Custom optimizer backprop columns.
+        # Grab the number of custom fields from your config.
+        n_custom = len(self.config.optimizer.backprop_popup_headers)
+        custom_cols = []
+        for i in range(n_custom):
+            # For each custom field add two widths:
+            # - one for the data column (width = col_w)
+            # - one for the operator column (width = 10)
+            custom_cols.append(col_w)
+            custom_cols.append(10)
+
+        # 3. Standard last row columns (fixed widths)
+        last_cols = [col_w, col_w, col_w]
+
+        # Combine all segments into the final column widths list.
+        self.column_widths = forward_cols + custom_cols + last_cols
+
+
+    def set_column_widths_deleteme(self):
+        """ ✅ Define dynamic column widths (adjust per column)"""
+        col_w = 65
+        self.column_widths = [45, 50, 10, col_w, 15, col_w,   #This ends the forward prop columns
+                              col_w, 10, col_w, 10, col_w, 10, col_w, 10, col_w+30, 10, col_w,  10,  #this ends custom optomizer backprop columns
+                               col_w, col_w, col_w] #these are the standard last row.
+
+
 ################### Gather Values for Back Pass #############################
 ################### Gather Values for Back Pass #############################
 ################### Gather Values for Back Pass #############################
 
     def tooltip_columns_for_backprop(self):
+        """
+        backprop will have 3 sections:
+            Sample: info pertaining to sample
+            Batch:  sums of sample for the batch
+            Final_adjustement:  standard... old cog value, new cog value, adjustment
+
+        """
         all_columns = self.tooltip_columns_for_backprop_custom()
         standard_finale = self.tooltip_columns_for_backprop_standard_finale()
         all_columns.extend(standard_finale)
         all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
         return all_columns
+
+        """ original sql
+        SELECT 
+          A.arg_1               as Input,        --A.op_1,            -- Input
+          A.arg_2               as Accepted,     --A.op_2,            -- Accepted Blame
+          A.arg_3               as Raw,          --A.op_3,            -- Raw Adjustment
+          A.arg_4               as Cumulative,   --A.op_4,            -- Cumulative
+          B.arg_4               as BatchTotal,   --B.op_4,            -- Batch Total
+          A.arg_5               as Learning,     --A.op_5            -- Learning Rate              
+          -- B.arg_4 * A.arg_5 AS final_adj,' '
+          
+        FROM WeightAdjustments A
+        JOIN WeightAdjustments B
+          ON A.model_id = B.model_id
+          AND A.epoch = B.epoch AND A.nid = B.nid AND A.weight_index = B.weight_index AND A.batch_id = B.batch_id
+          AND B.iteration = (SELECT MAX(iteration) FROM WeightAdjustments WHERE epoch = A.epoch    --Get Max Iteration
+                -- AND model_id = A.model_id AND nid = A.nid AND weight_index = A.weight_index AND batch_id = A.batch_id)
+        WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?   --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
+        ORDER BY A.weight_index ASC
+        """        #Const.dm.db.query_print(sql)
+
+    def tooltip_columns_for_backprop_custom(self):
+        # First, determine how many argument columns you expect.
+        num_args = len(self.config.optimizer.backprop_popup_headers)
+        # Build the SQL query to select only the argument columns.
+        arg_columns = [f"arg_{i+1}" for i in range(num_args)]
+        sql = "SELECT " + ", ".join(arg_columns) + """
+            FROM WeightAdjustments A
+            WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?
+            ORDER BY A.weight_index ASC
+        """
+
+        ez_debug(sql=sql)
+        # Retrieve the results. Each row is a tuple of length num_args.
+        results = Const.dm.db.query(
+            sql,
+            (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid),
+            as_dict=False
+        )
+
+        # Build the final columns structure.
+        # There will be two columns for each argument:
+        # one for the argument value (with header) and one for the operator (with constant operator value).
+        final_columns = []
+        for i in range(num_args):
+            # Create the argument column with its header.
+            final_columns.append([self.config.optimizer.backprop_popup_headers[i]])
+            # Create the operator column with its header.
+            final_columns.append([self.config.optimizer.backprop_popup_operators[i]])
+
+        # For each row returned by the SQL query, fill the argument columns and
+        # also insert the corresponding operator value (repeated for each row).
+        for row in results:
+            for i, arg_val in enumerate(row):
+                # For column index 2*i, append the argument value.
+                final_columns[2 * i].append(arg_val)
+                # For column index 2*i+1, append the operator constant.
+                final_columns[2 * i + 1].append(self.config.optimizer.backprop_popup_operators[i])
+
+        return final_columns
+
+
+    def tooltip_columns_for_backprop_custom1(self):
+        sql ="Select "
+        columns = []
+        for i, _ in enumerate(self.config.optimizer.backprop_popup_headers):
+            sql += f"arg_{i+1}, "
+            columns.extend(
+                [self.config.optimizer.backprop_popup_headers[i],
+                 self.config.optimizer.backprop_popup_operators[i]]
+            )
+
+        sql = sql.rstrip(', ')  #remove the trailing , and space
+        sql +=""" 
+            FROM WeightAdjustments A
+            WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?   --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
+            ORDER BY A.weight_index ASC
+        """
+
+
+        ez_debug(sql=sql)
+        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
+        #print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
+        #print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
+
+        columns = [[header] for header in self.config.backprop_headers]
+        for row in results:
+            for i, value in enumerate(row):
+                columns[i].append(value)
+        return columns
 
     def tooltip_columns_for_backprop_standard_finale(self) -> list:
         col_delta = ["Adj"] # Δ
@@ -411,41 +541,6 @@ class DisplayModel__Neuron:
             col_after.append(self.smart_format_for_popup(self.weights[i]))
 
         return [col_delta, col_before, col_after]
-
-
-    def tooltip_columns_for_backprop_custom(self):
-        sql="""
-            SELECT 
-              A.arg_1               as Input,        A.op_1,            -- Input
-              A.arg_2               as Accepted,     A.op_2,            -- Accepted Blame
-              A.arg_3               as Raw,          A.op_3,            -- Raw Adjustment
-              A.arg_4               as Cumulative,   A.op_4,            -- Cumulative
-              B.arg_4               as BatchTotal,   B.op_4,            -- Batch Total
-              A.arg_5               as Learning,     A.op_5            -- Learning Rate              
-              -- B.arg_4 * A.arg_5 AS final_adj,' '
-              
-            FROM WeightAdjustments A
-            JOIN WeightAdjustments B
-              ON A.model_id = B.model_id
-              AND A.epoch = B.epoch AND A.nid = B.nid AND A.weight_index = B.weight_index AND A.batch_id = B.batch_id
-              AND B.iteration = (
-                  SELECT MAX(iteration)
-                  FROM WeightAdjustments
-                  WHERE epoch = A.epoch
-                    AND model_id = A.model_id AND nid = A.nid AND weight_index = A.weight_index AND batch_id = A.batch_id)
-            WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?   --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
-            ORDER BY A.weight_index ASC
-        """        #Const.dm.db.query_print(sql)
-
-        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
-        #print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
-        #print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
-
-        columns = [[header] for header in self.config.backprop_headers]
-        for row in results:
-            for i, value in enumerate(row):
-                columns[i].append(value)
-        return columns
 
     def tooltip_columns_for_error_signal_calculation(self, all_cols):
         # Row in the box between adj and blame

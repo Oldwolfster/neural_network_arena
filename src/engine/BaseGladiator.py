@@ -1,7 +1,7 @@
 from abc import ABC
 from json import dumps
 from src.Legos.ActivationFunctions import *
-from src.Legos.Optimizers import Optimizer_Adam
+from src.Legos.Optimizers import *
 from src.engine.MgrSQL import MgrSQL
 from src.engine.Config import Config
 from src.engine.Neuron import Neuron
@@ -94,6 +94,7 @@ class Gladiator(ABC):
         """
 
         self.config.loss_function.validate_activation_functions()
+        self.config.optimizer.prepare_optimizer(self.config)
         if self.neuron_count == 0:
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
@@ -293,11 +294,9 @@ class Gladiator(ABC):
             for neuron in Neuron.layers[layer_index]:   # Adjust weights for each neuron in the current layer
                 self.back_pass__update_neurons_weights(neuron, prev_layer)
 
-
     def back_pass__update_neurons_weights(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
         blame = neuron.error_signal
         input_vector = [1.0] + list(prev_layer_values)
-
 
         self.weight_update_calculations.extend(
             self.config.optimizer.update(
@@ -310,168 +309,9 @@ class Gladiator(ABC):
         )
         self.total_iterations += len(input_vector)
 
-
-
-    def back_pass__update_neurons_weightsv1(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
-        blame = neuron.error_signal
-        input_vector = [1.0] + list(prev_layer_values)
-        t = 0 # self.epoch * self.total_iterations + self.iteration + 1
-
-        adjustments = self.config.optimizer.update(neuron, input_vector, blame, t, self.config)
-
-        for i, adj in enumerate(adjustments):
-            self.weight_update_calculations.append([
-                self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
-                input_vector[i], "*", blame, "*", neuron.learning_rates[i], "=", adj
-            ])
-
-        """  
-            # Optional: Capture the actual adjustment if desired
-            adjustment = grad * neuron.learning_rates[i]  # Only accurate for SGD
-            self.weight_update_calculations.append([
-                self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
-                prev_value, "*", blame, "*", neuron.learning_rates[i], "=", adjustment
-            ])
-            """
-
-    def back_pass__update_neurons_weights_NoOptimizer(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
-        """
-        Updates weights for a neuron based on blame (error signal).
-        Args:
-            neuron: The neuron that will have its weights updated to.
-            prev_layer_values: (list[float]) Activations from the previous layer or inputs for first hidden layer
-        """
-        blame = neuron.error_signal                             # Get the culpability assigned to this neuron
-        input_vector = [1.0] + list(prev_layer_values)
-
-        for i, prev_value in enumerate(input_vector):
-            learning_rate = neuron.learning_rates[i]
-            adjustment = prev_value * blame * learning_rate
-
-            # 🔹 Update
-            if i == 0:
-                neuron.bias -= adjustment
-            else:
-                neuron.weights[i - 1] -= adjustment
-
-            # 🔹 Store structured calculation for weights
-            self.weight_update_calculations.append([
-                self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
-                prev_value, "*", blame, "*", learning_rate, "=", adjustment
-            ])
-
-
-    #################################################
-    #################################################
-    #################################################
-    #################################################
-    def back_pass__distribute_errorAdaptive(self, neuron: Neuron, prev_layer_values: list[float]) -> None:
-        """
-        Updates weights for a neuron based on blame (error signal).
-        args: neuron: The neuron that will have its weights updated to.
-
-        - First hidden layer uses inputs from training data.
-        - All other neurons use activations from the previous layer.
-        """
-        error_signal = neuron.error_signal
-
-        for i, (w, prev_value) in enumerate(zip(neuron.weights, prev_layer_values)):
-            weight_before = neuron.weights[i]
-            adjustment  = prev_value * error_signal *  neuron.learning_rates[i+1] #1 accounts for bias in 0  #So stupid to go down hill they look uphill and go opposite
-            if abs(adjustment) > self.too_high_adjst: #Explosion detection
-                adjustment = 0
-                neuron.learning_rates[i+1] *= 0.5     #reduce neurons LR
-            # **💡 Growth Factor: Gradually Increase LR if too slow**
-
-            #elif not is_exploding(weight) and not is_oscillating(weight):
-            else:
-                neuron.learning_rates[i] *= 1.05  # Boost LR slightly if it looks stable
-
-            neuron.weights[i] -= adjustment
-            #print(f"trying to find path down{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
-
-            # 🔹 Store structured calculation for weights
-            self.weight_update_calculations.append([
-                # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
-                prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
-            ])
-
-
-        # Bias update
-        adjustment_bias = neuron.learning_rates[0] * error_signal
-        if abs(adjustment_bias) > self.too_high_adjst: #Explosion detection
-            adjustment_bias = 0
-            neuron.learning_rates[0] *= 0.5     #reduce neurons LR
-        else:
-            neuron.learning_rates[0] *= 1.05     #reduce neurons LR
-        neuron.bias -= adjustment_bias
-
-        # 🔹 Store structured calculation for bias
-        self.weight_update_calculations.append([
-        # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
-            self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
-                "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
-            ])
-
-
-    def convert_numpy_scalars_because_python_is_shit(self, row):
-        """
-        Converts any NumPy scalar values in the given row to their native Python types.
-        Friggen ridiculous it was converting either 0 to null or 1 to 0.... what a joke this language is
-        """
-        return [x.item() if hasattr(x, 'item') else x for x in row]
-
-    def record_weight_updates_ORIGINAL(self):
-        """
-        Inserts all weight update calculations for the current iteration into the database.
-        """
-
-        if self.config.optimizer == Optimizer_Adam:
-            sql = """
-                INSERT INTO WeightAdjustments 
-                (epoch, iteration, model_id, nid, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-        else:
-            sql = """
-                INSERT INTO WeightAdjustments 
-                (epoch, iteration, model_id, nid, weight_index, batch_id, arg_1, op_1
-                , arg_2, op_2, arg_3, op_3, result)
-                VALUES (?, ?, ?, ?, ?, ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL), ?, CAST(? AS REAL))
-            """
-
-        # Convert each row to ensure any numpy scalars are native Python types
-        converted_rows = [self.convert_numpy_scalars_because_python_is_weak(row) for row in self.weight_update_calculations]
-        #print(f"converted rows = {converted_rows}")
-        self.db.executemany(sql, converted_rows)
-        self.weight_update_calculations.clear()
-
-    def build_weight_update_field_list(self, sample_row):
-        base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
-        arg_op_fields = []
-
-        # Start at 6 because first 6 are base fields
-        for i in range(6, len(sample_row), 2):
-            arg_n = (i - 6) // 2 + 1
-            arg_op_fields.append(f"arg_{arg_n}")
-            if i + 1 < len(sample_row):
-                arg_op_fields.append(f"op_{arg_n}")
-
-        return ", ".join(base_fields + arg_op_fields)
-
-
-    def build_weight_update_placeholders(self, sample_row):
-        base_placeholders = ["?"] * 6
-        arg_op_placeholders = []
-
-        for i in range(6, len(sample_row), 2):
-            arg_op_placeholders.append("CAST(? AS REAL)")  # arg
-            if i + 1 < len(sample_row):
-                arg_op_placeholders.append("?")  # op
-
-        return ", ".join(base_placeholders + arg_op_placeholders)
-
+    ############################### END OF BACKPASS ###############################
+    ############################### END OF BACKPASS ###############################
+    ############################### END OF BACKPASS ###############################
 
     def record_weight_updates(self):
         """
@@ -492,8 +332,37 @@ class Gladiator(ABC):
         """
 
         converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in self.weight_update_calculations]
+        #print(f"sql={sql}")
+        #print(f"converted_rows={converted_rows}")
         self.db.executemany(sql, converted_rows)
         self.weight_update_calculations.clear()
+
+    def convert_numpy_scalars_because_python_is_shit(self, row):
+        """
+        Converts any NumPy scalar values in the given row to their native Python types.
+        Friggen ridiculous it was converting either 0 to null or 1 to 0.... what a joke this language is
+        """
+        return [x.item() if hasattr(x, 'item') else x for x in row]
+
+    def build_weight_update_field_list(self, sample_row):
+        base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
+        custom_fields = []
+        # Now create one custom field per element after the first six (base fields).
+        for i in range(6, len(sample_row)):
+            arg_n = i - 6 + 1
+            custom_fields.append(f"arg_{arg_n}")
+        return ", ".join(base_fields + custom_fields)
+
+
+    def build_weight_update_placeholders(self, sample_row):
+        base_placeholders = ["?"] * 6
+        arg_op_placeholders = []
+
+        for i in range(6, len(sample_row)):
+            arg_op_placeholders.append("CAST(? AS REAL)")  # arg
+        return ", ".join(base_placeholders + arg_op_placeholders)
+
+
 
 
     def record_blame_calculations(self):

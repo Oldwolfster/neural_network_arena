@@ -10,7 +10,7 @@ class NeuralNetwork_NNA(Gladiator):
     def __init__(self, *args):
         super().__init__(*args)
         # Define the architecture: [inputs, hidden1, hidden2, ..., outputs]
-        self.layers = [2, 3, 1]  # Example architecture with 2 inputs, 3 hidden neurons, and 1 output
+        self.layers = [2,1]  # Example architecture with 2 inputs, 3 hidden neurons, and 1 output
         self.alpha = 0.1  # Learning rate
         self.W = []  # List to hold weight matrices
 

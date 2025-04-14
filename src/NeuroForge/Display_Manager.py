@@ -118,9 +118,9 @@ class Display_Manager:
 
         #self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
         #                              background_image_path="assets/form_backgrounds/coliseum_glow.png")
-        win_matches = WindowMatches()
-        self.components.append(win_matches)
-        self.eventors.append(win_matches)
+       #win_matches = WindowMatches()
+        #self.components.append(win_matches)
+        #self.eventors.append(win_matches)
 
 
 
