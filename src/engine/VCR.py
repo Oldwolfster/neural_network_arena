@@ -17,7 +17,7 @@ from typing import Dict
 from ..Legos.Optimizers import BatchMode
 
 
-class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
+class VCR:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
     def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
         # Run Level members
         self.training_data          = training_data
@@ -98,7 +98,6 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
             if remainder > 0:
                 finalizer_fn(remainder) # Finalize leftovers
 
-
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
         if mae < self.config.lowest_error:    # New lowest error
@@ -107,7 +106,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
 
         self.abs_error_for_epoch = 0 # Reset for next epoch
         epoch_metrics = self.get_metrics_from_ramdb(epoch)
-        #print(f"MgrSQL ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
+        #print(f"VCR ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
         self.epoch_curr_number+=1
         return self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
 
@@ -132,8 +131,90 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
             return result[0]  # Return the first row as a dictionary
         raise RuntimeError("No records found for the specified model_id")  # Raise error if no records are found
 
+    def record_weight_updates(self, weight_update_metrics):
+        """
+        Inserts weight update calculations for the current iteration into the database.
+        Compatible with arbitrary arg/op chains.
+        """
+        if not weight_update_metrics:
+            return
+
+        sample_row = weight_update_metrics[0]
+        fields = self.build_weight_update_field_list(sample_row)
+        placeholders = self.build_weight_update_placeholders(sample_row)
+
+        # now to merge it here... self.config.gladiator_name
+        sql = f"""
+            INSERT INTO WeightAdjustments
+            ({fields})
+            VALUES ({placeholders})
+        """
+
+        table_name = f"WeightAdjustments_{self.config.gladiator_name}" #TODO susceptible to SQL injection
+        sql = f"""
+            INSERT INTO {table_name}
+            ({fields})
+            VALUES ({placeholders})
+        """
+
+        converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in weight_update_metrics]
+        #print(f"sql={sql}")
+        #print(f"converted_rows={converted_rows}")
+        self.db.executemany(sql, converted_rows)
+
+
+    def convert_numpy_scalars_because_python_is_shit(self, row):
+        """
+        Converts any NumPy scalar values in the given row to their native Python types.
+        Friggen ridiculous it was converting either 0 to null or 1 to 0.... what a joke this language is
+        """
+        return [x.item() if hasattr(x, 'item') else x for x in row]
+
+    def build_weight_update_field_list(self, sample_row):
+        base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
+        custom_fields = []
+        # Now create one custom field per element after the first six (base fields).
+        for i in range(6, len(sample_row)):
+            arg_n = i - 6 + 1
+            custom_fields.append(f"arg_{arg_n}")
+        return ", ".join(base_fields + custom_fields)
+
+
+    def build_weight_update_placeholders(self, sample_row):
+        base_placeholders = ["?"] * 6
+        arg_op_placeholders = []
+
+        for i in range(6, len(sample_row)):
+            arg_op_placeholders.append("CAST(? AS REAL)")  # arg
+        return ", ".join(base_placeholders + arg_op_placeholders)
 
 
 
 
+    def record_blame_calculations(self, blame_calculations):
+        """
+        Inserts all backprop calculations for the current iteration into the database.
+        """
+        #print("********  Distribute Error Calcs************")
+        #for row in self.blame_calculations:
+        #    print(row)
+
+        sql = """
+        INSERT INTO ErrorSignalCalcs
+        (epoch, iteration, model_id, nid, weight_id, 
+         arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
+        VALUES 
+        (?, ?, ?, ?, ?, 
+         CAST(? AS REAL), ?, 
+         CAST(? AS REAL), ?, 
+         CAST(? AS REAL), ?, 
+         CAST(? AS REAL))
+        """
+
+        # Convert each row to ensure any numpy scalars are native Python types
+        converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in blame_calculations]
+        #print(f"BLAME {self.blame_calculations}")
+
+        #Heads up, sometimes overflow error look like key violation here
+        self.db.executemany(sql, blame_calculations)
 

@@ -2,7 +2,7 @@ from abc import ABC
 from json import dumps
 from src.Legos.ActivationFunctions import *
 from src.Legos.Optimizers import *
-from src.engine.MgrSQL import MgrSQL
+from src.engine.VCR import VCR
 from src.engine.Config import Config
 from src.engine.Neuron import Neuron
 from datetime import datetime
@@ -38,7 +38,7 @@ class Gladiator(ABC):
         self.neuron_count       = 0                         # Default value
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.mgr_sql            = MgrSQL(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
+        self.VCR                = VCR(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
@@ -156,7 +156,7 @@ class Gladiator(ABC):
 
             # Step 4: Record iteration data
             iteration_data = Iteration(
-                model_id=self.mgr_sql.model_id,
+                model_id=self.config.gladiator_name,
                 epoch=epoch_num + 1,
                 iteration=i + 1,
                 inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
@@ -171,10 +171,10 @@ class Gladiator(ABC):
             #print("Should be different after backpass")
             #print(f"weights_before are {Neuron.neurons[1].weights_before}")
             #print(f"weights are        {Neuron.neurons[1].weights}")
-            self.mgr_sql.record_iteration(iteration_data, Neuron.layers)
+            self.VCR.record_iteration(iteration_data, Neuron.layers)
             # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
 
-        return self.mgr_sql.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
+        return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def process_a_sample(self, sample, inputs, target):
         # Step 1: Forward pass
@@ -191,12 +191,12 @@ class Gladiator(ABC):
         #print(f"weights are        {Neuron.neurons[1].weights}")
         self.back_pass(sample, loss_gradient)  # Call model-specific logic
 
-
-
         # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
-        self.record_blame_calculations()                    # Write error signal calculations to db for NeuroForge popup
-        self.record_weight_updates()                        # Write distribute error calculations to db for NeuroForge popup
-        return error, loss,  loss_gradient
+        self.VCR.record_blame_calculations  (self.blame_calculations)                    # Write error signal calculations to db for NeuroForge popup
+        self.VCR.record_weight_updates      (self.weight_update_calculations)                        # Write distribute error calculations to db for NeuroForge popup
+        self.blame_calculations             .clear()
+        self.weight_update_calculations     .clear()
+        return error, loss, loss_gradient
 
     ################################################################################################
     ################################ SECTION 1 - Training Default Methods ##########################
@@ -307,98 +307,6 @@ class Gladiator(ABC):
     ############################### END OF BACKPASS ###############################
     ############################### END OF BACKPASS ###############################
 
-    def record_weight_updates(self):
-        """
-        Inserts weight update calculations for the current iteration into the database.
-        Compatible with arbitrary arg/op chains.
-        """
-        if not self.weight_update_calculations:
-            return
-
-        sample_row = self.weight_update_calculations[0]
-        fields = self.build_weight_update_field_list(sample_row)
-        placeholders = self.build_weight_update_placeholders(sample_row)
-
-
-
-        # now to merge it here... self.config.gladiator_name
-        sql = f"""
-            INSERT INTO WeightAdjustments
-            ({fields})
-            VALUES ({placeholders})
-        """
-
-
-        table_name = f"WeightAdjustments_{self.config.gladiator_name}" #TODO susceptible to SQL injection
-        sql = f"""
-            INSERT INTO {table_name}
-            ({fields})
-            VALUES ({placeholders})
-        """
-
-
-
-        converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in self.weight_update_calculations]
-        #print(f"sql={sql}")
-        #print(f"converted_rows={converted_rows}")
-        self.db.executemany(sql, converted_rows)
-        self.weight_update_calculations.clear()
-
-    def convert_numpy_scalars_because_python_is_shit(self, row):
-        """
-        Converts any NumPy scalar values in the given row to their native Python types.
-        Friggen ridiculous it was converting either 0 to null or 1 to 0.... what a joke this language is
-        """
-        return [x.item() if hasattr(x, 'item') else x for x in row]
-
-    def build_weight_update_field_list(self, sample_row):
-        base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
-        custom_fields = []
-        # Now create one custom field per element after the first six (base fields).
-        for i in range(6, len(sample_row)):
-            arg_n = i - 6 + 1
-            custom_fields.append(f"arg_{arg_n}")
-        return ", ".join(base_fields + custom_fields)
-
-
-    def build_weight_update_placeholders(self, sample_row):
-        base_placeholders = ["?"] * 6
-        arg_op_placeholders = []
-
-        for i in range(6, len(sample_row)):
-            arg_op_placeholders.append("CAST(? AS REAL)")  # arg
-        return ", ".join(base_placeholders + arg_op_placeholders)
-
-
-
-
-    def record_blame_calculations(self):
-        """
-        Inserts all backprop calculations for the current iteration into the database.
-        """
-        #print("********  Distribute Error Calcs************")
-        #for row in self.blame_calculations:
-        #    print(row)
-
-        sql = """
-        INSERT INTO ErrorSignalCalcs
-        (epoch, iteration, model_id, nid, weight_id, 
-         arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
-        VALUES 
-        (?, ?, ?, ?, ?, 
-         CAST(? AS REAL), ?, 
-         CAST(? AS REAL), ?, 
-         CAST(? AS REAL), ?, 
-         CAST(? AS REAL))
-        """
-
-        # Convert each row to ensure any numpy scalars are native Python types
-        converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in self.blame_calculations]
-        #print(f"BLAME {self.blame_calculations}")
-
-        #Heads up, sometimes overflow error look like key violation here
-        self.db.executemany(sql, self.blame_calculations)
-        self.blame_calculations.clear()
 
     def validate_pass(self, target: float, prediction_raw: float):
         """
@@ -446,11 +354,6 @@ class Gladiator(ABC):
         if not hasattr(self, 'lowest_error'):
             print("⚠️ No best weights found — 'lowest_error' was never set.")
             return
-
-
-
-
-
 
     def get_flat_initializers(self, architecture: List[int], initializers: List[WeightInitializer]) -> List[WeightInitializer]:
         """

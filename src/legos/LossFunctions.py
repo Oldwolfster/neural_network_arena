@@ -157,7 +157,7 @@ def mse_derivative(y_pred, y_true):
 Loss_MSE = LossFunction(
     loss=mse_loss,
     derivative=mse_derivative,
-    name="Mea   n Squared Error (MSE)",
+    name="Mean Squared Error (MSE)",
     short_name="MSE",
     desc="Calculates the average of the squares of differences between predictions and actual values.",
     when_to_use="Commonly used for regression problems.",
