@@ -9,8 +9,8 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 1      # Number of times training run will cycle through all training data
-    training_set_size       :int    = 6    # Qty of training data
+    epochs_to_run           :int    = 222      # Number of times training run will cycle through all training data
+    training_set_size       :int    = 25    # Qty of training data
     default_learning_rate   :float  = .01      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.

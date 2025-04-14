@@ -77,7 +77,7 @@ def run_a_match(gladiators, training_pit, shared_hyper):
     seed = set_seed(shared_hyper.random_seed)
 
     # Shared resources
-    db = prep_RamDB()
+    db = prep_RamDB(gladiators)
     training_data = get_training_data(shared_hyper)
     training_data.arena_name = training_pit
     record_training_data(training_data.get_list())

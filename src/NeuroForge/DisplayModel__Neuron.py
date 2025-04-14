@@ -397,7 +397,7 @@ class DisplayModel__Neuron:
 
         # 2. Custom optimizer backprop columns.
         # Grab the number of custom fields from your config.
-        n_custom = len(self.config.optimizer.backprop_popup_headers)
+        n_custom = len(self.config.popup_headers)
         custom_cols = []
         for i in range(n_custom):
             # For each custom field add two widths:
@@ -461,11 +461,11 @@ class DisplayModel__Neuron:
 
     def tooltip_columns_for_backprop_custom(self):
         # First, determine how many argument columns you expect.
-        num_args = len(self.config.optimizer.backprop_popup_headers)
+        num_args = len(self.config.popup_headers)
         # Build the SQL query to select only the argument columns.
         arg_columns = [f"arg_{i+1}" for i in range(num_args)]
-        sql = "SELECT " + ", ".join(arg_columns) + """
-            FROM WeightAdjustments A
+        sql = "SELECT " + ", ".join(arg_columns) + f"""
+            FROM WeightAdjustments_{self.config.gladiator_name} A
             WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?
             ORDER BY A.weight_index ASC
         """
@@ -484,9 +484,9 @@ class DisplayModel__Neuron:
         final_columns = []
         for i in range(num_args):
             # Create the argument column with its header.
-            final_columns.append([self.config.optimizer.backprop_popup_headers[i]])
+            final_columns.append([self.config.popup_headers[i]])
             # Create the operator column with its header.
-            final_columns.append([self.config.optimizer.backprop_popup_operators[i]])
+            final_columns.append([self.config.popup_operators[i]])
 
         # For each row returned by the SQL query, fill the argument columns and
         # also insert the corresponding operator value (repeated for each row).
@@ -495,39 +495,9 @@ class DisplayModel__Neuron:
                 # For column index 2*i, append the argument value.
                 final_columns[2 * i].append(arg_val)
                 # For column index 2*i+1, append the operator constant.
-                final_columns[2 * i + 1].append(self.config.optimizer.backprop_popup_operators[i])
+                final_columns[2 * i + 1].append(self.config.popup_operators[i])
 
         return final_columns
-
-
-    def tooltip_columns_for_backprop_custom1(self):
-        sql ="Select "
-        columns = []
-        for i, _ in enumerate(self.config.optimizer.backprop_popup_headers):
-            sql += f"arg_{i+1}, "
-            columns.extend(
-                [self.config.optimizer.backprop_popup_headers[i],
-                 self.config.optimizer.backprop_popup_operators[i]]
-            )
-
-        sql = sql.rstrip(', ')  #remove the trailing , and space
-        sql +=""" 
-            FROM WeightAdjustments A
-            WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?   --WHERE A.epoch = 1 AND A.iteration <3 AND A.model_id     = "TestBatch" AND A.nid = 0 and A.weight_index=0
-            ORDER BY A.weight_index ASC
-        """
-
-
-        ez_debug(sql=sql)
-        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
-        #print(f"Headers ({len(self.config.backprop_headers)}): {self.config.backprop_headers}")
-        #print(f"SQL row length: {len(results[0])}, Sample row: {results[0]}")
-
-        columns = [[header] for header in self.config.backprop_headers]
-        for row in results:
-            for i, value in enumerate(row):
-                columns[i].append(value)
-        return columns
 
     def tooltip_columns_for_backprop_standard_finale(self) -> list:
         col_delta = ["Adj"] # Δ

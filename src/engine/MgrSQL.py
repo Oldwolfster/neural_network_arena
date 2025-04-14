@@ -63,7 +63,7 @@ class MgrSQL:       #(gladiator, training_set_size, converge_epochs, converge_th
         #if (iteration_num) % self.config.batch_size == 0: #maybe rename update weights.
             #self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
         #    self.config.optimizer.finalizer_function(self.config.batch_size)
-        self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count,            self.config.batch_size,    self.config.optimizer.finalizer_function)
+        self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer_function)
 
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
