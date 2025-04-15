@@ -708,6 +708,10 @@ class DisplayModel__Neuron:
     def is_right_aligned(self, text, row_index):
         if row_index == 0:
             return True
+        if text == "||":
+            return True
+        if text == "/":
+            return True
         if text == "=":
             return True
         if text == "*":
