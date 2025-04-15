@@ -209,7 +209,8 @@ class RamDB:
                 return [dict(zip(column_names, row)) for row in rows]
             return rows
         except sqlite3.Error as e:
-            raise RuntimeError(f"SQL query failed: {e}")
+            raise RuntimeError(f"SQL query failed: {e}") from None #TODO this should put it one up th ecall stack..
+
 
     def query_scalar_list(self, sql, params=None):
         """
@@ -230,26 +231,6 @@ class RamDB:
             return [row[0] for row in rows] if rows else []
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL query failed: {e}")
-
-
-    def query_printold(self, sql, as_dict=True, surpress_call_stack = False):
-        data = self.query(sql)    # Fetch the data from the database
-        if data:
-            report = tabulate(data, headers="keys", tablefmt="fancy_grid")    # Generate the tabulated report
-
-            if surpress_call_stack == False:
-                print(f"PRINTING FROM RamDB query_print")
-                #print_call_stack()
-            print(report)
-            return data
-        else:
-            print(f"No results found. ==>{sql}")
-
-
-
-
-
-
 
     def query_print(self, sql, as_dict=True, surpress_call_stack=False, use_excel=False):
         data = self.query(sql, as_dict=as_dict)  # Fetch the data from the database

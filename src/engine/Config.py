@@ -35,8 +35,10 @@ class Config:
     seconds: float                          = 0.0
     cvg_condition: str                      = "None"
     final_epoch: int                        =   0 # Last epoch to run
-    popup_headers                           = None
+    popup_headers                           = None #TODO Standardize these 4 names.
     popup_operators                         = None
+    popup_finalizer_headers                       = None
+    popup_finalizer_operators                     = None
 
     def set_defaults(self):
         self.loss_function      = self.suggest_loss_function()
@@ -45,7 +47,8 @@ class Config:
         self.output_activation  = self.loss_function.recommended_output_activation
 
     def configure_optimizer(self):
-        self.popup_headers, self.popup_operators = self.optimizer.configure_optimizer(self)
+        (self.popup_headers, self.popup_operators,
+         self.popup_finalizer_headers, self.popup_finalizer_operators) = self.optimizer.configure_optimizer(self)
 
 
     def suggest_loss_function(self) -> LossFunction:
