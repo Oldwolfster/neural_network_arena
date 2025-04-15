@@ -87,7 +87,7 @@ class Optimizer:
         if config.batch_size == 1:
             return self._backprop_popup_headers_single, self._backprop_popup_operators_single, self._backprop_popup_headers_finalizer, self._backprop_popup_operators_single
         else:
-            return self._backprop_popup_headers_batch, self._backprop_popup_operators_batch, self._backprop_popup_headers_finalizer, self._backprop_popup_operators_single
+            return self._backprop_popup_headers_batch, self._backprop_popup_operators_batch, self._backprop_popup_headers_finalizer, self._backprop_popup_operators_finalizer
 
 
 def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration, batch_id):
@@ -105,8 +105,7 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
         logs.append(
             #[epoch, iteration, gladiator, neuron.nid, weight_id, batch_id, input_x, accepted_blame, raw_adjustment] +
             [epoch, iteration,  neuron.nid, weight_id, batch_id, input_x, accepted_blame, raw_adjustment] +
-            ([neuron.accumulated_accepted_blame[weight_id]] if config.batch_size > 1 else []) + #NOTE THIS IS CORRECT TO Use config batch size rather than actual... interface does not change just because it is a leftover.
-            [neuron.learning_rates[weight_id]]
+            ([neuron.accumulated_accepted_blame[weight_id]] if config.batch_size > 1 else []) #NOTE THIS IS CORRECT TO Use config batch size rather than actual... interface does not change just because it is a leftover.
         )
     return logs
 def sgd_finalize(batch_size, epoch, iteration, batch_id):
@@ -125,7 +124,7 @@ def sgd_finalize(batch_size, epoch, iteration, batch_id):
                 else:
                     neuron.weights[weight_id - 1] -= adjustment
                 logs.append([epoch, iteration,  neuron.nid, weight_id,batch_id,
-                             blame_sum, batch_size, avg_blame]
+                             blame_sum, batch_size, avg_blame, neuron.learning_rates[weight_id]]
                 )
 
             #clear accumulated accepted blamee for next batch
@@ -135,11 +134,11 @@ def sgd_finalize(batch_size, epoch, iteration, batch_id):
 standard_gbs_headers_single         = ["Input", "Blame", "Raw Adj",  "Lrn Rt"]
 standard_gbs_operators_single       = [  "*",         "=",       "*",       "="]
 
-standard_gbs_headers_batch          = ["Input", "Blame", "Raw Adj", "Cum.",  "Lrn Rt"]
-standard_gbs_operators_batch        = [ "*",     "=",     " ",          "*",       "="]
+standard_gbs_headers_batch          = ["Input", "Blame", "Raw Adj", "Cum."]
+standard_gbs_operators_batch        = [ "*",     "=",     " ",          "||"]
 
-standard_gbs_headers_finalizers     = ["B Total", "Count", "Avg"]
-standard_gbs_operators_finalizers   = [":)", "/",        "=",     " "]
+standard_gbs_headers_finalizers     = ["B Total", "Count", "Avg Blm",  "Lrn Rt"]
+standard_gbs_operators_finalizers   = [ "/",        "=",     "*", " "]
 
 Optimizer_SGD = Optimizer(
     name        = "Stochastic Gradient Descent",
