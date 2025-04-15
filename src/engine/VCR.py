@@ -25,14 +25,16 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         self.hyper                  = hyper
         self.neurons                = neurons
         self.db                     = ramDb
+        self.batch_id               = 0
         self.config                 = config
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
         self.sample_count           = len(self.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
         self.accuracy_threshold     = (hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
-        self.converge_detector     = ConvergenceDetector(hyper,training_data, config)
-        self.abs_error_for_epoch = 0
-        self.convergence_signal = None      # Will be set by convergence detector
+        self.converge_detector      = ConvergenceDetector(hyper,training_data, config)
+        self.abs_error_for_epoch    = 0
+        self.convergence_signal     = None      # Will be set by convergence detector
+        self.backpass_finalize_info = []
 
     def should_record_sample(self, epoch: int, sample_index: int) -> bool:
         # ✅ Always record the first sample of every epoch
@@ -57,13 +59,13 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         epoch_num = iteration_data.epoch
         iteration_num = iteration_data.iteration
         #print(f"Deciding {epoch_num}\t {iteration_num}")
-        #if not self.should_record_sample(epoch_num, iteration_num):
+        #if not self.should_record_sample(epoch_num, iteration_num): #TODO figure this out one day
         #    return
 
-        #if (iteration_num) % self.config.batch_size == 0: #maybe rename update weights.
-            #self.config.optimizer.finalizer_function(self.config, epoch_num, self.config.gladiator_name)
-        #    self.config.optimizer.finalizer_function(self.config.batch_size)
-        self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer_function)
+        #Check if batch is over, if so if there is data to record, then record it (for neuroforge)
+        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer_function)
+        if any(record_weight_updates_from_finalize):
+            self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
         self.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
@@ -89,14 +91,26 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                 self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
 
-    def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn):
+    def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn) -> list:
         if iteration_num % batch_size == 0:
-            # Finalize normal batch
-            finalizer_fn(batch_size)
+            # replaced with the below to standardize batch_id handling return finalizer_fn(batch_size, self.epoch_curr_number, iteration_num)  # Normal batch
+            return self.finish_batch(batch_size,iteration_num,finalizer_fn)
         elif iteration_num == total_samples:
             remainder = total_samples % batch_size
             if remainder > 0:
-                finalizer_fn(remainder) # Finalize leftovers
+                # replaced with the below to standardize batch_id handlingreturn finalizer_fn(remainder, self.epoch_curr_number, iteration_num)  # Final mini-batch
+                return self.finish_batch(remainder,iteration_num,finalizer_fn)
+        return []  # Nothing to finalize this round
+
+    def finish_batch(self,batch_size, iteration_num, finalizer_fn) -> list:
+        """
+            Runs the optimizer's finalizer function with the correct batch_id,
+            and increments the internal batch counter for the next batch.
+            This ensures all finalizers remain stateless and batch_id is standardized.
+        """
+        finalizer_log = finalizer_fn(batch_size, self.epoch_curr_number, iteration_num, self.batch_id)  # Normal batch
+        self.batch_id += 1    #increment batch number
+        return finalizer_log
 
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.training_data.sample_count
@@ -131,7 +145,11 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
             return result[0]  # Return the first row as a dictionary
         raise RuntimeError("No records found for the specified model_id")  # Raise error if no records are found
 
-    def record_weight_updates(self, weight_update_metrics):
+    ############# Record Backpass info for pop up window of NeuroForge #############
+    ############# Record Backpass info for pop up window of NeuroForge #############
+    ############# Record Backpass info for pop up window of NeuroForge #############
+    ############# Record Backpass info for pop up window of NeuroForge #############
+    def record_weight_updates(self, weight_update_metrics, update_or_finalize: str):
         """
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
@@ -143,14 +161,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
 
-        # now to merge it here... self.config.gladiator_name
-        sql = f"""
-            INSERT INTO WeightAdjustments
-            ({fields})
-            VALUES ({placeholders})
-        """
-
-        table_name = f"WeightAdjustments_{self.config.gladiator_name}" #TODO susceptible to SQL injection
+        table_name = f"WeightAdjustments_{update_or_finalize}_{self.config.gladiator_name}" #TODO susceptible to SQL injection
         sql = f"""
             INSERT INTO {table_name}
             ({fields})
@@ -158,10 +169,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
 
         converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in weight_update_metrics]
-        #print(f"sql={sql}")
-        #print(f"converted_rows={converted_rows}")
         self.db.executemany(sql, converted_rows)
-
+        weight_update_metrics.clear()
 
     def convert_numpy_scalars_because_python_is_shit(self, row):
         """
@@ -171,25 +180,25 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         return [x.item() if hasattr(x, 'item') else x for x in row]
 
     def build_weight_update_field_list(self, sample_row):
-        base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
+        #base_fields = ["epoch", "iteration", "model_id", "nid", "weight_index", "batch_id"]
+        base_fields = ["epoch", "iteration", "nid", "weight_index", "batch_id"]
         custom_fields = []
         # Now create one custom field per element after the first six (base fields).
-        for i in range(6, len(sample_row)):
-            arg_n = i - 6 + 1
+        for i in range(5, len(sample_row)):
+            arg_n = i - 5 + 1
             custom_fields.append(f"arg_{arg_n}")
         return ", ".join(base_fields + custom_fields)
 
 
     def build_weight_update_placeholders(self, sample_row):
-        base_placeholders = ["?"] * 6
+        #base_placeholders = ["?"] * 6
+        base_placeholders = ["?"] * 5
         arg_op_placeholders = []
 
-        for i in range(6, len(sample_row)):
+        #for i in range(6, len(sample_row)):
+        for i in range(5, len(sample_row)):
             arg_op_placeholders.append("CAST(? AS REAL)")  # arg
         return ", ".join(base_placeholders + arg_op_placeholders)
-
-
-
 
     def record_blame_calculations(self, blame_calculations):
         """
@@ -217,4 +226,5 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
 
         #Heads up, sometimes overflow error look like key violation here
         self.db.executemany(sql, blame_calculations)
+        blame_calculations.clear()
 

@@ -192,10 +192,8 @@ class Gladiator(ABC):
         self.back_pass(sample, loss_gradient)  # Call model-specific logic
 
         # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
-        self.VCR.record_blame_calculations  (self.blame_calculations)                    # Write error signal calculations to db for NeuroForge popup
-        self.VCR.record_weight_updates      (self.weight_update_calculations)                        # Write distribute error calculations to db for NeuroForge popup
-        self.blame_calculations             .clear()
-        self.weight_update_calculations     .clear()
+        self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
+        self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
         return error, loss, loss_gradient
 
     ################################################################################################
@@ -292,13 +290,13 @@ class Gladiator(ABC):
         blame = neuron.error_signal
         input_vector = [1.0] + list(prev_layer_values)
 
-        self.weight_update_calculations.extend(
+        self.weight_update_calculations.extend( #Note list from _Finalize is gathered in VCR
             self.config.optimizer.update(
                 neuron, input_vector, blame, self.total_iterations ,
-                config=self.config,
-                epoch=self.epoch + 1,
-                iteration=self.iteration + 1,
-                gladiator=self.gladiator
+                config      = self.config,
+                epoch       = self.epoch + 1,
+                iteration   = self.iteration + 1,
+                batch_id    = self.VCR.batch_id
             )
         )
         self.total_iterations += len(input_vector)

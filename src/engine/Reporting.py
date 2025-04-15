@@ -68,11 +68,11 @@ def create_WeightAdjustments_tablesOrig_DELETEME(db: RamDB):
         """)
         #db.query_print("PRAGMA table_info(Iteration);")
 
-def create_weight_adjustments_table(db: RamDB, model_id: str, arg_count=12):
+def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize: str, arg_count=12):
     """
     Creates a dedicated WeightAdjustments_<model_id> table with arg_1..arg_N fields.
     """
-    table_name = f"WeightAdjustments_{model_id}"
+    table_name = f"WeightAdjustments_{update_or_finalize}_{model_id}"
     fields = ",\n".join([f"    arg_{i+1} REAL DEFAULT NULL" for i in range(arg_count)])
 
     sql = f"""
@@ -80,7 +80,7 @@ def create_weight_adjustments_table(db: RamDB, model_id: str, arg_count=12):
             epoch        INTEGER NOT NULL,
             iteration    INTEGER NOT NULL,
             nid          INTEGER NOT NULL,
-            model_id     TEXT NOT NULL,
+            -- model_id     TEXT NOT NULL,
             weight_index INTEGER NOT NULL,
             batch_id     INTEGER NOT NULL DEFAULT 0,
             {fields},
@@ -91,7 +91,7 @@ def create_weight_adjustments_table(db: RamDB, model_id: str, arg_count=12):
     db.execute(sql)
 
     db.execute(f"""
-        CREATE INDEX IF NOT EXISTS idx_batch_lookup_{model_id}
+        CREATE INDEX IF NOT EXISTS idx_batch_lookup_{update_or_finalize}_{model_id}
         ON {table_name} (epoch, batch_id, nid, weight_index);
     """)
 
@@ -145,7 +145,8 @@ def prep_RamDB(gladiators):
 
 
     for gladiator in gladiators: # Each model gets its own isolated table
-        create_weight_adjustments_table(db, gladiator)
+        create_weight_adjustments_table(db, gladiator, "update")
+        create_weight_adjustments_table(db, gladiator, "finalize")
 
 
 
