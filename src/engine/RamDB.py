@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 import csv
 import os
+import inspect
 
 class RamDB:
     def __init__(self):
@@ -232,7 +233,7 @@ class RamDB:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL query failed: {e}")
 
-    def query_print(self, sql, as_dict=True, surpress_call_stack=False, use_excel=False):
+    def query_print(self, sql, as_dict=True, use_excel=False):
         data = self.query(sql, as_dict=as_dict)  # Fetch the data from the database
 
         if not data:
@@ -266,17 +267,12 @@ class RamDB:
         else:
             from tabulate import tabulate
             report = tabulate(data, headers="keys" if as_dict else [], tablefmt="fancy_grid")
-            if not surpress_call_stack:
-                print(f"PRINTING FROM RamDB query_print")
+            #if not surpress_call_stack:
+            print(f"PRINTING FROM RamDB query_print: {self.get_call_stack_line()}")
                 # print_call_stack()  # 🔹 Uncomment if needed
             print(report)
 
         return data
-
-
-
-
-
 
 
     def list_tables(self, detail_level=2):
@@ -354,6 +350,23 @@ class RamDB:
             objects.append(obj)
 
         return objects
+
+
+
+    def get_call_stack_line(self):
+        """
+        Print the call stack (excluding this function itself) on one line:
+          proc3 << proc2 << proc1
+        """
+        # grab the current stack; [0] is this frame, so skip it
+        frames = inspect.stack()[1:]
+        # extract function names, skipping the top-level module
+        names = [frame.function for frame in frames if frame.function != '<module>']
+        if names:
+            return " << ".join(names)
+        else:
+            return "(no callers)"
+
 
 
 

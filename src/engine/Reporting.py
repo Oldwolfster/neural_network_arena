@@ -174,7 +174,7 @@ def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
         ON S.model_id = I.model_id        
         """
     print("GLADIATOR COMPARISON ================================================")
-    summary_overview = db.query_print(SQL, surpress_call_stack=True)
+    summary_overview = db.query_print(SQL)
 
 
 def epoch_report_launch(db: RamDB):

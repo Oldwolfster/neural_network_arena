@@ -64,8 +64,7 @@ class Optimizer:
         self._backprop_popup_operators_finalizer= backprop_popup_operators_finalizer
         self._backprop_popup_headers_single     = backprop_popup_headers_single
         self._backprop_popup_operators_single   = backprop_popup_operators_single
-
-        self._batch_size = None
+        self._batch_size                        = None
 
     def configure_optimizer(self, config):
         # Set batch_size based on batch_mode
@@ -85,9 +84,161 @@ class Optimizer:
 
         # Return the appropriate interface based on batch_size.
         if config.batch_size == 1:
-            return self._backprop_popup_headers_single, self._backprop_popup_operators_single, self._backprop_popup_headers_finalizer, self._backprop_popup_operators_single
+            return self._backprop_popup_headers_single, self._backprop_popup_operators_single, self._backprop_popup_headers_finalizer, self._backprop_popup_operators_finalizer
         else:
             return self._backprop_popup_headers_batch, self._backprop_popup_operators_batch, self._backprop_popup_headers_finalizer, self._backprop_popup_operators_finalizer
+
+
+
+def adam_update(neuron, input_vector, blame, t, config, epoch, iteration, batch_id):
+    """
+    Adam update function for mini-batch accumulation.
+
+    Instead of applying the weight update immediately, this function
+    accumulates gradients for each weight. These accumulated gradients
+    will be used during the finalize phase to perform a mini-batch update.
+
+    Parameters:
+        neuron: The neuron instance. It is expected to have:
+            - neuron.learning_rates: list of learning rates for bias/weights.
+            - neuron.nid: identifier of the neuron.
+            - (Optional) neuron.accumulated_gradients: list of floats.
+        input_vector: List or array of inputs corresponding to each weight.
+        blame: The error signal for this neuron.
+        t: Time step (not used here, kept for interface consistency).
+        config: Configuration object containing batch_size and other settings.
+        epoch: Current epoch number.
+        iteration: Current iteration number.
+        batch_id: Identifier for the batch
+
+    Returns:
+        logs: A list of log entries for debugging/analysis.
+
+    Note:
+        This function assumes that the actual weight update and moving
+        average updates (m and v) are performed in the adam_finalize function.
+    """
+    logs = []
+
+    for weight_id, input in enumerate(input_vector):
+        # Compute the per-sample gradient
+        raw_adjustment = input * blame
+        neuron.accumulated_accepted_blame[weight_id] += raw_adjustment  # Accumulate for batch
+
+        logs.append([epoch, iteration,  neuron.nid, weight_id, batch_id,
+             input,                  # Input value
+             blame,                  # Blame (error signal)
+             raw_adjustment,                   # This sample's contribution: x * blame
+             neuron.accumulated_accepted_blame[weight_id]]
+        )
+    return logs
+def adam_finalize(batch_size, epoch, iteration, batch_id):
+    """
+    Finalize the Adam update for a mini-batch.
+
+    For each neuron, average the accumulated gradients over the batch,
+    update the moving averages (m and v) using the averaged gradient,
+    and then apply the weight update based on Adam's rule.
+
+    Assumes that:
+      - Each neuron has an attribute `accumulated_gradients` (a list of floats),
+        which has been incremented per sample.
+      - Each neuron has already initialized lists `m` and `v` (one per weight)
+        and a time step counter `t` (initialized to 0 if not present).
+      - The learning rates for the neuron are stored in `neuron.learning_rates`.
+
+    Parameters:
+        batch_size (int): The number of samples accumulated.
+        epoch: Current epoch number.
+        iteration: Current iteration number.
+        batch_id: Identifier for the batch
+    Returns:
+        logs: A list of log entries for debugging/analysis.
+    """
+    logs = []
+    beta1 = 0.9
+    beta2 = 0.999
+    epsilon = 1e-8
+
+    # Loop over all neurons
+    for layer in Neuron.layers:
+        for neuron in layer:
+            neuron.t += 1
+            # Accumulate update for each weight (and bias at i==0)
+            for weight_id in range(len(neuron.accumulated_accepted_blame)):
+                # Compute the average gradient for this weight over the mini-batch.
+                avg_blame = neuron.accumulated_accepted_blame[weight_id] / batch_size
+                                                                                    # Increment the update step counter (per neuron, or you can use a global counter)
+                neuron.m[weight_id] = beta1 * neuron.m[weight_id] + (1 - beta1) * avg_blame          # Update the biased first moment estimate
+                neuron.v[weight_id] = beta2 * neuron.v[weight_id] + (1 - beta2) * (avg_blame ** 2)   # Update the biased second moment estimate
+
+                # Compute bias-corrected estimates
+                m_hat = neuron.m[weight_id] / (1 - beta1 ** neuron.t)
+                v_hat = neuron.v[weight_id] / (1 - beta2 ** neuron.t)
+
+                lr = neuron.learning_rates[weight_id]
+                adjustment = lr * m_hat / (v_hat ** 0.5 + epsilon)
+                #print(f"epoch={epoch} iter={iteration} weight={weight_id}")
+                #print(f"  avg_blame={avg_blame:.4e}")
+                #print(f"  m={neuron.m[weight_id]:.4e} v={neuron.v[weight_id]:.4e} t={neuron.t}")
+                #print(f"  m_hat={m_hat:.4e} v_hat={v_hat:.4e}")
+                #print(f"  adjustment={adjustment:.4e}")
+
+                # Apply the final update: assume index 0 corresponds to the bias.
+                if weight_id == 0:
+                    neuron.bias -= adjustment
+                else:
+                    neuron.weights[weight_id - 1] -= adjustment
+                #logs.append([epoch, iteration,  neuron.nid, weight_id,batch_id,
+                logs.append( [epoch, iteration,  neuron.nid, weight_id, batch_id,
+                    neuron.accumulated_accepted_blame[weight_id] , batch_size,    #could almost skip if space becomes issue
+                    avg_blame,
+                    neuron.m[weight_id],
+                    neuron.v[weight_id],
+                    neuron.t,
+                    m_hat,
+                    v_hat,
+                    #f"adj:{adjustment:.4f}"
+                ])
+            # Reset accumulated gradients for the next batch.
+            neuron.accumulated_accepted_blame = [0.0 for _ in neuron.accumulated_accepted_blame]
+    return logs
+
+standard_adam_headers_single        = ["Input", "Blame", "Raw Adj",  "Lrn Rt"]
+standard_adam_operators_single      = [  "*",         "=",       "*",       "="]
+
+standard_adam_headers_batch         = ["Input", "Blame", "Raw Adj", "Cum."]
+standard_adam_operators_batch       = [ "*",     "=",     " ",          "||"]
+
+standard_adam_headers_finalizer     = ["B Total", "Count", "Avg", "m", "v", "t", "m hat", "v hat"]
+standard_adam_operators_finalizer   = [ "/",      "=",     "*", " " , " " , " " , " " , " ", " ", " ", " ", " ", " " ]
+
+################################################################################################################
+#################################################################################################################
+standard_gbs_headers_single         = ["Input", "Blame", "Raw Adj",  "Lrn Rt"]
+standard_gbs_operators_single       = [  "*",         "=",       "*",       "="]
+
+standard_gbs_headers_batch          = ["Input", "Blame", "Raw Adj", "Cum."]
+standard_gbs_operators_batch        = [ "*",     "=",     " ",          "||"]
+
+standard_gbs_headers_finalizers     = ["B Total", "Count", "Avg Blm",  "Lrn Rt"]
+standard_gbs_operators_finalizers   = ["/",        "=",     "*", " "]
+
+
+Optimizer_Adam = Optimizer(
+    name = "Adam",
+    desc = "Adaptive Moment Estimation optimizer with per-weight momentum and scale tracking.",
+    when_to_use = "Ideal for handling noisy or sparse gradients; frequently the best default.",
+    best_for = "Most deep learning tasks with minimal tuning.",
+    update_function = adam_update,
+    finalizer_function = adam_finalize,
+    backprop_popup_headers_single = standard_adam_headers_single,
+    backprop_popup_operators_single = standard_adam_operators_single,
+    backprop_popup_headers_batch = standard_adam_headers_batch,
+    backprop_popup_operators_batch = standard_adam_operators_batch,
+    backprop_popup_headers_finalizer    =standard_adam_headers_finalizer,
+    backprop_popup_operators_finalizer  =standard_adam_operators_finalizer
+)
 
 
 def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration, batch_id):
@@ -102,12 +253,13 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration
     for weight_id, input_x in enumerate(input_vector):
         raw_adjustment = input_x * accepted_blame
         neuron.accumulated_accepted_blame[weight_id] += raw_adjustment  # Accumulate for batch
-        logs.append(
-            #[epoch, iteration, gladiator, neuron.nid, weight_id, batch_id, input_x, accepted_blame, raw_adjustment] +
-            [epoch, iteration,  neuron.nid, weight_id, batch_id, input_x, accepted_blame, raw_adjustment] +
-            ([neuron.accumulated_accepted_blame[weight_id]] if config.batch_size > 1 else []) #NOTE THIS IS CORRECT TO Use config batch size rather than actual... interface does not change just because it is a leftover.
+        logs.append([epoch, iteration,  neuron.nid, weight_id, batch_id,
+                     input_x, accepted_blame, raw_adjustment] +
+                    ([neuron.accumulated_accepted_blame[weight_id]] if config.batch_size > 1 else []) #NOTE THIS IS CORRECT TO Use config batch size rather than actual... interface does not change just because it is a leftover.
         )
     return logs
+
+
 def sgd_finalize(batch_size, epoch, iteration, batch_id):
     """
     Called once per batch to apply the average accumulated blame.
@@ -131,15 +283,6 @@ def sgd_finalize(batch_size, epoch, iteration, batch_id):
             neuron.accumulated_accepted_blame = [0.0] * len(neuron.accumulated_accepted_blame)
     return logs
 
-standard_gbs_headers_single         = ["Input", "Blame", "Raw Adj",  "Lrn Rt"]
-standard_gbs_operators_single       = [  "*",         "=",       "*",       "="]
-
-standard_gbs_headers_batch          = ["Input", "Blame", "Raw Adj", "Cum."]
-standard_gbs_operators_batch        = [ "*",     "=",     " ",          "||"]
-
-standard_gbs_headers_finalizers     = ["B Total", "Count", "Avg Blm",  "Lrn Rt"]
-standard_gbs_operators_finalizers   = [ "/",        "=",     "*", " "]
-
 Optimizer_SGD = Optimizer(
     name        = "Stochastic Gradient Descent",
     desc        = "Updates weights using the raw gradient scaled by learning rate.",
@@ -156,256 +299,12 @@ Optimizer_SGD = Optimizer(
 )
 
 
-def adam_update_nobatch(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
-    """
-    Adam optimizer: combines momentum and RMS scaling with bias correction.
-    This function is called during each sample and immediately updates the
-    weights using the per-weight moments.
-
-    Parameters:
-        neuron: The neuron instance (with attributes 'm', 'v', 'weights', 'bias', etc.)
-        input_vector: The inputs for the neuron (e.g., for each weight).
-        blame: The error signal for the neuron (analogous to gradient before multiplication).
-        t: Current time step (should be 1-based and incremented per update step).
-        config: Configuration object (could contain hyperparameters; here beta values and epsilon are hardcoded for simplicity).
-        epoch: Current epoch number.
-        iteration: Current iteration number.
-        gladiator: Model identifier or other grouping information.
-
-    Returns:
-        logs: A list of log entries for debugging/analysis.
-    """
-    logs = []
-    beta1 = 0.9      # config.optimizer_beta1 can be used if available
-    beta2 = 0.999    # config.optimizer_beta2 can be used if available
-    epsilon = 1e-8   # config.optimizer_epsilon can be used if available
-
-    for i, x in enumerate(input_vector):
-        # Compute the "raw" gradient for this weight.
-        grad = x * blame
-        lr = neuron.learning_rates[i]
-
-        # Update biased first moment estimate.
-        neuron.m[i] = beta1 * neuron.m[i] + (1 - beta1) * grad
-        # Update biased second raw moment estimate.
-        neuron.v[i] = beta2 * neuron.v[i] + (1 - beta2) * (grad ** 2)
-
-        # Compute bias-corrected first and second moment estimates.
-        m_hat = neuron.m[i] / (1 - beta1 ** t)
-        v_hat = neuron.v[i] / (1 - beta2 ** t)
-
-        # Calculate the final weight adjustment.
-        adjustment = lr * m_hat / (v_hat ** 0.5 + epsilon)
-
-        # Apply the update (assume weight index 0 is bias).
-        if i == 0:
-            neuron.bias -= adjustment
-        else:
-            neuron.weights[i - 1] -= adjustment
-
-        logs.append([
-            epoch,
-            iteration,
-            gladiator,
-            neuron.nid,
-            i,
-            neuron.m[i],
-            neuron.v[i],
-            t,
-            m_hat,
-            v_hat
-        ])
-    return logs
-
-def adam_finalize_nobatch(batch_size):
-    """
-    In this implementation of Adam, each update is applied immediately on every sample.
-    Therefore, no additional finalization step is needed.
-
-    Parameters:
-        batch_size: Provided for interface compatibility.
-
-    Returns:
-        logs: An empty list.
-    """
-    return []
-
-standard_adam_headers_batch = ["m", "v", "t", "m̂", "v̂"]
-standard_adam_operators_batch = ["", "", "", "", ""]  # Use appropriate symbols if needed.
-standard_adam_headers_single = ["m", "v", "t", "m̂", "v̂"]
-standard_adam_operators_single = ["", "", "", "", ""]
-
-Optimizer_Adam_nobatch = Optimizer(
-    name = "Adam",
-    desc = "Adaptive Moment Estimation optimizer with per-weight momentum and scale tracking.",
-    when_to_use = "Ideal for handling noisy or sparse gradients; frequently the best default.",
-    best_for = "Most deep learning tasks with minimal tuning.",
-    update_function = adam_update_nobatch,
-    finalizer_function = adam_finalize_nobatch,
-    backprop_popup_headers_batch = standard_adam_headers_batch,
-    backprop_popup_operators_batch = standard_adam_operators_batch,
-    backprop_popup_headers_single = standard_adam_headers_single,
-    backprop_popup_operators_single = standard_adam_operators_single
-)
-
-def adam_update(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
-    """
-    Adam update function for mini-batch accumulation.
-
-    Instead of applying the weight update immediately, this function
-    accumulates gradients for each weight. These accumulated gradients
-    will be used during the finalize phase to perform a mini-batch update.
-
-    Parameters:
-        neuron: The neuron instance. It is expected to have:
-            - neuron.learning_rates: list of learning rates for bias/weights.
-            - neuron.nid: identifier of the neuron.
-            - (Optional) neuron.accumulated_gradients: list of floats.
-        input_vector: List or array of inputs corresponding to each weight.
-        blame: The error signal for this neuron.
-        t: Time step (not used here, kept for interface consistency).
-        config: Configuration object containing batch_size and other settings.
-        epoch: Current epoch number.
-        iteration: Current iteration number.
-        gladiator: Identifier for the model or group.
-
-    Returns:
-        logs: A list of log entries for debugging/analysis.
-
-    Note:
-        This function assumes that the actual weight update and moving
-        average updates (m and v) are performed in the adam_finalize function.
-    """
-    logs = []
-    batch_id = (iteration - 1) // config.batch_size  # Determine batch number based on iteration
-
-    # Initialize accumulated_gradients if needed.
-    #if not hasattr(neuron, 'accumulated_gradients'):
-    #    neuron.accumulated_gradients = [0.0 for _ in input_vector]
-
-    for i, x in enumerate(input_vector):
-        # Compute the per-sample gradient
-        grad = x * blame
-        # Accumulate the gradient for mini-batch update
-        neuron.accumulated_accepted_blame[i] += grad
-
-        # Log the intermediate values.
-        # You could extend the logging here as needed.
-        logs.append(
-            [epoch,
-             iteration,
-             gladiator,
-             neuron.nid,
-             i,
-             batch_id,
-             x,                      # Input value
-             blame,                  # Blame (error signal)
-             grad,                   # This sample's contribution: x * blame
-             neuron.accumulated_accepted_blame[i],  # Accumulated gradient so far for this weight
-             neuron.learning_rates[i]]         # Learning rate for this weight
-        )
-    return logs
-
-
-def adam_finalize(batch_size):
-    """
-    Finalize the Adam update for a mini-batch.
-
-    For each neuron, average the accumulated gradients over the batch,
-    update the moving averages (m and v) using the averaged gradient,
-    and then apply the weight update based on Adam's rule.
-
-    Assumes that:
-      - Each neuron has an attribute `accumulated_gradients` (a list of floats),
-        which has been incremented per sample.
-      - Each neuron has already initialized lists `m` and `v` (one per weight)
-        and a time step counter `t` (initialized to 0 if not present).
-      - The learning rates for the neuron are stored in `neuron.learning_rates`.
-
-    Parameters:
-        batch_size (int): The number of samples accumulated.
-
-    Returns:
-        logs: A list of log entries for debugging/analysis.
-    """
-    logs = []
-    beta1 = 0.9
-    beta2 = 0.999
-    epsilon = 1e-8
-
-    # Loop over all neurons
-    for layer in Neuron.layers:
-        for neuron in layer:
-            # Ensure each neuron has a time step counter.
-            if not hasattr(neuron, 't'):
-                neuron.t = 0
-            # Accumulate update for each weight (and bias at i==0)
-            for i in range(len(neuron.accumulated_accepted_blame)):
-                # Compute the average gradient for this weight over the mini-batch.
-                avg_grad = neuron.accumulated_accepted_blame[i] / batch_size
-
-                # Increment the update step counter (per neuron, or you can use a global counter)
-                neuron.t += 1
-                t = neuron.t
-
-                # Update the biased first moment estimate
-                neuron.m[i] = beta1 * neuron.m[i] + (1 - beta1) * avg_grad
-                # Update the biased second moment estimate
-                neuron.v[i] = beta2 * neuron.v[i] + (1 - beta2) * (avg_grad ** 2)
-
-                # Compute bias-corrected estimates
-                m_hat = neuron.m[i] / (1 - beta1 ** t)
-                v_hat = neuron.v[i] / (1 - beta2 ** t)
-
-                lr = neuron.learning_rates[i]
-                adjustment = lr * m_hat / (v_hat ** 0.5 + epsilon)
-
-                # Apply the final update: assume index 0 corresponds to the bias.
-                if i == 0:
-                    neuron.bias -= adjustment
-                else:
-                    neuron.weights[i - 1] -= adjustment
-
-                logs.append([
-                    neuron.nid,
-                    i,
-                    avg_grad,
-                    neuron.m[i],
-                    neuron.v[i],
-                    t,
-                    m_hat,
-                    v_hat,
-                    #f"adj:{adjustment:.4f}"
-                ])
-            # Reset accumulated gradients for the next batch.
-            neuron.accumulated_accepted_blame = [0.0 for _ in neuron.accumulated_accepted_blame]
-    return logs
-
-
-# Placeholder headers and operators for the Adam pop-up; modify as desired.
-standard_adam_headers_batch = ["avg_grad", "m", "v", "t", "m̂", "v̂"]
-standard_adam_operators_batch = ["", "", "", "", ""]  # Use appropriate symbols if needed.
-standard_adam_headers_single = ["m", "v", "t", "m̂", "v̂"]
-standard_adam_operators_single = ["", "", "", "", ""]
-
-Optimizer_Adam = Optimizer(
-    name = "Adam",
-    desc = "Adaptive Moment Estimation optimizer with per-weight momentum and scale tracking.",
-    when_to_use = "Ideal for handling noisy or sparse gradients; frequently the best default.",
-    best_for = "Most deep learning tasks with minimal tuning.",
-    update_function = adam_update,
-    finalizer_function = adam_finalize,
-    backprop_popup_headers_batch = ["avg_grad", "m", "v", "t", "m̂", "v̂"],
-    backprop_popup_operators_batch = ["", "", "", "", ""],
-    backprop_popup_headers_single = ["gradient", "m", "v", "t", "m̂", "v̂"],
-    backprop_popup_operators_single = ["", "", "", "", ""]
-)
-
+"""
 def vanilla_GBS_update(neuron, input_vector, blame, t, config, epoch, iteration, gladiator):
-    """
+    "" "
     SGD update across all weights (including bias).
     input_vector[0] is assumed to be the bias input (usually 1.0).
-    """
+    "" "
     logs = []
 
     for i, x in enumerate(input_vector):
@@ -431,7 +330,7 @@ def vanilla_GBS_update(neuron, input_vector, blame, t, config, epoch, iteration,
         ])
 
     return logs
-"""
+
 def vanilla_GBS_finalize(batch_size):
     "" "It will be called - but in vanilla update occurs immediately"" "
     pass

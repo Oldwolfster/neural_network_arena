@@ -23,14 +23,13 @@ class Neuron:
         #self.activation        =  activation or Activation_Linear         # function
         self.activation_gradient= 0.0  # Store activation gradient from forward pass
         self.error_signal       = 1111.11
-        self.weight_adjustments = ""
-        self.blame_calculations = ""
+        self.weight_adjustments = ""        #TODO get rid of this
+        self.blame_calculations = ""        #TODO get rid of this
+
 
         # ✅ Apply weight initializer strategy
-        #self.weight_initializer = weight_initializer  # Store the strategy
         self.initialize_weights(weight_initializer)
         self.neuron_inputs = np.zeros_like(self.weights)
-
 
         # ✅ Ensure activation is never None
         self.activation = activation if activation is not None else Activation_NoDamnFunction
@@ -51,19 +50,18 @@ class Neuron:
         if layer_id == len(Neuron.layers) - 1:
             Neuron.output_neuron = self  # Assign this neuron as the output neuron
 
-
     def initialize_weights(self, weight_initializer):
         self.weights, self.bias = weight_initializer((self.num_of_weights,))
         self.weights_before = self.weights.copy()
         self.bias_before = self.bias
 
-        #TODO only allocate the arrays when adam is the optimizer?
-        # 🔹 Adam optimizer state (momentum and RMS terms)
-        total_params = self.num_of_weights + 1  # +1 for bias
-        self.m                  = [0.0] * total_params
-        self.v                  = [0.0] * total_params
-        self.accumulated_accepted_blame  = [0.0] * total_params
 
+        # 🔹 Adam optimizer state (momentum and RMS terms)
+        total_params                    = self.num_of_weights + 1  # +1 for bias
+        self.m                          = [0.0] * total_params
+        self.v                          = [0.0] * total_params
+        self.accumulated_accepted_blame = [0.0] * total_params
+        self.t                          = 0  # Not a list! Just an integer counter for the neuron - NOT each weight
 
     def reinitialize(self, new_initializer):
         """Reinitialize weights & bias using a different strategy."""
