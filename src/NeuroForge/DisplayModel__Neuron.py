@@ -396,13 +396,14 @@ class DisplayModel__Neuron:
         dynamic_widths = []
         for col in self.tooltip_columns[6:-3]:  # skip forward pass (6), and standard trailing stats (3)
             header = col[0]
-            is_operator = isinstance(header, str) and len(header.strip()) <= 2
+            is_operator = isinstance(header, str) and len(header.strip()) <= 2 and header.strip().lower() not in {"m", "v", "t"}
             width = col_operator if is_operator else col_info
             dynamic_widths.append(width)
 
         last_cols = [col_info, col_info, col_info]  # Final 3 summary stats (e.g., adjustment, lr, new weight)
 
         self.column_widths = forward_cols + dynamic_widths + last_cols
+        Const.TOOLTIP_WIDTH = sum(self.column_widths)+69
 
 
 
@@ -424,14 +425,12 @@ class DisplayModel__Neuron:
         standard_finale = self.tooltip_columns_for_backprop_standard_finale()
         #print(f"Before extend: {len(all_columns)} columns")
 
-        #print(f"After extend: {len(all_columns)} columns (added {len(standard_finale)})")
+
 
         final_columns = self.tooltip_columns_for_backprop_finalize()        #assert all(isinstance(col, list) for col in final_columns), "Expected list of column-lists"
-
-        print(f"Before finalize extend: {len(all_columns)} columns")
         all_columns.extend(final_columns)
         all_columns.extend(standard_finale)
-        print(f"After finalize extend: {len(all_columns)} columns (added {len(final_columns)})")
+
 
         all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
         return all_columns
@@ -441,17 +440,29 @@ class DisplayModel__Neuron:
         num_args = len(self.config.popup_finalizer_headers)
         arg_columns = [f"B.arg_{i+1}" for i in range(num_args)]
 
+        #DEBUG#########################
+        if self.my_model.display_epoch == -1 and Const.vcr.CUR_ITERATION==2: #TO SEE DEBUG SWITCH THE -1
+            sql = f"SELECT * FROM  WeightAdjustments_update_{self.config.gladiator_name} WHERE epoch={self.my_model.display_epoch} AND ITERATION=2"
+            sql = f"""
+            SELECT A.epoch, A.iteration, A.weight_index,{", ".join(arg_columns)}
+            FROM        WeightAdjustments_update_{self.config.gladiator_name} AS A
+            LEFT JOIN   WeightAdjustments_finalize_{self.config.gladiator_name} AS B
+             ON         A.batch_id      = B.batch_id AND        A.epoch         = B.epoch
+             AND        A.nid           = B.nid      AND        A.weight_index  = B.weight_index
+            WHERE       A.epoch         = 1 AND A.iteration <5
+            """
+            Const.dm.db.query_print(sql,use_excel=True)
+
+
         # SQL query: Join UPDATE + FINALIZE on batch_id, epoch, nid, and weight_index
         sql = f"""
             SELECT {", ".join(arg_columns)}
-            FROM WeightAdjustments_update_{self.config.gladiator_name} AS A
-            JOIN WeightAdjustments_finalize_{self.config.gladiator_name} AS B
-              ON A.batch_id = B.batch_id
-             AND A.epoch = B.epoch
-             AND A.nid = B.nid
-             AND A.weight_index = B.weight_index
-            WHERE A.epoch = ? AND A.iteration = ? AND A.nid = ?
-            ORDER BY A.weight_index ASC
+            FROM        WeightAdjustments_update_{self.config.gladiator_name} AS A
+            LEFT JOIN   WeightAdjustments_finalize_{self.config.gladiator_name} AS B
+             ON         A.batch_id      = B.batch_id AND        A.epoch         = B.epoch
+             AND        A.nid           = B.nid      AND        A.weight_index  = B.weight_index
+            WHERE       A.epoch         = ? AND A.iteration = ? AND A.nid = ?
+            ORDER BY    A.weight_index ASC
         """
 
         results = Const.dm.db.query(
@@ -460,8 +471,12 @@ class DisplayModel__Neuron:
             as_dict=False
         )
 
+
+
         # Finalize column layout: arg/op/arg/op...
         final_columns = []
+        print(f"self.config.popup_finalizer_headers[i]]={self.config.popup_finalizer_headers}")
+        print(f"self.config.popup_finalizer_operators[i]]={self.config.popup_finalizer_operators}")
         for i in range(num_args):
             final_columns.append([self.config.popup_finalizer_headers[i]])
             final_columns.append([self.config.popup_finalizer_operators[i]])
@@ -478,7 +493,7 @@ class DisplayModel__Neuron:
         num_args = len(self.config.popup_headers)
         # Build the SQL query to select only the argument columns.
         arg_columns = [f"arg_{i+1}" for i in range(num_args)]
-        Const.dm.db.query_print(f"SELECT * FROM WeightAdjustments_finalize_{self.config.gladiator_name} LIMIT 5")
+        #Const.dm.db.query_print(f"SELECT * FROM WeightAdjustments_finalize_{self.config.gladiator_name} LIMIT 5")
 
 
         sql = "SELECT " + ", ".join(arg_columns) + f"""

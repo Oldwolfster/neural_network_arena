@@ -23,7 +23,6 @@ class Glossary:
     🧠 This defines alternative terms that are more accurate, explainable, and humane.
     🥂 Each entry replaces a misleading legacy term with a transparent, honest one.
 
-
     temp list for window...
     Spreading Blame from Neuron 20 to Neuron 10
     Influence.  How much of Neuron 20’s output was caused by Neuron 10?"
@@ -31,16 +30,12 @@ class Glossary:
     MBFA:       My blame from all.
     Accepted:   MBFA * Act Grad
 
-
-
     """
     def __init__(self, old_name, new_name, why_old_name_sucks="Because", definition="Please add"):
         self.old_name = old_name
         self.new_name = new_name
         self.why_old_name_sucks = why_old_name_sucks
         self.definition = definition
-
-
 
     def __repr__(self):
         return f"Glossary Entry: '{self.old_name}' → '{self.new_name}'"
@@ -121,7 +116,6 @@ Glossary_AcceptedBlame = Glossary(
 )
 
 
-
 Glossary_ChainRule = Glossary(
     old_name="Chain Rule",
     new_name="Blame Cascade",
@@ -139,7 +133,7 @@ Glossary_ChainRule = Glossary(
 )
 Glossary_GD = Glossary(
     old_name="Gradient Descent",
-    new_name="Blame-Following Trick",
+    new_name="GBS",
     why_old_name_sucks="""
         'Descent' implies a hill, but this isn’t geography. There’s no landscape, just numbers.
         It hides how indirect and unstable the process really is.
@@ -172,7 +166,7 @@ Glossary_Accusation = Glossary(
         """,
     definition="""
         An Accusation is an incoming blame value passed from a neuron in the next layer (a child) to this neuron.
-
+        ???Blameshare from the opposite perspective?
         Each child neuron says:  
         “Part of my error is your fault — here’s how much you influenced me.”
 
@@ -210,79 +204,6 @@ Glossary_BatchTotal = Glossary(
 )
 
 
-
-Glossary_ConnectionWeight = Glossary(
-    old_name="Weight between neurons",
-    new_name="Connection Weight",
-    why_old_name_sucks="""
-        'Weight' is vague and generic. It doesn't clarify *whose* weight it is, *what direction* it connects, or *why it matters* in both forward and backward flow.
-        Most explanations treat weights as static scalars rather than the **dual-purpose conduits** they truly are.
-        """,
-    definition="""
-        A Connection Weight links two neurons: one in the current layer (the sender) and one in the next layer (the receiver).
-
-        It has two critical roles:
-
-        🔹 **Forward Pass (Influence)**:  
-        The weight scales the sender neuron's output — determining how much it contributes to the receiver's input.  
-        → `Output × Weight → Raw Sum of receiver`
-
-        🔹 **Backward Pass (Accusation Pathway)**:  
-        The same weight also determines how much of the receiver’s blame is sent backward to the sender.  
-        → `Accepted Blame of receiver × Weight → Accusation sent back to sender`
-
-        Connection Weights are the exact same values used in both directions of learning.  
-        - In forward pass, they **control influence**.  
-        - In backprop, they **carry blame**.
-
-        NeuroForge tracks and adjusts these weights during training via:
-        → `Adjustment = Raw Adjustment × Learning Rate`
-        """
-)
-
-
-
-Glossary_Parent = Glossary(
-    old_name="Previous layer neurons",
-    new_name="Parents",
-    why_old_name_sucks="It’s not wrong, but it’s sterile. Parents *feed* the current neuron, just like in a family tree.",
-    definition="Neurons from the layer to the left whose outputs serve as inputs to the current neuron. They ‘parent’ the activation."
-)
-
-Glossary_Parent2 = Glossary(
-    old_name="Next layer neurons",
-    new_name="Parents (Blame-Centric)",
-    why_old_name_sucks="The structural view calls these ‘children,’ but in backprop, they assign blame — like a parent scolding their kid.",
-    definition="""
-        Neurons in the layer to the right (next layer) that receive this neuron’s output.
-        But during backpropagation, they become the ‘parents’ — evaluating the decision and assigning blame backward.
-        """
-)
-
-
-Glossary_Child = Glossary(
-    old_name="Next layer neurons",
-    new_name="Children",
-    why_old_name_sucks="Again, technically fine, but vague. These are the neurons who receive the current neuron’s output. Children inherit activations.",
-    definition="Neurons in the layer to the right who receive the output of the current neuron. If this neuron fires, they’re the ones who react to it."
-)
-
-Glossary_Child2 = Glossary(
-    old_name="Previous layer neurons",
-    new_name="Children (Blame-Centric)",
-    why_old_name_sucks="Although they come earlier in structure, these neurons are like kids — their outputs shaped the current neuron’s mistake.",
-    definition="""
-        Neurons in the previous layer who sent inputs to this neuron.
-        During backpropagation, this neuron pushes blame onto them — just like parents blaming their kids for a bad family decision.
-        """
-)
-
-Glossary_Sibling = Glossary(
-    old_name="Neurons in same layer",
-    new_name="Siblings",
-    why_old_name_sucks="‘Same layer’ is visually descriptive but not intuitive. Siblings process in parallel — same inputs, different roles.",
-    definition="Other neurons in the same layer — they receive the same inputs but have different weights, biases, and behaviors."
-)
 
 Glossary_Activation = Glossary(
     old_name="Activation",
@@ -333,7 +254,8 @@ Glossary_SGD = Glossary(
     why_old_name_sucks="""
         It's not stochastic if you're using a full batch.
         It’s not gradient descent in any continuous sense.
-        And it hides the fact that the only reason it works is because randomness sometimes helps.
+        And it hides the fact that the only reason it works is because of brute force.
+        A nudge in the right direction is all that is needed.
         """,
     definition="""
         This strategy updates weights based on one or a few samples at a time.
@@ -347,8 +269,8 @@ Glossary_LossFunction = Glossary(
     old_name="Loss Function",
     new_name="Gradient Source",
     why_old_name_sucks="""
-        The term 'loss' implies the value matters — it doesn’t.
-        Only the derivative of the loss (i.e., the gradient) affects training.
+        It's focus in formal teaching implies the value matters — it doesn’t.
+        Only the derivative of the loss (i.e., the gradient) affects backpropogation.
         Models don’t ‘look’ at loss, they respond to the signal behind it.
         """,
     definition="""
@@ -364,7 +286,7 @@ Glossary_MSE = Glossary(
     new_name="Squared Error Signal",
     why_old_name_sucks="""
         MSE is not really about squaring anything for training — the model only sees 2 * error.
-        The square is for humans comparing models. For the model, it’s just another way to blame.
+        The square is make this better
         """,
     definition="""
         The gradient of MSE is just 2 times the error.
@@ -516,3 +438,79 @@ Backward Pass
 “The movie sucked. Grandparents blame parents. Parents blame kids. Everyone adjusts their preferences next time.”
 
 """
+
+
+
+################### UNSURE BELOW THIS POINT
+Glossary_ConnectionWeight = Glossary(
+    old_name="Weight between neurons",
+    new_name="Connection Weight",
+    why_old_name_sucks="""
+        'Weight' is vague and generic. It doesn't clarify *whose* weight it is, *what direction* it connects, or *why it matters* in both forward and backward flow.
+        Most explanations treat weights as static scalars rather than the **dual-purpose conduits** they truly are.
+        """,
+    definition="""
+        A Connection Weight links two neurons: one in the current layer (the sender) and one in the next layer (the receiver).
+
+        It has two critical roles:
+
+        🔹 **Forward Pass (Influence)**:  
+        The weight scales the sender neuron's output — determining how much it contributes to the receiver's input.  
+        → `Output × Weight → Raw Sum of receiver`
+
+        🔹 **Backward Pass (Accusation Pathway)**:  
+        The same weight also determines how much of the receiver’s blame is sent backward to the sender.  
+        → `Accepted Blame of receiver × Weight → Accusation sent back to sender`
+
+        Connection Weights are the exact same values used in both directions of learning.  
+        - In forward pass, they **control influence**.  
+        - In backprop, they **carry blame**.
+
+        NeuroForge tracks and adjusts these weights during training via:
+        → `Adjustment = Raw Adjustment × Learning Rate`
+        """
+)
+
+
+
+Glossary_Parent = Glossary(
+    old_name="Previous layer neurons",
+    new_name="Parents",
+    why_old_name_sucks="It’s not wrong, but it’s sterile. Parents *feed* the current neuron, just like in a family tree.",
+    definition="Neurons from the layer to the left whose outputs serve as inputs to the current neuron. They ‘parent’ the activation."
+)
+
+Glossary_Parent2 = Glossary(
+    old_name="Next layer neurons",
+    new_name="Parents (Blame-Centric)",
+    why_old_name_sucks="The structural view calls these ‘children,’ but in backprop, they assign blame — like a parent scolding their kid.",
+    definition="""
+        Neurons in the layer to the right (next layer) that receive this neuron’s output.
+        But during backpropagation, they become the ‘parents’ — evaluating the decision and assigning blame backward.
+        """
+)
+
+
+Glossary_Child = Glossary(
+    old_name="Next layer neurons",
+    new_name="Children",
+    why_old_name_sucks="Again, technically fine, but vague. These are the neurons who receive the current neuron’s output. Children inherit activations.",
+    definition="Neurons in the layer to the right who receive the output of the current neuron. If this neuron fires, they’re the ones who react to it."
+)
+
+Glossary_Child2 = Glossary(
+    old_name="Previous layer neurons",
+    new_name="Children (Blame-Centric)",
+    why_old_name_sucks="Although they come earlier in structure, these neurons are like kids — their outputs shaped the current neuron’s mistake.",
+    definition="""
+        Neurons in the previous layer who sent inputs to this neuron.
+        During backpropagation, this neuron pushes blame onto them — just like parents blaming their kids for a bad family decision.
+        """
+)
+
+Glossary_Sibling = Glossary(
+    old_name="Neurons in same layer",
+    new_name="Siblings",
+    why_old_name_sucks="‘Same layer’ is visually descriptive but not intuitive. Siblings process in parallel — same inputs, different roles.",
+    definition="Other neurons in the same layer — they receive the same inputs but have different weights, biases, and behaviors."
+)
