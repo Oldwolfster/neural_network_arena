@@ -1,8 +1,8 @@
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 
 from src.Legos.LossFunctions import LossFunction
-
+import statistics
 
 class TrainingData:
     """
@@ -349,6 +349,87 @@ class TrainingData:
             self._cache["normalizers"] = adjusted_normalizers
 
         return self._cache["normalizers"]
+
+
+
+    # … all existing methods …
+
+    def detect_outliers(
+        self,
+        method: str = "iqr",
+        factor: float = 1.5
+    ) -> Dict[int, List[int]]:
+        """
+        Detects outlier samples for each input feature.
+
+        Args:
+            method: 'iqr' for Tukey’s fences or 'zscore' for standard‐deviation based.
+            factor:
+              - if 'iqr', uses factor * IQR to set fences;
+              - if 'zscore', flags |z| > factor.
+
+        Returns:
+            Dict mapping feature‐index → list of sample‐indices considered outliers.
+        """
+        if not self.td_original:
+            raise ValueError("Training data is empty; cannot detect outliers.")
+
+        outliers: Dict[int, List[int]] = {}
+        total_samples = len(self.td_original)
+        num_features = len(self.td_original[0]) - 1  # exclude target
+
+        for feat_idx in range(num_features):
+            # collect all values for this feature
+            values = [sample[feat_idx] for sample in self.td_original]
+
+            if method == "iqr":
+                # using inclusive method for quartiles
+                q1, _, q3 = statistics.quantiles(values, n=4, method="inclusive")
+                iqr = q3 - q1
+                lower_fence = q1 - factor * iqr
+                upper_fence = q3 + factor * iqr
+                out_idxs = [
+                    idx for idx, v in enumerate(values)
+                    if v < lower_fence or v > upper_fence
+                ]
+
+            elif method == "zscore":
+                mu = statistics.mean(values)
+                sigma = statistics.stdev(values) if len(values) > 1 else 0.0
+                if sigma == 0:
+                    out_idxs = []
+                else:
+                    out_idxs = [
+                        idx for idx, v in enumerate(values)
+                        if abs((v - mu) / sigma) > factor
+                    ]
+
+            else:
+                raise ValueError(f"Unknown outlier‐detection method: {method}")
+
+            outliers[feat_idx] = out_idxs
+
+        return outliers
+
+
+    def has_high_outliers(
+        self,
+        method: str = "iqr",
+        factor: float = 1.5,
+        proportion_threshold: float = 0.05
+    ) -> bool:
+        """
+        Returns True if any feature has more than `proportion_threshold` of its samples
+        flagged as outliers using the specified method and factor.
+        """
+        outlier_map = self.detect_outliers(method=method, factor=factor)
+        sample_count = self.sample_count
+        for feat_idx, idxs in outlier_map.items():
+            if len(idxs) / sample_count > proportion_threshold:
+                return True
+        return False
+
+
 
 
 """

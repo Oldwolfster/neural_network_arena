@@ -228,7 +228,8 @@ Loss_BCEWithLogits = LossFunction(
     when_to_use="Use this instead of BCE when working with raw logits (no Sigmoid activation in the last layer).",
     best_for="Binary classification tasks where Sigmoid is removed from the model's final layer.",
     derivative_formula="sigmoid(logits) - target",
-    allowed_activations=[Activation_NoDamnFunction],
+    #allowed_activations=[Activation_NoDamnFunction],
+    allowed_activations=None,
     bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
 )
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**

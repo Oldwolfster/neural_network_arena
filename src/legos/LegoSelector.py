@@ -1,3 +1,62 @@
+from dataclasses import asdict
+
+class LegoSelector:
+    def __init__(self):
+
+        self.applied_rules = []
+
+    def apply(self, config, rules):
+        while self.apply_for_real(config, rules):
+            pass
+        print(self.pretty_print_applied_rules())
+
+    def apply_for_real(self, config, rules):
+        changed = True
+
+        sorted_rules = sorted(rules, key=lambda rule: rule[1])
+
+        while changed:
+            changed = False
+            for override, priority, action, condition in sorted_rules:
+                try:
+                    # 🧠 Evaluate directly with config.__dict__ as the variable context
+                    if eval(condition, {}, config.__dict__):
+                    ##if eval(condition, globals(), config.__dict__):
+                    #context = {**globals(), **config.__dict__}
+                    #if eval(condition, context):
+                        for key, value in action.items():
+                            if override or getattr(config, key) is None:
+                                setattr(config, key, value)
+                                self.applied_rules.append({
+                                    "priority": priority,
+                                    "setting": key,
+                                    "value": value,
+                                    "condition": condition
+                                })
+                                return  True
+                except Exception as e:
+                    print(f"⚠️ Rule failed: {priority} {condition} -> {e}")
+        return False
+
+
+
+
+    def pretty_print_applied_rules(self):
+        if not self.applied_rules:
+            return ("🚫 No rules were applied.")
+
+        return_value = f"\n🧩 Applied Rules:"
+        for rule in sorted(self.applied_rules, key=lambda r: r['priority']):
+            return_value += (f"  ➤ [{rule['priority']}] Set '{rule['setting']}' = {rule['value']} (because {rule['condition']}\n)")
+
+
+
+"""
+***************** BELOW HERE IS THE OLD UNUSED ORIG *****************
+***************** BELOW HERE IS THE OLD UNUSED ORIG *****************
+***************** BELOW HERE IS THE OLD UNUSED ORIG *****************
+***************** BELOW HERE IS THE OLD UNUSED ORIG *****************
+
 class LegoSelector:
     def __init__(self, rules):
         self.rules = rules  # List of rule dicts
@@ -63,3 +122,5 @@ rules = [
 # final_config, applied = selector.apply(config)
 # print("Final Config:", final_config)
 # print("Applied Rules:", applied)
+
+"""

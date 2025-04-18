@@ -8,6 +8,11 @@ git push                                # If your local master branch is already
 g
 
 ---
+# Alternate branches
+git checkout main
+git checkout original_adam_build
+
+---
 # Rollback to last commit
 git reset --hard HEAD
 
