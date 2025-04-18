@@ -5,36 +5,43 @@ from src.Legos.WeightInitializers import *
 from src.Legos.Optimizers import *
 from .convergence.ConvergenceDetector import ROI_Mode
 from ..ArenaSettings import HyperParameters
+from ..Legos.LegoSelector import LegoSelector
 from ..Legos.LossFunctions import *
 from dataclasses import dataclass, field
 
 @dataclass
 class Config:
     # 🔹 Shared components for all models
-    hyper: HyperParameters                  = field(default_factory=HyperParameters)
-    db: RamDB                               = field(default_factory=RamDB)
-    training_data: TrainingData             = None
-    lowest_error: float                     = 1e50
-    lowest_error_epoch                      = 0
-    backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
-                                                #chg config to Input
+    hyper:          HyperParameters         = field(default_factory=HyperParameters)
+    db:             RamDB                   = field(default_factory=RamDB)
+    training_data:  TrainingData            = None
+    lego_selector:  LegoSelector            = None
+
+
 
     # 🔹 Unique components
     gladiator_name: str                     = ""
-    optimizer: Optimizer                    = Optimizer_SGD
-    batch_mode: BatchMode                   = BatchMode.SINGLE_SAMPLE
-    batch_size: int                         = 2
+    optimizer: Optimizer                    = None
+    batch_mode: BatchMode                   = None
+    batch_size: int                         = 10
     architecture: list                      = field(default_factory=lambda: [1])
     full_architecture: list                 = field(default_factory=lambda: [1,1])
     initializer: type                       = Initializer_Xavier
 
-    loss_function: LossFunction             = Loss_MSE  # Default to MSE for regression and BCE For BD
-    hidden_activation: type    = None  # Default to Tanh for regression and ReLU for BD
-    output_activation: type    = None  # Will default to loss_function.recommended_output_activation if None
+    loss_function: LossFunction             = None
+    hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
+    output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
+
+
+    # Misc attributes
     roi_mode                                = ROI_Mode.SWEET_SPOT
     seconds: float                          = 0.0
     cvg_condition: str                      = "None"
     final_epoch: int                        =   0 # Last epoch to run
+    lowest_error: float                     = 1e50
+    lowest_error_epoch                      = 0
+    backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
+
     popup_headers                           = None #TODO Standardize these 4 names.
     popup_operators                         = None
     popup_finalizer_headers                       = None

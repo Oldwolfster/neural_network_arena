@@ -35,7 +35,11 @@ class Salary2InputsPiecewise(BaseArena):
 
             col_component = college * 8000  # Linear for college
             base_salary = 20000
-            noise = random.gauss(0, 0)  # Optional: add variance later
+            if random.random() < 0.000005:  # 5% chance
+                noise = random.gauss(500000, 100000)  # Very bad spike
+            else:
+                noise = random.gauss(0, 1000)  # Normal noise
+
 
             salary = base_salary + exp_component + col_component + noise
             training_data.append((years_exp, college, salary))

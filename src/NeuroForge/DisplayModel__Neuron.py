@@ -475,8 +475,8 @@ class DisplayModel__Neuron:
 
         # Finalize column layout: arg/op/arg/op...
         final_columns = []
-        print(f"self.config.popup_finalizer_headers[i]]={self.config.popup_finalizer_headers}")
-        print(f"self.config.popup_finalizer_operators[i]]={self.config.popup_finalizer_operators}")
+        #print(f"self.config.popup_finalizer_headers[i]]={self.config.popup_finalizer_headers}")
+        #print(f"self.config.popup_finalizer_operators[i]]={self.config.popup_finalizer_operators}")
         for i in range(num_args):
             final_columns.append([self.config.popup_finalizer_headers[i]])
             final_columns.append([self.config.popup_finalizer_operators[i]])
