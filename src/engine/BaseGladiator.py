@@ -29,7 +29,8 @@ class Gladiator(ABC):
     3) Initialization - Preps everything for the framework and gladiator
 """
     def __init__(self,  config: Config):
-        self.gladiator          = config.gladiator_name
+        self.config             = config
+        #self.gladiator          = config.gladiator_name
         self.db                 = config.db
         self.hyper              = config.hyper
         self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
@@ -38,7 +39,8 @@ class Gladiator(ABC):
         self.neuron_count       = 0                         # Default value
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.VCR                = VCR(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
+        #self.VCR                = VCR(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
+        self.VCR                = VCR(config, self.neurons) # Args3, is ramdb
         self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
@@ -50,7 +52,6 @@ class Gladiator(ABC):
         self.epoch              = 0
         self.too_high_adjst     = self.training_data.input_max * 5 #TODO make 5 hyperparamter
         self.max_adj            = self.training_data.everything_max_magnitude()
-        self.config             = config
         self.blame_calculations = []
         self.weight_update_calculations = []
         self.convergence_phase  = "watch"
@@ -95,15 +96,12 @@ class Gladiator(ABC):
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
 
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
-            convg_signal= self.run_an_epoch(epoch)                                # Call function to run single epoch
-            if convg_signal !="":                                 # Converged so end early
-                if convg_signal == "fix_temporarilydisabled":
-                    self.convergence_phase = "fix"
-                else:
-                    snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
-                    return convg_signal, self._full_architecture, snapshot
+            self.config.cvg_condition = self.run_an_epoch(epoch)                                # Call function to run single epoch
+            if self.config.cvg_condition != "Did Not Converge":                                 # Converged so end early
+                snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
+                return self._full_architecture, snapshot
         snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
-        return "Did not converge", self._full_architecture, snapshot       # When it does not converge still return info
+        return  self._full_architecture, snapshot       # When it does not converge still return info
 
     def validate_output_activation_functionDeleteME(self):
         """

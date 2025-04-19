@@ -32,7 +32,7 @@ class ReproducibilitySnapshot:
             architecture=config.architecture,
             best_mae= config.lowest_error,
             problem_type=config.training_data.problem_type,
-            loss_function_name=config.loss_function.__class__.__name__,
+            loss_function_name=config.loss_function.name,
             hidden_activation_name=config.hidden_activation.name,
             output_activation_name=(
                     config.output_activation or config.loss_function.recommended_output_activation

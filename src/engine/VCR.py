@@ -18,20 +18,22 @@ from ..Legos.Optimizers import BatchMode
 
 
 class VCR:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
-    def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
+    #def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
+    def __init__(self, config, neurons: List):
         # Run Level members
-        self.training_data          = training_data
-        self.model_id               = model_id
-        self.hyper                  = hyper
-        self.neurons                = neurons
-        self.db                     = ramDb
-        self.batch_id               = 0
         self.config                 = config
+        #self.training_data          = training_data
+        #self.model_id               = model_id
+        #        self.hyper                  = hyper
+        self.neurons                = neurons
+        #self.db                     = ramDb
+        self.batch_id               = 0
+
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
-        self.sample_count           = len(self.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
-        self.accuracy_threshold     = (hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
-        self.converge_detector      = ConvergenceDetector(hyper,training_data, config)
+        self.sample_count           = len(config.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
+        self.accuracy_threshold     = (config.hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
+        self.converge_detector      = ConvergenceDetector(config.hyper, config.training_data, config)
         self.abs_error_for_epoch    = 0
         self.convergence_signal     = None      # Will be set by convergence detector
         self.backpass_finalize_info = []
@@ -63,11 +65,11 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #    return
 
         #Check if batch is over, if so if there is data to record, then record it (for neuroforge)
-        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer)
+        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.config.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer)
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
-        self.db.add(iteration_data)
+        self.config.db.add(iteration_data)
         self.abs_error_for_epoch += abs(iteration_data.error)
 
         # Iterate over layers and neurons
@@ -88,8 +90,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                     #    print(f"prev.nid={prev.nid}\t{prev.activation_value}")
                 # Add the neuron data to the database
                 #TODO take out 'input_tensor' and delta from exclude keys
-                self.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.model_id, epoch_n=epoch_num, iteration_n=iteration_num)
-        Neuron.bulk_insert_weights(db = self.db, model_id = self.model_id, epoch=epoch_num, iteration=iteration_num )
+                self.config.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.config.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
+        Neuron.bulk_insert_weights(db = self.config.db, model_id = self.config.gladiator_name, epoch=epoch_num, iteration=iteration_num )
 
     def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn) -> list:
         if iteration_num % batch_size == 0:
@@ -113,7 +115,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         return finalizer_log
 
     def finish_epoch(self, epoch: int):
-        mae = self.abs_error_for_epoch / self.training_data.sample_count
+        mae = self.abs_error_for_epoch / self.config.training_data.sample_count
         if mae < self.config.lowest_error:    # New lowest error
             self.config.lowest_error = mae
             self.config.lowest_error_epoch = epoch
@@ -139,7 +141,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
             LIMIT 1;
         """
         # Pass the parameter correctly as a tuple
-        result = self.db.query(sql, params=(self.model_id, epoch), as_dict=True)
+        result = self.config.db.query(sql, params=(self.config.gladiator_name, epoch), as_dict=True)
 
         if result:
             return result[0]  # Return the first row as a dictionary
@@ -169,7 +171,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
 
         converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in weight_update_metrics]
-        self.db.executemany(sql, converted_rows)
+        self.config.db.executemany(sql, converted_rows)
         weight_update_metrics.clear()
 
     def convert_numpy_scalars_because_python_is_shit(self, row):
@@ -225,6 +227,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print(f"BLAME {self.blame_calculations}")
 
         #Heads up, sometimes overflow error look like key violation here
-        self.db.executemany(sql, blame_calculations)
+        self.config.db.executemany(sql, blame_calculations)
         blame_calculations.clear()
 
