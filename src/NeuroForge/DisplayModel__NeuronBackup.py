@@ -11,7 +11,6 @@ import json
 
 from src.engine.Utils_DataClasses import ez_debug
 
-
 class DisplayModel__Neuron:
     """
     DisplayModel__Neuron is created by DisplayModel.
@@ -228,7 +227,7 @@ class DisplayModel__Neuron:
         self.draw_popup_vertical_divider_between_forward_and_backprop()
         self.draw_highlighted_popup_cell(len(self.weights)+2, 5)
         blame_y = 10 if self.layer == self.output_layer else 12
-        self.draw_highlighted_popup_cell(len(self.weights*2)+1, blame_y)
+        #TODO Fix this self.draw_highlighted_popup_cell(len(self.weights*2)+1, blame_y)
 
     def draw_lines_for_header(self, extra_row : int):
         pygame.draw.line(
@@ -295,9 +294,9 @@ class DisplayModel__Neuron:
             Const.TOOLTIP_HEADER_DIVIDER_THICKNESS
         )
 
-
     def y_coord_for_row(self, row_index: int) -> int:
         return Const.TOOLTIP_HEADER_PAD + (row_index * Const.TOOLTIP_ROW_HEIGHT)
+
     def x_coord_for_col(self, index: int) -> int:
         return Const.TOOLTIP_PADDING + sum(self.column_widths[:index])
 
@@ -306,15 +305,6 @@ class DisplayModel__Neuron:
         Render the tooltip with neuron details.
         Cache the rendered tooltip and only update if epoch or iteration changes.
         """
-                # ✅ Define dynamic column widths (adjust per column)
-        #TODO check correct model
-        #if Const.configs[0].optimizer != Optimizer_SGD:
-        self.column_widths = [45, 50, 10, 69, 15, 69,   #This ends the forward prop columns
-                              69, 10, 69, 15, 69, 15, 69, 69, 60, 100]
-        #else:
-        #self.column_widths = [45, 50, 10, 60, 15, 69, 60, 10, #ends on first op  in backprop
-        #                 69, 15, 155, 115, 160, 60, 60, 100]
-
 
         # ✅ Check if we need to redraw the tooltip
         if not hasattr(self, "cached_tooltip") or self.last_epoch != self.my_model.display_epoch or self.last_iteration != Const.vcr.CUR_ITERATION:
@@ -338,12 +328,10 @@ class DisplayModel__Neuron:
             # ✅ Populate content
             self.tooltip_generate_text()
 
-            # ✅ Ensure column widths match number of columns
-            #if len(column_widths) < len(self.tooltip_columns):
-            #    column_widths.extend([Const.TOOLTIP_COL_WIDTH] * (len(self.tooltip_columns) - len(column_widths)))
             self.draw_all_popup_dividers()
-            # ✅ Draw each column with dynamic spacing
             x_offset = Const.TOOLTIP_PADDING
+
+            # ✅ Draw each column with dynamic spacing
             for col_index, (column, col_width) in enumerate(zip(self.tooltip_columns, self.column_widths)):
                 for row_index, text in enumerate(column):
                     text_color = self.get_text_color(col_index, row_index, text)
@@ -355,16 +343,12 @@ class DisplayModel__Neuron:
                     y_pos = Const.TOOLTIP_HEADER_PAD + row_index * Const.TOOLTIP_ROW_HEIGHT + Const.TOOLTIP_PADDING
                     x_pos = x_offset
 
-                    if self.is_right_aligned(text):
+                    if self.is_right_aligned(text, row_index):
                         text_rect.topright = (x_offset + col_width - Const.TOOLTIP_PADDING, y_pos)
                     else:
                         text_rect.topleft = (x_offset + Const.TOOLTIP_PADDING, y_pos)
-
                     self.cached_tooltip.blit(label, text_rect)
-
                 x_offset += col_width  # ✅ Move X position based on column width
-
-
 
         # ✅ Get mouse position and adjust tooltip placement
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -393,14 +377,234 @@ class DisplayModel__Neuron:
 
         return position
 
-
     def tooltip_generate_text(self):
         """Clears and regenerates tooltip text columns."""
-        #print("Generating text")
         self.tooltip_columns.clear()
         self.tooltip_columns.extend(self.tooltip_columns_for_forward_pass())
         self.tooltip_columns.extend(self.tooltip_columns_for_backprop())  # 🔹 Uncomment when backprop data is ready
+        self.set_column_widths()
 
+    def set_column_widths(self):
+        """
+        Dynamically sets the column widths based on tooltip column headers.
+        Assumes self.tooltip_columns is a list of vertical columns (each a list: [header, val1, val2, ...]).
+        """
+        col_info = 65
+        col_operator = 10
+        forward_cols = [45, 50, 10, col_info, 15, col_info]  # First 6 are fixed-width forward pass columns
+
+        dynamic_widths = []
+        for col in self.tooltip_columns[6:-3]:  # skip forward pass (6), and standard trailing stats (3)
+            header = col[0]
+            is_operator = isinstance(header, str) and len(header.strip()) <= 2 and header.strip().lower() not in {"m", "v", "t"}
+            width = col_operator if is_operator else col_info
+            dynamic_widths.append(width)
+
+        last_cols = [col_info, col_info, col_info]  # Final 3 summary stats (e.g., adjustment, lr, new weight)
+
+        self.column_widths = forward_cols + dynamic_widths + last_cols
+        Const.TOOLTIP_WIDTH = sum(self.column_widths)+69
+
+
+
+
+
+################### Gather Values for Back Pass #############################
+################### Gather Values for Back Pass #############################
+################### Gather Values for Back Pass #############################
+
+    def tooltip_columns_for_backprop(self):
+        """
+        backprop will have 3 sections:
+            Sample: info pertaining to sample
+            Batch:  sums of sample for the batch
+            Final_adjustement:  standard... old cog value, new cog value, adjustment
+
+        """
+        all_columns = self.tooltip_columns_for_backprop_update()
+        standard_finale = self.tooltip_columns_for_backprop_standard_finale()
+        final_columns = self.tooltip_columns_for_backprop_finalize()        #assert all(isinstance(col, list) for col in final_columns), "Expected list of column-lists"
+        all_columns.extend(final_columns)
+        all_columns.extend(standard_finale)
+
+
+        all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
+        return all_columns
+
+    #Const.dm.db.query_print(sql)
+    def tooltip_columns_for_backprop_finalize(self):
+        num_args = len(self.config.popup_finalizer_headers)
+        arg_columns = [f"B.arg_{i+1}" for i in range(num_args)]
+
+        #DEBUG#########################
+        if self.my_model.display_epoch == -1 and Const.vcr.CUR_ITERATION==2: #TO SEE DEBUG SWITCH THE -1
+            sql = f"SELECT * FROM  WeightAdjustments_update_{self.config.gladiator_name} WHERE epoch={self.my_model.display_epoch} AND ITERATION=2"
+            sql = f"""
+            SELECT A.epoch, A.iteration, A.weight_index,{", ".join(arg_columns)}
+            FROM        WeightAdjustments_update_{self.config.gladiator_name} AS A
+            LEFT JOIN   WeightAdjustments_finalize_{self.config.gladiator_name} AS B
+             ON         A.batch_id      = B.batch_id AND        A.epoch         = B.epoch
+             AND        A.nid           = B.nid      AND        A.weight_index  = B.weight_index
+            WHERE       A.epoch         = 1 AND A.iteration <5
+            """
+            Const.dm.db.query_print(sql,use_excel=True)
+
+
+        # SQL query: Join UPDATE + FINALIZE on batch_id, epoch, nid, and weight_index
+        sql = f"""
+            SELECT {", ".join(arg_columns)}
+            FROM        WeightAdjustments_update_{self.config.gladiator_name} AS A
+            LEFT JOIN   WeightAdjustments_finalize_{self.config.gladiator_name} AS B
+             ON         A.batch_id      = B.batch_id AND        A.epoch         = B.epoch
+             AND        A.nid           = B.nid      AND        A.weight_index  = B.weight_index
+            WHERE       A.epoch         = ? AND A.iteration = ? AND A.nid = ?
+            ORDER BY    A.weight_index ASC
+        """
+
+        results = Const.dm.db.query(
+            sql,
+            (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.nid),
+            as_dict=False
+        )
+
+
+
+        # Finalize column layout: arg/op/arg/op...
+        final_columns = []
+        #print(f"self.config.popup_finalizer_headers[i]]={self.config.popup_finalizer_headers}")
+        #print(f"self.config.popup_finalizer_operators[i]]={self.config.popup_finalizer_operators}")
+        for i in range(num_args):
+            final_columns.append([self.config.popup_finalizer_headers[i]])
+            final_columns.append([self.config.popup_finalizer_operators[i]])
+
+        for row in results:
+            for i, val in enumerate(row):
+                final_columns[2 * i].append(val)
+                final_columns[2 * i + 1].append(self.config.popup_finalizer_operators[i])
+
+        return final_columns
+
+    def tooltip_columns_for_backprop_update(self):
+        # First, determine how many argument columns you expect.
+        num_args = len(self.config.popup_headers)
+        # Build the SQL query to select only the argument columns.
+        arg_columns = [f"arg_{i+1}" for i in range(num_args)]
+        #Const.dm.db.query_print(f"SELECT * FROM WeightAdjustments_finalize_{self.config.gladiator_name} LIMIT 5")
+
+
+        sql = "SELECT " + ", ".join(arg_columns) + f"""
+            FROM WeightAdjustments_update_{self.config.gladiator_name} A
+            -- WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?
+            WHERE A.epoch = ? AND A.iteration = ? AND A.nid = ?
+            ORDER BY A.weight_index ASC
+        """
+
+        #ez_debug(sql=sql)
+        # Retrieve the results. Each row is a tuple of length num_args.
+        results = Const.dm.db.query(
+            sql,
+            (self.my_model.display_epoch, Const.vcr.CUR_ITERATION,  self.nid),
+            as_dict=False
+        )
+
+        # Build the final columns structure.
+        # There will be two columns for each argument:
+        # one for the argument value (with header) and one for the operator (with constant operator value).
+        final_columns = []
+        for i in range(num_args):
+            # Create the argument column with its header.
+            final_columns.append([self.config.popup_headers[i]])
+            # Create the operator column with its header.
+            final_columns.append([self.config.popup_operators[i]])
+
+        # For each row returned by the SQL query, fill the argument columns and
+        # also insert the corresponding operator value (repeated for each row).
+        for row in results:
+            for i, arg_val in enumerate(row):
+                # For column index 2*i, append the argument value.
+                final_columns[2 * i].append(arg_val)
+                # For column index 2*i+1, append the operator constant.
+                final_columns[2 * i + 1].append(self.config.popup_operators[i])
+
+        return final_columns
+
+    def tooltip_columns_for_backprop_standard_finale(self) -> list:
+        col_delta = ["Adj"] # Δ
+        col_before = ["Before"]
+        col_after = ["After"]
+
+        for i in range(len(self.weights)):
+            adjustment = self.weights_before[i] - self.weights[i]
+            col_delta.append(self.smart_format_for_popup(adjustment))
+            col_before.append(self.smart_format_for_popup(self.weights_before[i]))
+            col_after.append(self.smart_format_for_popup(self.weights[i]))
+
+        return [col_delta, col_before, col_after]
+
+    def tooltip_columns_for_error_signal_calculation(self, all_cols):
+        # Row in the box between adj and blame
+        #print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
+        for i in range(8):  #Do entire row
+            if i == 0:
+                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
+            else:
+                all_cols[i].append(" ")
+
+        if self.layer == self.output_layer: # This is an output neuron
+            return self.tooltip_columns_for_error_sig_outputlayer(all_cols)
+        else:
+            return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
+
+    def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
+        all_cols[0].append("Accepted Blame Calculation Below")
+        all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
+        all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
+        return all_cols
+
+    def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
+        col_weight = 0
+        col_errsig = 3
+        col_contri = 6
+        all_cols[col_weight].append("Accepted Blame Calculation Below")
+        all_cols[col_errsig-1].append(" ")
+        all_cols[col_errsig].append(" ")
+        all_cols[col_contri-1].append(" ")
+        all_cols[col_contri].append(" ")
+        # IWFM = It's weight From Me
+        all_cols[col_weight].append("IWFM")
+        all_cols[col_errsig].append("It's Blame")
+        all_cols[col_contri].append("My Share of it's blame")
+        arg_1, arg_2 = self.get_elements_of_backproped_error()
+        contributions = [a * b for a, b in zip(arg_1, arg_2)]
+        all_cols[col_weight].extend(arg_1)
+        all_cols[col_errsig-1].extend("*" * (len(arg_1)+1))
+        all_cols[col_errsig].extend(arg_2)
+        all_cols[col_contri-1].extend("=" * (len(arg_1)+3))
+        all_cols[col_contri].extend(contributions)
+        bpe=sum(contributions)
+        all_cols[col_weight].append("My Blame from All")
+        all_cols[col_weight].append("Accp Blame = MBFA * Act Grad")
+        all_cols[col_contri].append(bpe)
+        all_cols[col_contri].append(bpe*self.activation_gradient)
+        #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
+        #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
+        return all_cols
+
+    def get_elements_of_backproped_error(self):
+        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
+        SQL = """
+            SELECT arg_1, arg_2
+            FROM ErrorSignalCalcs
+            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            ORDER BY weight_id ASC
+        """
+        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
+
+        if backprop_error_elements:             # Split the elements into two lists using the helper function
+            list1, list2 = self.split_error_elements(backprop_error_elements)
+            return list1, list2
+        else:
+            return [],[]
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
@@ -466,170 +670,6 @@ class DisplayModel__Neuron:
         input_col.extend(self.neuron_inputs)
         return input_col
 
-################### Gather Values for Back Pass #############################
-################### Gather Values for Back Pass #############################
-################### Gather Values for Back Pass #############################
-
-    def tooltip_columns_for_backprop(self):
-        all_columns = self.tooltip_columns_for_backprop_error_distribution()
-        weights=  ["    Orig"]
-        weights.extend(self.weights_before)
-        all_columns.append(weights)
-        weights = ["    New"]
-        weights.extend(self.weights)
-        all_columns.append(weights)
-        all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
-        return all_columns
-
-    def tooltip_columns_for_backprop_error_distribution(self):
-        """
-        Populates tooltip columns with backprop calculations for the hovered neuron.
-        Queries the database using nid, model_id, epoch, iteration and orders by weight_id.
-        """
-
-        # Query weight updates from DB
-        sql = """
-        SELECT weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result 
-        FROM WeightAdjustments 
-        WHERE  epoch = ? AND iteration = ? AND model_id = ? AND nid = ? 
-        ORDER BY weight_index ASC
-        """
-
-        sql2 = """
-        SELECT A.weight_index, A.arg_1, A.op_1, A.arg_2,A.op_2,A.arg_3,A.op_3, A.result--, B.arg_3 AS batch_arg_3         -- 🧠 Pulled from last sample in batch
-        FROM WeightAdjustments A
-        JOIN WeightAdjustments B
-          ON A.model_id = B.model_id
-          AND A.epoch = B.epoch
-          AND A.nid = B.nid
-          AND A.weight_index = B.weight_index
-          AND A.batch_id = B.batch_id
-          AND B.iteration = (SELECT MAX(iteration)
-              FROM ErrorSignalCalcs
-              WHERE epoch = A.epoch
-                AND model_id = A.model_id
-                AND nid = A.nid
-                AND weight_id = A.weight_index
-                AND B.batch_id = A.batch_id       )
-        WHERE A.epoch = ?          AND A.iteration = ?          AND A.model_id = ?          AND A.nid = ?        ORDER BY A.weight_index ASC
-        """
-
-
-        #ez_debug(epoch=self.my_model.display_epoch, iter=Const.vcr.CUR_ITERATION,model= self.model_id, nid=self.nid)
-        #Const.dm.db.query_print("SELECT epoch, iteration,  count(1) FROM WeightAdjustments GROUP BY epoch, iteration ")
-        #Const.dm.db.query_print("SELECT * FROM WeightAdjustments WHERE iteration = 2 and nid = 0")
-        results = Const.dm.db.query(sql, (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.model_id, self.nid ), as_dict=False)
-        if not results:
-            return []  # ✅ No data found, exit early
-
-        #ez_debug(results=results)
-
-        # ✅ Initialize columns for backpropagation
-        print (f"self.config.backprop_headers={self.config.backprop_headers}")
-        col_input   = [self.config.backprop_headers[0]] #col_input = ["Input1"]
-        col_op1     = [self.config.backprop_headers[1]] #col_op1 = ["*"]
-        col_err_sig = [self.config.backprop_headers[2]] # col_err_sig = ["Accp Blm"]
-        col_op2     = [self.config.backprop_headers[3]] # col_op2 = ["*"]
-        col_lrate   = [self.config.backprop_headers[4]] # col_lrate = ["LRate"]
-        col_op3     = [self.config.backprop_headers[5]] # col_op3 = ["="]
-        col_adj     = [self.config.backprop_headers[6]] # col_adj = ["      Adj"]
-
-
-
-
-        # ✅ Loop through results and populate columns
-        for row in results:
-            weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result_value = row
-            col_input.append(arg_1)  # Input
-            col_op1.append(op_1)  # ×
-            col_err_sig.append(arg_2)  # Blame
-            col_op2.append(op_2)  # ×
-            col_lrate.append(arg_3)  # Learning Rate
-            col_op3.append(op_3)  # =
-            col_adj.append(result_value)   # Prev Activation
-
-        # ✅ Append all columns in the correct order
-        all_columns = []
-        all_columns.append(col_input)
-        all_columns.append(col_op1)
-        all_columns.append(col_err_sig)
-        all_columns.append(col_op2)
-        all_columns.append(col_lrate)
-        all_columns.append(col_op3)
-        all_columns.append(col_adj)
-        col_input[1] = " "     #"N/A"    #  remove the 1 for bias
-        col_op1[1] = " "    #  remove the * for bias
-        return all_columns
-
-    def tooltip_columns_for_error_signal_calculation(self, all_cols):
-        # Row in the box between adj and blame
-        #print(f"len(all_cols)={len(all_cols)}")
-        for i in range(len(all_cols)):  #Prints blank row, empty space in each cell
-            if i == 0:
-                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
-            else:
-                all_cols[i].append(" ")
-
-
-
-        if self.layer == self.output_layer: # This is an output neuron
-            return self.tooltip_columns_for_error_sig_outputlayer(all_cols)
-        else:
-            return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
-
-    # Better Terms for backprob... blame, yelling, accepted blame
-
-    def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Accepted Blame Calculation Below")
-        all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
-        all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
-        return all_cols
-
-    def tooltip_columns_for_error_sig_hiddenlayer(self, all_cols):
-        col_weight = 0
-        col_errsig = 3
-        col_contri = 6
-        all_cols[col_weight].append("Accepted Blame Calculation Below")
-        all_cols[col_errsig-1].append(" ")
-        all_cols[col_errsig].append(" ")
-        all_cols[col_contri-1].append(" ")
-        all_cols[col_contri].append(" ")
-        # IWFM = It's weight From Me
-        all_cols[col_weight].append("IWFM")
-        all_cols[col_errsig].append("It's Blame")
-        all_cols[col_contri].append("My Share of it's blame")
-        arg_1, arg_2 = self.get_elements_of_backproped_error()
-        contributions = [a * b for a, b in zip(arg_1, arg_2)]
-        all_cols[col_weight].extend(arg_1)
-        all_cols[col_errsig-1].extend("*" * (len(arg_1)+1))
-        all_cols[col_errsig].extend(arg_2)
-        all_cols[col_contri-1].extend("=" * (len(arg_1)+3))
-        all_cols[col_contri].extend(contributions)
-        bpe=sum(contributions)
-        all_cols[col_weight].append("My Blame from All")
-        all_cols[col_weight].append("Accp Blame = MBFA * Act Grad")
-        all_cols[col_contri].append(bpe)
-        all_cols[col_contri].append(bpe*self.activation_gradient)
-        #all_cols[col_weight].append(f"BackPropped Error = {smart_format(bpe)}")
-        #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
-        return all_cols
-
-    def get_elements_of_backproped_error(self):
-        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
-        SQL = """
-            SELECT arg_1, arg_2
-            FROM ErrorSignalCalcs
-            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
-            ORDER BY weight_id ASC
-        """
-        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
-
-        if backprop_error_elements:             # Split the elements into two lists using the helper function
-            list1, list2 = self.split_error_elements(backprop_error_elements)
-            return list1, list2
-        else:
-            return [],[]
-
     def split_error_elements(self,elements):
         """
         Splits a list of tuples into two lists.
@@ -676,10 +716,25 @@ class DisplayModel__Neuron:
         # Remove trailing zeros and trailing decimal point if necessary
         return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted
 
-    def is_right_aligned(self, text):
+    def is_right_aligned(self, text, row_index):
+        if row_index == 0:
+            return True
+        if text == "||":
+            return True
+        if text == "/":
+            return True
+        if text == "=":
+            return True
+        if text == "*":
+            return True
         if isinstance(text, (int, float)):
             return True
         if isinstance(text, str):
             cleaned = text.replace(",", "").strip()
-            return cleaned.upper() in ["N/A", "NONE"] or cleaned.replace(".", "", 1).replace("-", "", 1).isdigit()
+            try:
+                float(cleaned)
+                return True
+            except ValueError:
+                return cleaned.upper() in ["N/A", "NONE"]
         return False
+

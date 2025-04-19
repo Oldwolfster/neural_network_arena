@@ -413,124 +413,117 @@ class DisplayModel__Neuron:
 ################### Gather Values for Back Pass #############################
 ################### Gather Values for Back Pass #############################
 
-    def tooltip_columns_for_backprop(self):
+
+    def _build_column_lists(self, headers, operators, rows):
         """
-        backprop will have 3 sections:
-            Sample: info pertaining to sample
-            Batch:  sums of sample for the batch
-            Final_adjustement:  standard... old cog value, new cog value, adjustment
-
+        Given:
+          headers   = ['Input', 'Blame', 'Raw Adj', ...]
+          operators = ['*',      '=',    '*',     ...]
+          rows      = [(val1, val2, val3, ...), ...]
+        returns a list-of-lists like:
+          [
+            ['Input',   row1[0], row2[0], …],
+            ['*',       '*',     '*',     …],
+            ['Blame',   row1[1], row2[1], …],
+            ['=',       '=',     '=',     …],
+            ['Raw Adj', row1[2], row2[2], …],
+            ['*',       '*',     '*',     …],
+            …
+          ]
         """
-        all_columns = self.tooltip_columns_for_backprop_update()
-        standard_finale = self.tooltip_columns_for_backprop_standard_finale()
-        #print(f"Before extend: {len(all_columns)} columns")
+        columns = []
+        for h, op in zip(headers, operators):
+            columns.append([h])
+            columns.append([op])
 
-
-
-        final_columns = self.tooltip_columns_for_backprop_finalize()        #assert all(isinstance(col, list) for col in final_columns), "Expected list of column-lists"
-        all_columns.extend(final_columns)
-        all_columns.extend(standard_finale)
-
-
-        all_columns = self.tooltip_columns_for_error_signal_calculation(all_columns)
-        return all_columns
-
-    #Const.dm.db.query_print(sql)
-    def tooltip_columns_for_backprop_finalize(self):
-        num_args = len(self.config.popup_finalizer_headers)
-        arg_columns = [f"B.arg_{i+1}" for i in range(num_args)]
-
-        #DEBUG#########################
-        if self.my_model.display_epoch == -1 and Const.vcr.CUR_ITERATION==2: #TO SEE DEBUG SWITCH THE -1
-            sql = f"SELECT * FROM  WeightAdjustments_update_{self.config.gladiator_name} WHERE epoch={self.my_model.display_epoch} AND ITERATION=2"
-            sql = f"""
-            SELECT A.epoch, A.iteration, A.weight_index,{", ".join(arg_columns)}
-            FROM        WeightAdjustments_update_{self.config.gladiator_name} AS A
-            LEFT JOIN   WeightAdjustments_finalize_{self.config.gladiator_name} AS B
-             ON         A.batch_id      = B.batch_id AND        A.epoch         = B.epoch
-             AND        A.nid           = B.nid      AND        A.weight_index  = B.weight_index
-            WHERE       A.epoch         = 1 AND A.iteration <5
-            """
-            Const.dm.db.query_print(sql,use_excel=True)
-
-
-        # SQL query: Join UPDATE + FINALIZE on batch_id, epoch, nid, and weight_index
-        sql = f"""
-            SELECT {", ".join(arg_columns)}
-            FROM        WeightAdjustments_update_{self.config.gladiator_name} AS A
-            LEFT JOIN   WeightAdjustments_finalize_{self.config.gladiator_name} AS B
-             ON         A.batch_id      = B.batch_id AND        A.epoch         = B.epoch
-             AND        A.nid           = B.nid      AND        A.weight_index  = B.weight_index
-            WHERE       A.epoch         = ? AND A.iteration = ? AND A.nid = ?
-            ORDER BY    A.weight_index ASC
-        """
-
-        results = Const.dm.db.query(
-            sql,
-            (self.my_model.display_epoch, Const.vcr.CUR_ITERATION, self.nid),
-            as_dict=False
-        )
-
-
-
-        # Finalize column layout: arg/op/arg/op...
-        final_columns = []
-        #print(f"self.config.popup_finalizer_headers[i]]={self.config.popup_finalizer_headers}")
-        #print(f"self.config.popup_finalizer_operators[i]]={self.config.popup_finalizer_operators}")
-        for i in range(num_args):
-            final_columns.append([self.config.popup_finalizer_headers[i]])
-            final_columns.append([self.config.popup_finalizer_operators[i]])
-
-        for row in results:
+        for row in rows:
             for i, val in enumerate(row):
-                final_columns[2 * i].append(val)
-                final_columns[2 * i + 1].append(self.config.popup_finalizer_operators[i])
+                columns[2*i].append(val)
+                # operator is constant per column
+                columns[2*i+1].append(operators[i])
 
-        return final_columns
+        return columns
 
-    def tooltip_columns_for_backprop_update(self):
-        # First, determine how many argument columns you expect.
-        num_args = len(self.config.popup_headers)
-        # Build the SQL query to select only the argument columns.
-        arg_columns = [f"arg_{i+1}" for i in range(num_args)]
-        #Const.dm.db.query_print(f"SELECT * FROM WeightAdjustments_finalize_{self.config.gladiator_name} LIMIT 5")
+    def tooltip_columns_for_backprop(self):
+        """Compose the final list-of-lists depending on single vs batch mode."""
+        is_batch = self.config.batch_size > 1
 
+        # 1) Update block (always present)
+        update_cols = self.tooltip_columns_for_backprop_update(is_batch)
 
-        sql = "SELECT " + ", ".join(arg_columns) + f"""
-            FROM WeightAdjustments_update_{self.config.gladiator_name} A
-            -- WHERE A.epoch = ? AND A.iteration = ? AND A.model_id = ? AND A.nid = ?
-            WHERE A.epoch = ? AND A.iteration = ? AND A.nid = ?
-            ORDER BY A.weight_index ASC
+        # 2) In batch mode, include the 'joined' finalize block
+        if is_batch:
+            batch_finalize_cols = self.tooltip_columns_for_backprop_finalize(is_batch)
+            std_finalize_cols  = self.tooltip_columns_for_backprop_standard_finale()
+            cols = update_cols + batch_finalize_cols + std_finalize_cols
+        else:
+            # single‐sample: skip the joined finalize block entirely
+            cols = update_cols + self.tooltip_columns_for_backprop_standard_finale()
+
+        # 3) Finally inject your error signal section
+        return self.tooltip_columns_for_error_signal_calculation(cols)
+
+    def tooltip_columns_for_backprop_update(self, is_batch: bool):
+        # pick the right header/operator lists
+        #if is_batch:
+        #    headers  = self.config.popup_headers_batch
+        #    operators = self.config.popup_operators_batch
+        #else:
+        #    headers  = self.config.popup_headers_single
+        #   operators = self.config.popup_operators_single
+        headers  = self.config.popup_headers
+        operators = self.config.popup_operators
+        # build the SELECT clause dynamically
+        num_args   = len(headers)
+        arg_fields = [f"arg_{i+1}" for i in range(num_args)]
+        table      = f"WeightAdjustments_update_{self.config.gladiator_name}"
+
+        sql = f"""
+            SELECT {', '.join(arg_fields)}
+              FROM {table} A
+             WHERE A.epoch     = ?
+               AND A.iteration = ?
+               AND A.nid       = ?
+             ORDER BY A.weight_index ASC
         """
+        params = (self.my_model.display_epoch,
+                  Const.vcr.CUR_ITERATION,
+                  self.nid)
+        rows = Const.dm.db.query(sql, params, as_dict=False)
 
-        #ez_debug(sql=sql)
-        # Retrieve the results. Each row is a tuple of length num_args.
-        results = Const.dm.db.query(
-            sql,
-            (self.my_model.display_epoch, Const.vcr.CUR_ITERATION,  self.nid),
-            as_dict=False
-        )
+        return self._build_column_lists(headers, operators, rows)
 
-        # Build the final columns structure.
-        # There will be two columns for each argument:
-        # one for the argument value (with header) and one for the operator (with constant operator value).
-        final_columns = []
-        for i in range(num_args):
-            # Create the argument column with its header.
-            final_columns.append([self.config.popup_headers[i]])
-            # Create the operator column with its header.
-            final_columns.append([self.config.popup_operators[i]])
+    def tooltip_columns_for_backprop_finalize(self, is_batch: bool):
+        # pick header/operator for the JOINed finalize block
+        # (you can keep this separate from standard_finale)
+        headers   = self.config.popup_finalizer_headers
+        operators = self.config.popup_finalizer_operators
 
-        # For each row returned by the SQL query, fill the argument columns and
-        # also insert the corresponding operator value (repeated for each row).
-        for row in results:
-            for i, arg_val in enumerate(row):
-                # For column index 2*i, append the argument value.
-                final_columns[2 * i].append(arg_val)
-                # For column index 2*i+1, append the operator constant.
-                final_columns[2 * i + 1].append(self.config.popup_operators[i])
+        num_args   = len(headers)
+        arg_fields = [f"B.arg_{i+1}" for i in range(num_args)]
+        upd_table  = f"WeightAdjustments_update_{self.config.gladiator_name}"
+        fin_table  = f"WeightAdjustments_finalize_{self.config.gladiator_name}"
 
-        return final_columns
+        sql = f"""
+            SELECT {', '.join(arg_fields)}
+              FROM {upd_table} AS A
+         LEFT JOIN {fin_table} AS B
+                ON A.batch_id     = B.batch_id
+               AND A.epoch        = B.epoch
+               AND A.nid          = B.nid
+               AND A.weight_index = B.weight_index
+             WHERE A.epoch     = ?
+               AND A.iteration = ?
+               AND A.nid       = ?
+             ORDER BY A.weight_index ASC
+        """
+        params = (self.my_model.display_epoch,
+                  Const.vcr.CUR_ITERATION,
+                  self.nid)
+        rows = Const.dm.db.query(sql, params, as_dict=False)
+
+        return self._build_column_lists(headers, operators, rows)
+
 
     def tooltip_columns_for_backprop_standard_finale(self) -> list:
         col_delta = ["Adj"] # Δ
@@ -594,21 +587,7 @@ class DisplayModel__Neuron:
         #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
         return all_cols
 
-    def get_elements_of_backproped_error(self):
-        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
-        SQL = """
-            SELECT arg_1, arg_2
-            FROM ErrorSignalCalcs
-            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
-            ORDER BY weight_id ASC
-        """
-        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
 
-        if backprop_error_elements:             # Split the elements into two lists using the helper function
-            list1, list2 = self.split_error_elements(backprop_error_elements)
-            return list1, list2
-        else:
-            return [],[]
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################
