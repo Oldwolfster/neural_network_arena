@@ -386,24 +386,49 @@ class DisplayModel__Neuron:
 
     def set_column_widths(self):
         """
-        Dynamically sets the column widths based on tooltip column headers.
-        Assumes self.tooltip_columns is a list of vertical columns (each a list: [header, val1, val2, ...]).
+        Dynamically sets the column widths based on tooltip_columns, which is
+        a list of vertical columns (each a list: [header, val1, val2, ...]).
+        We assume three sections:
+          1) Forward‑pass columns (fixed count)
+          2) “Dynamic” backprop columns (update or update+joined-finalize)
+          3) Final summary columns (always the last 3: Adj, Before, After)
         """
-        col_info = 65
-        col_operator = 10
-        forward_cols = [45, 50, 10, col_info, 15, col_info]  # First 6 are fixed-width forward pass columns
+        # 1) widths for the *forward‑pass* section (these never change)
+        forward_cols = [45, 50, 10, 65, 15, 65]
 
+        # 2) widths for the *final summary* section (always 3 columns)
+        final_cols   = [65, 65, 65]
+
+        # 3) figure out how many columns we actually have
+        total = len(self.tooltip_columns)
+        n_forward = len(forward_cols)
+        n_final   = len(final_cols)
+
+        # how many are in the middle?
+        n_dynamic = total - n_forward - n_final
+        if n_dynamic < 0:
+            # Something went wrong—fall back to a safe default
+            n_dynamic = max(0, total - n_forward)
+
+        # 4) slice out the dynamic section
+        dynamic_section = self.tooltip_columns[n_forward : n_forward + n_dynamic]
+
+        # 5) compute widths for each “dynamic” column
+        col_info, col_operator = 65, 10
         dynamic_widths = []
-        for col in self.tooltip_columns[6:-3]:  # skip forward pass (6), and standard trailing stats (3)
-            header = col[0]
-            is_operator = isinstance(header, str) and len(header.strip()) <= 2 and header.strip().lower() not in {"m", "v", "t"}
-            width = col_operator if is_operator else col_info
-            dynamic_widths.append(width)
+        for col in dynamic_section:
+            header = col[0].strip()
+            # simple heuristic: if the header is one or two characters (like “*” or “=”),
+            # treat it as an operator column; otherwise it’s a data column
+            if len(header) <= 2:
+                dynamic_widths.append(col_operator)
+            else:
+                dynamic_widths.append(col_info)
 
-        last_cols = [col_info, col_info, col_info]  # Final 3 summary stats (e.g., adjustment, lr, new weight)
-
-        self.column_widths = forward_cols + dynamic_widths + last_cols
-        Const.TOOLTIP_WIDTH = sum(self.column_widths)+69
+        # 6) stitch them all back together
+        self.column_widths = forward_cols + dynamic_widths + final_cols
+        # adjust the overall tooltip width
+        Const.TOOLTIP_WIDTH = sum(self.column_widths) + 69
 
 
 
@@ -543,7 +568,7 @@ class DisplayModel__Neuron:
         #print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
         for i in range(8):  #Do entire row
             if i == 0:
-                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
+                all_cols[0].append("(Calculation for Blame column above)")
             else:
                 all_cols[i].append(" ")
 
@@ -553,7 +578,7 @@ class DisplayModel__Neuron:
             return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
 
     def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Accepted Blame Calculation Below")
+        all_cols[0].append("Output Neuron:")
         all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
         all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
         return all_cols
@@ -562,7 +587,7 @@ class DisplayModel__Neuron:
         col_weight = 0
         col_errsig = 3
         col_contri = 6
-        all_cols[col_weight].append("Accepted Blame Calculation Below")
+        all_cols[col_weight].append("Hidden Neuron: from next layer")
         all_cols[col_errsig-1].append(" ")
         all_cols[col_errsig].append(" ")
         all_cols[col_contri-1].append(" ")
