@@ -20,7 +20,7 @@ class Config:
 
     # 🔹 Unique components
     gladiator_name: str                     = ""
-    optimizer: Optimizer                    = None
+    optimizer                   = None #: Optimizer
     batch_mode: BatchMode                   = None
     batch_size: int                         = 10
     architecture: list                      = field(default_factory=lambda: [1])

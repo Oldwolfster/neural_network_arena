@@ -216,6 +216,7 @@ class Gladiator(ABC):
                 neuron.raw_sum = sum(input_val * weight for input_val, weight in zip(prev_activations, neuron.weights))
                 neuron.raw_sum += neuron.bias
                 neuron.activate()
+                #print(f"neuron.activation={neuron.activation_value}")
 
     def back_pass(self, training_sample : Tuple[float, float, float], loss_gradient: float):
         """

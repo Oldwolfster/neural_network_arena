@@ -102,7 +102,7 @@ def run_a_match(gladiators, training_pit, shared_hyper):
 
 
         # Instantiate and train the model
-        nn = dynamic_instantiate(gladiator, 'gladiators', model_config)
+        nn = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
         start_time = time.time()
 
         # Actually train model
@@ -147,7 +147,7 @@ def get_training_data(hyper):
     # If still here, do a run with new training data
 
     # Instantiate the arena and retrieve data
-    arena               = dynamic_instantiate(training_pit, 'arenas', hyper.training_set_size)
+    arena               = dynamic_instantiate(training_pit, 'coliseum\\arenas', hyper.training_set_size)
     arena.arena_name    = training_pit
 
     result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
