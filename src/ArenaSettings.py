@@ -9,12 +9,13 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 50     # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 100     # Number of times training run will cycle through all training data
     training_set_size       :int    = 30    # Qty of training data
     default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
+    is_exploratory          :bool = True    # Autotuning or testing - don't save
     random_seed             :int       = 288470
  #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH

@@ -63,7 +63,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #    return
 
         #Check if batch is over, if so if there is data to record, then record it (for neuroforge)
-        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer_function)
+        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer)
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 

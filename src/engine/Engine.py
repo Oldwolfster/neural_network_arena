@@ -72,6 +72,31 @@ def run_batch_of_matches(gladiators, training_pit, shared_hyper, number_of_match
         run_a_match(gladiators, training_pit, shared_hyper)
 
 
+
+def grid_search_learning_rate(gladiators, training_pit, base_hyper, lr_values):
+    """
+    Try each learning rate in `lr_values`, run a match,
+    and return the best LR plus all results.
+    """
+    results = []
+    for lr in lr_values:
+        # make a fresh copy of the hyperparameters (so per‐run seeds, db, etc. are isolated)
+        hyper = copy.deepcopy(base_hyper)
+        hyper.learning_rate = lr
+
+        print(f"\n=== Grid search: trying learning_rate={lr} ===")
+        infos = _run_single_match(gladiators, training_pit, hyper)
+
+        # suppose you choose model 0's convergence time as your metric:
+        metric = sum(info.seconds for info in infos) / len(infos)
+        results.append((lr, metric))
+
+    # pick the lr with minimal average run‐time (or replace with your own metric)
+    best_lr, best_metric = min(results, key=lambda x: x[1])
+    print(f"\n*** Best learning_rate={best_lr} (avg seconds={best_metric}) ***")
+    return best_lr, results
+
+
 def run_a_match(gladiators, training_pit, shared_hyper):
 
     seed = set_seed(shared_hyper.random_seed)
@@ -120,17 +145,7 @@ def run_a_match(gladiators, training_pit, shared_hyper):
         model_configs.append(model_config)
 
         # Easy place for quick dirty sql
-        #
         #model_config.db.query_print("SELECT * FROM        WeightAdjustments where nid = 0 and weight_index = 0")
-
-
-
-        #model_config.db.query_print("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration")
-
-        #recorded_frames = model_config.db.query("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration",as_dict=False)
-        #print("frames")
-        #print( recorded_frames)
-
         print(f"{gladiator} completed in {model_config.seconds} based on:{model_config.cvg_condition}")
 
     # Generate reports and send all model configs to NeuroForge
