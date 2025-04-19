@@ -35,6 +35,7 @@ class Config:
     roi_mode                                = ROI_Mode.SWEET_SPOT
     seconds: float                          = 0.0
     cvg_condition: str                      = "Did Not Converge"
+    default_lr: float                       = 0.0
     final_epoch: int                        =   0 # Last epoch to run
     lowest_error: float                     = 1e50
     lowest_error_epoch                      = 0

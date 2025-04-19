@@ -3,13 +3,16 @@ import os
 import datetime
 import ast  # For safely evaluating strings back to data structures
 from tabulate import tabulate
+
+from src.engine.Config import Config
 from src.engine.Utils_DataClasses import ReproducibilitySnapshot
 from datetime import datetime
 
-def record_snapshot(snapshot: ReproducibilitySnapshot):
+def record_snapshot( config: Config, last_mae):
     conn = get_db_connection()
     create_snapshot_table(conn)
-    insert_snapshot(conn, snapshot)
+    log_entry = ReproducibilitySnapshot.from_config(config, last_mae)
+    insert_snapshot(conn, log_entry)
     conn.close()
 
 

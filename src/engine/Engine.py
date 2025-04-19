@@ -131,16 +131,16 @@ def run_a_match(gladiators, training_pit, shared_hyper):
         start_time = time.time()
 
         # Actually train model
-        model_config.full_architecture, snapshot = nn.train()
+        last_mae = nn.train()       #Most info is stored in config
 
         #Record training details
-        model_config.architecture = model_config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
+
         model_config.seconds = time.time() - start_time
         model_details= ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
         model_info_list.append(model_details)
         model_config.db.add(model_details)    #Writes record to ModelInfo table
-        snapshot.runtime_seconds = model_config.seconds
-        record_snapshot(snapshot)
+
+        record_snapshot( model_config, last_mae)
         # Store Config for this model
         model_configs.append(model_config)
 

@@ -72,6 +72,7 @@ class Gladiator(ABC):
             or self.config.loss_function.recommended_output_activation)
 
         self.customize_neurons(self.config)
+        self.config.architecture = self.config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
 
     def configure_model(self, config: Config):
         pass
@@ -96,12 +97,13 @@ class Gladiator(ABC):
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
 
         for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
-            self.config.cvg_condition = self.run_an_epoch(epoch)                                # Call function to run single epoch
-            if self.config.cvg_condition != "Did Not Converge":                                 # Converged so end early
-                snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
-                return self._full_architecture, snapshot
-        snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
-        return  self._full_architecture, snapshot       # When it does not converge still return info
+            self.config.final_epoch = epoch                             # If correct, great, ifn not, corrected next epoch.
+            self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
+            if self.config.cvg_condition != "Did Not Converge":         # Converged so end early
+               # self.last_epoch_mae = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
+                return  self.last_epoch_mae
+        #snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
+        return self.last_epoch_mae       # When it does not converge still return info
 
     def validate_output_activation_functionDeleteME(self):
         """
@@ -524,6 +526,7 @@ class Gladiator(ABC):
             new_learning_rate (float): The new learning rate to set.
         """
         self._learning_rate = new_learning_rate
+        self.config.default_lr = new_learning_rate
         for neuron in Neuron.neurons:
             neuron.set_learning_rate(new_learning_rate)
 
