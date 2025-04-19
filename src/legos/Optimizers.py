@@ -147,11 +147,11 @@ class Optimizer:
 
         # 1) Keep the raw optimizer logic around
         self._update_fn    = update_function
-        #self._finalize_fn  = finalizer_function
+        self._finalize_fn  = finalizer_function
 
         # 2) Expose the wrapper on the public API
-        self.update        = self._intercept_update
-        self.finalizer_function      = finalizer_function #self._intercept_finalize
+        self.update                             = self._intercept_update
+        self.finalizer_function                 = self._intercept_finalize
 
         self.name                               = name
         self.desc                               = desc
@@ -204,11 +204,26 @@ class Optimizer:
             final_logs.append([ *ctx[:3], weight_id, ctx[3], *rest ])
         return final_logs
 
+    #batch_size, epoch, iteration, batch_id
+    def _intercept_finalize(self,
+                            batch_size,
+                            epoch,
+                            iteration,
+                            batch_id):
+        # 1) call the raw finalize logic
+        raw_logs = self._finalize_fn(batch_size) or []
 
-        #return self._update_fn(neuron, input_vector, blame, t, config, epoch, iteration, batch_id)
+        # 2) build the static context prefix
+        #    [ epoch, iteration, neuron_id, weight_id, batch_id, … ]
+        final_logs = []
+        for row in raw_logs:
+            neuron_id, weight_id, *rest = row
+            prefix = [ epoch, iteration, neuron_id, weight_id, batch_id ]
+            final_logs.append(prefix + rest)
 
+        return final_logs
 def sgd_update(neuron, input_vector, accepted_blame, t, config):
-#def sgd_update(neuron, input_vector, accepted_blame, t, config, epoch, iteration, batch_id):
+
     """
     Full Batch SGD — accumulate gradients during backprop,
     apply the final adjustment once per batch using average blame.
@@ -226,8 +241,42 @@ def sgd_update(neuron, input_vector, accepted_blame, t, config):
         )
     return logs
 
+def sgd_finalize(batch_size):
+    """
+    Called once per batch to apply the average accumulated blame.
+    Returns rows of:
+      [ neuron.nid, weight_id, blame_sum, batch_size, avg_blame, learning_rate ]
+    """
+    logs = []
+    for layer in Neuron.layers:
+        for neuron in layer:
+            for weight_id, blame_sum in enumerate(neuron.accumulated_accepted_blame):
+                avg_blame = blame_sum / batch_size
+                lr = neuron.learning_rates[weight_id]
 
-def sgd_finalize(batch_size, epoch, iteration, batch_id):
+                # apply the actual weight update
+                if weight_id == 0:
+                    neuron.bias -= lr * avg_blame
+                else:
+                    neuron.weights[weight_id - 1] -= lr * avg_blame
+
+                logs.append([
+                    neuron.nid,
+                    weight_id,
+                    blame_sum,
+                    batch_size,
+                    avg_blame,
+                    lr
+                ])
+
+            # reset for next batch
+            neuron.accumulated_accepted_blame = [0.0] * len(neuron.accumulated_accepted_blame)
+
+    return logs
+
+
+
+def sgd_finalizeOrig(batch_size, epoch, iteration, batch_id):
     """
     Called once per batch to apply the average accumulated blame.
     Resets the accumulation afterward.
@@ -397,7 +446,7 @@ OptimizerOrig_SGD = OptimizerOrig(
     when_to_use = "Simple problems, shallow networks, or when implementing your own optimizer.",
     best_for    = "Manual tuning, simple models, or teaching tools.",
     update_function                     = sgd_updateOrig,
-    finalizer_function                  = sgd_finalize,
+    finalizer_function                  = sgd_finalizeOrig,
     backprop_popup_headers_batch        = standard_gbs_headers_batch,
     backprop_popup_operators_batch      = standard_gbs_operators_batch,
     backprop_popup_headers_single       = standard_gbs_headers_single,
@@ -412,7 +461,7 @@ Optimizer_SGD = Optimizer(
     desc        = "Updates weights using the raw gradient scaled by learning rate.",
     when_to_use = "Simple problems, shallow networks, or when implementing your own optimizer.",
     best_for    = "Manual tuning, simple models, or teaching tools.",
-    update_function                     = sgd_updateOrig,
+    update_function                     = sgd_update,
     finalizer_function                  = sgd_finalize,
     backprop_popup_headers_batch        = standard_gbs_headers_batch,
     backprop_popup_operators_batch      = standard_gbs_operators_batch,
