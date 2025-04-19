@@ -5,6 +5,7 @@ from enum import Enum
 
 
 
+
 @dataclass
 class ReproducibilitySnapshot:
     arena_name: str
@@ -25,7 +26,8 @@ class ReproducibilitySnapshot:
     final_error: float
 
     @classmethod
-    def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
+    #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
+    def from_config(cls, config, last_mae: float):
         return cls(
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
@@ -40,11 +42,11 @@ class ReproducibilitySnapshot:
             weight_initializer_name=config.initializer.name,
             normalization_scheme=config.training_data.norm_scheme,
             seed=config.hyper.random_seed,
-            learning_rate=learning_rate,
-            epoch_count=epoch_count,
+            learning_rate=config.default_lr,
+            epoch_count=config.final_epoch,
             convergence_condition=config.cvg_condition or "None",
-            runtime_seconds=-1,
-            final_error=last_error
+            runtime_seconds=config.seconds,
+            final_error=last_mae
         )
 
     def display(self):
