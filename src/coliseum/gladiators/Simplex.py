@@ -2,6 +2,7 @@ import math
 from typing import Tuple
 
 from src.Legos.ActivationFunctions import *
+from src.Legos.Optimizers import *
 from src.engine.BaseGladiator import Gladiator
 from src.Legos.WeightInitializers import *
 from src.Legos.LossFunctions import *
@@ -23,10 +24,13 @@ class NeuroForge_Template(Gladiator):
 
         config.architecture             = [2]                       # Neurons in hidden layer output added automatically
         self.learning_rate              = 4
-        self.config.loss_function       = Loss_MSE
-        self.config.initializer         = Initializer_Xavier
-        self.config.output_activation   = Activation_NoDamnFunction
-        self.config.hidden_activation   = Activation_Tanh
+        config.batch_mode           = BatchMode.MINI_BATCH
+        config.batch_size           = 2
+        config.optimizer            = Optimizer_SGD
+        #self.config.loss_function       = Loss_MSE
+        #self.config.initializer         = I
+        #self.config.output_activation   = Activation_NoDamnFunction
+        #self.config.hidden_activation   = Activation_LeakyReLU
 
 
         self.LR_Decay_rate = .5

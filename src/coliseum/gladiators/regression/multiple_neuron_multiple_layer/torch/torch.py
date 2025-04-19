@@ -1,7 +1,3 @@
-import torch
-import torch.nn as nn
-
-
 class NonLinearRegressionModel(nn.Module):
     def __init__(self):
         super(NonLinearRegressionModel, self).__init__()
@@ -28,7 +24,7 @@ y = [item[2] for item in InputsAndOutput]
 #X = torch.tensor([[1, 2], [3, 4], [5, 6]], dtype=torch.float32)
 X = torch.tensor(x, dtype=torch.float32)
 #y = torch.tensor([[10], [20], [30]], dtype=torch.float32)
-Y=torch.tensor(y, dtype=torch.float32)
+Y= torch.tensor(y, dtype=torch.float32)
 
 model = NonLinearRegressionModel()
 

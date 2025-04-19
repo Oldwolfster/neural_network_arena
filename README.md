@@ -1,96 +1,135 @@
-# Neural Network Arena - README
-
-## Overview
-
-The Neural Network Arena is a project designed to simplify the process of understanding and evaluating neural networks. It began with a curiosity about Large Language Models (LLMs) and evolved into a comprehensive framework for building, testing, and comparing neural network models—referred to as "Gladiators"—against various test data generation algorithms known as "Training Pits." The core philosophy is to simplify each component, examine each machine learning technique individually, and gain a clear understanding of its impact.
+# Neural Network Arena (NNA) - README
 
 ---
 
-## Getting Started
+## 🌍 Overview
+
+Neural Network Arena (NNA) is a framework for building, training, and **comparing neural network models** ("Gladiators") against controlled **data generators** ("Arenas").
+
+The goal: **Create a fully autonomous system that builds the right model** with **zero manual tuning** if desired, while still allowing full control for experts.
+
+At every step, the philosophy is: **Simplify > Understand > Expand**.
+
+---
+
+## 🔄 Getting Started
 
 ### 1. Clone the Repository
-
 ```bash
 git clone https://github.com/yourusername/neural_network_arena.git
 cd neural_network_arena
 ```
 
 ### 2. Install Dependencies
-Install the project in editable mode, along with all required dependencies:
-
 ```bash
-pip install -e .
+pip install -r requirements.txt
 ```
-This will set up the project structure for easy importing and allow you to run the program directly from the command line.
 
-### 3. Run the Program
-After installation, you can start the application with:
+Make sure your Python environment is activated and correct (Python 3.12+ recommended).
 
+### 3. Run the Application
 ```bash
 python src/main.py
 ```
 
-or use the command-line entry point:
-```bash
-run-arena
-```
 ---
 
-## Components:
+## 🔹 Main Components
 
-1. **Gladiators**:
-   - These are the neural network models that compete against each other in the arena.
-   - The goal is to isolate various ML techniques and examine their effects on the models.
-   - Each Gladiator inherits from a base class that defines their shared behavior.
+### 1. Gladiators (Models)
+- **Simple to Complex Neural Networks**.
+- Each inherits from a base `Gladiator` class.
+- Configurations can be:
+  - **Fully Manual**
+  - **Fully Automatic** via the "LegoSelector" system.
 
-2. **Arenas**:
-   - Arenas are the algorithms responsible for producing the test and training data.
-   - Various types of pits are available, including linear, quadratic, binary decision, and regression models.
-   - Each pit inherits from a base class that defines their shared behavior.
+### 2. Arenas (Training Data)
+- Algorithms that generate **reproducible training sets**.
+- Types include:
+  - Linear Regression
+  - Piecewise Regression
+  - Binary Decision Problems (Classification)
+  - Nonlinear Problems
+- Consistent data ensures fair model comparisons.
 
-3. **Engine**:
-   - The Engine runs the entire arena, taking the specified Training Pit, a list of Gladiators, and hyperparameters.
-   - It generates a single set of training data, feeds it to all the Gladiators, and collects detailed results.
-   - The Engine produces comprehensive reports comparing the Gladiators’ performance based on key metrics.
-     - Iteration Level - Fields like Input, Target, Prediction, Weight, New Weight, Bias
-     - Epoch Summary - the fields vary based on if the problem type is classification or regression.
-     - Run Summary - one line per model of the overall performance, fields same as epoch summary. 
+### 3. Engine
+- Orchestrates:
+  - Data generation
+  - Gladiator initialization
+  - Training
+  - Result collection
+- Produces detailed reports:
+  - **Iteration View**: Inputs, Targets, Predictions, Weights
+  - **Epoch Summary**
+  - **Final Run Summary**
 
+### 4. NeuroForge (Visualizer)
+- Play back training like a **VCR**.
+- Step through epochs and iterations.
+- See models learn in real time.
+- Show details of Neurons including weights, bias, and activation
 
-Approach and Philosophy:
--------------------------
-The Neural Network Arena was created with two main objectives:
-1. **Simplify Neural Networks**: 
-   - The starting point was the development of the Simpletron—a neural network model stripped down to its simplest form. The goal was to make the entire process easy to understand, even at the expense of some accuracy.
-   - One at a time, various ML techniques are added to the Simpletron to see their isolated effect.
+### 5. LegoSelector (Autonomous Configurator)
+- **Dynamic rules engine** that sets hyperparameters automatically.
+- Based on:
+  - Problem type (regression vs classification)
+  - Output activation functions
+  - Input feature count
+  - Defaults when uncertain
+- Ensures that even a **blank config** produces a usable model.
 
-2. **Transparent Testing**:
-   - The Arena provides a clear comparison of neural network models by testing them against the same data under identical conditions. 
-   - Randomness in training data generation was controlled by creating the Training Pits, which allows the models to be compared on the same set of training data.
-   
-Critical View on Gradient Descent (GBS):
-----------------------------------------
-- From day one, gradient descent (referred to as GBS - Gradient Bull $hit) has felt like a flawed technique in this context.
-- The belief is that gradient descent "double counts" the input since the input is already part of the error calculation.
-- Through rigorous testing, it has been consistently more accurate to exclude gradient descent in favor of simpler methods.
-- The flexibility of the learning rate, as long as it remains small enough, invalidates the benefit of computationally expensive adjustments, further questioning the usefulness of gradient descent.
-- The author would prefer to have IBS than GBS!
+---
 
-Project Inspiration and Motivation:
------------------------------------
-The project was born from the user's experience learning neural networks after experimenting with LLMs. Initially aiming to refresh MVC skills, the simplicity and power of LLMs sparked a deeper dive into neural networks and machine learning. Rather than accepting complex implementations as black boxes, the user chose to simplify, explore, and build everything from the ground up.
+## 🔹 Project Philosophy
 
-YouTube Channel:
------------------
-In addition to building the arena, the user is creating a series of YouTube videos documenting the exploration and explaining each ML technique applied to the Simpletron. The videos emphasize learning through simplification, breaking down each technique, and analyzing its impact.
+- **Simplify Neural Networks**: Understand every piece by stripping away unnecessary complexity.
+- **Transparent Testing**: All models face the exact same data under identical conditions.
+- **Skeptical of Gradient Descent (GBS)**: Gradient-based methods are treated critically and tested rather than assumed to be optimal.
+- **Prefer Manual First, Automate Second**: If a rule improves stability, add it; if not, remove it.
+- **Zero Hidden Magic**: Every piece is visible, understandable, and modifiable.
 
-Future Directions:
--------------------
-- The next steps may involve splitting data into training and test sets, expanding the collection of Gladiators, and introducing more complex neural network architectures to the arena.
-- Additional metrics, such as cross-entropy (log loss), will be incorporated as the project continues to evolve.
+---
 
-License:
----------
-The project is open to contributions, and any improvements, suggestions, or collaborations are welcome!
+## 🔹 Current Status
 
-"""
+- Core systems (Engine, Gladiators, Arenas, LegoSelector) are functional.
+- Blank configurations now succeed in most cases.
+- Arena-based testing is starting to expose where additional rules or strategies are needed.
+
+---
+
+## 💪 Future Directions
+
+- Expand Arena coverage:
+  - Add noisy regression
+  - Add MNIST-style small image tasks
+- Build smarter LegoSelector rules based on observed failures.
+- Incorporate lightweight batch-based hyperparameter exploration.
+- Continue documenting the learning process via YouTube tutorials.
+
+---
+
+## 🎥 YouTube Channel
+
+Follow the journey as each component is explored and explained step-by-step.
+Focus on true **learning through simplification**.
+
+---
+
+## ✨ License and Contributions
+
+Open to suggestions, contributions, collaborations, and new ideas.
+Let's make it the simplest, most intuitive NN Arena ever built.
+
+---
+
+## 💭 Final Note
+
+NNA isn't about building the most complex neural networks.
+It's about building **the clearest mental model**.
+From there, anything is possible.
+
+---
+
+Ready to enter the Arena? 🏀
+

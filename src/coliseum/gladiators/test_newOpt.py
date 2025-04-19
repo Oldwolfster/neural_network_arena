@@ -26,7 +26,7 @@ class NeuroForge_Template(Gladiator):
         self.learning_rate          = .0001
         #config.initializer          = Initializer_Xavier
         config.output_activation    = Activation_NoDamnFunction
-        config.optimizer            = OptimizerOrig_SGD
+        config.optimizer            = Optimizer_SGD
         config.batch_size           = 1
         #config.batch_mode           = BatchMode.MINI_BATCH   #NOTE single_sample or full overwrite batch_size
         config.hidden_activation     = Activation_LeakyReLU
