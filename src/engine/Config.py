@@ -34,7 +34,7 @@ class Config:
     full_architecture: list                 = field(default_factory=lambda: [1,1])
     roi_mode                                = ROI_Mode.SWEET_SPOT
     seconds: float                          = 0.0
-    cvg_condition: str                      = "None"
+    cvg_condition: str                      = "Did Not Converge"
     final_epoch: int                        =   0 # Last epoch to run
     lowest_error: float                     = 1e50
     lowest_error_epoch                      = 0

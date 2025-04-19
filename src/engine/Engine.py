@@ -131,7 +131,7 @@ def run_a_match(gladiators, training_pit, shared_hyper):
         start_time = time.time()
 
         # Actually train model
-        model_config.cvg_condition, model_config.full_architecture, snapshot = nn.train()
+        model_config.full_architecture, snapshot = nn.train()
 
         #Record training details
         model_config.architecture = model_config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
