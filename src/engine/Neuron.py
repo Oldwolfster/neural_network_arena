@@ -128,6 +128,11 @@ class Neuron:
         # Replace the existing learning_rates list with one where every element is the new value.
         self.learning_rates = [value] * (self.num_of_weights + 1)# * len(self.learning_rates)
 
+
+    def learning_rate_report(self,extra_msg : str = "" ):
+        print(f"LEARNING RATE REPORT FOR NEURON:{self.nid}\t {extra_msg} ")
+        print(self.learning_rates)
+
     @classmethod
     def reset_layers(cls):
         """ Clears layers before starting a new Gladiator. """
