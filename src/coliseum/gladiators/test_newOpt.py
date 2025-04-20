@@ -23,11 +23,11 @@ class NeuroForge_Template(Gladiator):
             💪  For example setting config options.        """
 
         config.architecture         = []               # Neurons in hidden layers - output neuron(s) added automatically
-        self.learning_rate          = .001
+        #self.learning_rate          = 1.0e-06
         #config.initializer          = Initializer_Xavier
         config.output_activation    = Activation_NoDamnFunction
         config.optimizer            = Optimizer_SGD
-        config.batch_size           = 1
+        config.batch_size           = 2
         #config.batch_mode           = BatchMode.MINI_BATCH   #NOTE single_sample or full overwrite batch_size
         config.hidden_activation     = Activation_LeakyReLU
         config.loss_function        = Loss_MSE
@@ -38,7 +38,7 @@ class NeuroForge_Template(Gladiator):
         """ 🚀 Anything after initializing neurons
             🐉 but before training goes here  i.e manually setting a weight  """
         #Neuron.output_neuron.set_activation(Activation_NoDamnFunction)  #How to change a neurons activation initialization occured
-
+        #config.db.query_print("SELECT * FROM  Neuron LIMIT 1")
 
     # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹
     # 🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹  RECOMMENDED FUNCTIONS TO CUSTOMIZE  🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹🔹

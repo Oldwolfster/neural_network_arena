@@ -57,6 +57,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
         Add the current iteration data to the database
         """
+        if self.config.is_exploratory:
+            return
 
         epoch_num = iteration_data.epoch
         iteration_num = iteration_data.iteration
@@ -85,11 +87,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                     neuron.neuron_inputs = np.array(
                         [prev.activation_value for prev in previous_layer], dtype=np.float64
                     )
-                    #print(f"storing neuron data Hidden Layer {layer_index}. nid={neuron.nid}, inputs={neuron.neuron_inputs}")
-                    #for prev in previous_layer:
-                    #    print(f"prev.nid={prev.nid}\t{prev.activation_value}")
+
                 # Add the neuron data to the database
-                #TODO take out 'input_tensor' and delta from exclude keys
                 self.config.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.config.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.config.db, model_id = self.config.gladiator_name, epoch=epoch_num, iteration=iteration_num )
 
@@ -121,10 +120,14 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
             self.config.lowest_error_epoch = epoch
 
         self.abs_error_for_epoch = 0 # Reset for next epoch
-        epoch_metrics = self.get_metrics_from_ramdb(epoch)
+
         #print(f"VCR ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
         self.epoch_curr_number+=1
-        return self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
+        if self.config.is_exploratory:
+            return "Did Not Converge" #Doing LR sweep or something... not recording.
+        epoch_metrics = self.get_metrics_from_ramdb(epoch)
+        val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
+        return val
 
     def get_metrics_from_ramdb(self, epoch: int) -> Dict[str, float]:
         """
@@ -156,7 +159,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
         """
-        if not weight_update_metrics:
+        if not weight_update_metrics or self.config.is_exploratory:
             return
 
         sample_row = weight_update_metrics[0]

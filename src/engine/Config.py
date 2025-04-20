@@ -28,23 +28,37 @@ class Config:
     loss_function: LossFunction             = None
     hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
     output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
-
-
-    # Misc attributes
     full_architecture: list                 = field(default_factory=lambda: [1,1])
     roi_mode                                = ROI_Mode.SWEET_SPOT
+
+    # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
     seconds: float                          = 0.0
     cvg_condition: str                      = "Did Not Converge"
-    default_lr: float                       = 0.0
+    learning_rate: float                       = 0.0
     final_epoch: int                        =   0 # Last epoch to run
     lowest_error: float                     = 1e50
     lowest_error_epoch                      = 0
     backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
 
+    is_exploratory                          = False
     popup_headers                           = None #TODO Standardize these 4 names.
     popup_operators                         = None
     popup_finalizer_headers                 = None
     popup_finalizer_operators               = None
+
+    def data_reset(self):
+        seconds: float                          = 0.0
+        cvg_condition: str                      = "Did Not Converge"
+        default_lr: float                       = 0.0
+        final_epoch: int                        =   0 # Last epoch to run
+        lowest_error: float                     = 1e50
+        lowest_error_epoch                      = 0
+        backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
+
+        popup_headers                           = None #TODO Standardize these 4 names.
+        popup_operators                         = None
+        popup_finalizer_headers                 = None
+        popup_finalizer_operators               = None
 
     def configure_optimizer(self):
         (self.popup_headers, self.popup_operators,

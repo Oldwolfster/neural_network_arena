@@ -73,28 +73,49 @@ def run_batch_of_matches(gladiators, training_pit, shared_hyper, number_of_match
 
 
 
-def grid_search_learning_rate(gladiators, training_pit, base_hyper, lr_values):
+def grid_search_learning_rate(model_config):
     """
-    Try each learning rate in `lr_values`, run a match,
-    and return the best LR plus all results.
+    Sweep learning rates and pick the best based on last_mae.
+    Starts low and increases logarithmically.
     """
     results = []
-    for lr in lr_values:
-        # make a fresh copy of the hyperparameters (so per‐run seeds, db, etc. are isolated)
-        hyper = copy.deepcopy(base_hyper)
-        hyper.learning_rate = lr
+    start_lr = 1e-6
+    stop_lr = 10
+    factor = 10
 
-        print(f"\n=== Grid search: trying learning_rate={lr} ===")
-        infos = _run_single_match(gladiators, training_pit, hyper)
+    model_config.is_exploratory = True
 
-        # suppose you choose model 0's convergence time as your metric:
-        metric = sum(info.seconds for info in infos) / len(infos)
-        results.append((lr, metric))
+    try:
+        lr = start_lr
+        while lr < stop_lr:
+            model_config.learning_rate = lr
+            try:
+                nn = dynamic_instantiate(model_config.gladiator_name, 'coliseum\\gladiators', model_config)
+                last_mae = nn.train(10, lr)
+                print(f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
+            except OverflowError as e:
+                print(f"💥 OverflowError at lr={lr:.1e}: {e}")
+                last_mae = float('inf')  # Treat exploded LRs as worst possible
+            except Exception as e:
+                print(f"⚠️  Unexpected error at lr={lr:.1e}: {e}")
+                last_mae = float('inf')  # Same fallback
 
-    # pick the lr with minimal average run‐time (or replace with your own metric)
-    best_lr, best_metric = min(results, key=lambda x: x[1])
-    print(f"\n*** Best learning_rate={best_lr} (avg seconds={best_metric}) ***")
-    return best_lr, results
+            results.append((lr, last_mae))
+            lr *= factor
+
+        print("\n📋 Learning Rate Sweep Results:")
+        for lr, mae in results:
+            print(f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
+
+        best_lr, best_metric = min(results, key=lambda x: x[1])
+        print(f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
+        model_config.learning_rate = best_lr
+
+    finally:
+        model_config.is_exploratory = False
+
+
+
 
 
 def run_a_match(gladiators, training_pit, shared_hyper):
@@ -112,9 +133,7 @@ def run_a_match(gladiators, training_pit, shared_hyper):
     model_info_list = []
     for gladiator in gladiators:
         set_seed(seed)
-
         print(f"Preparing to run model: {gladiator}")
-
         # Create a unique config per model
         model_config        = Config(
             hyper           = shared_hyper,
@@ -123,25 +142,23 @@ def run_a_match(gladiators, training_pit, shared_hyper):
             gladiator_name  = gladiator,
         )
         model_config.set_defaults()
-        #model_config.training_data = training_data # WHY DID I NEED THIS
-
 
         # Instantiate and train the model
         nn = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
-        start_time = time.time()
+        print(f"for gladiator {model_config.gladiator_name} LR is {model_config.default_lr}")
+        if model_config.default_lr == 0.0:  #Learning rate is not set, do a sweep
+            grid_search_learning_rate(model_config)
 
         # Actually train model
+        start_time = time.time()
         last_mae = nn.train()       #Most info is stored in config
-
+        print(f"last mae from real match{last_mae}")
         #Record training details
-
         model_config.seconds = time.time() - start_time
         model_details= ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )
         model_info_list.append(model_details)
-        model_config.db.add(model_details)    #Writes record to ModelInfo table
-
-        record_snapshot( model_config, last_mae)
-        # Store Config for this model
+        model_config.db.add(model_details)              #Writes record to ModelInfo table
+        record_snapshot( model_config, last_mae)        # Store Config for this model
         model_configs.append(model_config)
 
         # Easy place for quick dirty sql

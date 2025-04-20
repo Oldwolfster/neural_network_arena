@@ -6,7 +6,7 @@ from src.engine.VCR import VCR
 from src.engine.Config import Config
 from src.engine.Neuron import Neuron
 from datetime import datetime
-
+from src.engine.Utils_DataClasses import ez_debug
 
 from src.engine.Utils_DataClasses import Iteration, ReproducibilitySnapshot
 from src.Legos.WeightInitializers import *
@@ -41,7 +41,8 @@ class Gladiator(ABC):
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         #self.VCR                = VCR(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
         self.VCR                = VCR(config, self.neurons) # Args3, is ramdb
-        self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
+        #self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
+        self.learning_rate     = self.config.learning_rate  #todo set this to all neurons learning rate
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
         self._bd_threshold       = None
@@ -62,8 +63,9 @@ class Gladiator(ABC):
     ################################################################################################
 
     def retrieve_setup_from_model(self):
-        self.configure_model(self.config)  #Typically overwritten in base class.
+        self.configure_model(self.config)  #Typically overwritten in child  class.
         self.config.configure_optimizer()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+        self.learning_rate = self.config.learning_rate or self.config.default_lr
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
             initializers=[self.config.initializer],  # <- List of 1 initializer
@@ -79,26 +81,34 @@ class Gladiator(ABC):
     def customize_neurons(self,config: Config):
         pass
 
-    def train(self) -> tuple[str, list[int]]:
+    def train(self, exploratory_epochs = 0, lr_override=None) -> tuple[str, list[int]]:
         """
         Main method invoked from Framework to train model.
 
+        Parameters:
+            exploratory_epochs: If doing a LR sweep or something, how many epochs to check.
         Returns:
             tuple[str, list[int]]: A tuple containing:
                 - converged_signal (str): Which convergence signal(s) triggered early stop.
                 - full_architecture (list[int]): Architecture of the model including hidden and output layers.
         """
+        ez_debug(lr_override=lr_override,self_learning_rate=self.learning_rate)
 
+        if lr_override is not None:
+            self.learning_rate=lr_override
+        ez_debug(lr_override=lr_override,self_learning_rate=self.learning_rate)
         self.config.loss_function.validate_activation_functions()
 
         if self.neuron_count == 0:  #TODO I don't think this is possible anymore.
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
         self.training_samples = self.training_data.get_list()           # Store the list version of training data
+        epochs_to_run = self.number_of_epochs if exploratory_epochs==0 else exploratory_epochs
 
-        for epoch in range(self.number_of_epochs):                      # Loop to run specified # of epochs
+        for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
             self.config.final_epoch = epoch                             # If correct, great, ifn not, corrected next epoch.
             self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
+
             if self.config.cvg_condition != "Did Not Converge":         # Converged so end early
                # self.last_epoch_mae = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
                 return  self.last_epoch_mae
@@ -525,10 +535,17 @@ class Gladiator(ABC):
         Args:
             new_learning_rate (float): The new learning rate to set.
         """
+
         self._learning_rate = new_learning_rate
         self.config.default_lr = new_learning_rate
         for neuron in Neuron.neurons:
-            neuron.set_learning_rate(new_learning_rate)
+            if neuron.nid == 0:
+                self.db.query_print("Select 1 as in_LR_Setter")
+                print(f"self._learning_rate={self._learning_rate}")
+            neuron.learning_rate_report("Before")
+            if neuron.nid == 0:
+                neuron.set_learning_rate(new_learning_rate)
+                neuron.learning_rate_report("After")
 
     def print_reproducibility_info(self, epoch_count):
         print("\n🧬 Reproducibility Snapshot")

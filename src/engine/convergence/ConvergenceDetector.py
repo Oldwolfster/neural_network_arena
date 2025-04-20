@@ -73,7 +73,7 @@ class ConvergenceDetector:
             #    return self.phase
             return ", ".join(self.phase_signals_fired[self.phase])
 
-        return ""
+        return "Did Not Converge"
 
     def get_iteration_dict(self, db: RamDB, epoch: int, iteration: int) -> dict:
         sql = """  
