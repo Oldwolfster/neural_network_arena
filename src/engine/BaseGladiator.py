@@ -30,19 +30,15 @@ class Gladiator(ABC):
 """
     def __init__(self,  config: Config):
         self.config             = config
-        #self.gladiator          = config.gladiator_name
         self.db                 = config.db
         self.hyper              = config.hyper
         self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.neurons            = []
-        #self.layers             = []                        # Layered structure
         self.neuron_count       = 0                         # Default value
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        #self.VCR                = VCR(config, self.gladiator, self.hyper, self.training_data, self.neurons, config.db) # Args3, is ramdb
         self.VCR                = VCR(config, self.neurons) # Args3, is ramdb
-        #self._learning_rate     = self.hyper.default_learning_rate #todo set this to all neurons learning rate
-        self.learning_rate     = self.config.learning_rate  #todo set this to all neurons learning rate
+        self.learning_rate      = self.config.learning_rate  #
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
         self._bd_threshold       = None
@@ -65,7 +61,7 @@ class Gladiator(ABC):
     def retrieve_setup_from_model(self):
         self.configure_model(self.config)  #Typically overwritten in child  class.
         self.config.configure_optimizer()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-        self.learning_rate = self.config.learning_rate or self.config.default_lr
+
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
             initializers=[self.config.initializer],  # <- List of 1 initializer
@@ -81,7 +77,7 @@ class Gladiator(ABC):
     def customize_neurons(self,config: Config):
         pass
 
-    def train(self, exploratory_epochs = 0, lr_override=None) -> tuple[str, list[int]]:
+    def train(self, exploratory_epochs = 0) -> float:  #tuple[str, list[int]]:
         """
         Main method invoked from Framework to train model.
 
@@ -92,13 +88,8 @@ class Gladiator(ABC):
                 - converged_signal (str): Which convergence signal(s) triggered early stop.
                 - full_architecture (list[int]): Architecture of the model including hidden and output layers.
         """
-        ez_debug(lr_override=lr_override,self_learning_rate=self.learning_rate)
-
-        if lr_override is not None:
-            self.learning_rate=lr_override
-        ez_debug(lr_override=lr_override,self_learning_rate=self.learning_rate)
         self.config.loss_function.validate_activation_functions()
-
+        print(f"in BaseGladiator train.. lr={self.config.learning_rate}")
         if self.neuron_count == 0:  #TODO I don't think this is possible anymore.
             self.initialize_neurons([]) #Defaults to 1 when it adds the output
         self.check_binary_decision_info()
@@ -108,12 +99,15 @@ class Gladiator(ABC):
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
             self.config.final_epoch = epoch                             # If correct, great, ifn not, corrected next epoch.
             self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
+            if Neuron.detect_exploding_gradients():
+                self.config.cvg_condition   = "Exploding Gradient"
+                self.total_error_for_epoch  = 1e69
+            if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
+                return self.total_error_for_epoch
 
-            if self.config.cvg_condition != "Did Not Converge":         # Converged so end early
-               # self.last_epoch_mae = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
-                return  self.last_epoch_mae
-        #snapshot = ReproducibilitySnapshot.from_config(self._learning_rate, epoch, self.last_epoch_mae, self.config)
-        return self.last_epoch_mae       # When it does not converge still return info
+        #return self.last_epoch_mae       # When it does not converge still return info
+        print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
+        return self.total_error_for_epoch      # When it does not converge still return info
 
     def validate_output_activation_functionDeleteME(self):
         """
@@ -144,7 +138,7 @@ class Gladiator(ABC):
                 print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.total_error_for_epoch = 0
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
-            #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
+
             self.iteration = i      # Set so the model has access
             sample = np.array(sample)  # Convert sample to NumPy array
             inputs = sample[:-1]
@@ -154,6 +148,7 @@ class Gladiator(ABC):
             error, loss,  loss_gradient = self.process_a_sample(sample, inputs, target)
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.total_error_for_epoch += abs(error)
+
             #if error < self.config.lowest_error:    # New lowest error
             #    self.config.lowest_error = error
             #    self.config.lowest_error_epoch = epoch_num
@@ -184,6 +179,7 @@ class Gladiator(ABC):
             self.VCR.record_iteration(iteration_data, Neuron.layers)
             # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
 
+        print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def process_a_sample(self, sample, inputs, target):
@@ -193,7 +189,6 @@ class Gladiator(ABC):
 
         # Step 3: Delegate to models logic for Validate_pass :)
         error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
-        #loss_gradient = self.watch_for_explosion(loss_gradient)
 
         # Step 4: Delegate to models logic for backprop or call default if not overridden
         #print(f"Should be same as prior to backpass - epoch{self.epoch+1} iteration{self.iteration+1}")
@@ -321,10 +316,10 @@ class Gladiator(ABC):
         """
         Computes error, loss, and blame based on the configured loss function.
         """
-        error   = target - prediction_raw  # ✅ Simple error calculation
-        loss    = self.config.loss_function(prediction_raw, target)  # ✅ Compute loss dynamically
-        blame   = self.config.loss_function.grad(prediction_raw, target)  # ✅ Compute correction (NO inversion!)      #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={blame}, Correction={blame}")
-        return error, loss,  blame  # ✅ Correction replaces "loss gradient"
+        error   = target - prediction_raw                                   # ✅ Simple error calculation
+        loss    = self.config.loss_function(prediction_raw, target)         # ✅ Compute loss dynamically
+        blame   = self.config.loss_function.grad(prediction_raw, target)    # ✅ Compute correction (NO inversion!)      #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={blame}, Correction={blame}")
+        return error, loss,  blame                                          # ✅ Correction replaces "loss gradient"
 
     ################################################################################################
     ################################ SECTION 3 - Initialization ####################################
@@ -419,7 +414,7 @@ class Gladiator(ABC):
             initializers (List[WeightInitializer]): A list of weight initializers.
             hidden_activation (ActivationFunction): The activation function for hidden layers.
         """
-        print("Initializing!!!!!!!!!!!!!!!!!")
+
         Neuron.reset_layers()
         if architecture is None:
             architecture = []  # Default to no hidden layers
@@ -537,7 +532,7 @@ class Gladiator(ABC):
         """
 
         self._learning_rate = new_learning_rate
-        self.config.default_lr = new_learning_rate
+        self.config.learning_rate = new_learning_rate
         for neuron in Neuron.neurons:
             if neuron.nid == 0:
                 self.db.query_print("Select 1 as in_LR_Setter")
