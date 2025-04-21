@@ -42,7 +42,7 @@ class ReproducibilitySnapshot:
             weight_initializer_name=config.initializer.name,
             normalization_scheme=config.training_data.norm_scheme,
             seed=config.hyper.random_seed,
-            learning_rate=config.default_lr,
+            learning_rate=config.learning_rate,
             epoch_count=config.final_epoch,
             convergence_condition=config.cvg_condition or "None",
             runtime_seconds=config.seconds,

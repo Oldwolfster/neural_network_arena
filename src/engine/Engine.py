@@ -72,51 +72,37 @@ def run_batch_of_matches(gladiators, training_pit, shared_hyper, number_of_match
         run_a_match(gladiators, training_pit, shared_hyper)
 
 
-
-def grid_search_learning_rate(model_config):
+def grid_search_learning_rate(config) -> float:
     """
     Sweep learning rates and pick the best based on last_mae.
     Starts low and increases logarithmically.
     """
+
+    start_lr                    = 1e-6
+    stop_lr                     = 1e-2
+    factor                      = 10
+    lr                          = start_lr
+    config.is_exploratory       = True
+    #seed                        = set_seed(shared_hyper.random_seed)
+
+    #If lr is preset don't change.  otherwise sweep for proper learning rate
+
     results = []
-    start_lr = 1e-6
-    stop_lr = 10
-    factor = 10
-
-    model_config.is_exploratory = True
-
-    try:
-        lr = start_lr
-        while lr < stop_lr:
-            model_config.learning_rate = lr
-            try:
-                nn = dynamic_instantiate(model_config.gladiator_name, 'coliseum\\gladiators', model_config)
-                last_mae = nn.train(10, lr)
-                print(f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
-            except OverflowError as e:
-                print(f"💥 OverflowError at lr={lr:.1e}: {e}")
-                last_mae = float('inf')  # Treat exploded LRs as worst possible
-            except Exception as e:
-                print(f"⚠️  Unexpected error at lr={lr:.1e}: {e}")
-                last_mae = float('inf')  # Same fallback
-
-            results.append((lr, last_mae))
-            lr *= factor
-
-        print("\n📋 Learning Rate Sweep Results:")
-        for lr, mae in results:
-            print(f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
-
-        best_lr, best_metric = min(results, key=lambda x: x[1])
-        print(f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
-        model_config.learning_rate = best_lr
-
-    finally:
-        model_config.is_exploratory = False
-
-
-
-
+    while lr < stop_lr:
+        config.learning_rate    = lr
+        nn                      = dynamic_instantiate(config.gladiator_name, 'coliseum\\gladiators', config)
+        last_mae                = nn.train(10)
+        print                   (f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
+        results.append          ((lr, last_mae))
+        lr                      *= factor
+        best_lr, best_metric        = min(results, key=lambda x: x[1])
+    #config.learning_rate        = best_lr
+    config.is_exploratory       = False
+    print("\n📋 Learning Rate Sweep Results:")
+    for lr, mae in results:
+        print(f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
+    print(f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
+    return best_lr
 
 def run_a_match(gladiators, training_pit, shared_hyper):
 
@@ -135,24 +121,21 @@ def run_a_match(gladiators, training_pit, shared_hyper):
         set_seed(seed)
         print(f"Preparing to run model: {gladiator}")
         # Create a unique config per model
-        model_config        = Config(
-            hyper           = shared_hyper,
-            db              = db,               # Shared database
-            training_data   = training_data,    # Shared training data
-            gladiator_name  = gladiator,
-        )
+        model_config        = Config(hyper           = shared_hyper,            db              = db,              training_data   = training_data,    gladiator_name  = gladiator,)
         model_config.set_defaults()
 
         # Instantiate and train the model
         nn = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
-        print(f"for gladiator {model_config.gladiator_name} LR is {model_config.default_lr}")
-        if model_config.default_lr == 0.0:  #Learning rate is not set, do a sweep
-            grid_search_learning_rate(model_config)
-
+        print(f"for gladiator {model_config.gladiator_name} LR is {model_config.learning_rate}")
+        if model_config.learning_rate == 0.0:
+            model_config.learning_rate =  grid_search_learning_rate(model_config)
+            nn.learning_rate =  model_config.learning_rate
+        print(f"In run a match.  LR={model_config.learning_rate}")
+        #return
         # Actually train model
         start_time = time.time()
         last_mae = nn.train()       #Most info is stored in config
-        print(f"last mae from real match{last_mae}")
+
         #Record training details
         model_config.seconds = time.time() - start_time
         model_details= ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.full_architecture, model_config.training_data.problem_type )

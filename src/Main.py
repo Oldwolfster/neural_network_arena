@@ -8,6 +8,7 @@ from engine.SQL import list_runs
 import cProfile
 
 from src.engine.StoreHistory import list_snapshots
+from src.engine.TurboForge import NeuroEngine
 
 
 def main():
@@ -18,7 +19,9 @@ def main():
         #list_runs()
     else:
         #run_batch_of_matches(gladiators, training_pit)        #
-        run_a_match(gladiators, training_pit, shared_hyper)
+        #run_a_match(gladiators, training_pit, shared_hyper)
+        neuro_engine = NeuroEngine()
+        neuro_engine.run_a_match(gladiators)
         #run_batch_of_matches(gladiators, training_pit, shared_hyper)
         #run_all_matchups(training_pit,shared_hyper)
         #from src.backprop.tutorial.nn_xor import run_tutorial

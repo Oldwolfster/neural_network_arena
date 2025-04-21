@@ -34,7 +34,7 @@ class Config:
     # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
     seconds: float                          = 0.0
     cvg_condition: str                      = "Did Not Converge"
-    learning_rate: float                       = 0.0
+    learning_rate: float                    = 0.0
     final_epoch: int                        =   0 # Last epoch to run
     lowest_error: float                     = 1e50
     lowest_error_epoch                      = 0
@@ -49,7 +49,7 @@ class Config:
     def data_reset(self):
         seconds: float                          = 0.0
         cvg_condition: str                      = "Did Not Converge"
-        default_lr: float                       = 0.0
+        learning_rate: float                   = 0.0
         final_epoch: int                        =   0 # Last epoch to run
         lowest_error: float                     = 1e50
         lowest_error_epoch                      = 0
@@ -64,8 +64,9 @@ class Config:
         (self.popup_headers, self.popup_operators,
          self.popup_finalizer_headers, self.popup_finalizer_operators) = self.optimizer.configure_optimizer(self)
 
-    def set_defaults(self):
+    def set_defaults(self, arena):
         #self.lego_selector = LegoSelector(self)
+        self.training_data = arena #TODO : Rename self.arena
         self.smartNetworkSetup()
 
     def smartNetworkSetup(self):
