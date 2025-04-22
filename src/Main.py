@@ -8,7 +8,7 @@ from engine.SQL import list_runs
 import cProfile
 
 from src.engine.StoreHistory import list_snapshots
-from src.engine.TurboForge import NeuroEngine
+from src.engine.NeuroEngine import NeuroEngine
 
 
 def main():

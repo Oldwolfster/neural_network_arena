@@ -80,7 +80,7 @@ def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize
             epoch        INTEGER NOT NULL,
             iteration    INTEGER NOT NULL,
             nid          INTEGER NOT NULL,
-            model_id     TEXT NOT NULL,
+            -- model_id     TEXT NOT NULL, removed - model is part of table name... why have column with 1 unique value??
             weight_index INTEGER NOT NULL,
             batch_id     INTEGER NOT NULL DEFAULT 0,
             {fields},

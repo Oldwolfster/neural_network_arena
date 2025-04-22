@@ -38,7 +38,7 @@ class Gladiator(ABC):
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         self.VCR                = VCR(config, self.neurons) # Args3, is ramdb
-        self.learning_rate      = self.config.learning_rate  #
+        #self.learning_rate      = self.config.learning_rate  #
         self.number_of_epochs   = self.hyper.epochs_to_run
         self._full_architecture = None
         self._bd_threshold       = None
@@ -106,7 +106,7 @@ class Gladiator(ABC):
                 return self.total_error_for_epoch
 
         #return self.last_epoch_mae       # When it does not converge still return info
-        print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
+        #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.total_error_for_epoch      # When it does not converge still return info
 
     def validate_output_activation_functionDeleteME(self):
@@ -135,7 +135,7 @@ class Gladiator(ABC):
 
         self.epoch = epoch_num      # Set so the child model has access
         if epoch_num % 100 == 0 and epoch_num!=0:
-                print (f"Epoch: {epoch_num} for {self.gladiator} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+                print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.total_error_for_epoch = 0
         for i, sample in enumerate(self.training_samples):  # Loop through all training data
 
@@ -179,7 +179,7 @@ class Gladiator(ABC):
             self.VCR.record_iteration(iteration_data, Neuron.layers)
             # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
 
-        print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
+        #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def process_a_sample(self, sample, inputs, target):
@@ -273,7 +273,7 @@ class Gladiator(ABC):
 
             # 🔹 Store calculation step as a structured tuple, now including weight index
             self.blame_calculations.append([
-                self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, next_neuron.position,
+                self.epoch+1, self.iteration+1, self.config.gladiator_name, neuron.nid, next_neuron.position,
                 weight_to_next, "*", error_from_next, "=", None, None, weight_to_next * error_from_next
             ])        
 
@@ -442,7 +442,7 @@ class Gladiator(ABC):
                 neuron = Neuron(
                     nid                 = nid,
                     num_of_weights      = num_of_weights,
-                    learning_rate       = self.learning_rate,
+                    learning_rate       = self.config.learning_rate,
                     weight_initializer  = flat_initializers[nid],  # Assign correct initializer
                     layer_id            = layer_index,
                     activation          = activation
@@ -515,15 +515,15 @@ class Gladiator(ABC):
         Getter for learning rate.
         """
         return self.neurons[0].weights
-    @property
-    def learning_rate(self):
+    #@property
+    def learning_rateNOT_HERE_IN_CONFIG(self):
         """
         Getter for learning rate.
         """
         return self._learning_rate
 
-    @learning_rate.setter
-    def learning_rate(self, new_learning_rate: float):
+    #@learning_rate.setter
+    def learning_rateNOT_HERE_IN_CONFIG(self, new_learning_rate: float):
         """
         Updates the learning rate for the Gladiator and ensures all neurons reflect the change.
 
