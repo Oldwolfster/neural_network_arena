@@ -56,14 +56,12 @@ gladiators = [
     #,'Simplex2'
 
     #'GBS'
-   'NeuroForge_Template'
-   ,'test_newOpt'
+   #'NeuroForge_Template'
+   'test_newOpt'
     #'EmptyModel_All_Default'
     #,'Hand_Tuned'
     #'Test_BCE'
     #,'TestBatch'
-
-
     #,'Adam_Template'
    # 'Adam_XOR_DEBUG_2'
     #'NeuroForge_CaliforniaHousing'
