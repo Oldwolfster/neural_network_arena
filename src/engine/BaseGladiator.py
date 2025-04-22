@@ -99,13 +99,10 @@ class Gladiator(ABC):
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
             self.config.final_epoch = epoch                             # If correct, great, ifn not, corrected next epoch.
             self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
-            if Neuron.detect_exploding_gradients():
-                self.config.cvg_condition   = "Exploding Gradient"
-                self.total_error_for_epoch  = 1e69
+
             if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
                 return self.total_error_for_epoch
 
-        #return self.last_epoch_mae       # When it does not converge still return info
         #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.total_error_for_epoch      # When it does not converge still return info
 
@@ -146,6 +143,8 @@ class Gladiator(ABC):
             self.snapshot_weights("", "_before")
 
             error, loss,  loss_gradient = self.process_a_sample(sample, inputs, target)
+            if abs(error) > 1e30:   #Check for gradient explosion
+                return  "Gradient Explosion"
             prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
             self.total_error_for_epoch += abs(error)
 

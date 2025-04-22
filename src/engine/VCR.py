@@ -57,29 +57,17 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
         Add the current iteration data to the database
         """
-
-
         epoch_num = iteration_data.epoch
         iteration_num = iteration_data.iteration
         self.abs_error_for_epoch += abs(iteration_data.error)
-        #print(f"Deciding {epoch_num}\t {iteration_num}")
-        #if not self.should_record_sample(epoch_num, iteration_num): #TODO figure this out one day
-        #    return
-
-        #Check if batch is over, if so if there is data to record, then record it (for neuroforge)
 
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
-        ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
-        #print(("Getting ready to call optimizer"))
         record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.config.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer)
-        ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
-        ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
 
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
         self.config.db.add(iteration_data)
-
 
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):

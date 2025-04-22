@@ -34,13 +34,13 @@ class NeuroEngine:
     def check_for_learning_rate_sweep(self, gladiator):
         check_config = Config(hyper= self.shared_hyper,db = self.db,   training_data   = self.training_data,    gladiator_name  = gladiator,)
         check_config.set_defaults(self.training_data)
-        print(f"BEFORE ABOUT TO Instantiate(but not train): gladiator {check_config.gladiator_name} LR is {check_config.learning_rate}")
+        #print(f"BEFORE ABOUT TO Instantiate(but not train): gladiator {check_config.gladiator_name} LR is {check_config.learning_rate}")
         nn_check = dynamic_instantiate(gladiator, 'coliseum\\gladiators', check_config)
-        print(f"AFTER  ABOUT TO Instantiate(but not train): gladiator {check_config.gladiator_name} LR is {check_config.learning_rate}")
+        #print(f"AFTER  ABOUT TO Instantiate(but not train): gladiator {check_config.gladiator_name} LR is {check_config.learning_rate}")
         if check_config.learning_rate != 0.0: #MUST COME AFTER NN IS INSTANTIATED
             return check_config.learning_rate  # LR set in model -- return that value and do not do sweep
 
-        print(f"********** Running LEARNING RATE SWEEP FOR {gladiator} **********" * 5)
+        print(f"********** Running LEARNING RATE SWEEP FOR {gladiator} **********")
         return self.learning_rate_sweep(check_config)
 
     def atomic_train_a_model(self, gladiator):
@@ -70,8 +70,6 @@ class NeuroEngine:
         Sweep learning rates and pick the best based on last_mae.
         Starts low and increases logarithmically.
         """
-        #return
-        print("LR NOT SET:  DOING Learning Rate Sweep to find optimum value")
         start_lr                    = 1e-6
         stop_lr                     = 10
         factor                      = 10
@@ -85,7 +83,7 @@ class NeuroEngine:
             last_mae                = nn.train(10)
             # ****************      Delete the results and finish
             self.delete_records     (self.db, config.gladiator_name)
-            print                   (f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
+            #print                  (f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
             results.append          ((lr, last_mae))
             lr                      *= factor
         best_lr, best_metric        = min(results, key=lambda x: x[1])
@@ -128,7 +126,7 @@ class NeuroEngine:
             matching_column = next((col for col in possible_columns if col in column_names), None)
 
             if matching_column:
-                print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
+                #print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
                 #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
                 db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 

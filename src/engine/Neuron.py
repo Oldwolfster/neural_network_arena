@@ -125,19 +125,3 @@ class Neuron:
             #print(f"Query for weights: {sql_query}")
             db.execute(sql_query)
 
-    @classmethod
-    def detect_exploding_gradients(cls, threshold=1e15):
-        """
-        Scans all neurons' weights and biases.
-        Returns True if any weight or bias exceeds the threshold.
-        """
-        for neuron in cls.neurons:
-            # Check each weight
-            for weight in neuron.weights:
-                if abs(weight) > threshold:
-                    return True
-            # Check bias
-            if abs(neuron.bias) > threshold:
-                return True
-        return False
-
