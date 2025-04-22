@@ -534,13 +534,14 @@ class Gladiator(ABC):
         self._learning_rate = new_learning_rate
         self.config.learning_rate = new_learning_rate
         for neuron in Neuron.neurons:
-            if neuron.nid == 0:
-                self.db.query_print("Select 1 as in_LR_Setter")
-                print(f"self._learning_rate={self._learning_rate}")
-            neuron.learning_rate_report("Before")
-            if neuron.nid == 0:
-                neuron.set_learning_rate(new_learning_rate)
-                neuron.learning_rate_report("After")
+            neuron.set_learning_rate(new_learning_rate)
+            #if neuron.nid == 0:
+                #self.db.query_print("Select 1 as in_LR_Setter")
+                #print(f"self._learning_rate={self._learning_rate}")
+            #neuron.learning_rate_report("Before")
+            #if neuron.nid == 0:
+                #neuron.set_learning_rate(new_learning_rate)
+                #neuron.learning_rate_report("After")
 
     def print_reproducibility_info(self, epoch_count):
         print("\n🧬 Reproducibility Snapshot")

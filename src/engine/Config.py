@@ -40,7 +40,7 @@ class Config:
     lowest_error_epoch                      = 0
     backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
 
-    is_exploratory                          = False
+    #is_exploratory                          = False
     popup_headers                           = None #TODO Standardize these 4 names.
     popup_operators                         = None
     popup_finalizer_headers                 = None

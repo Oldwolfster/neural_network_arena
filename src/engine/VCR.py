@@ -75,9 +75,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
 
-        if self.config.is_exploratory:
-            return
-
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
@@ -133,8 +130,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
 
         #print(f"VCR ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
         self.epoch_curr_number+=1
-        if self.config.is_exploratory:
-            return "Did Not Converge" #Doing LR sweep or something... not recording.
         epoch_metrics = self.get_metrics_from_ramdb(epoch)
         val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
         return val
@@ -169,9 +164,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
         """
-        if not weight_update_metrics or self.config.is_exploratory:
-            return
-
         sample_row = weight_update_metrics[0]
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)

@@ -15,7 +15,7 @@ class HyperParameters:
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
-    is_exploratory          :bool = True    # Autotuning or testing - don't save
+    #is_exploratory          :bool = True    # Autotuning or testing - don't save
     random_seed             :int       = 288470
  #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH

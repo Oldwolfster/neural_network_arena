@@ -1,22 +1,13 @@
-import math
-import statistics
 import time
-from typing import Tuple
 from src.engine.Utils import dynamic_instantiate, set_seed
-
+from src.engine.Utils_DataClasses import ez_debug
 from .SQL import retrieve_training_data
 from .SQL import record_training_data
-
-from src.ArenaSettings import *
-from src.ArenaSettings import run_previous_training_data
 from .StoreHistory import record_snapshot
 from .TrainingData import TrainingData
-from src.engine.Reporting import generate_reports
+from src.engine.Reporting import generate_reports, create_weight_adjustment_tables
 from src.engine.Reporting import prep_RamDB
-from ..Legos.LossFunctions import *
 from ..NeuroForge.NeuroForge import *
-import os
-import importlib
 from src.ArenaSettings import *
 
 class NeuroEngine:
@@ -32,19 +23,18 @@ class NeuroEngine:
     def initialize_turbo(self):
         # Shared resources
         set_seed(self.seed)     #TODO consider renaming reset_seed
-        self.db = prep_RamDB(gladiators)
+        self.db = prep_RamDB()
         self.training_data = self.instantiate_arena()
 
-    def grid_search_learning_rate(self):
-        return 0.0069
 
 
     def atomic_train_a_model(self, gladiator):
         set_seed(self.seed)
+        create_weight_adjustment_tables(self.db, gladiator)
         model_config        = Config(hyper= self.shared_hyper,db = self.db,   training_data   = self.training_data,    gladiator_name  = gladiator,)
         model_config.set_defaults(self.training_data)
         if model_config.learning_rate == 0:
-            model_config.learning_rate = self.grid_search_learning_rate()
+            model_config.learning_rate = self.grid_search_learning_rate(model_config)
 
         print(f"ABOUT TO TRAIN: gladiator {model_config.gladiator_name} LR is {model_config.learning_rate}")
         start_time = time.time()
@@ -76,8 +66,8 @@ class NeuroEngine:
         # Generate reports and send all model configs to NeuroForge
         generate_reports(self.db, self.training_data, self.shared_hyper, model_infos)
 
-        if self.shared_hyper.run_neuroForge:
-            neuroForge(model_configs)
+        #if self.shared_hyper.run_neuroForge or 1 == 2:
+        #   neuroForge(model_configs)
 
     def instantiate_arena(self):
         # Check if Arena Settings indicates to retrieve and use past training_data
@@ -110,4 +100,70 @@ class NeuroEngine:
         record_training_data(td.get_list())
         return td
 
+    def grid_search_learning_rate(self, config) -> float:
+        """
+        Sweep learning rates and pick the best based on last_mae.
+        Starts low and increases logarithmically.
+        """
+        #return
+        start_lr                    = 1e-6
+        stop_lr                     = 1e-2
+        factor                      = 10
+        lr                          = start_lr
+
+
+        results = []
+        while lr < stop_lr:
+            config.learning_rate    = lr
+            nn                      = dynamic_instantiate(config.gladiator_name, 'coliseum\\gladiators', config)
+
+            #actually run hte model
+            last_mae                = nn.train(10)
+
+            # Delete the results and finish
+            self.delete_gladiator   (self.db, config.gladiator_name)
+            print                   (f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
+            results.append          ((lr, last_mae))
+            lr                      *= factor
+
+        best_lr, best_metric        = min(results, key=lambda x: x[1])
+        #config.learning_rate        = best_lr
+
+        print("\n📋 Learning Rate Sweep Results:")
+        for lr, mae in results:
+            print(f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
+        print(f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
+        return best_lr
+
+    def delete_gladiator(self, db, gladiator_name, possible_columns=None):
+        """
+        Deletes records across all tables where one of the possible columns matches the given gladiator_name.
+
+        Args:
+            db: Your database connection or wrapper.
+            gladiator_name (str): The model ID or name to delete.
+            possible_columns (list of str, optional): Columns to check, in order of preference.
+        """
+        if possible_columns is None:
+            possible_columns = ['model_id', 'model', 'gladiator']
+
+        # Get list of all table names
+        tables = db.query("SELECT name FROM sqlite_master WHERE type='table';")
+
+        for table_row in tables:
+            #ez_debug(table_row=table_row)
+            table_name = table_row['name']
+
+
+            # Get column names for this table
+            columns = db.query(f"PRAGMA table_info({table_name});", as_dict = False)
+            column_names = [col[1] for col in columns]
+
+            # Find first matching column
+            matching_column = next((col for col in possible_columns if col in column_names), None)
+
+            if matching_column:
+                print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
+                #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
+                db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 
