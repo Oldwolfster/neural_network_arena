@@ -34,13 +34,14 @@ class Config:
     # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
     seconds: float                          = 0.0
     cvg_condition: str                      = "Did Not Converge"
-    learning_rate: float                    = 0.0
+    learning_rate: float                       = 0.0       # Read in beginning to instantiate  neurons with correct LR
     final_epoch: int                        =   0 # Last epoch to run
     lowest_error: float                     = 1e50
     lowest_error_epoch                      = 0
     backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
 
     #is_exploratory                          = False
+
     popup_headers                           = None #TODO Standardize these 4 names.
     popup_operators                         = None
     popup_finalizer_headers                 = None
@@ -80,7 +81,7 @@ class Config:
             #(0, 210, {"loss_function": Loss_MSE}, "training_data.has_high_outliers()"),
             #(0, 210, {"loss_function": Loss_MAE}, "not training_data.has_high_outliers()"),
 
-            (0, 669, {"optimizer": Optimizer_Adam}, "1 == 1"),
+            (0, 669, {"optimizer": Optimizer_SGD}, "1 == 1"),
             (0, 669, {"batch_mode": BatchMode.MINI_BATCH}, "1 == 1"),
             (0, 669, {"batch_size": 1}, "1 == 1"),
             (0, 669, {"architecture": [1]}, "1 == 1"),

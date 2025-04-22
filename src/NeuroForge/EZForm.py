@@ -170,7 +170,7 @@ class EZForm(EZSurface):
         if self.label_y_positions:
             self.need_label_coord = False
 
-        self.draw_inner_border()
+        #self.draw_inner_border()
 
     def draw_inner_border(self, width: int = 7, color=Const.COLOR_BLACK):
         """

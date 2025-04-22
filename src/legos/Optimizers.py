@@ -129,7 +129,7 @@ class Optimizer:
                             epoch,
                             iteration,
                             batch_id):
-        print("in _intercept_finalize")
+        #print("in _intercept_finalize")
         # 1) call the raw finalize logic
         raw_logs = self._finalize_fn(batch_size) or []
 
@@ -173,8 +173,8 @@ def sgd_finalize(batch_size):
             for weight_id, blame_sum in enumerate(neuron.accumulated_accepted_blame):
                 avg_blame = blame_sum / batch_size
                 lr = neuron.learning_rates[weight_id]
-                if neuron.nid==0 and weight_id==0:
-                    ez_debug(lr_in_optimizer=lr)
+                #if neuron.nid==0 and weight_id==0:
+                    #ez_debug(lr_in_optimizer=lr)
 
                 # apply the actual weight update
                 if weight_id == 0:

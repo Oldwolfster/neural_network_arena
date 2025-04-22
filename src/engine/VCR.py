@@ -70,7 +70,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
 
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
-        print(("Getting ready to call optimizer"))
+        #print(("Getting ready to call optimizer"))
         record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.config.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer)
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
@@ -176,8 +176,15 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
 
         converted_rows = [self.convert_numpy_scalars_because_python_is_shit(row) for row in weight_update_metrics]
+
+        #print(f"Data about to be  INSERT{converted_rows}")
+        #print("Below is table content")
+        #self.config.db.query_print(f"Select * from {table_name}")
+
         self.config.db.executemany(sql, converted_rows)
+        #print("Insert worked")
         weight_update_metrics.clear()
+
 
     def convert_numpy_scalars_because_python_is_shit(self, row):
         """
