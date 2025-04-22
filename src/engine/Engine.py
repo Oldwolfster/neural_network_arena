@@ -82,7 +82,7 @@ def grid_search_learning_rate(config) -> float:
     stop_lr                     = 1e-2
     factor                      = 10
     lr                          = start_lr
-    config.is_exploratory       = True
+    #config.is_exploratory       = True
     #seed                        = set_seed(shared_hyper.random_seed)
 
     #If lr is preset don't change.  otherwise sweep for proper learning rate
@@ -97,7 +97,7 @@ def grid_search_learning_rate(config) -> float:
         lr                      *= factor
         best_lr, best_metric        = min(results, key=lambda x: x[1])
     #config.learning_rate        = best_lr
-    config.is_exploratory       = False
+    #config.is_exploratory       = False
     print("\n📋 Learning Rate Sweep Results:")
     for lr, mae in results:
         print(f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")

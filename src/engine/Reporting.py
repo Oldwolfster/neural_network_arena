@@ -80,7 +80,7 @@ def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize
             epoch        INTEGER NOT NULL,
             iteration    INTEGER NOT NULL,
             nid          INTEGER NOT NULL,
-            -- model_id     TEXT NOT NULL,
+            model_id     TEXT NOT NULL,
             weight_index INTEGER NOT NULL,
             batch_id     INTEGER NOT NULL DEFAULT 0,
             {fields},
@@ -96,7 +96,7 @@ def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize
     """)
 
 
-def prep_RamDB(gladiators):
+def prep_RamDB():
     db=RamDB()
 
     #Create dummy records to create table so we can create the view
@@ -143,15 +143,16 @@ def prep_RamDB(gladiators):
             PRIMARY KEY (epoch, iteration, model_id, nid,weight_id)  -- Ensures unique calculations per neuron per step
         );""")
 
-
-    for gladiator in gladiators: # Each model gets its own isolated table
-        create_weight_adjustments_table(db, gladiator, "update")
-        create_weight_adjustments_table(db, gladiator, "finalize")
-
-
+    #this will no longer run with engine refactoredto TurboForge... instead atomic creates individually
+    #for gladiator in gladiators: # Each model gets its own isolated table
+    #    create_weight_adjustments_table(db, gladiator, "update")
+    #    create_weight_adjustments_table(db, gladiator, "finalize")
 
     return db
 
+def create_weight_adjustment_tables(db, gladiator):
+    create_weight_adjustments_table(db, gladiator, "update")
+    create_weight_adjustments_table(db, gladiator, "finalize")
 
 
 
