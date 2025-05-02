@@ -6,7 +6,6 @@ git push origin master                  # Push changes to the 'master' branch on
 OR
 git push                                # If your local master branch is already tracking origin/master, you can simply use
 g
-
 ---
 # Alternate branches
 git checkout main
