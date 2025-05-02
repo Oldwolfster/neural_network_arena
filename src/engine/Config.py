@@ -32,7 +32,7 @@ class Config:
         self.hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
         self.output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
         self.input_scaler                            = Scaler_Robust
-        self.target_scaler                           = Scaler_NoScaling
+        self.target_scaler                           = Scaler_NONE
         self.roi_mode                                = ROI_Mode.SWEET_SPOT
 
         # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
@@ -64,6 +64,32 @@ class Config:
         self.popup_operators                         = None
         self.popup_finalizer_headers                 = None
         self.popup_finalizer_operators               = None
+    @property
+    def neuroforge_layers(self):
+        """
+        Returns a structured list of layer definitions for visualization.
+        Each item is a list of LayerComponent objects: either a Decider, Scaler, or Threshold.
+        For right now, we will just use a str
+        """
+        layers = []
+
+        # Input scaler(s)
+        if self.input_scaler != Scaler_NONE:
+            layers.append("InputScalar")
+            #layers.append([ScalerComponent(name=self.input_scaler.name) for _ in range(self.input_count)])
+
+        # Main architecture
+        for n in self.architecture_core:
+            layers.append("Decider")
+            #layers.append([DeciderComponent() for _ in range(n)])
+
+
+        # Threshold neuron (optional, e.g. for binary decisions)
+        #if self.uses_threshold:
+        #    layers.append([ThresholdComponent()])
+
+        return layers
+
 
     def configure_popup_headers(self):
         (self.popup_headers, self.popup_operators,

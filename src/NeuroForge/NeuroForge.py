@@ -1,6 +1,7 @@
 import pygame
 import pygame_gui
 from src.NeuroForge import Const
+from src.NeuroForge.Const import add_items_to_architecture_not_in_NNA
 from src.NeuroForge.Display_Manager import Display_Manager
 from src.NeuroForge.VCR import VCR
 
@@ -15,6 +16,7 @@ from src.NeuroForge.ButtonMenu import ButtonMenu, ButtonInfo
 
 def neuroForge(configs:  List[Config]):
     """Initialize NeuroForge and run the visualization loop."""
+    add_items_to_architecture_not_in_NNA(configs)
     pygame.init()
     Const.SCREEN = pygame.display.set_mode((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     pygame.display.set_caption("Neural Network Visualization")

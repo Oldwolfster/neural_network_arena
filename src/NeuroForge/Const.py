@@ -2,6 +2,8 @@ from typing import List
 from typing import TYPE_CHECKING
 #from src.NeuroForge import Display_Manager
 from src.engine.Config import Config
+from copy import deepcopy
+from src.Legos.Scalers import *
 
 # ==============================
 # Global References
@@ -155,3 +157,12 @@ COLOR_FOR_BAR2_NEGATIVE = COLOR_RED_BURGUNDY
 COLOR_eh             = (220, 255, 220)
 COLOR_HIGHLIGHT_FILL    = COLOR_eh
 COLOR_HIGHLIGHT_BORDER  = (218, 165, 32)
+
+#Moved here to avoid clutter in NeuroForge opening.
+def add_items_to_architecture_not_in_NNA(configs: List[Config]):
+
+    for config in configs:  #Add scalers, thresholds, and anything else to architecture
+        config.architecture_core = deepcopy(config.architecture)
+        if config.input_scaler != Scaler_NONE:
+            config.architecture.insert(0, 1) # Add one to front of architecture [2,2,1 ] becomes [1,2,2,1]
+        
