@@ -138,9 +138,9 @@ class DisplayPanelCtrl(EZForm):
 
     def create_ui_elements(self):
         panel_x, panel_y = self.left, self.top
-        button_height, button_width = 25, 69
+        button_height, button_width = 25, 72
         row_offsets = [80, 102, 124, 146]
-        x_offsets = [8, 77]
+        x_offsets = [8, 80]
 
         tooltips = {
             Action.TOGGLE_PLAY: "(TAB) Play/Pause",
@@ -156,7 +156,7 @@ class DisplayPanelCtrl(EZForm):
         self.speed_dropdown = UIDropDownMenu(
             options_list=["Iteration", "0.5x", "1x", "2x", "4x", "10x", "25x", "50x"],
             starting_option="1x",
-            relative_rect=pygame.Rect((panel_x + x_offsets[0], panel_y + 49), (138, 32)),
+            relative_rect=pygame.Rect((panel_x + x_offsets[0], panel_y + 49), (button_width*2, 32)),
             manager=Const.UI_MANAGER,
         )
 
@@ -181,7 +181,7 @@ class DisplayPanelCtrl(EZForm):
         add_button(Action.STEP_FORWARD_BIG, ">>>>", 1, 3)
 
         self.epoch_input = UITextEntryLine(
-            relative_rect=pygame.Rect((panel_x + x_offsets[0], panel_y + 169), (138, 36)),
+            relative_rect=pygame.Rect((panel_x + x_offsets[0], panel_y + 169), (button_width*2, 36)),
             manager=Const.UI_MANAGER,
         )
 

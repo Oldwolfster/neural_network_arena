@@ -37,4 +37,4 @@ class Predict_Car_Value_From_Age_Miles(BaseArena):
             training_data.append((age_years, miles, car_value))
 
         # Labels: ["Age (Years)", "Miles (Thousands)", "Car Value ($)"]
-        return training_data, ["Years", "K Miles", "Value"]
+        return training_data, ["Years", "Miles(1000s)", "Value"]

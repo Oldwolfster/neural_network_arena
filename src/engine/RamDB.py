@@ -14,6 +14,7 @@ class RamDB:
         self.conn = sqlite3.connect(':memory:', isolation_level=None)
         self.cursor = self.conn.cursor()
         self.cursor.execute("PRAGMA cache_size = -20000")  # ✅ Set cache size ONCE when initializing
+        #self.cursor.execute("PRAGMA journal_mode=WAL;")
         self.tables = {}  # To track schemas for validation
 
     def _infer_schema(self, obj, exclude_keys=None):

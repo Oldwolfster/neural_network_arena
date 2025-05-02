@@ -1,16 +1,18 @@
 import pygame
 from src.NeuroForge import Const
+from src.NeuroForge.ButtonBase import Button_Base
 from src.NeuroForge.DisplayArrow import DisplayArrow
 from src.NeuroForge.DisplayModel__Graph import DisplayModel__Graph
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
+from src.NeuroForge.PopupArchitecture import ArchitecturePopup
 from src.engine.Config import Config
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("last_epoch", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    __slots__ = ("last_epoch", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
     def __init__(self, config: Config, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -21,7 +23,11 @@ class DisplayModel(EZSurface):
             pixel_adjust_top    = position["top"],
             bg_color            = Const.COLOR_FOR_BACKGROUND
         )
+        self.hoverlings: list   = []  # ✅ Store the neuron and objects that react when being hovered over
+        self.buttons        = []
         self.config         = config
+        self.arch_popup     = ArchitecturePopup(self, config)
+
         self.last_epoch     = config.final_epoch
         #print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
@@ -30,6 +36,21 @@ class DisplayModel(EZSurface):
         self.arrows_forward = []  # List of neuron connections
         _, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
+        btn = Button_Base(
+                 text=beautify_text(self.config.gladiator_name),
+                 width_pct=10, height_pct=4, left_pct=1, top_pct=1,
+                 on_click=self.show_info,
+                 on_hover=lambda: self.arch_popup.show_me(),
+                 shadow_offset=-5, auto_size=True, my_surface=self.surface,text_line2=f"Error: {self.lowest_error}", surface_offset=(self.left, self.top))
+
+        self.buttons.append(btn)
+
+
+        self.hoverlings.extend(self.buttons)
+
+    @property
+    def lowest_error(self):
+        return f"{smart_format(self.config.lowest_error)} at {self.config.lowest_error_epoch}"
     @property
     def display_epoch(self):
         """
@@ -66,13 +87,13 @@ class DisplayModel(EZSurface):
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
 
+
     def create_graph(self, gh):
         return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, model_id=self.model_id, my_model=self)
 
     def render(self):
         """Draw neurons and connections."""
         self.clear()
-        self.draw_model_name()  # Draw model name in top-right corner
         self.draw_border()
         self.graph.render()
 #        for connection in self.connections:
@@ -84,6 +105,11 @@ class DisplayModel(EZSurface):
         for arrow in self.arrows_forward:
             arrow.draw()
 
+        for button in self.buttons:
+            button.draw_me()
+
+
+
     def update_me(self):
         for layer in self.neurons:
             for neuron in layer:
@@ -91,61 +117,13 @@ class DisplayModel(EZSurface):
         #for arrow in self.arrows_forward:
         #    arrow.update_connection()
 
+
     def draw_border(self):
         """Draw a rectangle around the perimeter of the display model."""
         pygame.draw.rect(
             self.surface, Const.COLOR_FOR_NEURON_BODY,
             (0, 0, self.width, self.height), 3
         )
-
-    def get_name_with_convergence(self) -> str:
-        """
-        Returns the model name, optionally augmented with convergence info.
-        If the model has converged, adds the epoch and convergence condition.
-        """
-        base_name = beautify_text(self.config.gladiator_name)
-
-        #if hasattr(self.config, "last_epoch") and self.config.last_epoch:
-        if self.config.cvg_condition.lower() == "did not converge":
-            return f"{base_name}: Did Not Converge"
-        else:
-            return f"{base_name}: Converged at {self.last_epoch} via {self.config.cvg_condition}"
-
-
-
-
-    def draw_model_name(self):
-        """Draw the model's name and threshold in the top-right corner of the model area."""
-        font = pygame.font.Font(None, 28)
-
-        # Render the model name
-        text_surface = font.render(self.get_name_with_convergence(), True, Const.COLOR_BLACK)
-        text_x = 10  # Align to right with margin
-        text_y = 5  # Small margin from the top
-        self.surface.blit(text_surface, (text_x, text_y))
-
-        # Render the model name
-        text_val = f"{smart_format(self.config.lowest_error)} at {self.config.lowest_error_epoch}"
-        text_surface = font.render(beautify_text(text_val), True, Const.COLOR_BLACK)
-        text_x = 10  # Align to right with margin
-        text_y = 10 + text_surface.height  # Small margin from the top
-        self.surface.blit(text_surface, (text_x, text_y))
-
-        # Render the model name
-        #text_surface = font.render(beautify_text(self.config.training_data.arena_name), True, Const.COLOR_BLACK)
-        #text_x = self.width - text_surface.get_width() - 10  # Align to right with margin
-        #text_y = 5  # Small margin from the top
-        #self.surface.blit(text_surface, (text_x, text_y))
-
-        if self.config.training_data.problem_type != "Binary Decision":
-            return
-
-        # Render the threshold (right below the model name) IF it is binary decision
-        threshold_text = f"Threshold: {self.threshold:.1f}"  # Format threshold to 1 decimals
-        threshold_surface = font.render(threshold_text, True, Const.COLOR_BLACK)
-        threshold_x = self.width - threshold_surface.get_width() - 10
-        threshold_y = text_y + text_surface.get_height() + 3  # Place below the model name with spacing
-        self.surface.blit(threshold_surface, (threshold_x, threshold_y))
 
     def get_max_activation_for_model(self,  model_id: str):
         """
@@ -192,3 +170,21 @@ class DisplayModel(EZSurface):
                     end_y = to_neuron.neuron_visualizer.my_fcking_labels[max_index_to][1] + y_offset # Get Y for correct weight
 
                     self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
+    #def process_an_event(self, event):
+    #    #print(f"my left={self.left} my top = {self.top}")
+    #    self.model_button.process_an_event(event)
+
+
+    def show_info(self):#onclick model button
+        print("copy to clipboard")
+        """
+        import pygame.scrap
+
+        pygame.scrap.init()
+        pygame.scrap.set_mode(pygame.SCRAP_CLIPBOARD)
+        
+        def copy_info_to_clipboard():
+            data = your_info_str.encode("utf-8")
+            pygame.scrap.put(pygame.SCRAP_TEXT, data)
+        """

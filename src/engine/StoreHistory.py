@@ -38,7 +38,7 @@ def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
         snapshot.runtime_seconds, snapshot.final_error
     ))
     conn.commit()
-    print(f"Snapshot saved with run_id: {run_id}")
+    #print(f"Snapshot saved with run_id: {run_id}")
 
 
 def list_snapshots_in_console(result_rows: int):

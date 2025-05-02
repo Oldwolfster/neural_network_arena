@@ -1,10 +1,13 @@
 from typing import List
 import pygame
 
-
+from src.NeuroForge.ButtonBase import  Button_Base
+from src.NeuroForge.PopupInfoButton import PopupInfoButton
+from src.NeuroForge.PopupTrainingData import PopupTrainingData
 from src.engine.Config import Config
 from src.engine.RamDB import RamDB
 from src.NeuroForge import Const
+from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 from src.NeuroForge.DisplayArrowsOutsideNeuron import DisplayArrowsOutsideNeuron
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
@@ -26,10 +29,15 @@ class Display_Manager:
     """
     def __init__(self, configs: List[Config]):
         Const.configs       = configs  # Store all model configs
-        self.hovered_neuron = None  # ✅ Store the neuron being hovered over
+        # MOVED TO EACH MODEL self.hoverlings: list     = None  # ✅ Store the neuron and objects that react when being hovered over
+        self.the_hovered    = None # if an object is being hovered.
+        self.hoverlings     = []
+        self.t_data_popup   = PopupTrainingData(configs[0])
+        self.info_popup     = PopupInfoButton()
         self.components     = []  # List for EZSurface-based components
         self.eventors       = []  # Components that need event handling
-        self.event_runners  = []
+        #self.each_framers  = []
+        #self.draw_lasters   = []
         self.models         = []  # List for display models
         self.db             = configs[0].db  # Temporary shortcut
         self.data_iteration = None
@@ -52,7 +60,17 @@ class Display_Manager:
         self.query_dict_iteration()
         self.query_dict_epoch()
         self.initialize_components()
-
+        
+        ############# Make list of anything that reacts when hovered.
+        #self.the_hovered = None  # Reset each frame
+        #mouse_x, mouse_y = pygame.mouse.get_pos()
+        
+        # Add Neurons to each models "hoverlings"
+        for model in reversed(self.models):  # ✅ Start with the topmost model
+            for layer in model.neurons:
+                for neuron in layer:
+                    model.hoverlings.append(neuron)
+        #############
     def populate_list_of_avaiable_frames(self):
         Const.vcr. recorded_frames = self.db.query("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration",as_dict=False)
 
@@ -81,9 +99,22 @@ class Display_Manager:
         This is rendered separately to ensure it is last and is not overwritten by anything
         such as UI Controls.
         """
+
+        #if Const.tool_tip_to_show is not None:
+        #    print(f"Showing popup - Const.tool_tip_to_show = {Const.tool_tip_to_show }")
+        #    Const.tool_tip_to_show()
+        #    #Const.tool_tip_to_show = None
+
+
+        #print(f"Const.tool_tip_to_show = {Const.tool_tip_to_show}")
+        #if Const.tool_tip_to_show is not None:
+        #    Const.tool_tip_to_show()   # now calls render()
+        #    Const.tool_tip_to_show = None
+
         self.update_hover_state()
-        if self.hovered_neuron is not None:
-            self.hovered_neuron.render_tooltip()
+        if self.the_hovered is not None:
+            self.the_hovered.render_tooltip()
+
 
     def initialize_components(self):
         """Initialize UI components like EZForm-based input panels and model displays."""
@@ -91,6 +122,22 @@ class Display_Manager:
         self.components.append(display_banner)
         panel_width = 8
 
+        # Render behind the input button
+        button_td=Button_Base(text=beautify_text("Training Data"),
+                      width_pct=panel_width-1, height_pct=39, left_pct=2, top_pct=10, on_click=self.show_info,
+                      on_hover=lambda: self.t_data_popup.show_me(),
+                      shadow_offset=-5, auto_size=False, my_surface=Const.SCREEN,
+                      text_line2=f"(click for details)", surface_offset=(0, 0))
+        self.components.append(button_td)
+        self.hoverlings.append(button_td)
+
+        button_info = Button_Base(my_surface= Const.SCREEN, text="Info",
+                                  width_pct=panel_width, height_pct=4, left_pct=1, top_pct=5,
+                                  on_click=self.show_info,
+                                  on_hover=lambda: self.info_popup.show_me(),
+                                  shadow_offset=-5)
+        self.components.append(button_info)
+        self.hoverlings.append(button_info)
 
         # Add Input Panel  # Storing reference for arrows from input to first layer of neurons
         self.input_panel = DisplayPanelInput(width_pct=panel_width, height_pct=39, left_pct=1, top_pct=10)
@@ -108,21 +155,21 @@ class Display_Manager:
         #self.components.extend(ModelGenerator.create_models())  # This will process all layout calculations #create models
         self.models = ModelGenerator.create_models()
         self.components.extend(self.models) #add models to component list
+        #self.eventors.extend(self.models)
 
         # Add Input and output Arrows (Spans multiple surfaces) - will be full area and not clear)
         arrows = DisplayArrowsOutsideNeuron(self.models[0])
         self.components.append(arrows)
 
-
         # Add window Match
-
         #self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
         #                              background_image_path="assets/form_backgrounds/coliseum_glow.png")
-       #win_matches = WindowMatches()
+        #win_matches = WindowMatches()
         #self.components.append(win_matches)
         #self.eventors.append(win_matches)
 
-
+    def show_info(self):
+        print("Show info")
 
     def create_prediction_panels(self, panel_width): #one needed per model
         for idx, model_config in enumerate(Const.configs):
@@ -135,8 +182,6 @@ class Display_Manager:
             if idx <2:      #Only show two prediction panels
                 panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
-
-
 
     def query_dict_iterationOld(self):
         """Retrieve iteration data from the database and return it as a nested dictionary indexed by model_id."""
@@ -170,7 +215,6 @@ class Display_Manager:
 
         self.data_iteration = {row["model_id"]: row for row in rs}
 
-
     def query_dict_epoch(self):
         sql = """
             SELECT e.*
@@ -184,7 +228,6 @@ class Display_Manager:
         """
         rs = self.db.query(sql, (Const.vcr.CUR_EPOCH_MASTER,))
         self.data_epoch = {row["model_id"]: row for row in rs}
-
 
     def query_dict_epoch_OLD(self ):  #failed for a model that converged and had no data for later epochs.
         # db.query_print("PRAGMA table_info(Iteration);")
@@ -260,17 +303,16 @@ class Display_Manager:
         """
         Check which neuron is being hovered over, prioritizing the topmost model.
         """
-        self.hovered_neuron = None  # Reset each frame
+        self.the_hovered = None  # Reset each frame
         mouse_x, mouse_y = pygame.mouse.get_pos()
+
+        for obj in self.hoverlings:
+            if obj.is_hovered(0,0,mouse_x,mouse_y):
+                self.the_hovered = obj
+                return
+
         for model in reversed(self.models):  # ✅ Start with the topmost model
-            for layer in model.neurons:
-                for neuron in layer:
-                    if neuron.is_hovered(model.left, model.top, mouse_x, mouse_y):
-                        #print(f"hovering over {model.config.gladiator_name} { neuron.label}")
-                        self.hovered_neuron = neuron  # ✅ Store the first neuron found
-                        return  # ✅ Stop checking once we find one (avoids conflicts)
-
-
-
-
-
+            for potential in model.hoverlings:
+                if potential.is_hovered(model.left, model.top, mouse_x, mouse_y):
+                    self.the_hovered = potential    # We found one, store it
+                    return                                     # ✅ Stop checking once we find one (avoids conflicts)

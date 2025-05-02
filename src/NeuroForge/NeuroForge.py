@@ -23,7 +23,8 @@ def neuroForge(configs:  List[Config]):
     Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
     menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
     menu_button = ButtonMenu()
-    info_button = ButtonInfo()
+
+    #info_button = ButtonInfo()
 
     clock = pygame.time.Clock()
 
@@ -46,7 +47,7 @@ def neuroForge(configs:  List[Config]):
         Const.dm.render()
         Const.UI_MANAGER.draw_ui(Const.SCREEN)
         menu_button.draw()
-        info_button.draw()
+        #info_button.draw()
         Const.dm.render_pop_up_window()
 
         if Const.MENU_ACTIVE and menu.is_enabled():
