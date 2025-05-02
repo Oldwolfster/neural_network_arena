@@ -24,13 +24,13 @@ class NeuroForge_GoingBackToCali(Gladiator):
         #Advice on California data
         # hidden_layers = [16, 8]
         # activation = "tanh"        output_activation = "linear"        loss_function = "mae"
-        config.architecture         = [6,8]                       # Neurons in hidden layer output added automatically
+        config.architecture         = [8,1]                       # Neurons in hidden layer output added automatically
         self.learning_rate          = .001 #If not included defaults to value in ArenaSettings
         config.initializer          = Initializer_Xavier
         config.output_activation    = Activation_NoDamnFunction
         config.loss_function        = Loss_MAE
         config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
-        config.training_data        . set_normalization_z_score()
+        #config.training_data        . set_normalization_z_score()
 
     def customize_neurons(self, config: Config):
         """ 🚀 Anything after initializing neurons

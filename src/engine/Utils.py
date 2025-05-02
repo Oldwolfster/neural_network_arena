@@ -215,8 +215,10 @@ def set_seed(seed) -> int:
 
 
 def draw_gradient_rect( surface, rect, color1, color2):
-    for i in range(rect.height):
-        ratio = i / rect.height
+    #print(f"rect.height={rect.height}")
+    safe_height = min(rect.height, 1500)  # Clamp height to prevent hanging if height explodes. 2E31 lines drawn
+    for i in range(safe_height):
+        ratio = i / safe_height
         blended_color = [
             int(color1[j] * (1 - ratio) + color2[j] * ratio) for j in range(3)
         ]
@@ -245,6 +247,7 @@ def dynamic_instantiate(class_name, base_path='arenas', *args):
     # Set up the directory to search
     search_directory = os.path.join(os.path.dirname(os.path.dirname(__file__)), base_path.replace('.', os.sep))
     matched_module = None
+    matched_file   = None   # For returing the code of the arena.
 
     # Walk through directories to find the file
     for root, dirs, files in os.walk(search_directory):
@@ -266,6 +269,7 @@ def dynamic_instantiate(class_name, base_path='arenas', *args):
 
                 # Set matched module path
                 matched_module = module_path
+                matched_file   = os.path.join(root, file)
 
     if not matched_module:
         raise ImportError(f"Module {class_name} not found in {base_path} or any subdirectories.")
@@ -274,7 +278,16 @@ def dynamic_instantiate(class_name, base_path='arenas', *args):
     module = importlib.import_module(matched_module)
     for _, obj in inspect.getmembers(module, inspect.isclass):
         if (issubclass(obj, BaseReport) or issubclass(obj, BaseArena) or issubclass(obj, Gladiator)) and obj.__module__ == module.__name__:
-            return obj(*args)
+            #return obj(*args)
+            instance = obj(*args)
+            # if it's an Arena, load its source as well
+            if issubclass(obj, BaseArena) and matched_file:
+                try:
+                    with open(matched_file, 'r', encoding='utf-8') as f:
+                        instance.source_code = f.read()
+                except IOError:
+                    instance.source_code = None
+            return instance
 
     raise ImportError(f"No class inheriting from BaseArena or BaseGladiator found in {class_name}.py")
 
@@ -430,10 +443,39 @@ def is_numeric(text):
     # If we're left with only digits, it's numeric
     return text.isdigit()
 def beautify_text(text: str) -> str:
-    """Replaces underscores with spaces and adds spaces before CamelCase words."""
-    text = text.replace("_", " ")
-    text = re.sub(r'(?<!^)(?=[A-Z])', ' ', text)
-    return text
+    """
+    Turn things_likeThis_andThat into:
+      'Things Like This And That'
+    """
+    # First pass: mark every position where we need a space
+    breaks = [False] * len(text)
+    for i in range(1, len(text)):
+        if text[i] == "_":
+            breaks[i] = True
+        elif text[i].isupper() and text[i-1].islower():
+            breaks[i] = True
+
+    out = []
+    new_word = True
+    for i, ch in enumerate(text):
+        if ch == "_":
+            out.append(" ")
+            new_word = True
+            continue
+
+        if breaks[i]:
+            out.append(" ")
+            new_word = True
+
+        # Title-case logic
+        if new_word:
+            out.append(ch.upper())
+        else:
+            out.append(ch.lower())
+        new_word = False
+
+    return "".join(out)
+
 
 
 def get_absolute_position(surface, local_x, local_y):

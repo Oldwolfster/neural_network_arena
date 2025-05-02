@@ -24,7 +24,7 @@ class ConvergenceDetector:
         self.triggered_signals: List[str] = []
         self.phase = "watch"        # Phase state: 'watch', 'fix', 'done'
 
-        print(f"{config.roi_mode}")
+        #print(f"{config.roi_mode}")
 
         # Map of phases to signal classes
         self.phase_signals = {

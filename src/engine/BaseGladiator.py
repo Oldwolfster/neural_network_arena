@@ -33,14 +33,12 @@ class Gladiator(ABC):
         self.db                 = config.db
         self.hyper              = config.hyper
         self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
-        self.neurons            = []
-        self.neuron_count       = 0                         # Default value
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
         self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.VCR                = VCR(config, self.neurons) # Args3, is ramdb
+        self.VCR                = VCR(config, Neuron.neurons) # Args3, is ramdb
         #self.learning_rate      = self.config.learning_rate  #
         self.number_of_epochs   = self.hyper.epochs_to_run
-        self._full_architecture = None
+        #self._full_a1rchitecture = None
         self._bd_threshold       = None
         self._bd_class_alpha     = None
         self._bd_class_beta      = None
@@ -59,8 +57,11 @@ class Gladiator(ABC):
     ################################################################################################
 
     def retrieve_setup_from_model(self):
+        #ez_debug(bluuuprint= self.config.architecture)
+        #print("check architecture")
         self.configure_model(self.config)  #Typically overwritten in child  class.
-        self.config.configure_optimizer()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+        #ez_debug(bluuuprint2= self.config.architecture)
+        self.config.set_defaults()
 
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
@@ -69,13 +70,26 @@ class Gladiator(ABC):
             output_activation=self.config.output_activation
             or self.config.loss_function.recommended_output_activation)
 
+        #print(f"Neuron count = {len(Neuron.neurons)}")
         self.customize_neurons(self.config)
-        self.config.architecture = self.config.full_architecture[1:] #Remove inputs, keep hidden (if any) and output
 
     def configure_model(self, config: Config):
         pass
+
     def customize_neurons(self,config: Config):
         pass
+
+
+    def scale_samples(self):
+        #self.training_samples = self.training_data.get_list()           # Store the list version of training data
+        #unscaled_training_samples = self.training_data.get_list()           # Store the list version of training data
+        scaled_inputs  = self.config.input_scaler.scale(self.training_data.get_inputs())
+        scaled_targets = self.config.target_scaler.scale(self.training_data.get_targets())
+
+        #print(f"input scaler = {self.config.input_scaler.name}\ttarget scaler={self.config.target_scaler.name}")
+        #print(f"raw inputs{self.training_data.get_inputs()}")
+        #print(f"scaled inputs{scaled_inputs}")
+        self.training_samples = [tuple(inp) + (tgt,) for inp, tgt in zip(scaled_inputs, scaled_targets)]
 
     def train(self, exploratory_epochs = 0) -> float:  #tuple[str, list[int]]:
         """
@@ -88,12 +102,12 @@ class Gladiator(ABC):
                 - converged_signal (str): Which convergence signal(s) triggered early stop.
                 - full_architecture (list[int]): Architecture of the model including hidden and output layers.
         """
+
         self.config.loss_function.validate_activation_functions()
-        print(f"in BaseGladiator train.. lr={self.config.learning_rate}")
-        if self.neuron_count == 0:  #TODO I don't think this is possible anymore.
-            self.initialize_neurons([]) #Defaults to 1 when it adds the output
+        #print(f"in BaseGladiator train.. lr={self.config.learning_rate}")
         self.check_binary_decision_info()
-        self.training_samples = self.training_data.get_list()           # Store the list version of training data
+        self.scale_samples()
+        #self.training_samples = self.training_data.get_list()
         epochs_to_run = self.number_of_epochs if exploratory_epochs==0 else exploratory_epochs
 
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
@@ -105,20 +119,6 @@ class Gladiator(ABC):
 
         #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.total_error_for_epoch      # When it does not converge still return info
-
-    def validate_output_activation_functionDeleteME(self):
-        """
-        Check if loss function requires specific activation function in output neuron.
-        """
-        # 🚨 Validate activation function before training begins
-        allowed_activations = self.config.loss_function.allowed_activation_functions
-        actual_activation = Neuron.output_neuron.activation
-
-        if allowed_activations is not None and actual_activation not in allowed_activations:
-            raise ValueError(
-                f"🚨 {actual_activation} is not compatible with Loss function {self.config.loss_function.name}. "
-                f"\nAllowed: {', '.join([act.name for act in allowed_activations])}"
-            )
 
     def run_an_epoch(self, epoch_num: int) -> str:
         """
@@ -138,8 +138,10 @@ class Gladiator(ABC):
 
             self.iteration = i      # Set so the model has access
             sample = np.array(sample)  # Convert sample to NumPy array
-            inputs = sample[:-1]
-            target = sample[-1]
+            inputs = sample[:-1]        #all but the last item of each tuple in list
+
+            target = sample[-1]         # just the last item of each tuple in list
+            #print(f"inputs={inputs}\ttarget={target}")
             self.snapshot_weights("", "_before")
 
             error, loss,  loss_gradient = self.process_a_sample(sample, inputs, target)
@@ -184,10 +186,15 @@ class Gladiator(ABC):
     def process_a_sample(self, sample, inputs, target):
         # Step 1: Forward pass
         self.forward_pass(sample)  # Call model-specific logic
-        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
+        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract output neuron’s activation
 
         # Step 3: Delegate to models logic for Validate_pass :)
-        error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
+        error_scaled, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
+
+        # ↕️ NEW: compute unscaled values for logging & metrics
+        orig_target      = self.config.target_scaler.unscale(target)
+        orig_prediction  = self.config.target_scaler.unscale(prediction_raw)
+        error            = orig_target - orig_prediction
 
         # Step 4: Delegate to models logic for backprop or call default if not overridden
         #print(f"Should be same as prior to backpass - epoch{self.epoch+1} iteration{self.iteration+1}")
@@ -199,6 +206,32 @@ class Gladiator(ABC):
         self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
         self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
         return error, loss, loss_gradient
+
+    def process_a_sample__WithoutTargetScaling(self, sample, inputs, target):
+        # Step 1: Forward pass
+        self.forward_pass(sample)  # Call model-specific logic
+        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
+
+        # Step 3: Delegate to models logic for Validate_pass :)
+        error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
+
+        # ↕️ NEW: compute unscaled values for logging & metrics
+        orig_target      = self.config.target_scaler.unscale(target)
+        orig_prediction  = self.config.target_scaler.unscale(prediction_raw)
+
+
+        # Step 4: Delegate to models logic for backprop or call default if not overridden
+        #print(f"Should be same as prior to backpass - epoch{self.epoch+1} iteration{self.iteration+1}")
+        #print(f"weights_before are {Neuron.neurons[1].weights_before}")
+        #print(f"weights are        {Neuron.neurons[1].weights}")
+        self.back_pass(sample, loss_gradient)  # Call model-specific logic
+
+        # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
+        self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
+        self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
+        return error, loss, loss_gradient
+
+
 
     ################################################################################################
     ################################ SECTION 1 - Training Default Methods ##########################
@@ -409,33 +442,36 @@ class Gladiator(ABC):
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
 
         Args:
-            architecture (List[int]): Number of neurons per hidden layer.
+            architecture (List[int]): Number of neurons per hidden layer and output layer
             initializers (List[WeightInitializer]): A list of weight initializers.
             hidden_activation (ActivationFunction): The activation function for hidden layers.
         """
 
-        Neuron.reset_layers()
         if architecture is None:
-            architecture = []  # Default to no hidden layers
-        architecture.append(1)  # Add output neuron
+             raise ValueError("Blueprint is empty - this shouldn't be possible - defect alert")
 
         # Ensure initializer list matches neuron count
         flat_initializers = self.get_flat_initializers(architecture, initializers)
-        print(f"Checking flat_initializers: {flat_initializers}")
+        #print(f"Checking flat_initializers: {flat_initializers}")
 
         input_count             = self.training_data.input_count
         hidden_activation       = hidden_activation or self.config.hidden_activation
         output_activation       = output_activation or self.config.loss_function.recommended_output_activation #None indicates no restriction
-        self._full_architecture = [input_count] + architecture  # Store the full architecture
         nid                     = -1
-        self.neurons.clear()
+
+        Neuron.neurons.clear()
         Neuron.layers.clear()
+        #print(f"architecture1 = {self.config.architecture}  Neuron count = {len(Neuron.neurons)}")
+        for layer_index, layer_size in enumerate(architecture):
+            #print(f"Index: {layer_index}, Layer size: {layer_size}")
 
-        for layer_index, neuron_count in enumerate(architecture):
-            num_of_weights = self._full_architecture[layer_index]
-            for neuron_index in range(neuron_count):
+            if layer_index == 0:    # For first layer of neurons
+                num_of_weights = self.training_data.input_count
+            else:
+                num_of_weights = architecture[layer_index - 1]
+
+            for neuron_index in range(layer_size):
                 nid += 1
-
                 activation = output_activation if layer_index==len(architecture)-1 else hidden_activation
                 #print(f"Creating Neuron {nid}  in layer{layer_index}  len(architecture)={len(architecture)} - Act = {activation.name}")
                 neuron = Neuron(
@@ -446,9 +482,8 @@ class Gladiator(ABC):
                     layer_id            = layer_index,
                     activation          = activation
                 )
-                self.neurons.append(neuron)
-        self.neuron_count = len(self.neurons)
 
+        #print(f"architecture2 = {self.config.architecture}  Neuron count = {len(Neuron.neurons)}")
 
     ################################################################################################
     ################################ SECTION 4 - Binary Decision logic ####################################
@@ -493,7 +528,7 @@ class Gladiator(ABC):
         self._bd_threshold = value
 
     def check_binary_decision_info(self):
-        print (f"self.config.loss_function={self.config.loss_function}")
+        #print (f"self.config.loss_function={self.config.loss_function}")
         if self.training_data.problem_type == "Binary Decision":
             a, b, c = self.training_data.apply_binary_decision_targets_for_specific_loss_function(self.config.loss_function)
             # Only update if still None (i.e., not set by the Gladiator)
@@ -513,7 +548,7 @@ class Gladiator(ABC):
         """
         Getter for learning rate.
         """
-        return self.neurons[0].weights
+        return Neuron.neurons[0].weights
     #@property
     def learning_rateNOT_HERE_IN_CONFIG(self):
         """

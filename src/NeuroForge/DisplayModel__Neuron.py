@@ -205,7 +205,7 @@ class DisplayModel__Neuron:
             self.weights_before = []
 
     def initialize_fonts(self):
-        self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_HEADER)
+        self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_TITLE)
         self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
         self.header_text            = self.font_header.render("Prediction               Adjust Weights To Improve", True, Const.COLOR_BLACK)
 
@@ -386,58 +386,28 @@ class DisplayModel__Neuron:
 
     def set_column_widths(self):
         """
-        Dynamically sets the column widths based on tooltip_columns, which is
-        a list of vertical columns (each a list: [header, val1, val2, ...]).
-        We assume three sections:
-          1) Forward‑pass columns (fixed count)
-          2) “Dynamic” backprop columns (update or update+joined-finalize)
-          3) Final summary columns (always the last 3: Adj, Before, After)
+        Dynamically sets the column widths based on tooltip column headers.
+        Assumes self.tooltip_columns is a list of vertical columns (each a list: [header, val1, val2, ...]).
         """
-        # 1) widths for the *forward‑pass* section (these never change)
-        forward_cols = [45, 50, 10, 65, 15, 65]
+        col_info = 65
+        col_operator = 10
+        forward_cols = [45, 50, 10, col_info, 15, col_info]  # First 6 are fixed-width forward pass columns
 
-        # 2) widths for the *final summary* section (always 3 columns)
-        final_cols   = [65, 65, 65]
-
-        # 3) figure out how many columns we actually have
-        total = len(self.tooltip_columns)
-        n_forward = len(forward_cols)
-        n_final   = len(final_cols)
-
-        # how many are in the middle?
-        n_dynamic = total - n_forward - n_final
-        if n_dynamic < 0:
-            # Something went wrong—fall back to a safe default
-            n_dynamic = max(0, total - n_forward)
-
-        # 4) slice out the dynamic section
-        dynamic_section = self.tooltip_columns[n_forward : n_forward + n_dynamic]
-
-        # 5) compute widths for each “dynamic” column
-        col_info, col_operator = 65, 10
         dynamic_widths = []
-        for col in dynamic_section:
-            header = col[0].strip()
-            # simple heuristic: if the header is one or two characters (like “*” or “=”),
-            # treat it as an operator column; otherwise it’s a data column
-            if len(header) <= 2:
-                dynamic_widths.append(col_operator)
-            else:
-                dynamic_widths.append(col_info)
+        for col in self.tooltip_columns[6:-3]:  # skip forward pass (6), and standard trailing stats (3)
+            header = col[0]
+            is_operator = isinstance(header, str) and len(header.strip()) <= 2 and header.strip().lower() not in {"m", "v", "t"}
+            width = col_operator if is_operator else col_info
+            dynamic_widths.append(width)
 
-        # 6) stitch them all back together
-        self.column_widths = forward_cols + dynamic_widths + final_cols
-        # adjust the overall tooltip width
-        Const.TOOLTIP_WIDTH = sum(self.column_widths) + 69
+        last_cols = [col_info, col_info, col_info]  # Final 3 summary stats (e.g., adjustment, lr, new weight)
 
-
-
-
+        self.column_widths = forward_cols + dynamic_widths + last_cols
+        Const.TOOLTIP_WIDTH = sum(self.column_widths)+69
 
 ################### Gather Values for Back Pass #############################
 ################### Gather Values for Back Pass #############################
 ################### Gather Values for Back Pass #############################
-
 
     def _build_column_lists(self, headers, operators, rows):
         """
@@ -568,7 +538,7 @@ class DisplayModel__Neuron:
         #print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
         for i in range(8):  #Do entire row
             if i == 0:
-                all_cols[0].append("(Calculation for Blame column above)")
+                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
             else:
                 all_cols[i].append(" ")
 
@@ -578,7 +548,7 @@ class DisplayModel__Neuron:
             return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)
 
     def tooltip_columns_for_error_sig_outputlayer(self, all_cols):
-        all_cols[0].append("Output Neuron:")
+        all_cols[0].append("Accepted Blame Calculation Below")
         all_cols[0].append( f"Accepted Blame = Loss Gradient * Activation Gradient")
         all_cols[0].extend([f"Accepted Blame = {smart_format( self.loss_gradient)} * {smart_format(self.activation_gradient)} = {smart_format(self.loss_gradient * self.activation_gradient)}"])
         return all_cols
@@ -587,7 +557,7 @@ class DisplayModel__Neuron:
         col_weight = 0
         col_errsig = 3
         col_contri = 6
-        all_cols[col_weight].append("Hidden Neuron: from next layer")
+        all_cols[col_weight].append("Accepted Blame Calculation Below")
         all_cols[col_errsig-1].append(" ")
         all_cols[col_errsig].append(" ")
         all_cols[col_contri-1].append(" ")
@@ -612,6 +582,21 @@ class DisplayModel__Neuron:
         #all_cols[col_weight].append(f"Blame = {smart_format(bpe*self.activation_gradient)}")
         return all_cols
 
+    def get_elements_of_backproped_error(self):
+        """Fetches elements required to calculate backpropogated error for a hidden neuron"""
+        SQL = """
+            SELECT arg_1, arg_2
+            FROM ErrorSignalCalcs
+            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            ORDER BY weight_id ASC
+        """
+        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
+
+        if backprop_error_elements:             # Split the elements into two lists using the helper function
+            list1, list2 = self.split_error_elements(backprop_error_elements)
+            return list1, list2
+        else:
+            return [],[]
 
 ################### Gather Values for Forward Pass #############################
 ################### Gather Values for Forward Pass #############################

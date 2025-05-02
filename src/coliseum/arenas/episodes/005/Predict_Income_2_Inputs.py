@@ -7,12 +7,12 @@ class Predict_Income_2_Inputs(BaseArena):
     """
     Generates regression training data with a linear relationship between inputs and salary.
     This makes it solvable by a single neuron perceptron with two inputs.
-    NOTE:   Optimum bias should be the base salary!
-            Optimum weights should be the coefficients
-            When done training the parameters of the model should match what was set here.
+    NOTE:   The Optimum bias and weights are the base salary and coefficients.
+            When done training the parameters of the model should match what was set here!!!
 
-    To make the salary calculation solvable by a single neuron perceptron with two inputs, we need to ensure that the relationship between the inputs and the salary is linear. The original calculation includes a multiplicative interaction term (salary = ... * (college + 0.5)), introducing non-linearity.
-    Loss Function: Mean squared error (since it's a regression task).
+    To make the salary calculation solvable by a single neuron perceptron with two inputs,
+    we need to ensure that the relationship between the inputs and the salary is linear.
+
     Salary=Base Salary+(Coefficient1  ×Years of Experience)+(Coefficient2 × College)+Noise
     """
     def __init__(self, num_samples: int):

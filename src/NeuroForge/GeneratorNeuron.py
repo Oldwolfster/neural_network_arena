@@ -42,6 +42,7 @@ class GeneratorNeuron:
         GeneratorNeuron.model.neurons = []
         nid = -1
 
+        #print (f"architecture = {GeneratorNeuron.model.config.architecture}")
         for layer_index, neuron_count in enumerate(GeneratorNeuron.model.config.architecture):
             # Inject 1 extra neuron in the last layer to hold graph
             if layer_index == len(GeneratorNeuron.model.config.architecture) - 1:
@@ -60,7 +61,7 @@ class GeneratorNeuron:
                 y_coord = size * neuron_index + gap *   neuron_index + margin/696969 + extra_height_to_center
 
                 # 🔹 Instantiate Neuron (DisplayModel)
-                #print(f"GENERATING NEURON 1 = { GeneratorNeuron.model}")
+                #print(f"GENERATING NEURON 1 =  left={x_coord}, top={y_coord}")
                 neuron = DisplayModel__Neuron( GeneratorNeuron.model, left=x_coord, top=y_coord, width=size, height=size, nid=nid, layer=layer_index, position=neuron_index, output_layer=len(GeneratorNeuron.model.config.architecture)-1, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=the_model.surface, max_activation=max_act )
                 layer_neurons.append(neuron)
             GeneratorNeuron.model.neurons.append(layer_neurons)

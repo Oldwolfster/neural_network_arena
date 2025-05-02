@@ -4,7 +4,7 @@ from typing import List, Tuple
 from src.engine.BaseArena import BaseArena
 
 
-class Salary2InputsNonlinear(BaseArena):
+class SalaryFromExperienceAndCollege(BaseArena):
     """
     Generates regression training data for a two-input neural network with a single target,
     introducing nonlinear dependencies between experience, college, and salary.

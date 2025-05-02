@@ -22,15 +22,15 @@ class NeuroForge_Template(Gladiator):
         """ 👉  Anything prior to initializing neurons goes here
             💪  For example setting config options.        """
 
-        config.architecture         = []               # Neurons in hidden layers - output neuron(s) added automatically
+        #config.architecture         = []               # Neurons in hidden layers - output neuron(s) added automatically
         #config.learning_rate          = .0123
         #config.initializer          = Initializer_Xavier
-        config.output_activation    = Activation_NoDamnFunction
-        config.optimizer            = Optimizer_SGD
-        config.batch_size           = 2
+        #config.output_activation    = Activation_NoDamnFunction
+        #config.optimizer            = Optimizer_SGD
+        #config.batch_size           = 2
         #config.batch_mode           = BatchMode.MINI_BATCH   #NOTE single_sample or full overwrite batch_size
-        config.hidden_activation     = Activation_LeakyReLU
-        config.loss_function        = Loss_MSE
+        #config.hidden_activation     = Activation_LeakyReLU
+        #config.loss_function        = Loss_MSE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         #config.training_data        . set_normalization_min_max()
 

@@ -40,7 +40,7 @@ class ReproducibilitySnapshot:
                     config.output_activation or config.loss_function.recommended_output_activation
             ).name,
             weight_initializer_name=config.initializer.name,
-            normalization_scheme=config.training_data.norm_scheme,
+            normalization_scheme="WIP",
             seed=config.hyper.random_seed,
             learning_rate=config.learning_rate,
             epoch_count=config.final_epoch,

@@ -3,14 +3,16 @@ from dataclasses import dataclass, field
 
 history_to_show = 50
 history_to_show = 0
+# git checkout 07552a9588a2d253cb2eedc2c3b5623870e1901b -- src/NeuroForge/GeneratorNeuron.py
+#git restore src/NeuroForge/GeneratorNeuron.py
 
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 22     # Number of times training run will cycle through all training data
-    training_set_size       :int    = 22   # Qty of training data
+    epochs_to_run           :int    = 269     # Number of times training run will cycle through all training data
+    training_set_size       :int    = 40   # Qty of training data
     default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
@@ -56,10 +58,13 @@ gladiators = [
     #,'Simplex2'
 
     #'GBS'
-   #'NeuroForge_Template'
-   'test_newOpt'
+
+    'Hand_Tuned'
+    #,'test_newOpt'
+   #,'NeuroForge_Template'
+   #,'test_newOpt'
     #'EmptyModel_All_Default'
-    #,'Hand_Tuned'
+
     #'Test_BCE'
     #,'TestBatch'
     #,'Adam_Template'
@@ -75,8 +80,11 @@ gladiators = [
 ############################################################
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
-#training_pit                = "XOR"
-training_pit              = "Predict_Income_2_Inputs"
+training_pit                = "XOR"
+training_pit                = "CaliforniaHousePricesUSD"
+training_pit                = "Predict_Income_2_Inputs"
+training_pit                = "Predict_MedicalCost_WithOutliers"
+#training_pit               = "Titanic"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit                = "Predict_Income_Piecewise_Growth"
 #training_pit                = "Moons"

@@ -10,3 +10,6 @@
 4/3/2025                Broke clicking graph to jump epochs.
 4/3/2025                Add ability to add note to log.
 4/3/2025                Output log to excel..
+
+4/30/2025               For perceptron still lists hidden activation in popup.  should be N/A   
+

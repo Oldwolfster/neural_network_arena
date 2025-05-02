@@ -15,8 +15,8 @@ class EZSurface(ABC):
             pixel_adjust_width = 0, pixel_adjust_height = 0, pixel_adjust_left = 0, pixel_adjust_top = 0):
 
         """Creates a resizable and positionable surface within the main screen."""
-        self.screen_width = Const.SCREEN_WIDTH  #TODO remove these
-        self.screen_height = Const.SCREEN_HEIGHT #TODO remove these
+        self.screen_width = Const.SCREEN_WIDTH
+        self.screen_height = Const.SCREEN_HEIGHT
         self.left_pct = left_pct
         self.width_pct = width_pct
         self.top_pct = top_pct
