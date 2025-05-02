@@ -212,7 +212,7 @@ class NoScalingMethod:
         return x  # Pass-through
 
 
-Scaler_NoScaling = Scaler(
+Scaler_NONE = Scaler(
     method=NoScalingMethod(),
     name="No Scaling",
     desc="Pass-through scaler that performs no transformation.",

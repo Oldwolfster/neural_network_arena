@@ -82,8 +82,10 @@ class DisplayModel(EZSurface):
         for layer in self.neurons:
             for neuron in layer:
                 neuron.my_model = self
+        # Create error over epochs graph
         self.graph = self.create_graph(self.graph_holder)# Add Graph  # MAE over epoch
         Const.dm.eventors.append(self.graph)
+
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
 

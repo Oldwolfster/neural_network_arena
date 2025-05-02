@@ -44,9 +44,9 @@ class GeneratorNeuron:
 
         #print (f"architecture = {GeneratorNeuron.model.config.architecture}")
         for layer_index, neuron_count in enumerate(GeneratorNeuron.model.config.architecture):
-            # Inject 1 extra neuron in the last layer to hold graph
-            if layer_index == len(GeneratorNeuron.model.config.architecture) - 1:
-                neuron_count += 1
+
+            if layer_index == len(GeneratorNeuron.model.config.architecture) - 1: #Add graph if last layer
+                neuron_count += 1                                   # Inject 1 extra neuron in the last layer to hold graph
 
             layer_neurons = []
 

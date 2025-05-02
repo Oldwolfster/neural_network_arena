@@ -33,7 +33,7 @@ class NeuroForge_Template(Gladiator):
         #config.hidden_activation     = Activation_LeakyReLU
         config.loss_function        = Loss_MSE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
-        config.input_scaler         = Scaler_NoScaling
+        config.input_scaler         = Scaler_NONE
         #config.target_scaler        = Scaler_MinMax
         #ez_debug(inp_scaler = config.input_scaler)
 
