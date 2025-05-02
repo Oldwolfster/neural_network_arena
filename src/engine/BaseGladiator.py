@@ -133,59 +133,56 @@ class Gladiator(ABC):
         """
 
         self.epoch = epoch_num      # Set so the child model has access
-        if epoch_num % 100 == 0 and epoch_num!=0:
-                print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.total_error_for_epoch = 0
-        for i, sample in enumerate(self.training_samples):  # Loop through all training data
-
-            self.iteration = i      # Set so the model has access
-            sample = np.array(sample)  # Convert sample to NumPy array
-            inputs = sample[:-1]        #all but the last item of each tuple in list
-
-            target = sample[-1]         # just the last item of each tuple in list
-            #print(f"inputs={inputs}\ttarget={target}")
-            self.snapshot_weights("", "_before")
-
-            error, loss,  loss_gradient = self.process_a_sample(sample, inputs, target)
-            if abs(error) > 1e30:   #Check for gradient explosion
-                return  "Gradient Explosion"
-            prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
-            self.total_error_for_epoch += abs(error)
-
-            #if error < self.config.lowest_error:    # New lowest error
-            #    self.config.lowest_error = error
-            #    self.config.lowest_error_epoch = epoch_num
-
-            #If binary decision apply step logic.
-            prediction = prediction_raw # Assume regression
-            if self.training_data.problem_type == "Binary Decision":
-                prediction = self.bd_class_beta if prediction_raw >= self.bd_threshold else self.bd_class_alpha
-                #print(f"AFTER\tself.bd_class_beta={self.bd_class_beta}\tprediction={prediction}\tself.bd_threshold={self.bd_threshold} self.bd_class_alpha=\t{ self.bd_class_alpha}")
-
-            # Step 4: Record iteration data
-            iteration_data = Iteration(
-                model_id=self.config.gladiator_name,
-                epoch=epoch_num + 1,
-                iteration=i + 1,
-                inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
-                target=sample[-1],
-                prediction=prediction,
-                prediction_raw=prediction_raw,
-                loss=loss,
-                loss_function=self.config.loss_function.name,
-                loss_gradient=loss_gradient,
-                accuracy_threshold=self.hyper.accuracy_threshold,
-            )
-            #print("Should be different after backpass")
-            #print(f"weights_before are {Neuron.neurons[1].weights_before}")
-            #print(f"weights are        {Neuron.neurons[1].weights}")
-            self.VCR.record_iteration(iteration_data, Neuron.layers)
-            # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
-
+        for self.iteration, sample in enumerate(self.training_samples):  # Loop through all training data
+            self.run_a_sample(sample)
+            if self.total_error_for_epoch > 1e30:   return  "Gradient Explosion" #Check for gradient explosion
+             #if error < self.config.lowest_error:    # New lowest error
+             #    self.config.lowest_error = error
+             #    self.config.lowest_error_epoch = epoch_num
         #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
-    def process_a_sample(self, sample, inputs, target):
+    def run_a_sample(self, sample):
+        sample = np.array(sample)  # Convert sample to NumPy array
+        inputs = sample[:-1]        #all but the last item of each tuple in list
+        target = sample[-1]         # just the last item of each tuple in list        #print(f"inputs={inputs}\ttarget={target}")
+        self.snapshot_weights("", "_before")
+
+        error, loss,  loss_gradient = self.pass_pipeline(sample, inputs, target)
+        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
+        self.total_error_for_epoch += abs(error)
+
+
+        #If binary decision apply step logic.
+        prediction = prediction_raw # Assume regression
+        if self.training_data.problem_type == "Binary Decision":
+            prediction = self.bd_class_beta if prediction_raw >= self.bd_threshold else self.bd_class_alpha
+            #print(f"AFTER\tself.bd_class_beta={self.bd_class_beta}\tprediction={prediction}\tself.bd_threshold={self.bd_threshold} self.bd_class_alpha=\t{ self.bd_class_alpha}")
+
+        # Step 4: Record iteration data
+        iteration_data = Iteration(
+            model_id=self.config.gladiator_name,
+            epoch=self.epoch + 1,
+            iteration=self.iteration + 1,
+            inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
+            target=sample[-1],
+            prediction=prediction,
+            prediction_raw=prediction_raw,
+            loss=loss,
+            loss_function=self.config.loss_function.name,
+            loss_gradient=loss_gradient,
+            accuracy_threshold=self.hyper.accuracy_threshold,
+        )
+        #print("Should be different after backpass")
+        #print(f"weights_before are {Neuron.neurons[1].weights_before}")
+        #print(f"weights are        {Neuron.neurons[1].weights}")
+        self.VCR.record_iteration(iteration_data, Neuron.layers)
+        # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
+
+
+    def pass_pipeline(self, sample, inputs, target):
         # Step 1: Forward pass
         self.forward_pass(sample)  # Call model-specific logic
         prediction_raw = Neuron.layers[-1][0].activation_value  # Extract output neuron’s activation
