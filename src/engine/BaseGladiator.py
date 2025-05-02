@@ -91,6 +91,8 @@ class Gladiator(ABC):
         #print(f"scaled inputs{scaled_inputs}")
         self.training_samples = [tuple(inp) + (tgt,) for inp, tgt in zip(scaled_inputs, scaled_targets)]
 
+
+
     def train(self, exploratory_epochs = 0) -> float:  #tuple[str, list[int]]:
         """
         Main method invoked from Framework to train model.
