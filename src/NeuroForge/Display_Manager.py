@@ -158,8 +158,8 @@ class Display_Manager:
         #self.eventors.extend(self.models)
 
         # Add Input and output Arrows (Spans multiple surfaces) - will be full area and not clear)
-        arrows = DisplayArrowsOutsideNeuron(self.models[0])
-        self.components.append(arrows)
+        #TODO Add back once Scaler is in - arrows = DisplayArrowsOutsideNeuron(self.models[0])
+        #TODO Add back once Scaler is in - self.components.append(arrows)
 
         # Add window Match
         #self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",

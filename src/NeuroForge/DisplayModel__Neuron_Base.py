@@ -11,7 +11,7 @@ import json
 
 from src.engine.Utils_DataClasses import ez_debug
 
-class DisplayModel__Neuron:
+class DisplayModel__Neuron_Base:
     """
     DisplayModel__Neuron is created by DisplayModel.
     Note: DisplayModel inherits from EzSurface, DisplayModel__Neuron does not!
@@ -81,6 +81,13 @@ class DisplayModel__Neuron:
             if self.text_version == "Verbose":
                 self.banner_text = f"Hidden Neuron {self.label}"
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
+        self._from_base_constructor()
+
+    def _from_base_constructor(self) -> bool:
+        """Override to have code run after contstructor"""
+        pass
+
+
 
     def is_hovered(self, model_x, model_y, mouse_x, mouse_y):
         """

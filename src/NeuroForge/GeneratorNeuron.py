@@ -1,6 +1,7 @@
 #from src.NeuroForge.DisplayModel import DisplayModel
 from src.Legos.Scalers import Scaler_NONE
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
+from src.NeuroForge.DisplayModel__NeuronScaler import DisplayModel__NeuronScaler
 from src.engine.Config import Config
 
 
@@ -29,7 +30,7 @@ class GeneratorNeuron:
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
         print(f"size={size}")
         #text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
-        text_version = "Concise" if size > 150 else "Verbose" # Choose appropriate text method based on network size
+        text_version = "Concise" if size < 150 else "Verbose" # Choose appropriate text method based on network size
 
         # Leave space for input scaler if there is one.
         scaler_offset = 0 if GeneratorNeuron.model.config.input_scaler == Scaler_NONE else 1
@@ -39,17 +40,11 @@ class GeneratorNeuron:
         extra_width = GeneratorNeuron.model.width - width_needed
         extra_width_to_center = extra_width / 2
 
-        #print(f"height_needed={height_needed}\tself.height={self.height}\textra_height={extra_height}\textra_height_to_center={extra_height_to_center}")
-        # 🔹 Compute the horizontal centering offset (adjust for EZSurface width)
-        offset = (GeneratorNeuron.model.screen_width - GeneratorNeuron.model.width)
-        #print(f"self.screen_width={self.screen_width}\tself.width={self.width}\toffset={offset}")
-
         # 🔹 Create neurons
         GeneratorNeuron.model.neurons = []
         nid = -1
 
-
-
+        GeneratorNeuron.maybe_add_input_scaler_visual(size, margin, extra_width_to_center, text_version, max_act, gap)
         #print (f"architecture = {GeneratorNeuron.model.config.architecture}")
         for layer_index, neuron_count in enumerate(GeneratorNeuron.model.config.architecture):
             # Inject 1 extra neuron in the last layer to hold graph
@@ -80,6 +75,35 @@ class GeneratorNeuron:
         graph_slot = GeneratorNeuron.model.neurons[-1][-1]  # Last neuron in last layer
         GeneratorNeuron.model.graph_holder = graph_slot  # or .graph_panel, .graph_target, etc.
         GeneratorNeuron.model.neurons[-1].pop()  # Removes it from draw loop if needed
+
+    @staticmethod
+    def maybe_add_input_scaler_visual(size, margin, extra_width_to_center, text_version, max_act, gap):
+        """Optionally add a visual neuron for the input scaler if one is configured."""
+        model = GeneratorNeuron.model
+        if model.config.input_scaler == Scaler_NONE:
+            model.input_scaler_neuron = None
+            return  # No scaler to show
+
+        x_coord = margin + extra_width_to_center - gap * 1.69
+        y_coord = model.height // 2 - size // 2  # Vertically centered for now
+
+        scaler_neuron = DisplayModel__NeuronScaler(
+            model,
+            left=x_coord,
+            top=y_coord,
+            width=size,
+            height=size,
+            nid=-1,  # Not part of core data flow
+            layer=-1,
+            position=0,
+            output_layer=0,
+            text_version=text_version,
+            model_id=model.config.gladiator_name,
+            screen=model.surface,
+            max_activation=max_act
+        )
+        model.input_scaler_neuron = scaler_neuron  # Optional storage for future access
+
 
     @staticmethod
     def calculate_neuron_size( margin, gap, max_neuron_size):
