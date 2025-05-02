@@ -205,7 +205,7 @@ class DisplayModel__Neuron:
             self.weights_before = []
 
     def initialize_fonts(self):
-        self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_HEADER)
+        self.font_header            = pygame.font.Font(None, Const.TOOLTIP_FONT_TITLE)
         self.font_body              = pygame.font.Font(None, Const.TOOLTIP_FONT_BODY)
         self.header_text            = self.font_header.render("Prediction               Adjust Weights To Improve", True, Const.COLOR_BLACK)
 

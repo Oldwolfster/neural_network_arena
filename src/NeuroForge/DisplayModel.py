@@ -12,7 +12,7 @@ from src.engine.Utils import draw_rect_with_border, draw_text_with_background, e
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("last_epoch", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    __slots__ = ("last_epoch", "input_scaler_neuron", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
     def __init__(self, config: Config, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -100,6 +100,8 @@ class DisplayModel(EZSurface):
         self.graph.render()
 #        for connection in self.connections:
 #            connection.draw_connection(self.surface)
+        if self.input_scaler_neuron is not None:
+            self.input_scaler_neuron.draw_neuron()
         for layer in self.neurons:
             for neuron in layer:
                 neuron.draw_neuron()
