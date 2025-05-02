@@ -1,4 +1,5 @@
 #from src.NeuroForge.DisplayModel import DisplayModel
+from src.Legos.Scalers import Scaler_NONE
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
 from src.engine.Config import Config
 
@@ -29,6 +30,11 @@ class GeneratorNeuron:
         print(f"size={size}")
         #text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
         text_version = "Concise" if size > 150 else "Verbose" # Choose appropriate text method based on network size
+
+        # Leave space for input scaler if there is one.
+        scaler_offset = 0 if GeneratorNeuron.model.config.input_scaler == Scaler_NONE else 1
+        max_layers += scaler_offset
+
         width_needed = size * max_layers + (max_layers -1) * gap + margin * 2
         extra_width = GeneratorNeuron.model.width - width_needed
         extra_width_to_center = extra_width / 2
@@ -42,16 +48,19 @@ class GeneratorNeuron:
         GeneratorNeuron.model.neurons = []
         nid = -1
 
+
+
         #print (f"architecture = {GeneratorNeuron.model.config.architecture}")
         for layer_index, neuron_count in enumerate(GeneratorNeuron.model.config.architecture):
-
-            if layer_index == len(GeneratorNeuron.model.config.architecture) - 1: #Add graph if last layer
-                neuron_count += 1                                   # Inject 1 extra neuron in the last layer to hold graph
+            # Inject 1 extra neuron in the last layer to hold graph
+            if layer_index == len(GeneratorNeuron.model.config.architecture) - 1:
+                neuron_count += 1
 
             layer_neurons = []
 
             # 🔹 Compute X coordinate for neurons in this layer
-            x_coord = size * layer_index + layer_index * gap  + margin + extra_width_to_center
+            # BEFORE SCALER x_coord = size * layer_index + layer_index * gap  + margin + extra_width_to_center
+            x_coord = size * (layer_index+scaler_offset) + (layer_index) * gap  + margin + extra_width_to_center
 
             for neuron_index in range(neuron_count):
                 nid += 1  # Increment neuron ID
@@ -88,8 +97,14 @@ class GeneratorNeuron:
             int: Optimized neuron size.
         """
         #print(f"Inside calculate_neuron_size: margin={margin}, gap={gap}, max_neuron_size={max_neuron_size}")
+
         # Force a minimum of 2 neurons per layer for display (even if the model has only 1)
         padded_architecture = [max(2, n) for n in GeneratorNeuron.model.config.architecture]
+
+        # Add input scalar if needed
+        if GeneratorNeuron.model.config.input_scaler != Scaler_NONE: # and 1 == 2:
+            padded_architecture.insert(0, 1)
+
         max_neurons = max(padded_architecture)  # Determine the layer with the most neurons
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
 
@@ -102,7 +117,7 @@ class GeneratorNeuron:
         height_per_cell = available_height // max_neurons
         # 🔹 Take the minimum size that fits both width and height constraints
         optimal_neuron_size = min(width_per_cell, height_per_cell, max_neuron_size)
-        #print (f"optimal_neuron_size={optimal_neuron_size}")
+        print (f"optimal_neuron_size={optimal_neuron_size}")
         return optimal_neuron_size
 
 
@@ -117,65 +132,3 @@ class GeneratorNeuron:
 
 
 
-    @staticmethod
-    def NOTINUSEposition_neurons(self, margin=20, gap=60, max_neuron_size=400): #TODO try this out instead of original
-        """Dynamically position neurons within this model's assigned space."""
-
-        architecture = self.architecture[1:]  # Skip input layer (we only display neurons)
-        max_neurons = max(architecture)  # Most neurons in any single layer
-        max_layers = len(architecture)  # Total number of layers
-
-        # Compute neuron size to fit within the model area
-        size = self.calculate_neuron_size(margin, gap, max_neuron_size)
-
-        width_needed = size * max_layers + (max_layers - 1) * gap + margin * 2
-        height_needed = size * max_neurons + (max_neurons - 1) * gap + margin * 2
-
-        extra_width_to_center = (self.width - width_needed) / 2
-        extra_height_to_center = (self.height - height_needed) / 2
-
-        # Assign neurons to their respective layers
-        self.neurons = []
-        nid = -1  # Unique neuron ID
-
-        for layer_index, neuron_count in enumerate(architecture):
-            layer_neurons = []
-
-            x_coord = size * layer_index + layer_index * gap + margin + extra_width_to_center
-
-            for neuron_index in range(neuron_count):
-                nid += 1
-                y_coord = size * neuron_index + gap * neuron_index + margin + extra_height_to_center
-                print("GENERATING NEURON 2")
-                neuron = DisplayModel__Neuron(
-                    nid=nid, layer=layer_index, position=neuron_index,
-                    output_layer=len(architecture) - 1, db=Const.dm.db, model_id=self.model_id
-                )
-
-                neuron.location_left = x_coord
-                neuron.location_top = y_coord
-                neuron.location_width = size
-                neuron.location_height = size
-
-                layer_neurons.append(neuron)
-
-            self.neurons.append(layer_neurons)
-
-        #print(f"✅ Positioned {nid + 1} neurons for model {self.model_id}.")
-
-"""
-    def add_input_connections(self, forward: bool):
-        " ""Create connections from the left edge to the first hidden layer." ""
-        first_hidden_layer = self.neurons[0]
-        if not first_hidden_layer:
-            return
-        origin_point = (0, self.height // 2)
-        for neuron in first_hidden_layer:
-            self.connections.append(DisplayModel__ConnectionForward(from_neuron=origin_point, to_neuron=neuron))
-
-    def add_output_connections(self, forward: bool):
-        "" "Create connections from last output neuron to prediction box."" "
-        dest_point = (self.width, 144)
-        self.connections.append(DisplayModel__ConnectionForward(from_neuron=self.neurons[-1][0], to_neuron=dest_point))
-
-"""

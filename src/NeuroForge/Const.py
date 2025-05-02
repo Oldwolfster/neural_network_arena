@@ -160,7 +160,7 @@ COLOR_HIGHLIGHT_BORDER  = (218, 165, 32)
 
 #Moved here to avoid clutter in NeuroForge opening.
 def add_items_to_architecture_not_in_NNA(configs: List[Config]):
-
+    return # Trying different approach
     for config in configs:  #Add scalers, thresholds, and anything else to architecture
         config.architecture_core = deepcopy(config.architecture)
         if config.input_scaler != Scaler_NONE:
