@@ -82,8 +82,11 @@ class Iteration:
     epoch: int
     iteration: int
     inputs: str  # Serialized as JSON
+    inputs_unscaled: str  # Serialized as JSON
     target: float
-    prediction: float  # After threshold(step function) is applied
+    target_unscaled: float
+    prediction: float  # After threshold(step function) is applied AND After unscaling is applied
+    prediction_unscaled: float #After unscaling is applied
     prediction_raw: float
     loss_function: str
     loss: float

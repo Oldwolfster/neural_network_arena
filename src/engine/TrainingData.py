@@ -47,7 +47,7 @@ class TrainingData:
         """Get the latest version of the data """
         return self.raw_data
 
-    def get_inputs(self):
+    def get_inputs(self)-> int:
         return  [sample[:-1] for sample in self.raw_data]
 
     def get_targets(self):

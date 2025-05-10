@@ -24,7 +24,7 @@ class NeuroForge_Template(Gladiator):
             💪  For example setting config options.        """
         #ez_debug(inp_scaler1 = config.input_scaler)
         config.architecture         = [2,1]               # Neurons in hidden layers - output neuron(s) added automatically
-        #config.learning_rate          = 1e-7
+        #config.learning_rate          = 1e-1
         #config.initializer          = Initializer_Xavier
         #config.output_activation    = Activation_NoDamnFunction
         #config.optimizer            = Optimizer_SGD
@@ -34,7 +34,7 @@ class NeuroForge_Template(Gladiator):
         config.loss_function        = Loss_MSE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         config.input_scaler         = Scaler_NONE
-        #config.target_scaler        = Scaler_MinMax
+        #config.target_scaler        = Scaler_Robust
         #ez_debug(inp_scaler = config.input_scaler)
 
     def customize_neurons(self, config: Config):
