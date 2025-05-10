@@ -30,10 +30,10 @@ class GeneratorNeuron:
         max_layers = len(GeneratorNeuron.model.config.architecture)  # Total number of layers
         print(f"size={size}")
         #text_version = "Concise" if max(max_neurons,max_layers)  > 3 else "Verbose" # Choose appropriate text method based on network size
-        text_version = "Concise" if size < 150 else "Verbose" # Choose appropriate text method based on network size
+        text_version = "Concise" if size < 350 else "Verbose" # Choose appropriate text method based on network size
 
         # Leave space for input scaler if there is one.
-        scaler_offset = 0 if GeneratorNeuron.model.config.input_scaler == Scaler_NONE else 1
+        scaler_offset = 0 if GeneratorNeuron.model.config.scaler.inputs_are_unscaled else 1
         max_layers += scaler_offset
 
         width_needed = size * max_layers + (max_layers -1) * gap + margin * 2
@@ -80,7 +80,7 @@ class GeneratorNeuron:
     def maybe_add_input_scaler_visual(size, margin, extra_width_to_center, text_version, max_act, gap):
         """Optionally add a visual neuron for the input scaler if one is configured."""
         model = GeneratorNeuron.model
-        if model.config.input_scaler == Scaler_NONE:
+        if model.config.scaler.inputs_are_unscaled:
             model.input_scaler_neuron = None
             return  # No scaler to show
 
@@ -126,7 +126,8 @@ class GeneratorNeuron:
         padded_architecture = [max(2, n) for n in GeneratorNeuron.model.config.architecture]
 
         # Add input scalar if needed
-        if GeneratorNeuron.model.config.input_scaler != Scaler_NONE: # and 1 == 2:
+        #if GeneratorNeuron.model.config.input_scaler != Scaler_NONE: # and 1 == 2:
+        if GeneratorNeuron.model.config.scaler.inputs_are_unscaled:
             padded_architecture.insert(0, 1)
 
         max_neurons = max(padded_architecture)  # Determine the layer with the most neurons

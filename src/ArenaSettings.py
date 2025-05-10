@@ -62,7 +62,7 @@ gladiators = [
     'Hand_Tuned'
     #,'test_newOpt'
    #,'NeuroForge_Template'
-   #,'test_newOpt'
+   ,'test_newOpt'
     #'EmptyModel_All_Default'
 
     #'Test_BCE'
@@ -83,7 +83,8 @@ gladiators = [
 training_pit                = "XOR"
 training_pit                = "CaliforniaHousePricesUSD"
 training_pit                = "Predict_Income_2_Inputs"
-training_pit                = "Predict_MedicalCost_WithOutliers"
+training_pit              = "Manual"
+#training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit               = "Titanic"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit                = "Predict_Income_Piecewise_Growth"
@@ -91,7 +92,7 @@ training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit                = "Predict_Income_2_Inputs_5Coefficents"
 
 ##training_pit              = "Salary2InputsNonlinear"
-#training_pit              = "Manual"
+
 #training_pit                = "California_Housing"
 #training_pit                = "Customer_Churn_4X3"
 

@@ -1,5 +1,8 @@
 from abc import ABC
 from json import dumps
+
+import numpy as np
+
 from src.Legos.ActivationFunctions import *
 from src.Legos.Optimizers import *
 from src.engine.VCR import VCR
@@ -34,7 +37,7 @@ class Gladiator(ABC):
         self.hyper              = config.hyper
         self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
-        self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
+        #self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
         self.VCR                = VCR(config, Neuron.neurons) # Args3, is ramdb
         #self.learning_rate      = self.config.learning_rate  #
         self.number_of_epochs   = self.hyper.epochs_to_run
@@ -83,13 +86,14 @@ class Gladiator(ABC):
     def scale_samples(self):
         #self.training_samples = self.training_data.get_list()           # Store the list version of training data
         #unscaled_training_samples = self.training_data.get_list()           # Store the list version of training data
-        scaled_inputs  = self.config.input_scaler.scale(self.training_data.get_inputs())
-        scaled_targets = self.config.target_scaler.scale(self.training_data.get_targets())
-
+        #scaled_inputs  = self.config.scaler.scale(self.training_data.get_inputs())
+        #scaled_targets = self.config.scaler.scale(self.training_data.get_targets())
+        self.config.scaler.scale_all()
         #print(f"input scaler = {self.config.input_scaler.name}\ttarget scaler={self.config.target_scaler.name}")
         #print(f"raw inputs{self.training_data.get_inputs()}")
         #print(f"scaled inputs{scaled_inputs}")
-        self.training_samples = [tuple(inp) + (tgt,) for inp, tgt in zip(scaled_inputs, scaled_targets)]
+        #self.training_samples = [tuple(inp) + (tgt,) for inp, tgt in zip(scaled_inputs, scaled_targets)]
+
 
 
 
@@ -135,8 +139,13 @@ class Gladiator(ABC):
         self.epoch = epoch_num      # Set so the child model has access
         if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.total_error_for_epoch = 0
-        for self.iteration, sample in enumerate(self.training_samples):  # Loop through all training data
-            self.run_a_sample(sample)
+        #for self.iteration, sample in enumerate(self.training_samples):  # Loop through all training data
+        for self.iteration, (sample, sample_unscaled) in enumerate(
+            zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)
+        ):
+            self.run_a_sample(sample, sample_unscaled)
+            #self.run_a_sample(sample)
+            #self.run_a_sample(self.config.scaler sample)
             if self.total_error_for_epoch > 1e30:   return  "Gradient Explosion" #Check for gradient explosion
              #if error < self.config.lowest_error:    # New lowest error
              #    self.config.lowest_error = error
@@ -144,16 +153,18 @@ class Gladiator(ABC):
         #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
-    def run_a_sample(self, sample):
-        sample = np.array(sample)  # Convert sample to NumPy array
-        inputs = sample[:-1]        #all but the last item of each tuple in list
-        target = sample[-1]         # just the last item of each tuple in list        #print(f"inputs={inputs}\ttarget={target}")
+    def run_a_sample(self, sample, sample_unscaled):
+        sample          = np.array(sample)              # Allows for conversion to JSON
+        sample_unscaled = np.array(sample_unscaled)     # Allows for conversion to JSON
+        inputs          = sample[:-1]        #all but the last item of each tuple in list
+        target          = sample[-1]         # just the last item of each tuple in list        #print(f"inputs={inputs}\ttarget={target}")
+        inputs_unscaled = sample_unscaled[:-1]
+        target_unscaled = sample_unscaled[-1]
         self.snapshot_weights("", "_before")
 
         error, loss,  loss_gradient = self.pass_pipeline(sample, inputs, target)
         prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
         self.total_error_for_epoch += abs(error)
-
 
         #If binary decision apply step logic.
         prediction = prediction_raw # Assume regression
@@ -167,8 +178,11 @@ class Gladiator(ABC):
             epoch=self.epoch + 1,
             iteration=self.iteration + 1,
             inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
+            inputs_unscaled=dumps(inputs_unscaled.tolist()),  # Serialize inputs as JSON
             target=sample[-1],
+            target_unscaled=sample_unscaled[-1],
             prediction=prediction,
+            prediction_unscaled=self.config.scaler.unscale_target(prediction_raw),#converts prediction back to "unscaled space"
             prediction_raw=prediction_raw,
             loss=loss,
             loss_function=self.config.loss_function.name,

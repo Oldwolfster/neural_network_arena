@@ -151,12 +151,12 @@ class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- sr
         # Instantiate the arena and retrieve data
         arena               = dynamic_instantiate(training_pit, 'coliseum\\arenas', self.shared_hyper.training_set_size)
         arena.arena_name    = training_pit
-        src = arena.source_code
+        src                 = arena.source_code
         result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
         labels              = []
         if isinstance(result, tuple):
             data, labels = result
-            td = TrainingData(data)  # Handle if training data has labels
+            td = TrainingData(data, labels)  # Handle if training data has labels
             td.source_code = src
         else:
             data = result

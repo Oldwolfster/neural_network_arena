@@ -33,7 +33,7 @@ class DisplayPanelInput(EZForm):
         """Update input fields dynamically based on retrieved values."""
         rs = Const.dm.get_model_iteration_data()
 
-        raw_inputs = rs.get("inputs", "[]")
+        raw_inputs = rs.get("inputs_unscaled", "[]")
         try:
             inputs = json.loads(raw_inputs) if isinstance(raw_inputs, str) else raw_inputs
         except json.JSONDecodeError:

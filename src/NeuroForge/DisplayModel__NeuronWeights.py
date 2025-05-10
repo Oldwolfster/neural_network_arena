@@ -63,13 +63,14 @@ class DisplayModel__NeuronWeights:
         if self.neuron.max_activation == 0:  # Safety check
             return
 
-
         neuron_x = self.neuron.location_left + self.neuron.location_width  # Start at right edge
         neuron_y = self.neuron.location_top  # Top of neuron
 
         # 🔹 Normalize activation (scaled to fit the neuron)
         activation_magnitude = abs(self.neuron.activation_value)
         bar_height = (activation_magnitude / self.neuron.max_activation) * self.neuron.location_height - self.BANNER_HEIGHT
+        if bar_height > self.neuron_height -  self.BANNER_HEIGHT - 5:   # If activation is to large
+            bar_height = self.neuron_height -  self.BANNER_HEIGHT - 5  # Trim it
 
         # 🔹 Define bar position (grows **upward** from bottom)
         bar_rect = pygame.Rect(

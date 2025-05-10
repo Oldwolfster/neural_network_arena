@@ -26,8 +26,7 @@ class ArchitecturePopup(Popup_Base):
     def content_to_display(self):
         configs = Const.configs
         def get_labels():
-            return [
-
+            label_rows = [
                 ("Model Definition",     ""),  # spacer
                 ("",                     "Neuron Layout"),
                 ("",                     "Initializer"),
@@ -40,7 +39,15 @@ class ArchitecturePopup(Popup_Base):
                 ("",                     "Batch Mode"),
                 ("",                     "Batch Size"),
                 ("",                     "Learning Rate"),
-                ("",                     "Input Scaler"),
+                ("",                     "Input Scalers")
+            ]
+            # Add per-input + target scaler labels
+            if configs and hasattr(configs[0], "scaler"):
+                first_scaler = configs[0].scaler
+                for label in first_scaler.get_scaling_labels():
+                    label_rows.append(("", label))
+
+            label_rows += [
                 ("",                     "ROI Mode"),
                 ("",                     ""),  # spacer
 
@@ -51,6 +58,7 @@ class ArchitecturePopup(Popup_Base):
                 ("",                     "Best Error @ Epoch"),
                 ("",                     "Convergence"),
             ]
+            return  label_rows
 
         def architecture(bp) -> str:
 
@@ -61,7 +69,7 @@ class ArchitecturePopup(Popup_Base):
                 return f"{layers} Neurons/Layer"
 
         def describe(cfg):
-            return [
+            describe_rows = [
                 "",  # Training Setup header, no value
                 architecture(cfg.architecture),
                 cfg.initializer.name,
@@ -74,7 +82,10 @@ class ArchitecturePopup(Popup_Base):
                 beautify_text(BatchMode(cfg.batch_mode).name),
                 f"{cfg.batch_size} (Samples)",
                 smart_format(cfg.learning_rate),
-                beautify_text(cfg.input_scaler.name),
+            ]
+            for scaling_name in cfg.scaler.get_scaling_names():
+                describe_rows.append(beautify_text(scaling_name))
+            describe_rows += [
                 beautify_text(cfg.roi_mode.name),
                 "",
 
@@ -85,9 +96,21 @@ class ArchitecturePopup(Popup_Base):
                 cfg.lowest_error_epoch,
                 cfg.cvg_condition,
             ]
+            return describe_rows  # <== This was over-indented before
 
 
-        labels = get_labels()  # returns list of (group, prop_name)
-        rows = [ [group, label] + [describe(cfg)[i] for cfg in configs] for i, (group, label) in enumerate(labels) ]
+        # These were incorrectly inside `describe()`
+        labels = get_labels()
+        label_count = len(labels)
+
+        def safe_describe(cfg):
+            rows = describe(cfg)
+            if len(rows) < label_count:
+                rows += [""] * (label_count - len(rows))
+            elif len(rows) > label_count:
+                rows = rows[:label_count]
+            return rows
+
+        rows = [[group, label] + [safe_describe(cfg)[i] for cfg in configs] for i, (group, label) in enumerate(labels)]
         return [list(col) for col in zip(*rows)]
 

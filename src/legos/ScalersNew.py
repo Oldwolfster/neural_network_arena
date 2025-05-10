@@ -26,7 +26,6 @@ class Scaler:
     def __repr__(self):
         return f"Scaler(name={self.name})"
 
-
 class MinMaxMethod:
     def scale(self, params, vals):
         # Compute min and max
@@ -40,7 +39,6 @@ class MinMaxMethod:
         span = params['max'] - params['min']
         return [(v * span) + params['min'] for v in scaled_vals]
 
-
 class ZScoreMethod:
     def scale(self, params, vals):
         # Compute mean and (non-zero) std
@@ -53,7 +51,6 @@ class ZScoreMethod:
         mean, std = params['mean'], params['std']
         return [(v * std) + mean for v in scaled_vals]
 
-
 class MaxAbsMethod:
     def scale(self, params, vals):
         max_abs = max(abs(v) for v in vals) or 1.0
@@ -62,7 +59,6 @@ class MaxAbsMethod:
 
     def unscale(self, params, scaled_vals):
         return [v * params['max_abs'] for v in scaled_vals]
-
 
 class RobustScalerMethod:
     def _sanitize_iqr(self, iqr):
@@ -83,7 +79,6 @@ class RobustScalerMethod:
         arr = np.array(scaled_vals)
         return (arr * params['iqr'] + params['median']).tolist()
 
-
 class LogScalerMethod:
     def scale(self, params, vals):
         import numpy as np
@@ -96,14 +91,12 @@ class LogScalerMethod:
         import numpy as np
         return (np.exp(scaled_vals) - params['offset']).tolist()
 
-
 class NoScalingMethod:
     def scale(self, params, vals):
         return list(vals)  # Pass-through
 
     def unscale(self, params, scaled_vals):
         return list(scaled_vals)  # Pass-through
-
 
 # Example instantiation for a single list
 Scaler_MinMax = Scaler(

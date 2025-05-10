@@ -16,10 +16,12 @@ class Config:
 
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData, gladiator_name:str):
 
-        self.hyper:          HyperParameters         = hyper
-        self.lego_selector:  LegoSelector            = LegoSelector()
-        self.db:             RamDB                    = db
-        self.training_data:  TrainingData            = training_data
+        self.hyper:         HyperParameters         = hyper
+        self.lego_selector: LegoSelector            = LegoSelector()
+        self.db:            RamDB                   = db
+        self.training_data: TrainingData            = training_data
+        self.scaler:        MultiScaler             = MultiScaler(training_data)
+
 
         # 🔹 Unique components
         self.gladiator_name: str                     = gladiator_name
@@ -31,7 +33,9 @@ class Config:
         self.loss_function: LossFunction             = None
         self.hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
         self.output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
-        self.input_scaler                            = Scaler_Robust
+        #self.input_scaler                            = Scaler_NONE
+        #self.input_scaling_used                      = "FixMe"
+        #self.input_scalers                           = {}
         self.target_scaler                           = Scaler_NONE
         self.roi_mode                                = ROI_Mode.SWEET_SPOT
 
@@ -43,7 +47,7 @@ class Config:
         self.lowest_error: float                     = 1e50
         self.lowest_error_epoch                      = 0
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
-        self.input_scaling_used                      = "FixMe"
+
         #is_exploratory                          = False
 
         self.popup_headers                           = None #TODO Standardize these 4 names.
@@ -89,6 +93,20 @@ class Config:
         #    layers.append([ThresholdComponent()])
 
         return layers
+
+    def set_input_scalerNOLONGERUSED(self, scaler_strategy, input_id):
+        """Assigns an input scaler for a given input feature.
+
+        Args:
+            scaler_strategy: A scaler class or instance (e.g., Scaler_Standard).
+            input_id: Index (int) or feature name (str).
+        """
+        if isinstance(input_id, int):
+            self.input_scalers[input_id] = scaler_strategy
+        elif isinstance(input_id, str):
+            self.input_scalers[input_id] = scaler_strategy
+        else:
+            raise TypeError(f"Invalid input_id type: {type(input_id)}. Must be int or str.")
 
 
     def configure_popup_headers(self):
