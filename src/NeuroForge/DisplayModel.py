@@ -156,7 +156,7 @@ class DisplayModel(EZSurface):
 
     def create_neuron_to_neuron_arrows(self, forward: bool):
         """Creates neuron-to-neuron arrows using DisplayArrow."""
-        return # temp while adding scalar
+
         self.arrows_forward = []
         y_offset = 10
         for layer_index in range(1, len(self.config.architecture)):  # Start from the first hidden layer

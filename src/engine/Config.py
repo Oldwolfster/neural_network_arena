@@ -28,14 +28,11 @@ class Config:
         self.optimizer                               = None #: Optimizer
         self.batch_mode: BatchMode                   = None
         self.batch_size: int                         = None
-        self.architecture: list                      = []
+        self.architecture: list                      = None
         self.initializer: type                       = None
         self.loss_function: LossFunction             = None
         self.hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
         self.output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
-        #self.input_scaler                            = Scaler_NONE
-        #self.input_scaling_used                      = "FixMe"
-        #self.input_scalers                           = {}
         self.target_scaler                           = Scaler_NONE
         self.roi_mode                                = ROI_Mode.SWEET_SPOT
 
@@ -46,6 +43,7 @@ class Config:
         self.final_epoch: int                        =   0 # Last epoch to run
         self.lowest_error: float                     = 1e50
         self.lowest_error_epoch                      = 0
+        self.default_scalers                        = None
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
 
         #is_exploratory                          = False
@@ -126,6 +124,9 @@ class Config:
 
     def smartNetworkSetup(self):
         self.lego_selector.apply(self, self.get_rules())        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
+        if self.default_scalers:
+            self.scaler.set_all_input_scalers(Scaler_Robust)
+        #print(f"Defaults applied:  Architecture ->{self.architecture}")
 
     def get_rules(self):        #  config.training_data.problem_type == " (0, 100, {"loss_function": Loss_BCEWithLogits}, "config.training_data.problem_type == 'Binary Decision'"),
         return [
@@ -133,6 +134,8 @@ class Config:
             (0, 100, {"output_activation": Activation_Sigmoid}, "training_data.problem_type == 'Binary Decision'"),
             (0, 100, {"output_activation": Activation_NoDamnFunction}, "training_data.problem_type != 'Binary Decision'"),
             (0, 200, {"loss_function": Loss_BCEWithLogits}, "output_activation.name == 'Sigmoid'"),
+            (0, 200, {"loss_function": Loss_MSE}, "output_activation.name == 'None'"),
+            (0, 300, {"default_scalers": True}, "scaler.not_set_yet == False"),
             #(0, 210, {"loss_function": Loss_MSE}, "training_data.has_high_outliers()"),
             #(0, 210, {"loss_function": Loss_MAE}, "not training_data.has_high_outliers()"),
 

@@ -7,9 +7,20 @@ class MultiScaler:
         self.scaled_data = []
         self.scaled_samples = []  # ← Packed [inputs..., target]
         self.unscaled_samples = training_data.get_list()
+        self.not_set_yet = False
 
     def set_input_scaler(self, scaler, index):
         self.scalers[index] = scaler
+        self.not_set_yet = True
+
+    def set_all_input_scalers(self, scaler):
+        """
+        Apply `scaler` to every input feature,
+        leaving the last entry (the target) untouched.
+        """
+        for i in range(self.training_data.input_count):
+            self.scalers[i] = scaler
+        self.not_set_yet = True
 
     def set_target_scaler(self, scaler):
         self.scalers[-1] = scaler
@@ -92,18 +103,37 @@ class Scaler:
 class MinMaxMethod:
     def scale(self, params, values):
         dim = len(values[0]) if isinstance(values[0], (list, tuple)) else 1
+
         if dim == 1:
             vals = [v if isinstance(v, (int, float)) else v[0] for v in values]
-            params['min'] = min(vals)
-            params['max'] = max(vals)
-            return [(v - params['min']) / (params['max'] - params['min']) for v in vals]
+            min_val = min(vals)
+            max_val = max(vals)
+            range_val = max_val - min_val
+            params['min'] = min_val
+            params['max'] = max_val
+
+            if range_val == 0:
+                return [0.0 for _ in vals]  # or 0.5 if you prefer midpoint
+            return [(v - min_val) / range_val for v in vals]
+
         else:
-            params['min'] = [min(v[i] for v in values) for i in range(dim)]
-            params['max'] = [max(v[i] for v in values) for i in range(dim)]
-            return [
-                [(v[i] - params['min'][i]) / (params['max'][i] - params['min'][i]) for i in range(dim)]
-                for v in values
-            ]
+            min_vals = [min(v[i] for v in values) for i in range(dim)]
+            max_vals = [max(v[i] for v in values) for i in range(dim)]
+            params['min'] = min_vals
+            params['max'] = max_vals
+
+            scaled = []
+            for v in values:
+                row = []
+                for i in range(dim):
+                    range_val = max_vals[i] - min_vals[i]
+                    if range_val == 0:
+                        row.append(0.0)  # or 0.5
+                    else:
+                        row.append((v[i] - min_vals[i]) / range_val)
+                scaled.append(row)
+            return scaled
+
 
     def unscale(self, params, x):
         if isinstance(x, list) and isinstance(x[0], (list, tuple)):

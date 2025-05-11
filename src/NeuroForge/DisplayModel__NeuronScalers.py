@@ -53,7 +53,89 @@ class DisplayModel__NeuronScalers:
 
         self.draw_scale_oval(scaled_inputs, unscaled_inputs)
         #ez_debug(my_fcking_labels=self.my_fcking_labels)
+
     def draw_scale_oval(self, scaled_inputs, unscaled_inputs):
+        """
+        Changed for Input Scaler.
+        This function ensures ovals are evenly spaced and positioned inside the neuron.
+        """
+        rs = Const.dm.get_model_iteration_data()
+        unscaled_inputs = json.loads(rs.get("inputs", "[]"))
+        scaled_inputs   = json.loads(rs.get("inputs_unscaled", "[]"))
+        self.num_weights = len(scaled_inputs)
+
+        # 1) figure out our oval size
+        self.bar_height = 1 * self.calculate_bar_height(
+            num_weights=self.num_weights,
+            neuron_height=self.neuron_height,
+            padding_top=self.padding_top,
+            padding_bottom=self.padding_bottom,
+            gap_between_bars=self.gap_between_bars,
+            gap_between_weights=self.gap_between_weights
+        )
+        oval_width  = self.neuron.location_width
+        oval_height = self.bar_height
+
+        # 2) draw the header (same hack you had before)
+        start_x = self.neuron.location_left
+        start_y = (
+            self.neuron.location_top
+            + self.padding_top
+            + self.BANNER_HEIGHT
+            - oval_height * 1.369
+            + 2
+        )
+        self.draw_oval_with_text(
+            self.neuron.screen,
+            start_x,
+            start_y,
+            oval_width,
+            oval_height * 1.369,
+            "",
+            "Scaler",
+            "",
+            self.font
+        )
+
+        # 3) compute the exact y-positions for each input
+        scale_methods = self.neuron.config.scaler.get_scaling_names()
+        y_positions = DisplayModel__NeuronScalers._compute_oval_y_positions(
+            top=self.neuron.location_top,
+            total_height=self.neuron_height,
+            banner_height=self.BANNER_HEIGHT,
+            padding_top=self.padding_top,
+            padding_bottom=self.padding_bottom,
+            num_items=self.num_weights,
+            oval_height=oval_height,
+            min_gap=self.gap_between_weights
+        )
+
+        # 4) draw each input oval, record labels once
+        for i, ((scaled, unscaled), method, y_pos) in enumerate(
+            zip(zip(scaled_inputs, unscaled_inputs), scale_methods, y_positions)
+        ):
+            self.draw_oval_with_text(
+                self.neuron.screen,
+                start_x,
+                y_pos,
+                oval_width,
+                oval_height,
+                scaled,
+                method,
+                unscaled,
+                self.font
+            )
+            if self.need_label_coord:
+                self.my_fcking_labels.append((start_x, y_pos))
+                self.label_y_positions.append(
+                    (start_x + self.neuron.location_width, y_pos)
+                )
+
+        self.need_label_coord = False
+
+
+
+    def draw_scale_oval_old(self, scaled_inputs, unscaled_inputs):
         """
         Changed for Input Scaler
         This function ensures bars are evenly spaced and positioned inside the neuron.
@@ -85,6 +167,45 @@ class DisplayModel__NeuronScalers:
 
         if len(self.my_fcking_labels) > 0:
             self.need_label_coord = False #Only need to record on first pass.
+
+    @staticmethod
+    def _compute_oval_y_positions(
+        top: float,
+        total_height: float,
+        banner_height: float,
+        padding_top: float,
+        padding_bottom: float,
+        num_items: int,
+        oval_height: float,
+        min_gap: float
+    ) -> list[float]:
+        """
+        Return y-coordinates so that the (num_items + 1) gaps
+        — above the first, between each, and below the last —
+        are all equal (never smaller than min_gap).
+        """
+        if num_items < 1:
+            return []
+
+        # total free space after carving out header, paddings, and ovals
+        free = (
+            total_height
+            - banner_height
+            - padding_top
+            - padding_bottom
+            - num_items * oval_height
+        )
+        gaps = num_items + 1
+        raw_gap = free / gaps
+        gap = max(raw_gap, min_gap)
+
+        y = top + padding_top + banner_height + gap
+        positions = []
+        for _ in range(num_items):
+            positions.append(y)
+            y += oval_height + gap
+        return positions
+
 
 
     def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_bars, gap_between_weights):

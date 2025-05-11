@@ -32,6 +32,7 @@ class ArchitecturePopup(Popup_Base):
                 ("",                     "Initializer"),
                 ("",                     "Hidden Activation"),
                 ("",                     "Output Activation"),
+                ("",                     "Loss Function :("),
                 ("",                     ""),  # spacer
 
                 ("Training Setup",       ""),
@@ -75,6 +76,7 @@ class ArchitecturePopup(Popup_Base):
                 cfg.initializer.name,
                 cfg.hidden_activation.name,
                 cfg.output_activation.name,
+                cfg.loss_function.name,
                 "",
 
                 "",  # Training Setup header, no value
