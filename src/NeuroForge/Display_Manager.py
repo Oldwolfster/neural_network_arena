@@ -158,8 +158,8 @@ class Display_Manager:
         #self.eventors.extend(self.models)
 
         # Add Input and output Arrows (Spans multiple surfaces) - will be full area and not clear)
-        #TODO Add back once Scaler is in - arrows = DisplayArrowsOutsideNeuron(self.models[0])
-        #TODO Add back once Scaler is in - self.components.append(arrows)
+        arrows = DisplayArrowsOutsideNeuron(self.models[0])
+        self.components.append(arrows)
 
         # Add window Match
         #self.base_window = BaseWindow(width_pct=60, height_pct=60, left_pct=20, top_pct=15, banner_text="Configure Match",
@@ -182,20 +182,6 @@ class Display_Manager:
             if idx <2:      #Only show two prediction panels
                 panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
-
-    def query_dict_iterationOld(self):
-        """Retrieve iteration data from the database and return it as a nested dictionary indexed by model_id."""
-        sql = """  
-            SELECT * FROM Iteration 
-            WHERE epoch = ? AND iteration = ?  
-        """
-        params = (Const.vcr.CUR_EPOCH_MASTER, Const.vcr.CUR_ITERATION)
-        rs = self.db.query(sql, params)
-
-        self.data_iteration = {}
-        for row in rs:
-            model_id = row["model_id"]
-            self.data_iteration[model_id] = row  # Store each model's data separately
 
     def query_dict_iteration(self):
         """Retrieve iteration data for each model from the latest valid epoch."""
@@ -228,20 +214,6 @@ class Display_Manager:
         """
         rs = self.db.query(sql, (Const.vcr.CUR_EPOCH_MASTER,))
         self.data_epoch = {row["model_id"]: row for row in rs}
-
-    def query_dict_epoch_OLD(self ):  #failed for a model that converged and had no data for later epochs.
-        # db.query_print("PRAGMA table_info(Iteration);")
-        sql = """  
-            SELECT * FROM EpochSummary            
-            WHERE epoch=? and 1=?
-        """
-        params = (Const.vcr.CUR_EPOCH_MASTER, 1)
-
-        rs = self.db.query(sql, params)
-        self.data_epoch = {}
-        for row in rs:
-            model_id = row["model_id"]
-            self.data_epoch[model_id] = row  # Store each model's data separately
 
     def get_model_iteration_data(self, model_id: str = None) -> dict:
         """Retrieve iteration data for a specific model from the cached dictionary."""

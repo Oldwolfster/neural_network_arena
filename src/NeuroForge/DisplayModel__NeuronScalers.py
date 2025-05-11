@@ -26,6 +26,7 @@ class DisplayModel__NeuronScalers:
         self.padding_bottom             = 3
         self.bar_border_thickness       = 1
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
+        self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
         # Neuron attributes
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
         self.num_weights                = 0
@@ -35,29 +36,23 @@ class DisplayModel__NeuronScalers:
         # Weight mechanics
         self.ez_printer                 = ez_printer
         self.my_fcking_labels           = [] # WARNING: Do NOT rename. Debugging hell from Python interpreter defects led to this.
+        self.label_y_positions          = [] # ffor outgoing arrows
         self.need_label_coord           = True #track if we recorded the label positions for the arrows to point from
-        self.initialize()
-
-    def initialize(self):
-        """
-        Anything that only needs to be determined once should be done here
-        i.e. doesn't change from iteration to iteration
-        """
         self.num_weights = 0
         self.neuron_height = self.neuron.location_height
 
+
     def render(self):                   #self.debug_weight_changes()
-        iteration_data = Const.dm.get_model_iteration_data(self.neuron.model_id)
 
         rs = Const.dm.get_model_iteration_data()
-        ez_debug(rs=rs)
+        #ez_debug(rs=rs)
         unscaled_inputs = rs.get("inputs", "[]")
         scaled_inputs   = rs.get("inputs_unscaled", "[]")
         self.num_weights = len(scaled_inputs)
         #ez_debug(In_Render=self.neuron.model_id)
-        #ez_debug(In_Render=raw_inputs)
-        self.draw_scale_oval(scaled_inputs, unscaled_inputs)
 
+        self.draw_scale_oval(scaled_inputs, unscaled_inputs)
+        #ez_debug(my_fcking_labels=self.my_fcking_labels)
     def draw_scale_oval(self, scaled_inputs, unscaled_inputs):
         """
         Changed for Input Scaler
@@ -70,27 +65,23 @@ class DisplayModel__NeuronScalers:
 
         scaled_inputs   = json.loads(scaled_inputs)
         unscaled_inputs = json.loads(unscaled_inputs)
-        ez_debug(scaled_inputs=scaled_inputs)
-        ez_debug(unscaled_inputs=unscaled_inputs)
+        #ez_debug(scaled_inputs=scaled_inputs)
+        #ez_debug(unscaled_inputs=unscaled_inputs)
         # Use scaled input to compute width (e.g., proportional size)
         oval_width  = self.neuron.location_width
         oval_height = self.bar_height
+        scale_methods = self.neuron.config.scaler.get_scaling_names()
 
         self.draw_oval_with_text(self.neuron.screen, start_x, start_y- self.bar_height*1.369+2, oval_width, oval_height*1.369,   "", "Scaler","",self.font)
         self.bar_height= 3 * self.calculate_bar_height(num_weights=self.num_weights, neuron_height=self.neuron_height, padding_top=self.padding_top,padding_bottom=self.padding_bottom, gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights)
         for i, (scaled_input, unscaled_input) in enumerate(zip(scaled_inputs, unscaled_inputs)):
             y_pos = start_y + i * (self.bar_height  + self.gap_between_weights)
+            method = scale_methods[i]
             # Draw oval at computed position
-            self.draw_oval_with_text(self.neuron.screen, start_x, y_pos, oval_width, oval_height,                                     scaled_input, "fixme", unscaled_input,self.font)
-
-
-
-
-        # Optionally, label with unscaled value
-        #self.draw_text(f"{unscaled_input:.2f}", x=start_x + oval_width + 5, y=y_pos)
-
-            # Call function to draw the two bars for this weight
-            #self.draw_two_bars_for_one_weight(start_x, y_pos, scaled_input, i)
+            self.draw_oval_with_text(self.neuron.screen, start_x, y_pos, oval_width, oval_height,                                     scaled_input, method, unscaled_input,self.font)
+            if self.need_label_coord:
+                self.my_fcking_labels.append((start_x,y_pos))   #for incoming arrow
+                self.label_y_positions.append((start_x+self.neuron.location_width, y_pos)) # for outgoing arrow
 
         if len(self.my_fcking_labels) > 0:
             self.need_label_coord = False #Only need to record on first pass.
@@ -193,7 +184,7 @@ class DisplayModel__NeuronScalers:
         right_area  = pygame.Rect(x + width - height, y, height, height)
 
         # 3) blit the three texts
-        self.blit_text_aligned(surface, text1, font, text_color, left_area,   'left',   padding)
-        self.blit_text_aligned(surface, text2, font, text_color, middle_area, 'center', padding)
-        self.blit_text_aligned(surface, text3, font, text_color, right_area,  'right',  padding)
+        self.blit_text_aligned(surface, smart_format(text1), self.font, text_color, left_area,   'left',   padding)
+        self.blit_text_aligned(surface, text2, self.font_small, text_color, middle_area, 'center', padding)
+        self.blit_text_aligned(surface, smart_format(text3), self.font, text_color, right_area,  'right',  padding)
 

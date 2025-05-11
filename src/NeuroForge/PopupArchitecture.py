@@ -83,6 +83,7 @@ class ArchitecturePopup(Popup_Base):
                 f"{cfg.batch_size} (Samples)",
                 smart_format(cfg.learning_rate),
             ]
+            describe_rows.append("-------------")
             for scaling_name in cfg.scaler.get_scaling_names():
                 describe_rows.append(beautify_text(scaling_name))
             describe_rows += [

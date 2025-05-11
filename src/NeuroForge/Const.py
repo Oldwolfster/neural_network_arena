@@ -111,6 +111,7 @@ TOOLTIP_COLUMN_DIVIDER_THICKNESS   = 1
 # ==============================
 JUMP_TO_EPOCH       = 0
 FONT_SIZE_WEIGHT    = 24
+FONT_SIZE_SMALL     = 20
 #COLOR_NEURONS  = True
 
 # ==============================

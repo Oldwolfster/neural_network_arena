@@ -33,14 +33,14 @@ class NeuroForge_Template(Gladiator):
         #config.hidden_activation     = Activation_LeakyReLU
         config.loss_function        = Loss_MSE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
-        config.scaler.set_input_scaler     (Scaler_MinMax, 0)
+        config.scaler.set_input_scaler     (Scaler_Robust, 0)
         config.scaler.set_input_scaler     (Scaler_MinMax, 1)
         #config.set_input_scaler     (Scaler_NONE, 1)
         ###config.input_scaler         = Scaler_Robust
         #config.target_scaler        = Scaler_Robust
         #ez_debug(inp_scaler = config.input_scaler)
 
-    """
+    """NODAMN
     Between the above and the below, the following occurs:
         1) Config smart-defaults are set for anything not specified.
         2) Neurons Initialized and initial values set
