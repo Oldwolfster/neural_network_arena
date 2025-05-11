@@ -22,5 +22,18 @@ class Manual(BaseArena):
         #return [(31.047052942824816, 1.824984565176722, 710685.1338724993), (7.294197779689324, 0.9860264394878984, 186444.40403214094)], ["Years of Experience","Years on job","Salary"]
         training_data = [(10, 1, 40000), (20, 0, 40000), (30, 4, 90000)]
 
+        training_data = [
+    (0,     0,     14000),   # both features at min
+    (40,    0,     494000),  # max experience, min college
+    (0,     8,     78000),   # min experience, max college
+    (40,    8,     558000),  # max experience and college
+    (20,    4,     286000),  # perfect mid-point
+    (10,    6,     190000),  # skewed toward college
+    (30,    2,     362000),  # skewed toward experience
+    (5,     7,     138000),  # high college, low experience
+    (35,    1,     442000),  # high experience, low college
+    (15,    3,     228000),  # off-center but common
+]
+
         return training_data, ["Years on Job","Years College","Salary"]
 

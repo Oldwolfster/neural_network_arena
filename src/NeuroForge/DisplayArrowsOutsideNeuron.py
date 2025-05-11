@@ -21,15 +21,66 @@ class DisplayArrowsOutsideNeuron(EZSurface):
         )
         self.first_model= first_model
         self.arrows_forward = []  # List of neuron connections
-        self.add_input_connections(True)
+        if self.first_model.input_scaler_neuron:
+            self.add_input_connections_through_scaler(True)
+        else:
+            self.add_input_connections(True)
         self.add_output_connections()
+
+    def add_input_connections_through_scaler (self, forward: bool):
+        self.step_1_input_to_scaler(forward)
+        self.step_2_scaler_to_hidden(forward)
+
+    def step_2_scaler_to_hidden(self, forward: bool):
+        model = self.first_model
+        first_layer = model.neurons[0]  # First hidden layer
+        neuron_visualizer = model.input_scaler_neuron.neuron_visualizer
+        input_positions = neuron_visualizer.label_y_positions#   Const.dm.input_panel.label_y_positions  # 🔹 Reference input positions
+        for target_neuron in first_layer:  # 🔹 Loop through all neurons in first layer
+            print(f"neuron_id={target_neuron.nid}")
+            neuron_visualizer = target_neuron.neuron_visualizer
+            for input_index, (start_x, start_y) in enumerate(input_positions):  # 🔹 Track input index
+
+                # ✅ Use input_index to ensure correct weight label mapping
+                end_x = model.left + neuron_visualizer.my_fcking_labels[input_index+1][0]   # Get global X position
+                end_y = model.top + neuron_visualizer.my_fcking_labels[input_index+1][1]    # Get global Y position
+
+                # ✅ Adjust a bit to center arrows.
+                start_x += model.left-6.9
+                start_y += model.top+16.9
+                #end_y   += 6.9
+
+                # ✅ Now create an arrow using the correct X and Y values
+                #print(f"to neuron start_x={start_x}, start_y={start_y}, end_x={end_x}, end_y={end_y}")
+                self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
+
+    def step_1_input_to_scaler(self, forward: bool):
+        """
+        Creates connections from input panel to the first layer of neurons. (In the first model only - otherwise too much clutter)
+        """
+        model = self.first_model
+
+        input_positions = Const.dm.input_panel.label_y_positions  # 🔹 Reference input positions
+        #for target_neuron in first_layer:  # 🔹 Loop through all neurons in first layer
+        neuron_visualizer = model.input_scaler_neuron.neuron_visualizer
+        for input_index, (start_x, start_y) in enumerate(input_positions[:-1]):  # 🔹 Track input index
+            end_x = model.left + neuron_visualizer.my_fcking_labels[input_index][0]   # Get global X position
+            end_y = model.top + neuron_visualizer.my_fcking_labels[input_index][1]    # Get global Y position
+            start_x += -20
+            end_y   += 6.9
+            #print(f"to neuron start_x={start_x}, start_y={start_y}, end_x={end_x}, end_y={end_y}")
+            self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
 
     def add_input_connections(self, forward: bool):
         """
         Creates connections from input panel to the first layer of neurons. (In the first model only - otherwise too much clutter)
         """
         model = self.first_model
+
         first_layer = model.neurons[0]  # First hidden layer
+
         input_positions = Const.dm.input_panel.label_y_positions  # 🔹 Reference input positions
         for target_neuron in first_layer:  # 🔹 Loop through all neurons in first layer
             neuron_visualizer = target_neuron.neuron_visualizer
@@ -46,6 +97,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
                 # ✅ Now create an arrow using the correct X and Y values
                 #print(f"to neuron start_x={start_x}, start_y={start_y}, end_x={end_x}, end_y={end_y}")
                 self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
 
     def add_output_connections(self):
         """

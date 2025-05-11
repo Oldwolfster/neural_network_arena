@@ -23,7 +23,7 @@ class ActivationFunction:
 Activation_NoDamnFunction = ActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,
-    name="NoDamnFunction"
+    name="None"
 )
 
 Activation_Sigmoid = ActivationFunction(
