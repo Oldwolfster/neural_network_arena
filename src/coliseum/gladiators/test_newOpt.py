@@ -33,10 +33,17 @@ class NeuroForge_Template(Gladiator):
         #config.hidden_activation     = Activation_LeakyReLU
         config.loss_function        = Loss_MSE
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
-        config.input_scaler         = Scaler_NONE
-        #config.target_scaler        = Scaler_Robust
+        config.scaler.set_input_scaler     (Scaler_MinMax, 0)
+        config.scaler.set_input_scaler     (Scaler_MinMax, 1)
+
         #ez_debug(inp_scaler = config.input_scaler)
 
+    """
+    Between the above and the below, the following occurs:
+        1) Config smart-defaults are set for anything not specified.
+        2) Neurons Initialized and initial values set
+        * NOTE: Data scaling will not yet have occurred when below runs.
+    """
     def customize_neurons(self, config: Config):
         """ 🚀 Anything after initializing neurons
             🐉 but before training goes here  i.e manually setting a weight  """

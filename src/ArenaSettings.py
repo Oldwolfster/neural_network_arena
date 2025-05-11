@@ -62,7 +62,7 @@ gladiators = [
     'Hand_Tuned'
     #,'test_newOpt'
    #,'NeuroForge_Template'
-   ,'test_newOpt'
+   ,'All_Defaults'
     #'EmptyModel_All_Default'
 
     #'Test_BCE'
@@ -82,8 +82,8 @@ gladiators = [
 ############################################################
 training_pit                = "XOR"
 training_pit                = "CaliforniaHousePricesUSD"
-training_pit                = "Predict_Income_2_Inputs"
-training_pit              = "Manual"
+training_pit                = "Adversarial_Noise"
+#training_pit              = "Arena_CenteredData"
 #training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit               = "Titanic"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
