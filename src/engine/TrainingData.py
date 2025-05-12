@@ -3,6 +3,7 @@ from typing import List, Tuple, Optional, Dict
 
 from src.Legos.LossFunctions import LossFunction
 import statistics
+import numpy as np
 
 class TrainingData:
     """
@@ -153,6 +154,19 @@ class TrainingData:
                 raise ValueError("Training data is empty; cannot compute max output.")
             self._cache["max_output"] = max(t[-1] for t in self.raw_data)
         return self._cache["max_output"]
+
+    @property
+    def mean_absolute_target(self) -> float:
+        """
+        Returns the mean of the absolute target values in the dataset.
+        Useful for regression accuracy metrics like 1 - (MAE / mean).
+        """
+        if "mean_absolute_target" not in self._cache:
+            if not self.raw_data:
+                raise ValueError("Training data is empty; cannot compute mean target.")
+            self._cache["mean_absolute_target"] = np.mean([abs(t[-1]) for t in self.raw_data])
+        return self._cache["mean_absolute_target"]
+
 
     def everything_max_magnitude(self) -> float:
         if "everything_max" not in self._cache:

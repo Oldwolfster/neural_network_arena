@@ -51,6 +51,9 @@ class PopupInfoButton(Popup_Base):
             Most of the time, it just means:  
             “How much should this weight change?”  
             We skip the jargon and say exactly that.
+            
+            For regression tasks, "Accuracy" is defined as 1 - (MAE / mean target), 
+            providing an intuitive % that reflects prediction closeness.
 
             
             We aim for:

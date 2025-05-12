@@ -394,6 +394,34 @@ Loss_Huber = LossFunction(
     derivative_formula="error if |error| ≤ δ else δ·sign(error)"
 )
 
+def simple_error_loss(y_pred, y_true):
+    """
+    Returns a simple average absolute error (not used in updates — for reporting only).
+    """
+    return np.mean(np.abs(y_pred - y_true))
+
+
+def simple_error_derivative(y_pred, y_true):
+    """
+    Returns a raw blame signal: prediction - target.
+    This matches the expected direction for weight -= lr * blame * input.
+    """
+    return y_pred - y_true  # <-- The "goofy" way, but matches your update logic
+
+
+Loss_SimpleError = LossFunction(
+    loss=simple_error_loss,
+    derivative=simple_error_derivative,
+    name="Simple Error-Based Update",
+    short_name="BLAME",
+    desc="Uses prediction - target as a direct blame signal. Matches classic update style of (error * input * lr).",
+    when_to_use="Great for binary decisions and early regression with raw directional updates.",
+    best_for="Classic perceptrons or any intuitive adjustment model.",
+    allowed_activations=None,
+    derivative_formula="prediction - target",
+    bd_rules=(0, 1, "Binary Decision using raw error", "Use threshold of 0.5")
+)
+
 
 
 def half_wit_loss(y_pred, y_true):

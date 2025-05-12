@@ -34,6 +34,12 @@ class Manual(BaseArena):
     (35,    1,     442000),  # high experience, low college
     (15,    3,     228000),  # off-center but common
 ]
-
-        return training_data, ["Years on Job","Years College","Salary"]
+        training_data = [
+    (25,     0),   #
+    (75,     1),   #
+    (35,     0),   #
+    (65,     1),   #
+]
+        #return training_data, ["Years on Job","Years College","Salary"]
+        return  training_data, ["Credit score", "Repay status"]
 

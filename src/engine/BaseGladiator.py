@@ -128,30 +128,21 @@ class Gladiator(ABC):
         if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.total_error_for_epoch = 0
 
-        for self.iteration, (sample, sample_unscaled) in enumerate(
-            zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)
-        ):
-            self.run_a_sample(sample, sample_unscaled)
-
+        for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
+            self.run_a_sample(np.array(sample), np.array(sample_unscaled))
             if self.total_error_for_epoch > 1e30:   return  "Gradient Explosion" #Check for gradient explosion
-             #if error < self.config.lowest_error:    # New lowest error
-             #    self.config.lowest_error = error
-             #    self.config.lowest_error_epoch = epoch_num
-        #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def run_a_sample(self, sample, sample_unscaled):
-        sample          = np.array(sample)              # Allows for conversion to JSON
-        sample_unscaled = np.array(sample_unscaled)     # Allows for conversion to JSON
-        inputs          = sample[:-1]        #all but the last item of each tuple in list
-        target          = sample[-1]         # just the last item of each tuple in list        #print(f"inputs={inputs}\ttarget={target}")
-        inputs_unscaled = sample_unscaled[:-1]
-        target_unscaled = sample_unscaled[-1]
-        self.snapshot_weights("", "_before")
+        self                . snapshot_weights("", "_before")
+        #sample              = np.array(sample)              # Allows for conversion to JSON
+        #sample_unscaled     = np.array(sample_unscaled)     # Allows for conversion to JSON
+        error, loss, blame  = self.optimize_passes(sample)
+        self                . total_error_for_epoch += abs(error)
 
-        error, loss,  loss_gradient = self.pass_pipeline(sample, inputs, target)
-        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
-        self.total_error_for_epoch += abs(error)
+         # 3 possible prediction values... raw, unscaled, and thresholded for binary decision
+        prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
+        #prediction_thresh   =
 
         #If binary decision apply step logic.
         prediction = prediction_raw # Assume regression
@@ -164,8 +155,8 @@ class Gladiator(ABC):
             model_id=self.config.gladiator_name,
             epoch=self.epoch + 1,
             iteration=self.iteration + 1,
-            inputs=dumps(inputs.tolist()),  # Serialize inputs as JSON
-            inputs_unscaled=dumps(inputs_unscaled.tolist()),  # Serialize inputs as JSON
+            inputs=dumps(sample[:-1].tolist()),  # Serialize inputs as JSON
+            inputs_unscaled=dumps(sample_unscaled[:-1].tolist()),  # Serialize inputs as JSON
             target=sample[-1],
             target_unscaled=sample_unscaled[-1],
             prediction=prediction,
@@ -173,39 +164,27 @@ class Gladiator(ABC):
             prediction_raw=prediction_raw,
             loss=loss,
             loss_function=self.config.loss_function.name,
-            loss_gradient=loss_gradient,
+            loss_gradient=blame,
             accuracy_threshold=self.hyper.accuracy_threshold,
         )
-        #print("Should be different after backpass")
-        #print(f"weights_before are {Neuron.neurons[1].weights_before}")
-        #print(f"weights are        {Neuron.neurons[1].weights}")
         self.VCR.record_iteration(iteration_data, Neuron.layers)
-        # I NEED TO TEST THIS WHEN I NEED IT.self.update_best_weights_if_new_lowest_error(self.last_epoch_mae)
 
-
-    def pass_pipeline(self, sample, inputs, target):
+    # noinspection PyTypeChecker
+    def optimize_passes(self, sample):
         # Step 1: Forward pass
-        self.forward_pass(sample)  # Call model-specific logic
-        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract output neuron’s activation
+        prediction_raw = self.forward_pass(sample)  # Call model-specific logic
+        if prediction_raw is None: raise ValueError(f"{self.__class__.__name__}.forward_pass must return a value for sample={sample!r}"            ) # ensure forward_pass actually returned something
 
-        # Step 3: Delegate to models logic for Validate_pass :)
-        error_scaled, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
+        # Step 2: Judge pass - calculate error, loss, and blame (gradient)
+        error_scaled, loss,  loss_gradient = self.judge_pass(sample, prediction_raw)
 
-        # ↕️ NEW: compute unscaled values for logging & metrics
-        orig_target      = self.config.target_scaler.unscale(target)
-        orig_prediction  = self.config.target_scaler.unscale(prediction_raw)
-        error            = orig_target - orig_prediction
-
-        # Step 4: Delegate to models logic for backprop or call default if not overridden
-        #print(f"Should be same as prior to backpass - epoch{self.epoch+1} iteration{self.iteration+1}")
-        #print(f"weights_before are {Neuron.neurons[1].weights_before}")
-        #print(f"weights are        {Neuron.neurons[1].weights}")
+        # Step 3: Backwards Pass -  Delegate to models logic for backprop or call default if not overridden
         self.back_pass(sample, loss_gradient)  # Call model-specific logic
 
-        # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
+        # 🎯 Record blame and weight updates or NeuroForge             (⬅️ Last step we need)
         self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
         self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
-        return error, loss, loss_gradient
+        return error_scaled, loss, loss_gradient
 
 
     ################################################################################################
@@ -229,6 +208,7 @@ class Gladiator(ABC):
                 neuron.raw_sum += neuron.bias
                 neuron.activate()
                 #print(f"neuron.activation={neuron.activation_value}")
+        return  Neuron.layers[-1][0].activation_value  # Extract output neuron’s activation
 
     def back_pass(self, training_sample : Tuple[float, float, float], loss_gradient: float):
         """
@@ -319,14 +299,15 @@ class Gladiator(ABC):
     ############################### END OF BACKPASS ###############################
 
 
-    def validate_pass(self, target: float, prediction_raw: float):
+    def judge_pass(self, sample, prediction_raw: float):
         """
         Computes error, loss, and blame based on the configured loss function.
         """
+        target  = sample[-1]
         error   = target - prediction_raw                                   # ✅ Simple error calculation
         loss    = self.config.loss_function(prediction_raw, target)         # ✅ Compute loss dynamically
         blame   = self.config.loss_function.grad(prediction_raw, target)    # ✅ Compute correction (NO inversion!)      #print(f"🔎 DEBUG: Target={target}, Prediction={prediction_raw}, Error={error}, Loss={blame}, Correction={blame}")
-        return error, loss,  blame                                          # ✅ Correction replaces "loss gradient"
+        return error, loss, blame                                           # ✅ Correction replaces "loss gradient"
 
     ################################################################################################
     ################################ SECTION 3 - Initialization ####################################

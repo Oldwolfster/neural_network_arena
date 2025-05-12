@@ -43,6 +43,7 @@ class Config:
         self.final_epoch: int                        =   0 # Last epoch to run
         self.lowest_error: float                     = 1e50
         self.lowest_error_epoch                      = 0
+        self._percent_off                               = None
         self.default_scalers                        = None
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
 
@@ -92,20 +93,28 @@ class Config:
 
         return layers
 
-    def set_input_scalerNOLONGERUSED(self, scaler_strategy, input_id):
-        """Assigns an input scaler for a given input feature.
 
-        Args:
-            scaler_strategy: A scaler class or instance (e.g., Scaler_Standard).
-            input_id: Index (int) or feature name (str).
-        """
-        if isinstance(input_id, int):
-            self.input_scalers[input_id] = scaler_strategy
-        elif isinstance(input_id, str):
-            self.input_scalers[input_id] = scaler_strategy
-        else:
-            raise TypeError(f"Invalid input_id type: {type(input_id)}. Must be int or str.")
-
+    @property
+    def percent_off(self):
+        if self._percent_off is None:
+            if self.training_data.problem_type == "Binary Decision":
+                SQL_MAX_OFF = """
+                    SELECT MAX(Accuracy) AS Accuracy
+                    FROM EpochSummary
+                    WHERE model_id = ?
+                """
+                result = self.db.query(SQL_MAX_OFF, (self.gladiator_name,))
+                if result and result[0].get("Accuracy") is not None:
+                    self._percent_off = 100.0 - (result[0]["Accuracy"] )
+                else:
+                    self._percent_off = 100.0
+            else:
+                mean_target = self.training_data.mean_absolute_target
+                if mean_target == 0:
+                    self._percent_off = 100.0
+                else:
+                    self._percent_off = (self.lowest_error / mean_target) * 100
+        return self._percent_off
 
     def configure_popup_headers(self):
         (self.popup_headers, self.popup_operators,

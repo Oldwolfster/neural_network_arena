@@ -37,11 +37,11 @@ class DisplayModel(EZSurface):
         _, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
         btn = Button_Base(
-                 text=beautify_text(self.config.gladiator_name),
+                 text=f"{beautify_text(self.config.gladiator_name)}",
                  width_pct=10, height_pct=4, left_pct=1, top_pct=1,
                  on_click=self.show_info,
                  on_hover=lambda: self.arch_popup.show_me(),
-                 shadow_offset=-5, auto_size=True, my_surface=self.surface,text_line2=f"Error: {self.lowest_error}", surface_offset=(self.left, self.top))
+                 shadow_offset=-5, auto_size=True, my_surface=self.surface,text_line2=f"Error: {self.lowest_error} ", surface_offset=(self.left, self.top))
 
         self.buttons.append(btn)
 
@@ -50,7 +50,7 @@ class DisplayModel(EZSurface):
 
     @property
     def lowest_error(self):
-        return f"{smart_format(self.config.lowest_error)} at {self.config.lowest_error_epoch}"
+        return f"{smart_format(self.config.lowest_error)}({smart_format(self.config.percent_off)}%) at {self.config.lowest_error_epoch}"
     @property
     def display_epoch(self):
         """
