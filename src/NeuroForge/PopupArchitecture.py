@@ -71,7 +71,7 @@ class ArchitecturePopup(Popup_Base):
 
         def describe(cfg):
             describe_rows = [
-                "",  # Training Setup header, no value
+                cfg.gladiator_name,  # Training Setup header, no value
                 architecture(cfg.architecture),
                 cfg.initializer.name,
                 cfg.hidden_activation.name,

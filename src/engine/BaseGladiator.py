@@ -82,20 +82,8 @@ class Gladiator(ABC):
     def customize_neurons(self,config: Config):
         pass
 
-
-    def scale_samples(self):
-        #self.training_samples = self.training_data.get_list()           # Store the list version of training data
-        #unscaled_training_samples = self.training_data.get_list()           # Store the list version of training data
-        #scaled_inputs  = self.config.scaler.scale(self.training_data.get_inputs())
-        #scaled_targets = self.config.scaler.scale(self.training_data.get_targets())
+    def scale_samples(self):  #Scales the inputs and targets according to the config in the model and config defaults
         self.config.scaler.scale_all()
-        #print(f"input scaler = {self.config.input_scaler.name}\ttarget scaler={self.config.target_scaler.name}")
-        #print(f"raw inputs{self.training_data.get_inputs()}")
-        #print(f"scaled inputs{scaled_inputs}")
-        #self.training_samples = [tuple(inp) + (tgt,) for inp, tgt in zip(scaled_inputs, scaled_targets)]
-
-
-
 
     def train(self, exploratory_epochs = 0) -> float:  #tuple[str, list[int]]:
         """
@@ -139,13 +127,12 @@ class Gladiator(ABC):
         self.epoch = epoch_num      # Set so the child model has access
         if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
         self.total_error_for_epoch = 0
-        #for self.iteration, sample in enumerate(self.training_samples):  # Loop through all training data
+
         for self.iteration, (sample, sample_unscaled) in enumerate(
             zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)
         ):
             self.run_a_sample(sample, sample_unscaled)
-            #self.run_a_sample(sample)
-            #self.run_a_sample(self.config.scaler sample)
+
             if self.total_error_for_epoch > 1e30:   return  "Gradient Explosion" #Check for gradient explosion
              #if error < self.config.lowest_error:    # New lowest error
              #    self.config.lowest_error = error
@@ -219,31 +206,6 @@ class Gladiator(ABC):
         self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
         self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
         return error, loss, loss_gradient
-
-    def process_a_sample__WithoutTargetScaling(self, sample, inputs, target):
-        # Step 1: Forward pass
-        self.forward_pass(sample)  # Call model-specific logic
-        prediction_raw = Neuron.layers[-1][0].activation_value  # Extract single neuron’s activation
-
-        # Step 3: Delegate to models logic for Validate_pass :)
-        error, loss,  loss_gradient = self.validate_pass(target, prediction_raw )
-
-        # ↕️ NEW: compute unscaled values for logging & metrics
-        orig_target      = self.config.target_scaler.unscale(target)
-        orig_prediction  = self.config.target_scaler.unscale(prediction_raw)
-
-
-        # Step 4: Delegate to models logic for backprop or call default if not overridden
-        #print(f"Should be same as prior to backpass - epoch{self.epoch+1} iteration{self.iteration+1}")
-        #print(f"weights_before are {Neuron.neurons[1].weights_before}")
-        #print(f"weights are        {Neuron.neurons[1].weights}")
-        self.back_pass(sample, loss_gradient)  # Call model-specific logic
-
-        # 🎯 Record what was done for NeuroForge             (⬅️ Last step we need)
-        self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
-        self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
-        return error, loss, loss_gradient
-
 
 
     ################################################################################################

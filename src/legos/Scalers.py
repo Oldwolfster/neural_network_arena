@@ -10,7 +10,17 @@ class MultiScaler:
         self.not_set_yet = False
 
     def set_input_scaler(self, scaler, index):
+        if index == len(self.scalers) - 1:
+            print(f"[Warning] Attempted to set scaler on target column (index {index}). Ignored.")
+            return
         self.scalers[index] = scaler
+        self.not_set_yet = True
+
+    def set_target_scaler(self, scaler):
+        """
+        Assigns a scaler to the target (last column).
+        """
+        self.scalers[-1] = scaler
         self.not_set_yet = True
 
     def set_all_input_scalers(self, scaler):

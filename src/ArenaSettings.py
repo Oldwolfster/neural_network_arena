@@ -81,8 +81,8 @@ gladiators = [
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
 training_pit                = "XOR"
-training_pit                = "CaliforniaHousePricesUSD"
-training_pit                = "Adversarial_Noise"
+#training_pit                = "CaliforniaHousePricesUSD"
+#training_pit                = "Predict_Income_2_Inputs"
 #training_pit              = "Arena_CenteredData"
 #training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit               = "Titanic"
