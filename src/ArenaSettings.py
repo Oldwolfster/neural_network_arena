@@ -12,7 +12,7 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
     epochs_to_run           :int    = 69     # Number of times training run will cycle through all training data
-    training_set_size       :int    = 40   # Qty of training data
+    training_set_size       :int    = 30  # Qty of training data
     default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
     display_train_data      :bool = True    # Display the training data at the end of the rn.
@@ -62,8 +62,8 @@ gladiators = [
     'Hand_Tuned'
     #,'test_newOpt'
    #,'NeuroForge_Template'
-   ,'All_Defaults'
-    #'EmptyModel_All_Default'
+   #,'All_Defaults'
+    #,'Test_BCE'
 
     #'Test_BCE'
     #,'TestBatch'
@@ -82,13 +82,14 @@ gladiators = [
 ############################################################
 training_pit                = "XOR"
 #training_pit                = "CaliforniaHousePricesUSD"
-#training_pit                = "Predict_Income_2_Inputs"
+training_pit                = "Predict_Income_2_Inputs"
 #training_pit              = "Arena_CenteredData"
 #training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit               = "Titanic"
-#training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
+training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit                = "Predict_Income_Piecewise_Growth"
 #training_pit                = "Moons"
+#training_pit                = "Manual"
 #training_pit                = "Predict_Income_2_Inputs_5Coefficents"
 
 ##training_pit              = "Salary2InputsNonlinear"

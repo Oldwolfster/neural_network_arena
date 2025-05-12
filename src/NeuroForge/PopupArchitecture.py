@@ -69,12 +69,21 @@ class ArchitecturePopup(Popup_Base):
                 layers = ", ".join(str(x) for x in bp)
                 return f"{layers} Neurons/Layer"
 
+
+        def hidden_activation (arch, hid_act) -> str:
+
+            if arch == [1]:
+                return "No Hidden Neurons"
+            else:
+
+                return hid_act
+
         def describe(cfg):
             describe_rows = [
                 cfg.gladiator_name,  # Training Setup header, no value
                 architecture(cfg.architecture),
                 cfg.initializer.name,
-                cfg.hidden_activation.name,
+                hidden_activation(cfg.architecture, cfg.hidden_activation.name),
                 cfg.output_activation.name,
                 cfg.loss_function.name,
                 "",

@@ -545,7 +545,7 @@ class DisplayModel__Neuron_Base:
         #print(f"len(all_cols)={len(all_cols)}")  #Prints blank row, empty space in each cell
         for i in range(8):  #Do entire row
             if i == 0:
-                all_cols[0].append("Why I'm to Blame??? (My Responsibility)")
+                all_cols[0].append("Above Blame figure calculated below")
             else:
                 all_cols[i].append(" ")
 
