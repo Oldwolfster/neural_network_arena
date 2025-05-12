@@ -59,7 +59,8 @@ class LossFunction:
         best_for="",
         derivative_formula="",
         allowed_activations=None,   # 🚀 New: List of valid activation functions
-        bd_rules=(0, 1)             # Binary Decision rules (unchanged)
+        bd_rules=(0, 1) ,            # Binary Decision rules (unchanged) DEPRECATED!!!
+        bd_defaults = None          #Class A, Class B, Threshold
     ):
         self.loss               = loss  # Function to compute the loss.
         self.derivative         = derivative  # Optional function to compute the gradient of the loss.
@@ -163,7 +164,8 @@ Loss_MSE = LossFunction(
     when_to_use="Commonly used for regression problems.",
     best_for="Regression tasks.",
     allowed_activations=None,  # ✅ All activations allowed
-    derivative_formula="2 * (prediction - target)"
+    derivative_formula="2 * (prediction - target)",
+    bd_defaults= [0, 1, 0.5]
 )
 
 # 🔹 **2. Mean Absolute Error (MAE) Loss**
@@ -191,7 +193,8 @@ Loss_MAE = LossFunction(
     when_to_use="Useful for regression tasks less sensitive to outliers.",
     best_for="Regression tasks with outlier presence.",
     allowed_activations=None,  # ✅ All activations allowed
-    derivative_formula="sign(prediction - target) / n"
+    derivative_formula="sign(prediction - target) / n",
+    bd_defaults= [0, 1, 0.5]
 )
 # 🔹 **7. Binary Cross-Entropy with Logits (BCEWithLogits) Loss**
 def bce_with_logits_loss(logits, y_true):
@@ -230,7 +233,8 @@ Loss_BCEWithLogits = LossFunction(
     derivative_formula="sigmoid(logits) - target",
     #allowed_activations=[Activation_NoDamnFunction],
     allowed_activations=None,
-    bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.5")
+    bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.0"),
+    bd_defaults= [0, 1, 0]
 )
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**
 def binary_crossentropy_loss(y_pred, y_true, epsilon=1e-15):
@@ -261,8 +265,8 @@ Loss_BinaryCrossEntropy = LossFunction(
     best_for="Binary classification.",
     derivative_formula="- (target / prediction - (1 - target) / (1 - prediction)) / n",
     allowed_activations=[Activation_Sigmoid],
-    bd_rules=(0, 1, "Error: BCE requires targets to be {0,1}", "Error: BCE requires threshold to be 0.5")
-
+    bd_rules=(0, 1, "Error: BCE requires targets to be {0,1}", "Error: BCE requires threshold to be 0.5"),
+    bd_defaults= [0, 1, 0.5]
 )
 
 # 🔹 **4. Categorical Cross-Entropy Loss**
@@ -293,7 +297,8 @@ Loss_CategoricalCrossEntropy = LossFunction(
     when_to_use="Ideal for multi-class classification problems with one-hot encoded targets.",
     best_for="Multi-class classification.",
     derivative_formula="(prediction - target) / n",
-    bd_rules = (None, None, "NEVER", None)
+    bd_rules = (None, None, "NEVER", None),
+    bd_defaults= [0, 0, 0]
 )
 
 # 🔹 **5. Hinge Loss**
@@ -326,7 +331,8 @@ Loss_Hinge = LossFunction(
     best_for="Binary classification with margin-based methods.",
     derivative_formula="where(1 - target * prediction > 0, -target, 0) / n",
     allowed_activations=[Activation_NoDamnFunction],
-    bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0")
+    bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0"),
+    bd_defaults= [-1, 1, 0]
 )
 
 # 🔹 **6. Log-Cosh Loss**
@@ -353,7 +359,9 @@ Loss_LogCosh = LossFunction(
     when_to_use="A smooth loss function that is less sensitive to outliers than MSE.",
     best_for="Regression tasks.",
     allowed_activations=[Activation_NoDamnFunction, Activation_Tanh, Activation_ReLU, Activation_LeakyReLU],
-    derivative_formula="tanh(prediction - target) / n"
+    derivative_formula="tanh(prediction - target) / n",
+    bd_defaults= [-1, 1, 0]
+
 )
 
 
@@ -391,7 +399,8 @@ Loss_Huber = LossFunction(
     when_to_use="Regression problems where you want robustness to outliers.",
     best_for="Regression tasks with potential outliers in the data.",
     allowed_activations=None,  # ✅ All activations allowed
-    derivative_formula="error if |error| ≤ δ else δ·sign(error)"
+    derivative_formula="error if |error| ≤ δ else δ·sign(error)",
+    bd_defaults= [-1, 1, 0]
 )
 
 def simple_error_loss(y_pred, y_true):
@@ -419,7 +428,8 @@ Loss_SimpleError = LossFunction(
     best_for="Classic perceptrons or any intuitive adjustment model.",
     allowed_activations=None,
     derivative_formula="prediction - target",
-    bd_rules=(0, 1, "Binary Decision using raw error", "Use threshold of 0.5")
+    bd_rules=(0, 1, "Binary Decision using raw error", "Use threshold of 0.5"),
+    bd_defaults= [-1, 1, 0]
 )
 
 
@@ -445,7 +455,8 @@ Loss_HalfWit = LossFunction(
     when_to_use="When you want an honest answer.",
     best_for="Situations where clarity or interpretability of error is preferred.",
     allowed_activations=None,
-    derivative_formula="(prediction - target)"
+    derivative_formula="(prediction - target)",
+    bd_defaults= [-1, 1, 0]
 )
 
 def schrodinger_loss(y_pred, y_true):
@@ -472,5 +483,6 @@ Loss_Schrodinger = LossFunction(
     when_to_use="When you want maximum confusion and minimum utility.  Uhhh, Mundo no remember Mundo's name",
     best_for="Philosophical debates, not machine learning.  Exception: finding your cat",
     allowed_activations=None,
-    derivative_formula="1 / n  (for all values — direction is lost to the void)"
+    derivative_formula="1 / n  (for all values — direction is lost to the void)",
+    bd_defaults= [-99, -97, -96]
 )
