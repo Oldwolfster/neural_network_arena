@@ -78,19 +78,14 @@ class DisplayModel__NeuronScalers:
 
         # 2) draw the header (same hack you had before)
         start_x = self.neuron.location_left
-        start_y = (
-            self.neuron.location_top
-            + self.padding_top
-            + self.BANNER_HEIGHT
-            - oval_height * 1.369
-            + 2
-        )
+        start_y =             self.neuron.location_top-5
+
         self.draw_oval_with_text(
             self.neuron.screen,
             start_x,
             start_y,
             oval_width,
-            oval_height * 1.369,
+            35,
             "",
             "Scaler",
             "",
@@ -135,38 +130,6 @@ class DisplayModel__NeuronScalers:
 
 
 
-    def draw_scale_oval_old(self, scaled_inputs, unscaled_inputs):
-        """
-        Changed for Input Scaler
-        This function ensures bars are evenly spaced and positioned inside the neuron.
-        """
-
-        # Compute the starting X and Y positions as well as length of bars
-        start_x     = self.neuron.location_left   # Small left padding for visibility
-        start_y     = self.neuron.location_top + self.padding_top + self.BANNER_HEIGHT # Start from the top padding
-
-        scaled_inputs   = json.loads(scaled_inputs)
-        unscaled_inputs = json.loads(unscaled_inputs)
-        #ez_debug(scaled_inputs=scaled_inputs)
-        #ez_debug(unscaled_inputs=unscaled_inputs)
-        # Use scaled input to compute width (e.g., proportional size)
-        oval_width  = self.neuron.location_width
-        oval_height = self.bar_height
-        scale_methods = self.neuron.config.scaler.get_scaling_names()
-
-        self.draw_oval_with_text(self.neuron.screen, start_x, start_y- self.bar_height*1.369+2, oval_width, oval_height*1.369,   "", "Scaler","",self.font)
-        self.bar_height= 3 * self.calculate_bar_height(num_weights=self.num_weights, neuron_height=self.neuron_height, padding_top=self.padding_top,padding_bottom=self.padding_bottom, gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights)
-        for i, (scaled_input, unscaled_input) in enumerate(zip(scaled_inputs, unscaled_inputs)):
-            y_pos = start_y + i * (self.bar_height  + self.gap_between_weights)
-            method = scale_methods[i]
-            # Draw oval at computed position
-            self.draw_oval_with_text(self.neuron.screen, start_x, y_pos, oval_width, oval_height,                                     scaled_input, method, unscaled_input,self.font)
-            if self.need_label_coord:
-                self.my_fcking_labels.append((start_x,y_pos))   #for incoming arrow
-                self.label_y_positions.append((start_x+self.neuron.location_width, y_pos)) # for outgoing arrow
-
-        if len(self.my_fcking_labels) > 0:
-            self.need_label_coord = False #Only need to record on first pass.
 
     @staticmethod
     def _compute_oval_y_positions(
@@ -306,6 +269,6 @@ class DisplayModel__NeuronScalers:
 
         # 3) blit the three texts
         self.blit_text_aligned(surface, smart_format(text1), self.font, text_color, left_area,   'left',   padding)
-        self.blit_text_aligned(surface, text2, self.font_small, text_color, middle_area, 'center', padding)
+        #self.blit_text_aligned(surface, text2, self.font_small, text_color, middle_area, 'center', padding)
         self.blit_text_aligned(surface, smart_format(text3), self.font, text_color, right_area,  'right',  padding)
 

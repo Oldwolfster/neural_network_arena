@@ -43,7 +43,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
 
                 # ✅ Use input_index to ensure correct weight label mapping
                 end_x = model.left + neuron_visualizer.my_fcking_labels[input_index+1][0]   # Get global X position
-                end_y = model.top + neuron_visualizer.my_fcking_labels[input_index+1][1]    # Get global Y position
+                end_y = model.top + neuron_visualizer.my_fcking_labels[input_index+1][1]  +9  # Get global Y position
 
                 # ✅ Adjust a bit to center arrows.
                 start_x += model.left-6.9

@@ -357,6 +357,45 @@ Loss_LogCosh = LossFunction(
 )
 
 
+def huber_loss(y_pred, y_true, delta=1.0):
+    """
+    Computes the Huber loss.
+    - Quadratic for |error| ≤ delta, linear beyond.
+    """
+    error = y_pred - y_true
+    is_small = np.abs(error) <= delta
+    # ½·error² for small errors; delta·( |error| – ½·delta ) for large errors
+    squared = 0.5 * error**2
+    linear = delta * (np.abs(error) - 0.5 * delta)
+    return np.mean(np.where(is_small, squared, linear))
+
+def huber_derivative(y_pred, y_true, delta=1.0):
+    """
+    Derivative of the Huber loss wrt predictions.
+    """
+    n = _get_n(y_true)
+    error = y_pred - y_true
+    # error for small; delta·sign(error) for large, all divided by n
+    grad = np.where(np.abs(error) <= delta, error, delta * np.sign(error))
+    return grad / n
+
+Loss_Huber = LossFunction(
+    loss=huber_loss,
+    derivative=huber_derivative,
+    name="Huber Loss",
+    short_name="Huber",
+    desc=(
+        "Combines MSE and MAE: uses a squared term for small differences "
+        "and a linear term for large differences to reduce outlier impact."
+    ),
+    when_to_use="Regression problems where you want robustness to outliers.",
+    best_for="Regression tasks with potential outliers in the data.",
+    allowed_activations=None,  # ✅ All activations allowed
+    derivative_formula="error if |error| ≤ δ else δ·sign(error)"
+)
+
+
+
 def half_wit_loss(y_pred, y_true):
     """
     Computes the same value as MSE — this is a placeholder to match structure.

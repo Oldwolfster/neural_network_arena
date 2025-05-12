@@ -35,12 +35,12 @@
 
 ## 🧪 Experimental & Research-ish
 
-| Arena                         | Hook                                               |
-|-------------------------------|----------------------------------------------------|
-| **Chaotic Function Prediction** | Predict sin(x) + sin(x²)                          |
-| **Custom Function Recovery**    | y = 3x + noise; ground-truth known                |
-| **AutoNormalize Challenge**     | Inputs differ wildly in magnitude                 |
-| **Multi-Gladiator Ensembling**  | Each gladiator sees only part of the data         |
+| Arena                                  | Hook                                               |
+|----------------------------------------|----------------------------------------------------|
+| NO Love**Chaotic Function Prediction** | Predict sin(x) + sin(x²)                          |
+| **Custom Function Recovery**           | y = 3x + noise; ground-truth known                |
+| **AutoNormalize Challenge**            | Inputs differ wildly in magnitude                 |
+|       |
 
 ---
 
