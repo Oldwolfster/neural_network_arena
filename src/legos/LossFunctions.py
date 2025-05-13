@@ -71,8 +71,10 @@ class LossFunction:
         self.best_for           = best_for
         self.derivative_formula = derivative_formula  # String representation of the derivative formula.
         self.bd_rules           = bd_rules + ("No restriction",) * (4 - len(bd_rules))  # Ensure bd_rules has exactly 4 elements (fill with None if missing)
+        self.bd_defaults        = bd_defaults
         self.allowed_activation_functions       = allowed_activations #if allowed_activations is not None else [] # Store allowed activation functions (default = allow all)
         self.recommended_hidden_activations     = [Activation_ReLU]
+
 
     def __call__(self, y_pred, y_true):
         """

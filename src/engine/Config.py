@@ -35,6 +35,7 @@ class Config:
         self.output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
         self.target_scaler                           = Scaler_NONE
         self.roi_mode                                = ROI_Mode.SWEET_SPOT
+        self.bd_parameters                           = None # target a, target b, threshold.
 
         # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
         self.seconds: float                          = 0.0
@@ -46,15 +47,14 @@ class Config:
         self._percent_off                               = None
         self.default_scalers                        = None
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
-
         #is_exploratory                          = False
-
         self.popup_headers                           = None #TODO Standardize these 4 names.
         self.popup_operators                         = None
         self.popup_finalizer_headers                 = None
         self.popup_finalizer_operators               = None
+        self.default_scalers                        = None
 
-    def data_reset(self):
+    def data_reset_Deleteme(self):
         self.seconds: float                          = 0.0
         self.cvg_condition: str                      = "Did Not Converge"
         self.learning_rate: float                    = 0.0
@@ -120,16 +120,18 @@ class Config:
         (self.popup_headers, self.popup_operators,
          self.popup_finalizer_headers, self.popup_finalizer_operators) = self.optimizer.configure_optimizer(self)
 
+    def threshold_prediction(self, prediction): #not ideal home but until i find better...
+        if not self.bd_parameters:  #Not BD so return same value.
+            return prediction
+        else:
+            if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
+            else: return  self.bd_parameters[0]
+
+
     def set_defaults(self):
-        #self.lego_selector = LegoSelector(self)
-        #self.training_data = training_data
-        #print(f"Training data is_linear = {self.training_data.perceptron_ok}")
         self.smartNetworkSetup()
-        #print(f"self.input_scaler - {self.input_scaler}")
-        #self.input_scaler.fit(self.training_data.get_inputs())
-        #print(f"scaled inputs = {self.input_scaler.scaled_data}")
-
-
+        if self.training_data.binary_decision and not self.bd_parameters:
+            self.bd_parameters  = self.loss_function.bd_defaults
 
     def smartNetworkSetup(self):
         self.lego_selector.apply(self, self.get_rules())        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")

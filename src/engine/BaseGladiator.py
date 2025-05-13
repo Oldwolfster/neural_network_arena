@@ -135,20 +135,13 @@ class Gladiator(ABC):
 
     def run_a_sample(self, sample, sample_unscaled):
         self                . snapshot_weights("", "_before")
-        #sample              = np.array(sample)              # Allows for conversion to JSON
-        #sample_unscaled     = np.array(sample_unscaled)     # Allows for conversion to JSON
         error, loss, blame  = self.optimize_passes(sample)
         self                . total_error_for_epoch += abs(error)
 
-         # 3 possible prediction values... raw, unscaled, and thresholded for binary decision
+         # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
-        #prediction_thresh   =
+        prediction          = self.config.threshold_prediction(prediction_raw)
 
-        #If binary decision apply step logic.
-        prediction = prediction_raw # Assume regression
-        if self.training_data.problem_type == "Binary Decision":
-            prediction = self.bd_class_beta if prediction_raw >= self.bd_threshold else self.bd_class_alpha
-            #print(f"AFTER\tself.bd_class_beta={self.bd_class_beta}\tprediction={prediction}\tself.bd_threshold={self.bd_threshold} self.bd_class_alpha=\t{ self.bd_class_alpha}")
 
         # Step 4: Record iteration data
         iteration_data = Iteration(
