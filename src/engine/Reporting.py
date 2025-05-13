@@ -150,7 +150,7 @@ def prep_RamDB():
 
     return db
 
-def create_weight_adjustment_tables(db, gladiator):
+def create_weight_tables(db, gladiator):
     create_weight_adjustments_table(db, gladiator, "update")
     create_weight_adjustments_table(db, gladiator, "finalize")
 

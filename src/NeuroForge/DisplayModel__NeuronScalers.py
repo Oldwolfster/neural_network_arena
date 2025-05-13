@@ -25,6 +25,8 @@ class DisplayModel__NeuronScalers:
         self.right_margin               = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.padding_bottom             = 3
         self.bar_border_thickness       = 1
+        self.max_oval_height            =       40
+        self.oval_overhang              =   1.1
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
         # Neuron attributes
@@ -85,7 +87,9 @@ class DisplayModel__NeuronScalers:
             start_x,
             start_y,
             oval_width,
+
             35,
+            False,      #overhang
             "",
             "Scaler",
             "",
@@ -115,6 +119,7 @@ class DisplayModel__NeuronScalers:
                 y_pos,
                 oval_width,
                 oval_height,
+                True,
                 scaled,
                 method,
                 unscaled,
@@ -123,7 +128,7 @@ class DisplayModel__NeuronScalers:
             if self.need_label_coord:
                 self.my_fcking_labels.append((start_x, y_pos))
                 self.label_y_positions.append(
-                    (start_x + self.neuron.location_width, y_pos)
+                    (start_x + self.neuron.location_width + 20, y_pos)
                 )
 
         self.need_label_coord = False
@@ -241,7 +246,7 @@ class DisplayModel__NeuronScalers:
         self,
         surface,
         x, y,
-        width, height,
+        proposed_width, proposed_height, overhang,
         text1, text2, text3,
         font,
         oval_color=(Const.COLOR_BLUE),
@@ -255,7 +260,14 @@ class DisplayModel__NeuronScalers:
               right-aligns text3 in the right half-circle.
         """
         # 1) draw the shape
-        pill_rect = pygame.Rect(x, y, width, height)
+        height = min(proposed_height, self.max_oval_height)
+        if overhang:
+            width = proposed_width * 1.1
+            pill_rect = pygame.Rect(x- proposed_width*.05, y, width, height)
+        else:
+            width = proposed_width
+            pill_rect = pygame.Rect(x, y, width, height)
+
         self.draw_pill(surface, pill_rect, oval_color)
 
         # 2) compute the three areas
@@ -270,5 +282,5 @@ class DisplayModel__NeuronScalers:
         # 3) blit the three texts
         self.blit_text_aligned(surface, smart_format(text1), self.font, text_color, left_area,   'left',   padding)
         #self.blit_text_aligned(surface, text2, self.font_small, text_color, middle_area, 'center', padding)
-        self.blit_text_aligned(surface, smart_format(text3), self.font, text_color, right_area,  'right',  padding)
+        self.blit_text_aligned(surface, smart_format(text3), self.font, text_color, right_area,  'right',  padding+30)
 

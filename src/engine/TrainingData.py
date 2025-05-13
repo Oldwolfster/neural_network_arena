@@ -41,7 +41,9 @@ class TrainingData:
         self.feature_labels = feature_labels        # Optional feature labels (e.g., ["Credit Score", "Income"])
         self.target_labels  = target_labels         # Optional outcome labels (e.g., ["Repaid", "Defaulted"])
         self.problem_type   = self.determine_problem_type()
+        self.binary_decision = False
         if self.problem_type == "Binary Decision" and not self.target_labels: # If it's BD and no labels were provided, assign default labels
+            self.binary_decision = True
             self.target_labels = ["Class Alpha", "Class Beta"]
 
     def get_list(self):
