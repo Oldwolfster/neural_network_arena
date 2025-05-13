@@ -2,22 +2,24 @@ from dataclasses import asdict
 from typing import Any
 
 
+
+
 class LegoSelector:
     def __init__(self):
         self.applied_rules = []
 
-    def apply(self, config, rules):
+    def apply(self, config, rules, output_to_log: bool):
         # track which rule‐indices we’ve applied (and to what value)
         seen: dict[int, Any] = {}
         # keep running until no rule makes an actual change
-        while self._apply_single_rule(config, rules, seen):
+        while self._apply_single_rule(config, rules, seen, output_to_log):
             pass
 
         #print(self.pretty_print_applied_rules())
         # if you ever re‐use this selector again, you can clear for next time
         seen.clear()
 
-    def _apply_single_rule(self, config, rules, seen: dict[int, Any]) -> bool:
+    def _apply_single_rule(self, config, rules, seen: dict[int, Any], output_to_log: bool) -> bool:
         """
         Returns True if it applied one rule (and mutated config).
         Uses 'seen' to skip any rule whose action wouldn't actually change anything.
@@ -50,7 +52,8 @@ class LegoSelector:
                             })
                             # remember that this rule idx set this exact value
                             seen[idx] = value
-                            print(f"  ➤ Rule applied: {priority}: {key} = {value} from condition: '{condition}'")
+                            if output_to_log:
+                                print(f"  ➤ Rule applied: {priority}: {key} = {value} from condition: '{condition}'")
                             return True
             except Exception as e:
                 print(f"⚠️ Rule failed: {priority} {condition} -> {e}")

@@ -25,7 +25,7 @@ class Config:
     batch_size: int                         = None
     architecture: list                      = field(default_factory=lambda: [1])
     initializer: type                       = None
-    loss_function: LossFunction             = None
+    loss_function: StrategyLossFunction             = None
     hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
     output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
     input_scaler                            = None

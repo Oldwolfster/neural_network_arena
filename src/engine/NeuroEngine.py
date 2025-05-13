@@ -10,34 +10,33 @@ from src.engine.Reporting import prep_RamDB
 from ..NeuroForge.NeuroForge import *
 from src.ArenaSettings import *
 
-class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- src/NeuroForge/DisplayModel__Neuron.py
+class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
 
+    print_rules_once_per_gladiator = False
     def __init__(self):
         self.db = prep_RamDB()
         self.shared_hyper       = HyperParameters()
         self.seed               = set_seed(self.shared_hyper.random_seed)
         self.training_data      = self.instantiate_arena()
 
-
     def run_a_match(self, gladiators):
         model_configs       = []
         model_infos         = []
 
         for gladiator in    gladiators:
-            set_seed            (self.seed)
-            print(f"Preparing to run model: {gladiator}")
-            #learning_rate   = self.check_for_learning_rate_sweep(gladiator)
+            #NeuroEngine.print_rules_once_per_gladiator = False   # referenced in Config to surpress spam
+            set_seed        (self.seed)
+            print           (f"Preparing to run model: {gladiator}")
+            #learning_rate  = self.check_for_learning_rate_sweep(gladiator)
             info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
             model_infos     . append(info)
             model_configs   . append(config)
-            print(f"{gladiator} completed in {config} based on:{config.cvg_condition}")
-            #model_config.db.query_print("SELECT * FROM        WeightAdjustments where nid = 0 and weight_index = 0")
+            print           (f"{gladiator} completed in {config} based on:{config.cvg_condition}")
 
         # Generate reports and send all model configs to NeuroForge
         print(f"🛠️  Random Seed:    {self.seed}")
         generate_reports(self.db, self.training_data, self.shared_hyper, model_infos)
         neuroForge(model_configs)
-
 
     def create_fresh_config(self, gladiator):
         return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
@@ -68,7 +67,6 @@ class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- sr
             model_config.db.add         (model_info)              #Writes record to ModelInfo table
         return                      model_info, model_config
 
-
     def check_for_learning_rate_sweep(self, gladiator):
         temp_config = self.create_fresh_config(gladiator)
 
@@ -78,7 +76,6 @@ class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- sr
 
         print(f"🌀 Running LEARNING RATE SWEEP for {gladiator}")
         return self.learning_rate_sweep(gladiator)
-
 
     def learning_rate_sweep(self, gladiator) -> float:
         """
@@ -108,9 +105,6 @@ class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- sr
             print                   (f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
         print                       (f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
         return                      best_lr
-
-
-
 
     def delete_records(self, db, gladiator_name, possible_columns=None):
         """
