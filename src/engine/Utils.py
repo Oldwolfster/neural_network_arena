@@ -209,7 +209,6 @@ def set_seed(seed) -> int:
         seed = random.randint(1, 999999)
     np.random.seed(seed)
     random.seed(seed)
-    print(f"🛠️ Using Random Seed: {seed}")
     return  seed
 
 

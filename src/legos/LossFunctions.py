@@ -20,7 +20,7 @@ def _get_n(y_true):
         # If y_true is not iterable, treat it as scalar.
         return 1
 
-class LossFunction:
+class StrategyLossFunction:
     """
     🚀 Encapsulates loss function strategies with optional gradient computation.
 
@@ -157,7 +157,7 @@ def mse_derivative(y_pred, y_true):
     n = _get_n(y_true)
     return 2 * (y_pred - y_true) / n
 
-Loss_MSE = LossFunction(
+Loss_MSE = StrategyLossFunction(
     loss=mse_loss,
     derivative=mse_derivative,
     name="Mean Squared Error (MSE)",
@@ -186,7 +186,7 @@ def mae_derivative(y_pred, y_true):
     n = _get_n(y_true)
     return np.sign(y_pred - y_true) / n
 
-Loss_MAE = LossFunction(
+Loss_MAE = StrategyLossFunction(
     loss=mae_loss,
     derivative=mae_derivative,
     name="Mean Absolute Error (MAE)",
@@ -224,7 +224,7 @@ def bce_with_logits_derivative(logits, y_true):
 
     return loss_gradient
 
-Loss_BCEWithLogits = LossFunction(
+Loss_BCEWithLogits = StrategyLossFunction(
     loss=bce_with_logits_loss,
     derivative=bce_with_logits_derivative,
     name="Binary Cross-Entropy with Logits",
@@ -257,7 +257,7 @@ def binary_crossentropy_derivative(y_pred, y_true, epsilon=1e-15):
     n = _get_n(y_true)
     return - (y_true / y_pred - (1 - y_true) / (1 - y_pred)) / n
 
-Loss_BinaryCrossEntropy = LossFunction(
+Loss_BCE = StrategyLossFunction(
     loss=binary_crossentropy_loss,
     derivative=binary_crossentropy_derivative,
     name="Binary Cross-Entropy",
@@ -290,7 +290,7 @@ def categorical_crossentropy_derivative(y_pred, y_true):
     n = _get_n(y_true)
     return (y_pred - y_true) / n
 
-Loss_CategoricalCrossEntropy = LossFunction(
+Loss_CategoricalCrossEntropy = StrategyLossFunction(
     loss=categorical_crossentropy_loss,
     derivative=categorical_crossentropy_derivative,
     name="Categorical Cross-Entropy",
@@ -323,7 +323,7 @@ def hinge_derivative(y_pred, y_true):
     n = _get_n(y_true)
     return grad / n
 
-Loss_Hinge = LossFunction(
+Loss_Hinge = StrategyLossFunction(
     loss=hinge_loss,
     derivative=hinge_derivative,
     name="Hinge Loss",
@@ -352,7 +352,7 @@ def logcosh_derivative(y_pred, y_true):
     n = _get_n(y_true)
     return np.tanh(y_pred - y_true) / n
 
-Loss_LogCosh = LossFunction(
+Loss_LogCosh = StrategyLossFunction(
     loss=logcosh_loss,
     derivative=logcosh_derivative,
     name="Log-Cosh Loss",
@@ -389,7 +389,7 @@ def huber_derivative(y_pred, y_true, delta=1.0):
     grad = np.where(np.abs(error) <= delta, error, delta * np.sign(error))
     return grad / n
 
-Loss_Huber = LossFunction(
+Loss_Huber = StrategyLossFunction(
     loss=huber_loss,
     derivative=huber_derivative,
     name="Huber Loss",
@@ -420,7 +420,7 @@ def simple_error_derivative(y_pred, y_true):
     return y_pred - y_true  # <-- The "goofy" way, but matches your update logic
 
 
-Loss_SimpleError = LossFunction(
+Loss_SimpleError = StrategyLossFunction(
     loss=simple_error_loss,
     derivative=simple_error_derivative,
     name="Simple Error-Based Update",
@@ -448,7 +448,7 @@ def half_wit_derivative(y_pred, y_true):
     """
     return (y_pred - y_true)
 
-Loss_HalfWit = LossFunction(
+Loss_HalfWit = StrategyLossFunction(
     loss=half_wit_loss,
     derivative=half_wit_derivative,
     name="Half Wit Error",
@@ -476,7 +476,7 @@ def schrodinger_derivative(y_pred, y_true):
     n = _get_n(y_true)
     return np.ones_like(y_pred) / n  # No idea whether it's over or under — just nudge it forward
 
-Loss_Schrodinger = LossFunction(
+Loss_Schrodinger = StrategyLossFunction(
     loss=schrodinger_loss,
     derivative=schrodinger_derivative,
     name="Schrödinger's Loss",

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Dict
 
-from src.Legos.LossFunctions import LossFunction
+from src.Legos.LossFunctions import StrategyLossFunction
 import statistics
 
 class TrainingData:
@@ -138,7 +138,7 @@ class TrainingData:
         else:
             return "Inconclusive"
 
-    def apply_binary_decision_targets_for_specific_loss_function(self, loss_function: LossFunction) ->  tuple[float, float, float]:
+    def apply_binary_decision_targets_for_specific_loss_function(self, loss_function: StrategyLossFunction) ->  tuple[float, float, float]:
         """
         Updates targets in `td_current` for Binary Decision problems based on the loss function's BD rules.
 
@@ -180,7 +180,7 @@ class TrainingData:
         return target_alpha, target_beta, threshold
         #print(f"✅ Binary Decision targets updated: {target_map}")
 
-    def get_binary_decision_settings(self, loss_function: LossFunction) -> Tuple[float, float, float]:
+    def get_binary_decision_settings(self, loss_function: StrategyLossFunction) -> Tuple[float, float, float]:
         """
         Determines the appropriate targets and decision threshold for Binary Decision tasks.
 
@@ -197,7 +197,7 @@ class TrainingData:
             return "N/A", "N/A", "N/A"
             #raise ValueError("get_bd_settings() was called, but the problem type is not Binary Decision.")
 
-        # Directly access bd_rules (assuming it's always set in LossFunction)
+        # Directly access bd_rules (assuming it's always set in StrategyLossFunction)
         bd_rules = loss_function.bd_rules
 
         return bd_rules[0], bd_rules[1], (bd_rules[0] + bd_rules[1]) / 2  # Auto-calculate threshold

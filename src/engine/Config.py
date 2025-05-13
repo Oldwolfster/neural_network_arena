@@ -5,6 +5,7 @@ from src.Legos.WeightInitializers import *
 from src.Legos.Optimizers import *
 from src.Legos.Scalers import *
 from .convergence.ConvergenceDetector import ROI_Mode
+from .. import NeuroForge
 from ..ArenaSettings import HyperParameters
 from ..Legos.LegoSelector import LegoSelector
 from ..Legos.LossFunctions import *
@@ -30,7 +31,7 @@ class Config:
         self.batch_size: int                         = None
         self.architecture: list                      = None
         self.initializer: type                       = None
-        self.loss_function: LossFunction             = None
+        self.loss_function: StrategyLossFunction             = None
         self.hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
         self.output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
         self.target_scaler                           = Scaler_NONE
@@ -134,9 +135,10 @@ class Config:
             self.bd_parameters  = self.loss_function.bd_defaults
 
     def smartNetworkSetup(self):
-        self.lego_selector.apply(self, self.get_rules())        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
+        self.lego_selector.apply(self, self.get_rules(), False)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
         if self.default_scalers:
             self.scaler.set_all_input_scalers(Scaler_Robust)
+        NeuroForge.print_rules_once_per_gladiator = True
         #print(f"Defaults applied:  Architecture ->{self.architecture}")
 
     def get_rules(self):        #  config.training_data.problem_type == " (0, 100, {"loss_function": Loss_BCEWithLogits}, "config.training_data.problem_type == 'Binary Decision'"),
