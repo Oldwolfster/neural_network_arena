@@ -2,7 +2,7 @@ from src.engine.TrainingData import TrainingData
 
 class MultiScaler:
     def __init__(self, training_data: TrainingData):
-        print("initializing Multiscaler")
+        #print("initializing Multiscaler")
         self.training_data = training_data
         #print("training_dat")
         self.training_data.verify_targets_unchanged("Multiscaler constructor")
@@ -53,7 +53,7 @@ class MultiScaler:
         targets = self.scaled_data[-1]
         self.scaled_samples = [list(inp) + [target] for inp, target in zip(inputs, targets)]
 
-        print(f"raw    data\t{raw_samples[:4]}")
+        #print(f"raw    data\t{raw_samples[:4]}")
         #print(f"scaled data\t{self.scaled_data}")
         #print(f"sample data\t{self.scaled_samples}")
 

@@ -99,7 +99,7 @@ class Gladiator(ABC):
 
         self.config.loss_function.validate_activation_functions()
         #print(f"in BaseGladiator train.. lr={self.config.learning_rate}")
-        self.check_binary_decision_info()
+        # FUCK THIS self.check_binary_decision_info()
         self.scale_samples()
         #self.training_samples = self.training_data.get_list()
         epochs_to_run = self.number_of_epochs if exploratory_epochs==0 else exploratory_epochs
@@ -476,17 +476,6 @@ class Gladiator(ABC):
             print(f"⚠️ {rule}")  # Show warning but allow modification
         self._bd_threshold = value
 
-    def check_binary_decision_info(self):
-        #print (f"self.config.loss_function={self.config.loss_function}")
-        if self.training_data.problem_type == "Binary Decision":
-            a, b, c = self.training_data.apply_binary_decision_targets_for_specific_loss_function(self.config.loss_function)
-            # Only update if still None (i.e., not set by the Gladiator)
-            if self._bd_class_alpha is None:
-                self._bd_class_alpha = a  # Directly setting avoids triggering warnings
-            if self._bd_class_beta is None:
-                self._bd_class_beta = b
-            if self._bd_threshold is None:
-                self._bd_threshold = c
 
     @property
     def last_epoch_mae(self):

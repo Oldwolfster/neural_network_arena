@@ -59,7 +59,6 @@ class StrategyLossFunction:
         best_for="",
         derivative_formula="",
         allowed_activations=None,   # 🚀 New: List of valid activation functions
-        bd_rules=(0, 1) ,            # Binary Decision rules (unchanged) DEPRECATED!!!
         bd_defaults = None          #Class A, Class B, Threshold
     ):
         self.loss               = loss  # Function to compute the loss.
@@ -70,7 +69,7 @@ class StrategyLossFunction:
         self.when_to_use        = when_to_use
         self.best_for           = best_for
         self.derivative_formula = derivative_formula  # String representation of the derivative formula.
-        self.bd_rules           = bd_rules + ("No restriction",) * (4 - len(bd_rules))  # Ensure bd_rules has exactly 4 elements (fill with None if missing)
+
         self.bd_defaults        = bd_defaults
         self.allowed_activation_functions       = allowed_activations #if allowed_activations is not None else [] # Store allowed activation functions (default = allow all)
         self.recommended_hidden_activations     = [Activation_ReLU]
@@ -235,7 +234,7 @@ Loss_BCEWithLogits = StrategyLossFunction(
     derivative_formula="sigmoid(logits) - target",
     #allowed_activations=[Activation_NoDamnFunction],
     allowed_activations=None,
-    bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.0"),
+    #bd_rules=(0, 1, "Warning: BCEWithLogits is most efficient with {0,1} targets", "Warning: BCEWithLogits is most efficient with a threshold of 0.0"),
     bd_defaults= [0, 1, 0]
 )
 # 🔹 **3. Binary Cross-Entropy (BCE) Loss**
@@ -267,7 +266,7 @@ Loss_BCE = StrategyLossFunction(
     best_for="Binary classification.",
     derivative_formula="- (target / prediction - (1 - target) / (1 - prediction)) / n",
     allowed_activations=[Activation_Sigmoid],
-    bd_rules=(0, 1, "Error: BCE requires targets to be {0,1}", "Error: BCE requires threshold to be 0.5"),
+    #bd_rules=(0, 1, "Error: BCE requires targets to be {0,1}", "Error: BCE requires threshold to be 0.5"),
     bd_defaults= [0, 1, 0.5]
 )
 
@@ -299,7 +298,7 @@ Loss_CategoricalCrossEntropy = StrategyLossFunction(
     when_to_use="Ideal for multi-class classification problems with one-hot encoded targets.",
     best_for="Multi-class classification.",
     derivative_formula="(prediction - target) / n",
-    bd_rules = (None, None, "NEVER", None),
+    #bd_rules = (None, None, "NEVER", None),
     bd_defaults= [0, 0, 0]
 )
 
@@ -333,7 +332,7 @@ Loss_Hinge = StrategyLossFunction(
     best_for="Binary classification with margin-based methods.",
     derivative_formula="where(1 - target * prediction > 0, -target, 0) / n",
     allowed_activations=[Activation_NoDamnFunction],
-    bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0"),
+    #bd_rules=(-1, 1, "Error: Hinge requires targets to be {-1,1}", "Error: Hinge requires threshold to be 0.0"),
     bd_defaults= [-1, 1, 0]
 )
 
@@ -430,7 +429,7 @@ Loss_SimpleError = StrategyLossFunction(
     best_for="Classic perceptrons or any intuitive adjustment model.",
     allowed_activations=None,
     derivative_formula="prediction - target",
-    bd_rules=(0, 1, "Binary Decision using raw error", "Use threshold of 0.5"),
+    #bd_rules=(0, 1, "Binary Decision using raw error", "Use threshold of 0.5"),
     bd_defaults= [-1, 1, 0]
 )
 

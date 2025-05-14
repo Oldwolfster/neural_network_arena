@@ -92,69 +92,6 @@ class TrainingData:
         else:
             return "Inconclusive"
 
-    def apply_binary_decision_targets_for_specific_loss_function(self, loss_function: StrategyLossFunction) ->  tuple[float, float, float]:
-        """
-        Updates targets in `tdraw_data` for Binary Decision problems based on the loss function's BD rules.
-
-
-        Args:
-            loss_function: The loss function being used.
-
-        Raises:
-            ValueError: If unexpected target values are found.
-        """
-        if self.problem_type != "Binary Decision":
-            return  # No need to modify targets if it's not BD
-
-        target_alpha, target_beta, threshold = self.get_binary_decision_settings(loss_function)
-
-
-        # Extract existing unique targets while preserving their original order
-        seen = {}
-        for sample in self.raw_data:
-            if sample[-1] not in seen:
-                seen[sample[-1]] = None  # Preserve insertion order
-
-        existing_targets = list(seen.keys())
-
-        if len(existing_targets) != 2:
-            raise ValueError(f"Binary Decision dataset expected 2 distinct target values, but found: {existing_targets}")
-
-        # Map old targets to new targets (Preserving Arena's order)
-        target_map = {existing_targets[0]: target_alpha, existing_targets[1]: target_beta}
-        #print(f"DEBUG: Before applying BD rules, targets: {set(sample[-1] for sample in self.tdraw_data)}")
-
-
-        # Replace targets in training data (without modifying input order)
-        self.raw_data = [
-            (*sample[:-1], target_map[sample[-1]]) for sample in self.raw_data
-        ]
-        #print(f"DEBUG: After applying BD rules, targets: {set(sample[-1] for sample in self.tdraw_data)}")
-        #print(f"DEBUG: Target Mapping in TrainingData: {target_map}")
-        return target_alpha, target_beta, threshold
-        #print(f"✅ Binary Decision targets updated: {target_map}")
-
-    def get_binary_decision_settings(self, loss_function: StrategyLossFunction) -> Tuple[float, float, float]:
-        """
-        Determines the appropriate targets and decision threshold for Binary Decision tasks.
-
-        Args:
-            loss_function: The loss function being used.
-
-        Returns:
-            Tuple containing:
-            - target_alpha: The numerical target for Class Alpha (e.g., 0.0 or -1.0)
-            - target_beta: The numerical target for Class Beta (e.g., 1.0)
-            - threshold: The decision boundary
-        """
-        if self.problem_type != "Binary Decision":
-            return "N/A", "N/A", "N/A"
-            #raise ValueError("get_bd_settings() was called, but the problem type is not Binary Decision.")
-
-        # Directly access bd_rules (assuming it's always set in StrategyLossFunction)
-        bd_rules = loss_function.bd_rules
-
-        return bd_rules[0], bd_rules[1], (bd_rules[0] + bd_rules[1]) / 2  # Auto-calculate threshold
 
     @property
     def input_max(self) -> float:
