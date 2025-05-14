@@ -34,7 +34,7 @@ class DisplayModel(EZSurface):
         self.model_id       = config.gladiator_name
         self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.arrows_forward = []  # List of neuron connections
-        _, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
+        #_, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
         btn = Button_Base(
                  text=f"{beautify_text(self.config.gladiator_name)}",

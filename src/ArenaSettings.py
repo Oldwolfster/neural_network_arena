@@ -18,7 +18,7 @@ class HyperParameters:
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
     #is_exploratory          :bool = True    # Autotuning or testing - don't save
-    random_seed             :int       = 288470
+    random_seed             :int       = 3333
  #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!

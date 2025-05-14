@@ -93,7 +93,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
-            _, config               = self.atomic_train_a_model(gladiator, lr) #Pass learning rate being swept
+            _, config               = self.atomic_train_a_model(gladiator, lr, 50) #Pass learning rate being swept
             print                   (f"  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
             results.append          ((lr, config.lowest_error))
 
