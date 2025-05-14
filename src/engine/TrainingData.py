@@ -36,7 +36,11 @@ class TrainingData:
             ValueError: If any numeric values are invalid (NaN or infinite)
         """
         self.arena_name     = "Unknown"
-        self.raw_data       = [tuple(r) for r in raw_data]      # Store the original data
+        #self.raw_data       = [tuple(r) for r in raw_data]      # Store the original data
+        self._raw_data = None  # initialize private backing field
+        self.raw_data = raw_data  # use setter (it will freeze the input)
+        self._fingerprint   = [row[-1] for row in self.raw_data[:10]]
+
         self._cache         = {}                    # Private dictionary for caching values
         self.feature_labels = feature_labels        # Optional feature labels (e.g., ["Credit Score", "Income"])
         self.target_labels  = target_labels         # Optional outcome labels (e.g., ["Repaid", "Defaulted"])
@@ -45,6 +49,25 @@ class TrainingData:
         if self.problem_type == "Binary Decision" and not self.target_labels: # If it's BD and no labels were provided, assign default labels
             self.binary_decision = True
             self.target_labels = ["Class Alpha", "Class Beta"]
+
+    @property
+    def raw_data(self):
+        return self._raw_data
+
+    @raw_data.setter
+    def raw_data(self, value):
+        if self._raw_data is not None:
+            raise AttributeError("raw_data is immutable and has already been set.")
+
+        # deep freeze: convert inner sequences to tuples
+        self._raw_data = tuple(tuple(row) for row in value)
+
+    def verify_targets_unchanged(self, label=""):
+        current = [row[-1] for row in self.raw_data[:10]]
+        if current != self._fingerprint:
+            print(f"🧨 TARGET CORRUPTION DETECTED during {label}!\nBefore: {self._fingerprint}\nNow:    {current}")
+            assert False, "Training data was mutated!"
+
 
     def get_list(self):
         """Get the latest version of the data """

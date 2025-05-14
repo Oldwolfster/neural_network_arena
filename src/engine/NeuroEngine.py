@@ -1,7 +1,5 @@
 import time
 from src.engine.Utils import dynamic_instantiate, set_seed
-from src.engine.Utils_DataClasses import ez_debug
-from .SQL import retrieve_training_data
 from .SQL import record_training_data
 from .StoreHistory import record_snapshot
 from .TrainingData import TrainingData
@@ -12,7 +10,7 @@ from src.ArenaSettings import *
 
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
 
-    print_rules_once_per_gladiator = False
+    print_rules_once_per_gladiator = False #this is not working yet
     def __init__(self):
         self.db = prep_RamDB()
         self.shared_hyper       = HyperParameters()
@@ -25,9 +23,8 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         for gladiator in    gladiators:
             #NeuroEngine.print_rules_once_per_gladiator = False   # referenced in Config to surpress spam
-            set_seed        (self.seed)
             print           (f"Preparing to run model: {gladiator}")
-            #learning_rate  = self.check_for_learning_rate_sweep(gladiator)
+            set_seed        (self.seed)
             info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
             model_infos     . append(info)
             model_configs   . append(config)
@@ -63,14 +60,19 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         model_info                  = ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.architecture, model_config.training_data.problem_type )
         #Record training details    #print(f"architecture = {model_config.architecture}")
         if record_results:
-            record_snapshot             (model_config, last_mae)        # Store Config for this model
-            model_config.db.add         (model_info)              #Writes record to ModelInfo table
+            record_snapshot         (model_config, last_mae)        # Store Config for this model
+            model_config.db.add     (model_info)              #Writes record to ModelInfo table
         return                      model_info, model_config
 
     def check_for_learning_rate_sweep(self, gladiator):
-        temp_config = self.create_fresh_config(gladiator)
-
+        # Create temp instantiation of model to see if Learning rate is specified.
+        temp_config             = self.create_fresh_config(gladiator)
+        create_weight_tables    (self.db, gladiator)
+        self.delete_records     (self.db, gladiator) # in case it had been run by LR sweep
+        temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_config)
+        temp_config             . set_defaults()
         # If LR is manually set in model, skip sweep
+        print(f"temp_config.learning_rate={temp_config.learning_rate}")
         if temp_config.learning_rate != 0.0:
             return temp_config.learning_rate
 
@@ -91,7 +93,8 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
-            _, config               = self.atomic_train_a_model(gladiator, lr) #Don't pass LR as we don't know it yet
+            _, config               = self.atomic_train_a_model(gladiator, lr) #Pass learning rate being swept
+            print                   (f"  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
             results.append          ((lr, config.lowest_error))
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
@@ -100,9 +103,6 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 factor = 0.1  # 🔄 now sweeping downward
             lr                      *= factor
         best_lr, best_metric        = min(results, key=lambda x: x[1])
-        print                       ("\n📋 Learning Rate Sweep Results:")
-        for lr, mae in results:
-            print                   (f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
         print                       (f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
         return                      best_lr
 
@@ -170,5 +170,3 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         td.arena_name = training_pit
         record_training_data(td.get_list())
         return td
-
-

@@ -2,7 +2,11 @@ from src.engine.TrainingData import TrainingData
 
 class MultiScaler:
     def __init__(self, training_data: TrainingData):
+        print("initializing Multiscaler")
         self.training_data = training_data
+        #print("training_dat")
+        self.training_data.verify_targets_unchanged("Multiscaler constructor")
+
         self.scalers = [Scaler_NONE for _ in range(training_data.input_count + 1)]  # +1 for target
         self.scaled_data = []
         self.scaled_samples = []  # ← Packed [inputs..., target]
@@ -48,6 +52,11 @@ class MultiScaler:
         inputs = list(zip(*self.scaled_data[:-1]))  # all but last column
         targets = self.scaled_data[-1]
         self.scaled_samples = [list(inp) + [target] for inp, target in zip(inputs, targets)]
+
+        print(f"raw    data\t{raw_samples[:4]}")
+        #print(f"scaled data\t{self.scaled_data}")
+        #print(f"sample data\t{self.scaled_samples}")
+
         return inputs, targets
 
     def unscale_input(self, input_index: int, value):

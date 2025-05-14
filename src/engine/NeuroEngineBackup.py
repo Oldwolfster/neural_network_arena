@@ -5,75 +5,79 @@ from .SQL import retrieve_training_data
 from .SQL import record_training_data
 from .StoreHistory import record_snapshot
 from .TrainingData import TrainingData
-from src.engine.Reporting import generate_reports, create_weight_adjustment_tables
+from src.engine.Reporting import generate_reports, create_weight_tables
 from src.engine.Reporting import prep_RamDB
 from ..NeuroForge.NeuroForge import *
 from src.ArenaSettings import *
 
-class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- src/NeuroForge/DisplayModel__Neuron.py
+class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
 
+    print_rules_once_per_gladiator = False
     def __init__(self):
         self.db = prep_RamDB()
         self.shared_hyper       = HyperParameters()
         self.seed               = set_seed(self.shared_hyper.random_seed)
         self.training_data      = self.instantiate_arena()
 
-
     def run_a_match(self, gladiators):
         model_configs       = []
         model_infos         = []
 
-
         for gladiator in    gladiators:
-            set_seed            (self.seed)
-            print(f"Preparing to run model: {gladiator}")
-            info, config    = self.atomic_train_a_model(gladiator)
+            #NeuroEngine.print_rules_once_per_gladiator = False   # referenced in Config to surpress spam
+            set_seed        (self.seed)
+            print           (f"Preparing to run model: {gladiator}")
+            #learning_rate  = self.check_for_learning_rate_sweep(gladiator)
+            info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
             model_infos     . append(info)
             model_configs   . append(config)
-            print(f"{gladiator} completed in {config} based on:{config.cvg_condition}")
-            #model_config.db.query_print("SELECT * FROM        WeightAdjustments where nid = 0 and weight_index = 0")
+            print           (f"{gladiator} completed in {config} based on:{config.cvg_condition}")
 
         # Generate reports and send all model configs to NeuroForge
+        print(f"🛠️  Random Seed:    {self.seed}")
         generate_reports(self.db, self.training_data, self.shared_hyper, model_infos)
         neuroForge(model_configs)
 
-    def check_for_learning_rate_sweep(self, gladiator):
-        check_config = Config(hyper= self.shared_hyper,db = self.db,   training_data   = self.training_data,    gladiator_name  = gladiator,)
+    def create_fresh_config(self, gladiator):
+        return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
 
-        #print(f"BEFORE ABOUT TO Instantiate(but not train): gladiator {check_config.gladiator_name} LR is {check_config.learning_rate}")
-        nn_check = dynamic_instantiate(gladiator, 'coliseum\\gladiators', check_config)
-        #print(f"AFTER  ABOUT TO Instantiate(but not train): gladiator {check_config.gladiator_name} LR is {check_config.learning_rate}")
-        check_config.set_defaults()
-        if check_config.learning_rate != 0.0: #MUST COME AFTER NN IS INSTANTIATED
-            return check_config.learning_rate  # LR set in model -- return that value and do not do sweep
+    def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=None):
+        record_results = epochs is None  #if epochs is specified it is LR Sweep, don't record and clean up
+        if learning_rate is None:
+            learning_rate = self.check_for_learning_rate_sweep(gladiator)
 
-        print(f"********** Running LEARNING RATE SWEEP FOR {gladiator} **********")
-        return self.learning_rate_sweep(check_config)
-
-    def atomic_train_a_model(self, gladiator):
-        create_weight_adjustment_tables(self.db, gladiator)
-
-        learning_rate               = self.check_for_learning_rate_sweep(gladiator)
+        model_config                = self.create_fresh_config(gladiator)
+        create_weight_tables        (self.db, gladiator)
+        self.delete_records         (self.db, gladiator) # in case it had been run by LR sweep
         start_time                  = time.time()
-        model_config                = Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
-        #model_config                . set_defaults(self.training_data)
+
         model_config.learning_rate  = learning_rate                         # Either from sweep or config if sweep found it was set in config
         set_seed                    (self.seed)
         nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
         model_config                . set_defaults()
+
         # Actually train model
-        last_mae                    = nn.train()       #Most info is stored in config
+        last_mae                    = nn.train(0 if record_results else epochs)
         model_config                .configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-        #Record training details
-        #print(f"architecture = {model_config.architecture}")
         model_config.seconds        = time.time() - start_time
         model_info                  = ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.architecture, model_config.training_data.problem_type )
-        record_snapshot             (model_config, last_mae)        # Store Config for this model
-        model_config.db.add         (model_info)              #Writes record to ModelInfo table
-        print(f"🛠️  Random Seed:    {self.seed}")
+        #Record training details    #print(f"architecture = {model_config.architecture}")
+        if record_results:
+            record_snapshot             (model_config, last_mae)        # Store Config for this model
+            model_config.db.add         (model_info)              #Writes record to ModelInfo table
         return                      model_info, model_config
 
-    def learning_rate_sweep(self, config) -> float:
+    def check_for_learning_rate_sweep(self, gladiator):
+        temp_config = self.create_fresh_config(gladiator)
+
+        # If LR is manually set in model, skip sweep
+        if temp_config.learning_rate != 0.0:
+            return temp_config.learning_rate
+
+        print(f"🌀 Running LEARNING RATE SWEEP for {gladiator}")
+        return self.learning_rate_sweep(gladiator)
+
+    def learning_rate_sweep(self, gladiator) -> float:
         """
         Sweep learning rates and pick the best based on last_mae.
         Starts low and increases logarithmically.
@@ -87,21 +91,13 @@ class NeuroEngine:  #git checkout 1228b1243f0a2b7724e9a443019b0b8166b06af5 -- sr
 
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
-            config.learning_rate    = lr
-            nn                      = dynamic_instantiate(config.gladiator_name, 'coliseum\\gladiators', config)
-            # ****************      actually run the model
-            last_mae                = nn.train(10)
-            # ****************      Delete the results and finish
-            self.delete_records     (self.db, config.gladiator_name)
-            #print                  (f"🔎 Tried learning_rate={lr:.1e}, last_mae={last_mae:.4f}")
-            results.append          ((lr, last_mae))
+            _, config               = self.atomic_train_a_model(gladiator, lr) #Don't pass LR as we don't know it yet
+            results.append          ((lr, config.lowest_error))
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
-            if factor == original_factor and lr == start_lr and last_mae > 1e10:
-                print(f"🛑 MAE {last_mae:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
+            if factor == original_factor and lr == start_lr and config.lowest_error > 1e10:
+                print(f"🛑 MAE {config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
                 factor = 0.1  # 🔄 now sweeping downward
-
-
             lr                      *= factor
         best_lr, best_metric        = min(results, key=lambda x: x[1])
         print                       ("\n📋 Learning Rate Sweep Results:")
