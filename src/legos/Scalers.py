@@ -68,12 +68,12 @@ class MultiScaler:
         return scaler.unscale(value)
 
     @property
-    def inputs_are_unscaled(self):
-        return all(scaler is Scaler_NONE for scaler in self.scalers[:-1])
+    def inputs_are_scaled(self):
+        return not all(scaler is Scaler_NONE for scaler in self.scalers[:-1])
 
     @property
-    def target_is_unscaled(self):
-        return self.scalers[-1] is Scaler_NONE
+    def target_is_scaled(self):
+        return not self.scalers[-1] is Scaler_NONE
 
     @property
     def all_unscaled(self):
@@ -85,7 +85,8 @@ class MultiScaler:
         return [f"scaling: {label}" for label in labels]
 
     def get_scaling_names(self):
-        return  [scaler.name for scaler in self.scalers[:-1]] + ["Coming Soon"]  # blank for placeholder
+        #return  [scaler.name for scaler in self.scalers[:-1]] + ["Coming Soon"]  # blank for placeholder
+        return  [scaler.name for scaler in self.scalers]    # blank for placeholder
 
     def __repr__(self):
         return f"MultiScaler({[s.name for s in self.scalers]})"

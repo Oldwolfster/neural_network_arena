@@ -18,7 +18,7 @@ class HyperParameters:
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
     #is_exploratory          :bool = True    # Autotuning or testing - don't save
-    random_seed             :int       = 3333
+    random_seed             :int       = 748141
  #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
@@ -59,11 +59,11 @@ gladiators = [
 
     #'GBS'
     #'BCEWL_LR_Sweep'
-    'BCEWL_LR_Set_to_point1'
+   # 'BCEWL_LR_Set_to_point1'
     #'Hand_Tuned'
     #,'test_newOpt'
    #,'NeuroForge_Template'
-   #'All_Defaults'
+   'All_Defaults'
     #,'Test_BCE'
 
     #'Test_BCE'
@@ -84,7 +84,7 @@ gladiators = [
 training_pit                = "XOR"
 #training_pit                = "CaliforniaHousePricesUSD"
 training_pit                = "Predict_Income_2_Inputs"
-training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
+#training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit              = "Arena_CenteredData"
 #training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit               = "Titanic"
@@ -98,8 +98,22 @@ training_pit                = "SimpleBinaryDecision"  # Single Input Credit scor
 
 #training_pit                = "California_Housing"
 #training_pit                = "Customer_Churn_4X3"
-
 #training_pit = "CarValueFromMiles"
+
+######## Tests
+#training_pit         = "Adversarial_Noise"
+#training_pit         = "AutoNormalize_Challenge"
+#training_pit         = "Bit_Flip_Memory"
+#training_pit         = "Chaotic_Function_Prediction"
+#training_pit         = "Circle_In_Square"
+#training_pit         = "Custom_Function_Recovery"
+
+#training_pit         = "Iris_Two_Class"
+#training_pit         = "One_Giant_Outlier"
+#training_pit         = "Parity_Check"
+#training_pit         = "Sparse_Inputs"
+#training_pit         = "Titanic"
+
 
 
 

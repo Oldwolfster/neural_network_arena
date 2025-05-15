@@ -146,7 +146,7 @@ class Config:
             #(0, 100, {"architecture": [1]}, "training_data.perceptron_ok == 'True'"),
             (0, 100, {"output_activation": Activation_Sigmoid}, "training_data.problem_type == 'Binary Decision'"),
             (0, 100, {"output_activation": Activation_NoDamnFunction}, "training_data.problem_type != 'Binary Decision'"),
-            (0, 200, {"loss_function": Loss_BCEWithLogits}, "output_activation.name == 'Sigmoid'"),
+            (0, 200, {"loss_function": Loss_BCE}, "output_activation.name == 'Sigmoid'"),
             (0, 200, {"loss_function": Loss_MSE}, "output_activation.name == 'None'"),
             (0, 300, {"default_scalers": True}, "scaler.not_set_yet == False"),
             #(0, 210, {"loss_function": Loss_MSE}, "training_data.has_high_outliers()"),

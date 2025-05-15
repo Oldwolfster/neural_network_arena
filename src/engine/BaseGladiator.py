@@ -98,11 +98,8 @@ class Gladiator(ABC):
         """
 
         self.config.loss_function.validate_activation_functions()
-        #print(f"in BaseGladiator train.. lr={self.config.learning_rate}")
-        # FUCK THIS self.check_binary_decision_info()
         self.scale_samples()
-        #self.training_samples = self.training_data.get_list()
-        epochs_to_run = self.number_of_epochs if exploratory_epochs==0 else exploratory_epochs
+        epochs_to_run = self.number_of_epochs if exploratory_epochs == 0 else exploratory_epochs
 
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
             self.config.final_epoch = epoch                             # If correct, great, ifn not, corrected next epoch.
@@ -110,8 +107,6 @@ class Gladiator(ABC):
 
             if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
                 return self.total_error_for_epoch
-
-        #print (f"self.total_error_for_epoch={self.total_error_for_epoch}\tself.last_epoch_mae={self.last_epoch_mae}")
         return self.total_error_for_epoch      # When it does not converge still return info
 
     def run_an_epoch(self, epoch_num: int) -> str:
@@ -139,8 +134,14 @@ class Gladiator(ABC):
         self                . total_error_for_epoch += abs(error)
 
          # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
+        #TODO optimize pass also has prediction_raw... seems there should only be one.
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
         prediction          = self.config.threshold_prediction(prediction_raw)
+
+        #print(f"target unscaled\t{sample_unscaled[-1]}")
+        #print(f"prediction unscaled\t{self.config.scaler.unscale_target(prediction_raw)}")
+        #print(" ")
+
 
 
         # Step 4: Record iteration data

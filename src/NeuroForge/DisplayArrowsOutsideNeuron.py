@@ -37,7 +37,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
         neuron_visualizer = model.input_scaler_neuron.neuron_visualizer
         input_positions = neuron_visualizer.label_y_positions#   Const.dm.input_panel.label_y_positions  # 🔹 Reference input positions
         for target_neuron in first_layer:  # 🔹 Loop through all neurons in first layer
-            print(f"neuron_id={target_neuron.nid}")
+            #print(f"neuron_id={target_neuron.nid}")
             neuron_visualizer = target_neuron.neuron_visualizer
             for input_index, (start_x, start_y) in enumerate(input_positions):  # 🔹 Track input index
 

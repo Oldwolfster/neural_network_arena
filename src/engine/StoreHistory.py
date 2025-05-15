@@ -8,10 +8,10 @@ from src.engine.Config import Config
 from src.engine.Utils_DataClasses import ReproducibilitySnapshot
 from datetime import datetime
 
-def record_snapshot( config: Config, last_mae):
+def record_snapshot( config: Config, last_mae, random_seed):
     conn = get_db_connection()
     create_snapshot_table(conn)
-    log_entry = ReproducibilitySnapshot.from_config(config, last_mae)
+    log_entry = ReproducibilitySnapshot.from_config(config, last_mae, random_seed)
     insert_snapshot(conn, log_entry)
     conn.close()
 
