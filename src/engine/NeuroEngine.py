@@ -38,6 +38,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
     def create_fresh_config(self, gladiator):
         return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
 
+
     def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=None):
         record_results = epochs is None  #if epochs is specified it is LR Sweep, don't record and clean up
         if learning_rate is None:
@@ -60,7 +61,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         model_info                  = ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.architecture, model_config.training_data.problem_type )
         #Record training details    #print(f"architecture = {model_config.architecture}")
         if record_results:
-            record_snapshot         (model_config, last_mae)        # Store Config for this model
+            record_snapshot         (model_config, last_mae, self.seed)        # Store Config for this model
             model_config.db.add     (model_info)              #Writes record to ModelInfo table
         return                      model_info, model_config
 
@@ -93,12 +94,12 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
-            _, config               = self.atomic_train_a_model(gladiator, lr, 50) #Pass learning rate being swept
+            _, config               = self.atomic_train_a_model(gladiator, lr, 20) #Pass learning rate being swept
             print                   (f"  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
             results.append          ((lr, config.lowest_error))
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
-            if factor == original_factor and lr == start_lr and config.lowest_error > 1e10:
+            if factor == original_factor and lr == start_lr and config.lowest_error > 1e5:
                 print(f"🛑 MAE {config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
                 factor = 0.1  # 🔄 now sweeping downward
             lr                      *= factor

@@ -12,7 +12,7 @@ from src.engine.Utils import draw_rect_with_border, draw_text_with_background, e
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("last_epoch", "input_scaler_neuron", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    __slots__ = ("last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
     def __init__(self, config: Config, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -31,8 +31,11 @@ class DisplayModel(EZSurface):
         self.last_epoch     = config.final_epoch
         #print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
+        self.input_scaler_neuron = None
+        self.prediction_scaler_neuron = None
         self.model_id       = config.gladiator_name
-        self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
+        #self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
+        self.neurons        = []
         self.arrows_forward = []  # List of neuron connections
         #_, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
@@ -82,10 +85,10 @@ class DisplayModel(EZSurface):
         for layer in self.neurons:
             for neuron in layer:
                 neuron.my_model = self
+
         # Create error over epochs graph
         self.graph = self.create_graph(self.graph_holder)# Add Graph  # MAE over epoch
         Const.dm.eventors.append(self.graph)
-
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
 
@@ -97,11 +100,15 @@ class DisplayModel(EZSurface):
         """Draw neurons and connections."""
         self.clear()
         self.draw_border()
-        self.graph.render()
+        if self.graph is not None:
+            self.graph.render()
 #        for connection in self.connections:
 #            connection.draw_connection(self.surface)
         if self.input_scaler_neuron is not None:
             self.input_scaler_neuron.draw_neuron()
+        if self.prediction_scaler_neuron is not None:
+            self.prediction_scaler_neuron.draw_neuron()
+
         for layer in self.neurons:
             for neuron in layer:
                 neuron.draw_neuron()

@@ -21,13 +21,13 @@ class DisplayModel__Neuron_Base:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("my_model", "config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "output_layer", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("my_model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
 
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
         return f"Neuron {self.label})"
-    def __init__(self, my_model, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float):
+    def __init__(self, my_model, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float, is_input = ""):
         self.model_id               = model_id
         self.my_model               = my_model
         self.config                 = self.my_model.config
@@ -38,7 +38,8 @@ class DisplayModel__Neuron_Base:
         self.nid                    = nid
         self.layer                  = layer
         self.position               = position
-        self.output_layer           = output_layer
+        #self.output_layer           = output_layer
+        self.is_output              = output_layer == layer
         self.max_activation         = max_activation
         self.label                  = f"{layer}-{position}"
 
@@ -81,6 +82,8 @@ class DisplayModel__Neuron_Base:
             if self.text_version == "Verbose":
                 self.banner_text = f"Hidden Neuron {self.label}"
         #self.neuron_build_text = self.neuron_build_text_large if text_version == "Verbose" else self.neuron_build_text_small
+        self.is_input              = is_input
+        #ez_debug(inorout=is_input)
         self._from_base_constructor()
 
     def _from_base_constructor(self) -> bool:
@@ -233,7 +236,7 @@ class DisplayModel__Neuron_Base:
         self.draw_lines_forward_pass_only(2)
         self.draw_popup_vertical_divider_between_forward_and_backprop()
         self.draw_highlighted_popup_cell(len(self.weights)+2, 5)
-        blame_y = 10 if self.layer == self.output_layer else 12
+        #blame_y = 10 if self.layer == self.output_layer else 12
         #TODO Fix this self.draw_highlighted_popup_cell(len(self.weights*2)+1, blame_y)
 
     def draw_lines_for_header(self, extra_row : int):
@@ -549,7 +552,7 @@ class DisplayModel__Neuron_Base:
             else:
                 all_cols[i].append(" ")
 
-        if self.layer == self.output_layer: # This is an output neuron
+        if self.is_output: # This is an output neuron
             return self.tooltip_columns_for_error_sig_outputlayer(all_cols)
         else:
             return self.tooltip_columns_for_error_sig_hiddenlayer(all_cols)

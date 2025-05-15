@@ -27,7 +27,7 @@ class ReproducibilitySnapshot:
 
     @classmethod
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
-    def from_config(cls, config, last_mae: float):
+    def from_config(cls, config, last_mae: float, random_seed):
         return cls(
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
@@ -41,7 +41,7 @@ class ReproducibilitySnapshot:
             ).name,
             weight_initializer_name=config.initializer.name,
             normalization_scheme="WIP",
-            seed=config.hyper.random_seed,
+            seed=random_seed,
             learning_rate=config.learning_rate,
             epoch_count=config.final_epoch,
             convergence_condition=config.cvg_condition or "None",

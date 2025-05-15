@@ -19,13 +19,13 @@ class DisplayModel__NeuronScalers:
     def __init__(self, neuron, ez_printer):
         # Configuration settings
         self.padding_top                = 5
-        self.gap_between_bars    = 0
+        self.gap_between_bars           = 0
         self.gap_between_weights        = 0
         self.BANNER_HEIGHT              = 29  # 4 pixels above + 26 pixels total height #TODO this should be tied to drawing banner rather than a const
         self.right_margin               = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.padding_bottom             = 3
         self.bar_border_thickness       = 1
-        self.max_oval_height            =       40
+        self.max_oval_height            = 40
         self.oval_overhang              =   1.1
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
@@ -38,32 +38,41 @@ class DisplayModel__NeuronScalers:
         # Weight mechanics
         self.ez_printer                 = ez_printer
         self.my_fcking_labels           = [] # WARNING: Do NOT rename. Debugging hell from Python interpreter defects led to this.
-        self.label_y_positions          = [] # ffor outgoing arrows
+        self.label_y_positions          = [] # for outgoing arrows
         self.need_label_coord           = True #track if we recorded the label positions for the arrows to point from
-        self.num_weights = 0
-        self.neuron_height = self.neuron.location_height
+        self.num_weights                = 0
+        self.neuron_height              = self.neuron.location_height
 
 
     def render(self):                   #self.debug_weight_changes()
 
-        rs = Const.dm.get_model_iteration_data()
-        #ez_debug(rs=rs)
-        unscaled_inputs = rs.get("inputs", "[]")
-        scaled_inputs   = rs.get("inputs_unscaled", "[]")
-        self.num_weights = len(scaled_inputs)
-        #ez_debug(In_Render=self.neuron.model_id)
+        if self.neuron.is_input:
+            self.draw_scale_oval("inputs", "inputs_unscaled")
+        else:
+            self.draw_scale_oval("prediction_unscaled", "prediction")
 
-        self.draw_scale_oval(scaled_inputs, unscaled_inputs)
-        #ez_debug(my_fcking_labels=self.my_fcking_labels)
-
-    def draw_scale_oval(self, scaled_inputs, unscaled_inputs):
+    def draw_scale_oval(self, left_field, right_field):
         """
         Changed for Input Scaler.
         This function ensures ovals are evenly spaced and positioned inside the neuron.
         """
         rs = Const.dm.get_model_iteration_data()
-        unscaled_inputs = json.loads(rs.get("inputs", "[]"))
-        scaled_inputs   = json.loads(rs.get("inputs_unscaled", "[]"))
+
+        def load_list(raw):
+            # if it’s a JSON‐string list, parse it…
+            if isinstance(raw, str):
+                return json.loads(raw)
+            # if it’s already a list, use it…
+            if isinstance(raw, list):
+                return raw
+            # if it’s a bare number (float/int), wrap it into a one-element list
+            if isinstance(raw, (int, float)):
+                return [raw]
+            # fallback to empty
+            return []
+
+        unscaled_inputs = load_list(rs.get(left_field,  "[]"))
+        scaled_inputs   = load_list(rs.get(right_field, "[]"))
         self.num_weights = len(scaled_inputs)
 
         # 1) figure out our oval size
@@ -80,14 +89,13 @@ class DisplayModel__NeuronScalers:
 
         # 2) draw the header (same hack you had before)
         start_x = self.neuron.location_left
-        start_y =             self.neuron.location_top-5
+        start_y = self.neuron.location_top-5
 
         self.draw_oval_with_text(
             self.neuron.screen,
             start_x,
             start_y,
             oval_width,
-
             35,
             False,      #overhang
             "",
@@ -132,9 +140,6 @@ class DisplayModel__NeuronScalers:
                 )
 
         self.need_label_coord = False
-
-
-
 
     @staticmethod
     def _compute_oval_y_positions(

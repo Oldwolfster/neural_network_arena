@@ -24,7 +24,12 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         if self.text_version == "Verbose":
             self.banner_text = "Scaler"
         else:
-            self.banner_text = "Input Scaler"
+            if self.is_input == True:
+                self.banner_text = "Input Scaler"
+                #ez_debug(banner=self.banner_text,inorout=self.is_input)
+            else:
+                self.banner_text = "UnScaled Prediction"
+                #ez_debug(banner=self.banner_text,inorout=self.is_input)
 
     def draw_neuron(self):
         """Draw the neuron visualization."""
@@ -46,7 +51,10 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         # Draw the neuron body below the label
         body_y_start = self.location_top + label_strip_height
         body_height = self.location_height - label_strip_height
-        pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
+        body_rect =     (self.location_left, body_y_start, self.location_width, body_height)
+        #pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
+        pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, body_rect, border_radius=6, width=7)
+        #print(f"drawing scaler neuron at = {body_rect}")
 
         # Draw neuron banner
         banner_rect = pygame.Rect(self.location_left, self.location_top + 4, self.location_width, label_strip_height)
