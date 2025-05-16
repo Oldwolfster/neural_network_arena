@@ -25,15 +25,16 @@ class DisplayModel__NeuronScalerPrediction:
         self.right_margin               = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.padding_bottom             = 3
         self.bar_border_thickness       = 1
-        self.max_oval_height            = 40
-        self.oval_overhang              =   1.1
+        self.oval_height                = 24
+        self.oval_overhang              =   1.069
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
         # Neuron attributes
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
         self.num_weights                = 0
-        self.bar_height                 = 0
+        self.bar_height                 = 20
         self.max_activation             = 0
+
 
         # Weight mechanics
         self.ez_printer                 = ez_printer
@@ -46,44 +47,18 @@ class DisplayModel__NeuronScalerPrediction:
 
     def render(self):                   #self.debug_weight_changes()
 
-        if self.neuron.is_input:
-            self.draw_scale_oval("inputs", "inputs_unscaled")
-        else:
-            self.draw_scale_oval("prediction_unscaled", "prediction")
-
-    def draw_scale_oval(self, left_field, right_field):
-        """
-        Changed for Input Scaler.
-        This function ensures ovals are evenly spaced and positioned inside the neuron.
-        """
         rs = Const.dm.get_model_iteration_data()
-        ez_debug(rs=rs)
-        def load_list(raw):
-            # if it’s a JSON‐string list, parse it…
-            if isinstance(raw, str):
-                return json.loads(raw)
-            # if it’s already a list, use it…
-            if isinstance(raw, list):
-                return raw
-            # if it’s a bare number (float/int), wrap it into a one-element list
-            if isinstance(raw, (int, float)):
-                return [raw]
-            # fallback to empty
-            return []
+        #ez_debug(rs=rs)
+        prediction_raw      = rs.get("prediction_raw",  "[]")
+        prediction_unscaled = rs.get("prediction_unscaled",  "[]")
+        target_raw          = rs.get("target",  "[]")
+        target_unscaled     = rs.get("target_unscaled",  "[]")
+        error_raw           = target_raw - prediction_raw
+        error_unscaled      = target_unscaled - prediction_unscaled
 
-        unscaled_inputs = load_list(rs.get(left_field,  "[]"))
-        scaled_inputs   = load_list(rs.get(right_field, "[]"))
-        self.num_weights = len(scaled_inputs)
+        prediction_unscaled=smart_format(prediction_unscaled)
+        #ez_debug(prediction_unscaled=prediction_unscaled)
 
-        # 1) figure out our oval size
-        self.bar_height = 1 * self.calculate_bar_height(
-            num_weights=self.num_weights,
-            neuron_height=self.neuron_height,
-            padding_top=self.padding_top,
-            padding_bottom=self.padding_bottom,
-            gap_between_bars=self.gap_between_bars,
-            gap_between_weights=self.gap_between_weights
-        )
         oval_width  = self.neuron.location_width
         oval_height = self.bar_height
 
@@ -91,125 +66,98 @@ class DisplayModel__NeuronScalerPrediction:
         start_x = self.neuron.location_left
         start_y = self.neuron.location_top-5
 
+        #Draws the 3d looking oval behind the header to differentiate
+        #self.draw_oval_with_text(     start_x,            start_y,            oval_width,            35,            False,      #overhang            "",            "Scaler",            "",            self.font        )
+
+        start_y = 60
+        oval1_y = start_y
+        oval2_y = start_y + self.oval_height*2
+        oval3_y = start_y + self.oval_height*4
+        self.output_one_set(self.neuron.location_left- self.oval_overhang
+                            , self.neuron.location_top + oval1_y
+                            , target_raw,"Target", target_unscaled)
+
+        self.output_one_set(self.neuron.location_left- self.oval_overhang
+                            , self.neuron.location_top + oval2_y
+                            , prediction_raw,"Prediction", prediction_unscaled)
+
+        self.output_one_set(self.neuron.location_left- self.oval_overhang
+                            , self.neuron.location_top + oval3_y
+                            , error_raw,"Error", error_unscaled)
+
+    def output_one_set(self, x_pos, y_pos, label, raw_value, unscaled_value):
         self.draw_oval_with_text(
-            self.neuron.screen,
-            start_x,
-            start_y,
-            oval_width,
-            35,
-            False,      #overhang
-            "",
-            "Scaler",
-            "",
-            self.font
+            x_pos,
+            y_pos,
+            self.neuron.location_width + self.oval_overhang*2,
+            True,
+            label,
+            raw_value,
+            unscaled_value,
+            oval_color=Const.COLOR_BLUE,
+            text_color=Const.COLOR_WHITE,
+            padding=8
         )
-
-        # 3) compute the exact y-positions for each input
-        scale_methods = self.neuron.config.scaler.get_scaling_names()
-        y_positions = DisplayModel__NeuronScalers._compute_oval_y_positions(
-            top=self.neuron.location_top,
-            total_height=self.neuron_height,
-            banner_height=self.BANNER_HEIGHT,
-            padding_top=self.padding_top,
-            padding_bottom=self.padding_bottom,
-            num_items=self.num_weights,
-            oval_height=oval_height,
-            min_gap=self.gap_between_weights
-        )
-
-        # 4) draw each input oval, record labels once
-        for i, ((scaled, unscaled), method, y_pos) in enumerate(
-            zip(zip(scaled_inputs, unscaled_inputs), scale_methods, y_positions)
-        ):
-            self.draw_oval_with_text(
-                self.neuron.screen,
-                start_x,
-                y_pos,
-                oval_width,
-                oval_height,
-                True,
-                scaled,
-                method,
-                unscaled,
-                self.font
+        if self.need_label_coord:
+            self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos))
+            self.label_y_positions.append(
+                (x_pos + self.neuron.location_width + 5, y_pos)
             )
-            if self.need_label_coord:
-                self.my_fcking_labels.append((start_x, y_pos))
-                self.label_y_positions.append(
-                    (start_x + self.neuron.location_width + 20, y_pos)
-                )
-
         self.need_label_coord = False
 
-    @staticmethod
-    def _compute_oval_y_positions(
-        top: float,
-        total_height: float,
-        banner_height: float,
-        padding_top: float,
-        padding_bottom: float,
-        num_items: int,
-        oval_height: float,
-        min_gap: float
-    ) -> list[float]:
+    def draw_oval_with_text(
+        self,        x, y,
+        proposed_width,  overhang,
+        text1, text2, text3,
+        oval_color=(Const.COLOR_BLUE),
+        text_color=(Const.COLOR_WHITE),
+        padding=8
+    ):
         """
-        Return y-coordinates so that the (num_items + 1) gaps
-        — above the first, between each, and below the last —
-        are all equal (never smaller than min_gap).
+        Draws a horizontal oval of size (width×height) at (x,y),
+        then left-aligns text1 in the left half-circle,
+              center-aligns text2 in the middle,
+              right-aligns text3 in the right half-circle.
         """
-        if num_items < 1:
-            return []
+        # 1) draw the shape
 
-        # total free space after carving out header, paddings, and ovals
-        free = (
-            total_height
-            - banner_height
-            - padding_top
-            - padding_bottom
-            - num_items * oval_height
-        )
-        gaps = num_items + 1
-        raw_gap = free / gaps
-        gap = max(raw_gap, min_gap)
+        if overhang:
+            width = proposed_width * 1.1
+            pill_rect = pygame.Rect(x- proposed_width*.05, y, width, self.oval_height)
+        else:
+            width = proposed_width
+            pill_rect = pygame.Rect(x, y, width, self.oval_height)
 
-        y = top + padding_top + banner_height + gap
-        positions = []
-        for _ in range(num_items):
-            positions.append(y)
-            y += oval_height + gap
-        return positions
+        self.draw_pill( pill_rect, oval_color)
 
+        # 2) compute the three areas
+        radius = self.oval_height // 2
 
+        label_area  = pygame.Rect(x + 1, y- self.oval_height   *  .69,   width - 2*radius-11, self.oval_height)
+        left_area   = pygame.Rect(x, y,            self.oval_height, self.oval_height)
+        right_area  = pygame.Rect(x + width - self.oval_height, y, self.oval_height, self.oval_height)
+        # 3) blit the three texts
+        self.blit_text_aligned(self.neuron.screen, smart_format(text1), self.font, text_color, left_area,   'left',   padding)
+        self.blit_text_aligned(self.neuron.screen, text2, self.font, Const.COLOR_BLACK, label_area, 'left', padding)
+        self.blit_text_aligned(self.neuron.screen, "Unscaled", self.font, Const.COLOR_BLACK, label_area, 'right', padding)
+        self.blit_text_aligned(self.neuron.screen, smart_format(text3), self.font, text_color, right_area,  'right',  padding+30)
 
-    def calculate_bar_height(self, num_weights, neuron_height, padding_top, padding_bottom, gap_between_bars, gap_between_weights):
+    def draw_pill(self,  rect, color):
         """
-        Calculate the height of each weight bar dynamically based on available space.
-
-        :param num_weights: Number of weights for the neuron
-        :param neuron_height: Total height of the neuron
-        :param padding_top: Space above the first set of bars
-        :param padding_bottom: Space below the last set of bars
-        :param gap_between_bars: Gap between the two bars of the same weight
-        :param gap_between_weights: Gap between different weights
-        :return: The calculated height for each individual bar
+        Draws a horizontal pill (oval the long way) into rect:
+        two half-circles on the ends plus a connecting rectangle.
         """
-        # Calculate available space after removing padding
-        available_height = neuron_height - (padding_top + padding_bottom + self.BANNER_HEIGHT)
+        x, y, w, h = rect
+        radius = h // 2
 
-        # Each weight has two bars, so total bar slots = num_weights * 2
-        total_gaps = (num_weights * gap_between_weights) + (num_weights * 2 - 1) * gap_between_bars
+        # center rectangle
+        center_rect = pygame.Rect(x + radius, y, w - 2*radius, h)
+        #ez_debug(center_rect=center_rect)
+        pygame.draw.rect(self.neuron.screen, color, center_rect)
 
-        # Ensure the remaining space is distributed across all bars
-        if total_gaps >= available_height:
-            raise ValueError(f"Not enough space in neuron height to accommodate weights and gaps.\nNeuron Height: {neuron_height}, Available Height: {available_height},\nTotal Gaps: {total_gaps}, Computed Bar Height: {bar_height}" )
-
-        # Compute actual bar height
-        total_bar_height = available_height - total_gaps
-        bar_height = total_bar_height / (num_weights * 2)
-
-        return bar_height
-
-
+        # end-caps
+        pygame.draw.circle(self.neuron.screen, color, (x + radius, y + radius), radius)
+        pygame.draw.circle(self.neuron.screen, color, (x + w - radius, y + radius), radius)
 
     def blit_text_aligned(self, surface, text, font, color, area_rect, align, padding=5):
         """
@@ -230,62 +178,3 @@ class DisplayModel__NeuronScalerPrediction:
             r.centerx = area_rect.centerx
 
         surface.blit(surf, r)
-
-
-    def draw_oval_with_text(
-        self,
-        surface,
-        x, y,
-        proposed_width, proposed_height, overhang,
-        text1, text2, text3,
-        font,
-        oval_color=(Const.COLOR_BLUE),
-        text_color=(Const.COLOR_WHITE),
-        padding=8
-    ):
-        """
-        Draws a horizontal oval of size (width×height) at (x,y),
-        then left-aligns text1 in the left half-circle,
-              center-aligns text2 in the middle,
-              right-aligns text3 in the right half-circle.
-        """
-        # 1) draw the shape
-        height = min(proposed_height, self.max_oval_height)
-        if overhang:
-            width = proposed_width * 1.1
-            pill_rect = pygame.Rect(x- proposed_width*.05, y, width, height)
-        else:
-            width = proposed_width
-            pill_rect = pygame.Rect(x, y, width, height)
-
-        self.draw_pill(surface, pill_rect, oval_color)
-
-        # 2) compute the three areas
-        radius = height // 2
-        # left half-circle bounding box
-        left_area   = pygame.Rect(x, y,            height, height)
-        # middle rectangle
-        middle_area = pygame.Rect(x + radius, y,   width - 2*radius, height)
-        # right half-circle bounding box
-        right_area  = pygame.Rect(x + width - height, y, height, height)
-
-        # 3) blit the three texts
-        self.blit_text_aligned(surface, smart_format(text1), self.font, text_color, left_area,   'left',   padding)
-        #self.blit_text_aligned(surface, text2, self.font_small, text_color, middle_area, 'center', padding)
-        self.blit_text_aligned(surface, smart_format(text3), self.font, text_color, right_area,  'right',  padding+30)
-
-    def draw_pill(self, surface, rect, color):
-        """
-        Draws a horizontal pill (oval the long way) into rect:
-        two half-circles on the ends plus a connecting rectangle.
-        """
-        x, y, w, h = rect
-        radius = h // 2
-
-        # center rectangle
-        center_rect = pygame.Rect(x + radius, y, w - 2*radius, h)
-        pygame.draw.rect(surface, color, center_rect)
-
-        # end-caps
-        pygame.draw.circle(surface, color, (x + radius, y + radius), radius)
-        pygame.draw.circle(surface, color, (x + w - radius, y + radius), radius)
