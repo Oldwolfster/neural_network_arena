@@ -18,7 +18,7 @@ class HyperParameters:
     display_train_data      :bool = True    # Display the training data at the end of the rn.
     run_neuroForge          :bool = True
     #is_exploratory          :bool = True    # Autotuning or testing - don't save
-    random_seed             :int       = 748141
+    random_seed             :int       = 599059 #748141
  #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
@@ -84,6 +84,10 @@ gladiators = [
 training_pit                = "XOR"
 #training_pit                = "CaliforniaHousePricesUSD"
 training_pit                = "Predict_Income_2_Inputs"
+#training_pit="Predict_Income_2_Inputs_Nonlinear"
+#training_pit="Predict_EnergyOutput__From_Weather_Turbine"
+#training_pit="Predict_TrafficFlow__From_Weather_Time_Events"
+#training_pit="StockPrice__From_Indicators"
 #training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
 #training_pit              = "Arena_CenteredData"
 #training_pit                = "Predict_MedicalCost_WithOutliers"

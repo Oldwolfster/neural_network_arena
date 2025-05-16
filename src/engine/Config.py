@@ -46,6 +46,7 @@ class Config:
         self.lowest_error: float                     = 1e50
         self.lowest_error_epoch                      = 0
         self._percent_off                               = None
+        self._accuracy_percent                      = None
         self.default_scalers                        = None
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
         #is_exploratory                          = False
@@ -116,6 +117,30 @@ class Config:
                 else:
                     self._percent_off = (self.lowest_error / mean_target) * 100
         return self._percent_off
+
+    @property
+    def accuracy_percent(self):
+        if self._accuracy_percent is None:
+            if self.training_data.problem_type == "Binary Decision":
+                SQL_MAX_ACC = """
+                    SELECT MAX(Accuracy) AS Accuracy
+                    FROM EpochSummary
+                    WHERE model_id = ?
+                """
+                result = self.db.query(SQL_MAX_ACC, (self.gladiator_name,))
+                if result and result[0].get("Accuracy") is not None:
+                    self._accuracy_percent = result[0]["Accuracy"]
+                else:
+                    self._accuracy_percent = 0.0
+            else:
+                mean_target = self.training_data.mean_absolute_target
+                if mean_target == 0:
+                    self._accuracy_percent = 0.0
+                else:
+                    raw_accuracy = 100.0 - ((self.lowest_error / mean_target) * 100)
+                    self._accuracy_percent = max(0.0, min(100.0, raw_accuracy))
+        return self._accuracy_percent
+
 
     def configure_popup_headers(self):
         (self.popup_headers, self.popup_operators,
