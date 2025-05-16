@@ -22,12 +22,17 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         #ez_debug(text_ver = self.text_version)
         self.location_width *= .9
         self.trunk_width    = 169
-        self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
+        #self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
         if self.is_input == True:
             self.banner_text = "Input Scaler"
+            self.neuron_visualizer      = DisplayModel__NeuronScalerInputs(self, self.ez_printer)
             #ez_debug(banner=self.banner_text,inorout=self.is_input)
         else:
-            self.banner_text = "UnScaled Prediction"
+            self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
+            if self.my_model.layer_width < 240:
+                self.banner_text = "UnScaler"
+            else:
+                self.banner_text = "UnScaled Prediction"
             #ez_debug(banner=self.banner_text,inorout=self.is_input)
 
     def draw_neuron(self):

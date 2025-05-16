@@ -78,6 +78,7 @@ class DisplayModel__Neuron_Base:
             if self.text_version == "Verbose":
                 self.banner_text = "Output Neuron"
         else:
+
             self.banner_text = self.label
             if self.text_version == "Verbose":
                 self.banner_text = f"Hidden Neuron {self.label}"

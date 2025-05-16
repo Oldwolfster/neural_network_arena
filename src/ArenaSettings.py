@@ -47,16 +47,12 @@ class HyperParameters:
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    #'Blackbird'    #'XOR_Hayabusa'
+
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
-    #'Simplified_Descent_03_AddingMax_Update'
     #'GBS'
-    #'NeuroForge_4Layers'
-    #'NeuroForge_CaliforniaHousing'
     #'Simplex'
     #'NeuroShepherd'
     #,'Simplex2'
-
     #'GBS'
     #'BCEWL_LR_Sweep'
    # 'BCEWL_LR_Set_to_point1'
@@ -65,7 +61,6 @@ gladiators = [
    #,'NeuroForge_Template'
    'All_Defaults'
     #,'Test_BCE'
-
     #'Test_BCE'
     #,'TestBatch'
     #,'Adam_Template'
@@ -74,7 +69,6 @@ gladiators = [
     #'GBS_Baseline'
     #'GBS_XOR'
     #'HayabusaNormalizer'
-
     #'_Template_Simpletron'
 ]
 
@@ -92,7 +86,6 @@ training_pit                = "Predict_Income_2_Inputs"
 #training_pit              = "Arena_CenteredData"
 #training_pit                = "Predict_MedicalCost_WithOutliers"
 #training_pit               = "Titanic"
-
 #training_pit                = "Predict_Income_Piecewise_Growth"
 #training_pit                = "Moons"
 #training_pit                = "Manual"

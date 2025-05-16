@@ -12,7 +12,7 @@ from src.engine.Utils import draw_rect_with_border, draw_text_with_background, e
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    __slots__ = ("last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
     def __init__(self, config: Config, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -27,6 +27,7 @@ class DisplayModel(EZSurface):
         self.buttons        = []
         self.config         = config
         self.arch_popup     = ArchitecturePopup(self, config)
+        self.layer_width        = 0 # Set in GenerateNeuron static class
 
         self.last_epoch     = config.final_epoch
         #print(f"self.last_epoch = {self.last_epoch}")
