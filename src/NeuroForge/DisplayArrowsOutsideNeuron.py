@@ -65,6 +65,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
         #for target_neuron in first_layer:  # 🔹 Loop through all neurons in first layer
         neuron_visualizer = model.input_scaler_neuron.neuron_visualizer
         for input_index, (start_x, start_y) in enumerate(input_positions[:-1]):  # 🔹 Track input index
+            #ez_debug(input_index=neuron_visualizer.my_fcking_labels)
             end_x = model.left + neuron_visualizer.my_fcking_labels[input_index][0]   # Get global X position
             end_y = model.top + neuron_visualizer.my_fcking_labels[input_index][1]    # Get global Y position
             start_x += -20
@@ -115,6 +116,13 @@ class DisplayArrowsOutsideNeuron(EZSurface):
 
             # ✅ Now create an arrow using the correct X and Y values
             self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
+            #From output layer to prediction scaler - coming from same place so no change to start_x and start_y
+            if model.config.scaler.target_is_scaled:
+                end_x = model.left + model.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][0]
+                end_y = model.top + model.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][1]
+                self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
 
     def render(self):
         #ez_debug(inputarrows =len(self.arrows_forward))

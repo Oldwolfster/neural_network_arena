@@ -73,6 +73,7 @@ class DisplayModel__NeuronScalerPrediction:
         oval1_y = start_y
         oval2_y = start_y + self.oval_height*2
         oval3_y = start_y + self.oval_height*4
+
         self.output_one_set(self.neuron.location_left- self.oval_overhang
                             , self.neuron.location_top + oval1_y
                             , target_raw,"Target", target_unscaled)
@@ -98,12 +99,15 @@ class DisplayModel__NeuronScalerPrediction:
             text_color=Const.COLOR_WHITE,
             padding=8
         )
-        if self.need_label_coord:
-            self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos))
+        #print(f"LABEL1 ={label}")
+        if self.need_label_coord and raw_value == "Prediction":
+            #print(f"LABEL2 ={label}")
+            self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos+ self.oval_height * .5))
             self.label_y_positions.append(
                 (x_pos + self.neuron.location_width + 5, y_pos)
             )
-        self.need_label_coord = False
+            self.need_label_coord = False
+
 
     def draw_oval_with_text(
         self,        x, y,
@@ -136,10 +140,16 @@ class DisplayModel__NeuronScalerPrediction:
         label_area  = pygame.Rect(x + 1, y- self.oval_height   *  .69,   width - 2*radius-11, self.oval_height)
         left_area   = pygame.Rect(x, y,            self.oval_height, self.oval_height)
         right_area  = pygame.Rect(x + width - self.oval_height, y, self.oval_height, self.oval_height)
+        scale_label = "Unscaled"
+        if self.neuron.my_model.layer_width < 195:
+            scale_label = ""    #not enough room so remove it.
+        if self.neuron.my_model.layer_width < 160:
+            text1 = ""    #not enough room so remove it.
+
         # 3) blit the three texts
         self.blit_text_aligned(self.neuron.screen, smart_format(text1), self.font, text_color, left_area,   'left',   padding)
         self.blit_text_aligned(self.neuron.screen, text2, self.font, Const.COLOR_BLACK, label_area, 'left', padding)
-        self.blit_text_aligned(self.neuron.screen, "Unscaled", self.font, Const.COLOR_BLACK, label_area, 'right', padding)
+        self.blit_text_aligned(self.neuron.screen, scale_label, self.font, Const.COLOR_BLACK, label_area, 'right', padding)
         self.blit_text_aligned(self.neuron.screen, smart_format(text3), self.font, text_color, right_area,  'right',  padding+30)
 
     def draw_pill(self,  rect, color):

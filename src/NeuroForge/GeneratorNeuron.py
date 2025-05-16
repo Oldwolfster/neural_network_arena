@@ -71,6 +71,7 @@ class GeneratorNeuron:
         nid = 0
         true_layer_index = 0            # this WILL NOT include 'special layers' like layer index does.
 
+
         # Arrange Neurons one layer at a time
         for layer_index, neuron_count in enumerate(full_architecture):
             x_position = layer_index * layer_width + ((layer_index+1) * gap_width)
@@ -78,6 +79,9 @@ class GeneratorNeuron:
             nid += abs(neuron_count) #not in use - class level one works... this oneis buggy
             if neuron_count > 0: true_layer_index += 1
         GeneratorNeuron.separate_graph_holder_from_neurons()
+        GeneratorNeuron.model.layer_width = layer_width
+        print(f" layer_width = {layer_width}")
+
 
 
     @staticmethod
