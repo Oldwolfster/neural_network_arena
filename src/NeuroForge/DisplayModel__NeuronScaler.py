@@ -12,7 +12,7 @@ import json
 from src.engine.Utils_DataClasses import ez_debug
 
 from src.NeuroForge.DisplayModel__Neuron_Base import DisplayModel__Neuron_Base
-from src.NeuroForge.DisplayModel__NeuronScalers import  DisplayModel__NeuronScalers
+from src.NeuroForge.DisplayModel__NeuronScalerInputs import  DisplayModel__NeuronScalerInputs
 from src.engine.Utils_DataClasses import ez_debug
 
 class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
@@ -20,7 +20,8 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         """Called from DisplayModel_Neuron_Base constructor"""
         #ez_debug(text_ver = self.text_version)
         self.location_width *= .9
-        self.neuron_visualizer      = DisplayModel__NeuronScalers(self, self.ez_printer)
+        self.trunk_width    = 169
+        self.neuron_visualizer      = DisplayModel__NeuronScalerInputs(self, self.ez_printer)
         if self.text_version == "Verbose":
             self.banner_text = "Scaler"
         else:
@@ -37,10 +38,6 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         # Font setup
         font = pygame.font.Font(None, 30) #TODO remove and use EZ_Print
 
-        # Render visual elements
-        if hasattr(self, 'neuron_visualizer') and self.neuron_visualizer:
-            #ez_debug(In_Visualizer_renderCall=self.neuron_visualizer)
-            self.neuron_visualizer.render() #, self, body_y_start)
 
         #ez_debug(In_scaler_print=self.banner_text)
         # Banner text
@@ -51,10 +48,18 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         # Draw the neuron body below the label
         body_y_start = self.location_top + label_strip_height
         body_height = self.location_height - label_strip_height
-        body_rect =     (self.location_left, body_y_start, self.location_width, body_height)
+
+        body_rect = (self.location_left, body_y_start, self.location_width, body_height)
         #pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
         pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, body_rect, border_radius=6, width=7)
         #print(f"drawing scaler neuron at = {body_rect}")
+
+
+        # Render visual elements
+        if hasattr(self, 'neuron_visualizer') and self.neuron_visualizer:
+            #ez_debug(In_Visualizer_renderCall=self.neuron_visualizer)
+            self.neuron_visualizer.render() #, self, body_y_start)
+
 
         # Draw neuron banner
         banner_rect = pygame.Rect(self.location_left, self.location_top + 4, self.location_width, label_strip_height)
@@ -62,8 +67,4 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         self.screen.blit(label_surface, (self.location_left + 5, self.location_top + 5 + (label_strip_height - label_surface.get_height()) // 2))
         right_x = self.location_left + self.location_width - output_surface.get_width() - 5
         self.screen.blit(output_surface, (right_x, self.location_top + 5 + (label_strip_height - output_surface.get_height()) // 2))
-
-
-
-
 

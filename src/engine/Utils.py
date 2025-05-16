@@ -45,6 +45,21 @@ def draw_text_with_background(screen, value_to_print, x, y, font_size, text_colo
     screen.blit(text_surface, text_rect)
 
 
+
+def format_percent(x: float, decimals: int = 2) -> str:
+        """
+        Format a fraction x (e.g. 0.9999) as a percentage string:
+          • two decimal places normally → "99.99%"
+          • no trailing .00 → "100%"
+        """
+        # 1) turn into a fixed-decimal string, e.g. "100.00" or " 99.99"
+        s = f"{x * 100:.{decimals}f}"
+        # 2) drop any trailing zeros and then a trailing dot
+        s = s.rstrip("0").rstrip(".")
+        # 3) tack on the percent sign
+        return s + "%"
+
+
 def check_label_collision(new_label_rect, existing_labels_rects):
     """
     Checks if the new label's rect collides with any of the existing label rectangles.

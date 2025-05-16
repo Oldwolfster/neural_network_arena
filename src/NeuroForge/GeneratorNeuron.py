@@ -82,7 +82,7 @@ class GeneratorNeuron:
 
     @staticmethod
     def create_layer(x_position, layer_width, layer_index, neuron_count, max_neuron_size, min_gap, available_height, max_act, true_layer_index):
-        print(f"creating layer {layer_index} with {neuron_count} neurons  - nid = {GeneratorNeuron.nid}")
+        #print(f"creating layer {layer_index} with {neuron_count} neurons  - nid = {GeneratorNeuron.nid}")
         neuron_height, gap_width = (GeneratorNeuron.calculate_column_width
                                     (abs(neuron_count), max_neuron_size, min_gap, available_height))
         #print(f"GeneratorNeuron.model = {GeneratorNeuron.model }")

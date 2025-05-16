@@ -40,20 +40,40 @@ class DisplayModel(EZSurface):
         #_, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
         btn = Button_Base(
-                 text=f"{beautify_text(self.config.gladiator_name)}",
-                 width_pct=10, height_pct=4, left_pct=1, top_pct=1,
-                 on_click=self.show_info,
-                 on_hover=lambda: self.arch_popup.show_me(),
-                 shadow_offset=-5, auto_size=True, my_surface=self.surface,text_line2=f"Error: {self.lowest_error} ", surface_offset=(self.left, self.top))
+                text=f"{beautify_text(self.config.gladiator_name)}",
+                width_pct=10, height_pct=4, left_pct=1, top_pct=1,
+                on_click=self.show_info,
+                on_hover=lambda: self.arch_popup.show_me(),
+                shadow_offset=-5, auto_size=True, my_surface=self.surface,
+                text_line2=f"Accuracy: {self.format_percent(self.config.accuracy_percent)} ",
+                surface_offset=(self.left, self.top))
 
         self.buttons.append(btn)
 
 
         self.hoverlings.extend(self.buttons)
 
+
     @property
     def lowest_error(self):
-        return f"{smart_format(self.config.lowest_error)}({smart_format(self.config.percent_off)}%) at {self.config.lowest_error_epoch}"
+        return f"{smart_format(self.config.lowest_error)} at {self.config.lowest_error_epoch}"
+
+
+
+    def format_percent(self, x: float, decimals: int = 2) -> str:
+        """
+        Format a fraction x (e.g. 0.9999) as a percentage string:
+          • two decimal places normally → "99.99%"
+          • no trailing .00 → "100%"
+        """
+        # 1) turn into a fixed-decimal string, e.g. "100.00" or " 99.99"
+        s = f"{x:.{decimals}f}"
+        # 2) drop any trailing zeros and then a trailing dot
+        s = s.rstrip("0").rstrip(".")
+        # 3) tack on the percent sign
+        return s + "%"
+
+
     @property
     def display_epoch(self):
         """

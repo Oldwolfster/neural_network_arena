@@ -5,7 +5,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
 from src.engine.Utils import draw_gradient_rect
-
+from src.engine.Utils import smart_format
 
 class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):
@@ -26,6 +26,11 @@ class DisplayModel__Graph():
 
         # Build and store the plot surface once.
         self.plot_surface = self.create_plot_surface_from_results()
+
+        # Create header text
+        self.header_text = "Error History"
+        self.error_text = f"{smart_format(my_model.config.lowest_error)} at {my_model.config.lowest_error_epoch} "
+        self.font = pygame.font.Font(None, 30)
 
     def process_an_event(self, event):
         """Handles UI events and sends commands to VCR.
@@ -118,20 +123,22 @@ class DisplayModel__Graph():
     def render(self):
         """Called once per pygame loop"""
         # Blit the pre-rendered plot onto the EZSurface's surface.
-
         self.model_surface.blit(self.plot_surface, (self.location_left, self.location_top + 30))
+
+        #Create header
+
         self.draw_graph_frame()
 
     def update_me(self):
         """Graph will not change"""
         pass
 
-    def draw_graph_frame(self, label_text="Error History"):
+    def draw_graph_frame(self):
         """Draws a frame styled like a neuron with a banner and border."""
-        font = pygame.font.Font(None, 30)
+
 
         # === Banner ===
-        banner_height = font.get_height() + 8
+        banner_height = self.font.get_height() + 8
         banner_rect = pygame.Rect(self.location_left, self.location_top+ 3, self.location_width, banner_height)
         # === Border (below banner) ===
         body_top = self.location_top + banner_height
@@ -144,8 +151,13 @@ class DisplayModel__Graph():
             width=7
         )
         draw_gradient_rect(self.model_surface, banner_rect, Const.COLOR_FOR_BANNER_START, Const.COLOR_FOR_BANNER_END)
-        label_surface = font.render(label_text, True, Const.COLOR_FOR_NEURON_TEXT)
+        label_surface = self.font.render(self.header_text, True, Const.COLOR_FOR_NEURON_TEXT)
         self.model_surface.blit(
             label_surface,
             (self.location_left + 5, self.location_top + 5 + (banner_height - label_surface.get_height()) // 2)
+        )
+        label_surface = self.font.render(self.error_text, True, Const.COLOR_BLACK)
+        self.model_surface.blit(
+            label_surface,
+            (self.location_left + 15, self.location_top + self.location_height - label_surface.get_height() - 5 )
         )

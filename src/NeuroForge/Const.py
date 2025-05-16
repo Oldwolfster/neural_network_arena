@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING
 from src.engine.Config import Config
 from copy import deepcopy
 from src.Legos.Scalers import *
+import pygame
 
 # ==============================
 # Global References
@@ -113,6 +114,11 @@ JUMP_TO_EPOCH       = 0
 FONT_SIZE_WEIGHT    = 24
 FONT_SIZE_SMALL     = 20
 #COLOR_NEURONS  = True
+
+# ==============================
+# Fonts
+# ==============================
+#FONT_NEURON_BANNER =  pygame.font.Font(None, 30)
 
 # ==============================
 # Colors
