@@ -47,7 +47,7 @@ class Config:
         self.lowest_error_epoch                      = 0
         self._percent_off                               = None
         self._accuracy_percent                      = None
-        self.default_scalers                        = None
+        #self.default_scalers                        = None
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
         #is_exploratory                          = False
         self.popup_headers                           = None #TODO Standardize these 4 names.
@@ -132,8 +132,12 @@ class Config:
                     self._accuracy_percent = result[0]["Accuracy"]
                 else:
                     self._accuracy_percent = 0.0
-            else:
-                mean_target = self.training_data.mean_absolute_target
+            else: # for regression it is percent within target
+                if self.scaler.target_is_scaled:
+                    mean_target = self.scaler.mean_target
+                else:
+                    mean_target = self.training_data.mean_absolute_target
+                ez_debug(mean_target=mean_target,lowest_err=self.lowest_error,isscaled=self.scaler.target_is_scaled)
                 if mean_target == 0:
                     self._accuracy_percent = 0.0
                 else:

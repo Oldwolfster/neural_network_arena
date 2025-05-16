@@ -169,5 +169,5 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         # Assign the labels to hyperparameters and return
         self.shared_hyper.data_labels = labels
         td.arena_name = training_pit
-        record_training_data(td.get_list())
+        #Deprecated - use random seed instead record_training_data(td.get_list())
         return td

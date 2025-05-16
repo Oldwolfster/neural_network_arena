@@ -25,7 +25,7 @@ class DisplayModel__NeuronScalerInputs:
         self.right_margin               = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.padding_bottom             = 3
         self.bar_border_thickness       = 1
-        self.max_oval_height            = 40
+        self.max_oval_height            = 24
         self.oval_overhang              =   1.1
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
