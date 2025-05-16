@@ -12,6 +12,7 @@ class MultiScaler:
         self.scaled_samples = []  # ← Packed [inputs..., target]
         self.unscaled_samples = training_data.get_list()
         self.not_set_yet = False
+        self.mean_target = None
 
     def set_input_scaler(self, scaler, index):
         if index == len(self.scalers) - 1:
@@ -52,6 +53,9 @@ class MultiScaler:
         inputs = list(zip(*self.scaled_data[:-1]))  # all but last column
         targets = self.scaled_data[-1]
         self.scaled_samples = [list(inp) + [target] for inp, target in zip(inputs, targets)]
+
+        # compute and store mean of the *scaled* targets
+        self.mean_target = sum(targets) / len(targets)
 
         #print(f"raw    data\t{raw_samples[:4]}")
         #print(f"scaled data\t{self.scaled_data}")

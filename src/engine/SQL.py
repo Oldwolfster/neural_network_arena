@@ -12,7 +12,7 @@ def record_training_data(training_data: list[tuple[float, ...]]):
     conn.close()
 
 
-def insert_training_data(conn, training_data: list[tuple[float, ...]]):
+def insert_training_dataDEPRECATED_USE_RAND_SEED_INSTEAD(conn, training_data: list[tuple[float, ...]]):
     cursor = conn.cursor()
     run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     timestamp = datetime.datetime.now()
