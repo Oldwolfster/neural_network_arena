@@ -60,26 +60,6 @@ Glossary_RawAdjustment = Glossary(
     """
 )
 
-Glossary_BlameShare = Glossary(
-    old_name="Weighted Error" or "Part of the chain rule",
-    new_name="Blame Share",
-    why_old_name_sucks="""
-        Most sources don’t name this step at all, or call it something vague like 'weighted error'.
-        But it’s the clearest part of the process: passing on your blame proportionally.
-        """,
-    definition="""
-        After a neuron receives its own blame, it divides that blame among the neurons that fed into it.
-
-        This process is based on how much influence each input had.  
-        → `Blame Share = My Blame × Input Weight to that neuron`
-
-        Think of blame as a pie:  
-        This neuron slices it up based on who helped it make the mistake.
-        Each upstream neuron receives their **Blame Share**.
-        """
-)
-
-
 Glossary_IncomingBlame = Glossary(
     old_name="Pre-activation error signal",
     new_name="Incoming Blame",
@@ -112,6 +92,25 @@ Glossary_AcceptedBlame = Glossary(
 
         This is what the neuron uses to adjust its own weights — it’s saying:
         “Okay, given how active I was, this is how much of the mistake I’ll take responsibility for.”
+        """
+)
+
+Glossary_BlameShare = Glossary(
+    old_name="Weighted Error" or "Part of the chain rule",
+    new_name="Blame Share",
+    why_old_name_sucks="""
+        Most sources don’t name this step at all, or call it something vague like 'weighted error'.
+        But it’s the clearest part of the process: passing on your blame proportionally.
+        """,
+    definition="""
+        After a neuron receives its own blame, it divides that blame among the neurons that fed into it.
+
+        This process is based on how much influence each input had.  
+        → `Blame Share = My Blame × Input Weight to that neuron`
+
+        Think of blame as a pie:  
+        This neuron slices it up based on who helped it make the mistake.
+        Each upstream neuron receives their **Blame Share**.
         """
 )
 

@@ -60,7 +60,7 @@ gladiators = [
     #,'test_newOpt'
    #,'NeuroForge_Template'
    'All_Defaults'
-    ,'BiggerIsNotBetter'
+    #,'BiggerIsNotBetter'
     #,'Test_BCE'
     #'Test_BCE'
     #,'TestBatch'
