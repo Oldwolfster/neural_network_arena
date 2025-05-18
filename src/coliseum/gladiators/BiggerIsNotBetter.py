@@ -23,7 +23,7 @@ class NeuroForge_Template(Gladiator):
         """ 👉  Anything prior to initializing neurons goes here
             💪  For example setting config options.        """
         #ez_debug(inp_scaler1 = config.input_scaler)
-        config.architecture         = [2, 1, 1, 1, 1]               # Neurons in hidden layers - output neuron(s) added automatically
+        config.architecture         = [2, 2, 6, 2, 1]               # Neurons in hidden layers - output neuron(s) added automatically
         config.learning_rate          = 1e-1
         #config.initializer          = Initializer_Xavier
         #config.output_activation    = Activation_NoDamnFunction
