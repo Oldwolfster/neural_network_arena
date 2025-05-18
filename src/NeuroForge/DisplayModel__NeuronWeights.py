@@ -24,6 +24,8 @@ class DisplayModel__NeuronWeights:
         self.right_margin               = 40  # SET IN ITITALNew: Space reserved for activation visualization
         self.padding_bottom             = 3
         self.bar_border_thickness       = 1
+        self.min_height_per_label       = 27
+
 
         # Neuron attributes
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
@@ -35,18 +37,18 @@ class DisplayModel__NeuronWeights:
         self.ez_printer                 = ez_printer
         self.my_fcking_labels           = [] # WARNING: Do NOT rename. Debugging hell from Python interpreter defects led to this.
         self.need_label_coord           = True #track if we recorded the label positions for the arrows to point from
-        self.initialize()
 
-    def initialize(self):
-        """
-        Anything that only needs to be determined once should be done here
-        i.e. doesn't change from iteration to iteration
-        """
-        self.num_weights = len(self.neuron.weights)
-        self.neuron_height = self.neuron.location_height
+        self.num_weights                = len(self.neuron.weights)
+        self.neuron_height              = self.neuron.location_height
+        self.print_weight_lbl           = False
 
         if self.num_weights > 0:
-            self.bar_height= self.calculate_bar_height(num_weights=self.num_weights, neuron_height=self.neuron_height, padding_top=self.padding_top,padding_bottom=self.padding_bottom, gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights)
+            self.bar_height                 = self.calculate_bar_height(num_weights=self.num_weights, neuron_height=self.neuron_height, padding_top=self.padding_top,padding_bottom=self.padding_bottom, gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights)
+            height_per_label                = self.neuron_height/self.num_weights
+            if self.neuron.nid==6:          print(f"height_per_label={height_per_label}")
+            self.print_weight_lbl           = height_per_label > self.min_height_per_label
+
+
 
     def render(self):                   #self.debug_weight_changes()
         self.draw_weight_bars()
@@ -239,6 +241,7 @@ class DisplayModel__NeuronWeights:
         if text_rect.right > self.neuron.screen.get_width():
             text_rect.right = self.neuron.screen.get_width() - 5
 
+        if not self.print_weight_lbl: return text_rect
         # Draw a semi-transparent background behind the text for readability
         bg_rect = text_rect.inflate(4, 2)  # Slight padding
         pygame.draw.rect(self.neuron.screen, (0, 0, 0, 150), bg_rect)  # Dark transparent background
@@ -269,7 +272,10 @@ class DisplayModel__NeuronWeights:
 
         if self.neuron.layer == 0 and self.neuron.location_left > text_rect.width + 5:
             label_x = self.neuron.location_left - text_rect.width -  3
+
+
             draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT, Const.COLOR_WHITE, Const.COLOR_BLUE, border_color=Const.COLOR_BLACK)
+
             # Record label loc for input arrows to go to.
             if self.need_label_coord:
                 self.my_fcking_labels.append((label_x-text_rect.width * 0.2, label_y))
