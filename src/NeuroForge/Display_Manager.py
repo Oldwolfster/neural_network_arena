@@ -29,15 +29,13 @@ class Display_Manager:
     """
     def __init__(self, configs: List[Config]):
         Const.configs       = configs  # Store all model configs
-        # MOVED TO EACH MODEL self.hoverlings: list     = None  # ✅ Store the neuron and objects that react when being hovered over
+
         self.the_hovered    = None # if an object is being hovered.
         self.hoverlings     = []
         self.t_data_popup   = PopupTrainingData(configs[0])
         self.info_popup     = PopupInfoButton()
         self.components     = []  # List for EZSurface-based components
         self.eventors       = []  # Components that need event handling
-        #self.each_framers  = []
-        #self.draw_lasters   = []
         self.models         = []  # List for display models
         self.db             = configs[0].db  # Temporary shortcut
         self.data_iteration = None
@@ -47,6 +45,7 @@ class Display_Manager:
         self.input_panel    = None
         self.base_window    = None
         Const.dm            = self
+        self._deferred_draws: list[tuple[callable, tuple, dict]] = [] #collect deferred calls here
 
         # Compute global max values across all models using Metrics module
         self.get_max_epoch_per_model(self.db)
@@ -70,7 +69,7 @@ class Display_Manager:
             for layer in model.neurons:
                 for neuron in layer:
                     model.hoverlings.append(neuron)
-        #############
+
     def populate_list_of_avaiable_frames(self):
         Const.vcr. recorded_frames = self.db.query("SELECT epoch, iteration from Weight group by epoch, iteration order by epoch, iteration",as_dict=False)
 
@@ -84,6 +83,12 @@ class Display_Manager:
             component.update_me()
 
 
+    def schedule_draw(self, fn: callable, *args, **kwargs):
+        """Enqueue a draw-call to run after all the regular renders."""
+        self._deferred_draws.append((fn, args, kwargs))
+
+
+
     def process_events(self, event):
         for component in self.eventors:            #print(f"Display Manager: event={event} ")
             component.process_an_event(event)
@@ -93,6 +98,13 @@ class Display_Manager:
         for component in self.components:            #print(f"Rendering: {component.child_name}")  # Print the subclass name
             component.draw_me()
 
+        # 2) now execute all the deferred draw calls
+        for fn, args, kwargs in self._deferred_draws:
+            #print(f"running delayed function{fn}")
+            fn(*args, **kwargs)
+
+        # 3) clear the queue for the next frame
+        self._deferred_draws.clear()
 
     def render_pop_up_window(self):
         """

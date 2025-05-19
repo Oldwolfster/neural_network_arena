@@ -114,6 +114,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
             end_x = Const.SCREEN_WIDTH *.91
             end_y = 239.96
 
+
             # ✅ Now create an arrow using the correct X and Y values
             self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
 

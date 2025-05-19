@@ -59,8 +59,9 @@ gladiators = [
     #'Hand_Tuned'
     #,'test_newOpt'
    #,'NeuroForge_Template'
-   #'All_Defaults'
+
     'BiggerIsNotBetter'
+    ,'All_Defaults'
     #,'Test_BCE'
     #'Test_BCE'
     #,'TestBatch'
