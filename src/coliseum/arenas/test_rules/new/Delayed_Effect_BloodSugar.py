@@ -1,3 +1,7 @@
+import random
+from typing import List, Tuple
+from src.engine.BaseArena import BaseArena
+
 class Delayed_Effect_BloodSugar(BaseArena):
     """
     The label depends on a delayed effect of the input.

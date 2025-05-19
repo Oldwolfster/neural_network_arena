@@ -115,12 +115,11 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
             self.config.lowest_error_epoch = epoch
 
         self.abs_error_for_epoch = 0 # Reset for next epoch
-
-        #print(f"VCR ===> MAE = {mae} from dict {epoch_metrics['mean_absolute_error']}")
-        self.epoch_curr_number+=1
-        epoch_metrics = self.get_metrics_from_ramdb(epoch)
-        val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
-        return val
+        self.epoch_curr_number += 1
+        #epoch_metrics = self.get_metrics_from_ramdb(epoch)
+        #val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
+        val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
+        return val #        #return "Did Not Converge"
 
     def get_metrics_from_ramdb(self, epoch: int) -> Dict[str, float]:
         """
@@ -152,6 +151,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
         """
+
         sample_row = weight_update_metrics[0]
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
@@ -169,7 +169,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print("Below is table content")
         #self.config.db.query_print(f"Select * from {table_name}")
 
-        self.config.db.executemany(sql, converted_rows)
+        self.config.db.executemany(sql, converted_rows,"weight adjustments")
         #print("Insert worked")
         weight_update_metrics.clear()
 
@@ -206,6 +206,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
         Inserts all backprop calculations for the current iteration into the database.
         """
+
         #print("********  Distribute Error Calcs************")
         #for row in self.blame_calculations:
         #    print(row)
@@ -227,6 +228,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print(f"BLAME {self.blame_calculations}")
 
         #Heads up, sometimes overflow error look like key violation here
-        self.config.db.executemany(sql, blame_calculations)
+        self.config.db.executemany(sql, blame_calculations, "error signal")
         blame_calculations.clear()
 

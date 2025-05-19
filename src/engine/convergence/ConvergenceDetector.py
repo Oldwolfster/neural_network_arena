@@ -47,7 +47,11 @@ class ConvergenceDetector:
             "done": []
         }
 
-    def check_convergence(self, epoch_current_no: int, epoch_metrics: dict[str, float]) -> str:
+    def check_convergence(self, epoch_current, MAE: float)-> str:
+        return "Did Not Converge"
+
+
+    def check_convergenceOrig(self, epoch_current_no: int, epoch_metrics: dict[str, float]) -> str:
         """
         Evaluate signals for the current phase.
         Returns:

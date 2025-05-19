@@ -1,3 +1,7 @@
+import random
+from typing import List, Tuple
+from src.engine.BaseArena import BaseArena
+
 class Adversarial_Noise(BaseArena):
     """
     Most data is clean, but some samples are pure noise or flipped labels—

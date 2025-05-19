@@ -1,6 +1,5 @@
 import random
 from typing import List, Tuple
-
 from src.engine.BaseArena import BaseArena
 
 

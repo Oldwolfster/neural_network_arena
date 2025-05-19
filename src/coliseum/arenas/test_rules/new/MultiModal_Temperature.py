@@ -1,3 +1,7 @@
+import random
+from typing import List, Tuple
+from src.engine.BaseArena import BaseArena
+
 class MultiModal_Temperature(BaseArena):
     """
     Target is drawn from one of two different regimes at random.
