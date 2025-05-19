@@ -8,8 +8,16 @@ from pathlib import Path
 import csv
 import os
 import inspect
-import time
+
 class RamDB:
+    def __initOrig__(self):
+        self.conn = sqlite3.connect(':memory:', isolation_level=None)
+        self.cursor = self.conn.cursor()
+        self.cursor.execute("PRAGMA cache_size = -20000")  # ✅ Set cache size ONCE when initializing
+        #self.cursor.execute("PRAGMA journal_mode=WAL;")
+        self.tables = {}  # To track schemas for validation
+
+
     def __init__(self):
         self.conn = sqlite3.connect(':memory:', isolation_level=None)
         self.cursor = self.conn.cursor()
@@ -69,6 +77,7 @@ class RamDB:
 
         return schema
 
+
     def _create_table(self, table_name, schema): #I think this is being ignored due to another version lower
         """
         Create a SQLite table dynamically with context fields prioritized and a composite primary key.
@@ -88,7 +97,7 @@ class RamDB:
         self.cursor.execute(sql)
         self.tables[table_name] = schema  # Track schema
 
-    def addorig(self, obj, exclude_keys=None, **context):
+    def add(self, obj, exclude_keys=None, **context):
         """
         Add an object to the database with any number of context fields.
         Automatically creates the table if it does not exist.
@@ -148,77 +157,6 @@ class RamDB:
         # Execute the insert
         self.cursor.execute(sql, tuple(data.values()))
 
-    def add(self, obj, exclude_keys=None, **context):
-        """
-        Add an object to the database with any number of context fields.
-        Automatically creates the table if it does not exist.
-        """
-        # ─── start stopwatch ───────────────────────────────────────────────────────
-        if not hasattr(self, '_add_timing'):
-            self._add_timing = {}
-        start = time.perf_counter()
-
-        # ─── original add logic ────────────────────────────────────────────────────
-        table_name = obj.__class__.__name__
-
-        if table_name not in self.tables:
-            self.create_table(table_name, obj, context, exclude_keys)
-
-        if exclude_keys is None:
-            data = {**context, **vars(obj)}
-        else:
-            data = {
-                key: value for key, value in {**context, **vars(obj)}.items()
-                if key not in exclude_keys
-            }
-
-        computed_fields = {
-            attr: getattr(obj, attr)
-            for attr in dir(obj)
-            if isinstance(getattr(type(obj), attr, None), property)
-        }
-        data.update(computed_fields)
-
-        for key, value in data.items():
-            if isinstance(value, (bool, np.bool_)):
-                data[key] = int(value)
-
-        for key, value in data.items():
-            if isinstance(value, np.ndarray):
-                data[key] = json.dumps(value.tolist())
-            elif isinstance(value, (list, dict)):
-                data[key] = json.dumps(value)
-
-        for key, value in data.items():
-            if isinstance(value, (np.int64, np.int32, np.int16, np.int8)):
-                data[key] = int(value)
-            elif isinstance(value, (np.float64, np.float32, np.float16)):
-                data[key] = float(value)
-
-        columns     = ", ".join(data.keys())
-        placeholders = ", ".join(["?"] * len(data))
-        sql         = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
-
-        self.cursor.execute(sql, tuple(data.values()))
-        # ────────────────────────────────────────────────────────────────────────────
-
-        # ─── stop stopwatch & accumulate by table name ─────────────────────────────
-        elapsed = time.perf_counter() - start
-        self._add_timing[table_name] = self._add_timing.get(table_name, 0.0) + elapsed
-
-    def get_add_timing(self, table_name=None):
-        """
-        If table_name is None, returns the full dict of {table_name: total_seconds}.
-        Otherwise returns the cumulative seconds for that one table (or 0.0).
-        """
-        if not hasattr(self, '_add_timing'):
-            return {} if table_name is None else 0.0
-        if table_name is None:
-            return self._add_timing
-        return self._add_timing.get(table_name, 0.0)
-
-
-
     def create_table(self, table_name, obj, context, exclude_keys):
         """
         Create a table dynamically based on the object's attributes and context fields.
@@ -258,7 +196,7 @@ class RamDB:
         # Merge context and object schemas, with context first
         return {**context_schema, **object_schema}
 
-    def executeorig(self, sql):
+    def execute(self, sql):
         """
         Execute a SQL command that doesn't return a result set.
         """
@@ -267,27 +205,7 @@ class RamDB:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL execution failed: {e}")
 
-    def execute(self, sql, table_name=None):
-        """
-        Execute a SQL command that doesn't return a result set.
-        If table_name is given, track cumulative execution time per table.
-        """
-        # start timer if we're tracking this table
-        if table_name:
-            #if not hasattr(self, '_add_timing'):
-            #    self._add_timing = {}
-            start = time.perf_counter()
-        try:
-            self.cursor.execute(sql)
-        except sqlite3.Error as e:
-            raise RuntimeError(f"SQL execution failed: {e}")
-        else:
-            # on successful run, record elapsed time
-            if table_name:
-                elapsed = time.perf_counter() - start
-                self._add_timing[table_name] = self._add_timing.get(table_name, 0.0) + elapsed
-
-    def executemanyorig(self, sql, data_list):
+    def executemany(self, sql, data_list):
         """
         Execute a SQL command that takes multiple parameter sets.
         """
@@ -295,28 +213,6 @@ class RamDB:
             self.cursor.executemany(sql, data_list)
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL execution failed: {e}")
-
-    def executemany(self, sql, data_list, table_name=None):
-        """
-        Execute a SQL command that takes multiple parameter sets.
-        If table_name is given, track cumulative execution time per table.
-        """
-        # start timer if we're tracking this table
-        if table_name:
-            if not hasattr(self, '_add_timing'):
-                self._add_timing = {}
-            start = time.perf_counter()
-        else:
-            1/0 #throw error to find out what isn't being logged
-        try:
-            self.cursor.executemany(sql, data_list)
-        except sqlite3.Error as e:
-            raise RuntimeError(f"SQL execution failed: {e}")
-        else:
-            # on successful run, record elapsed time
-            if table_name:
-                elapsed = time.perf_counter() - start
-                self._add_timing[table_name] = self._add_timing.get(table_name, 0.0) + elapsed
 
 
     def query(self, sql, params=None, as_dict=True):

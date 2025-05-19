@@ -5,13 +5,20 @@ history_to_show = 50
 history_to_show = 0
 # git checkout 07552a9588a2d253cb2eedc2c3b5623870e1901b -- src/NeuroForge/GeneratorNeuron.py
 #git restore src/NeuroForge/GeneratorNeuron.py
+"""
+{'Iteration': 0.16450350044760853, 'Neuron': 2.8318593004369177, 'error signal': 1.6005234980257228, 'weight adjustments': 1.0442858036258258, 'Weight': 0.8548651987221092, 'ModelInfo': 0.00019689998589456081}
+{'Iteration': 2.1772824999061413, 'Neuron': 31.44607887195889, 'error signal': 21.68801109836204, 'weight adjustments': 14.34727940801531, 'Weight': 13.3108859017957, 'ModelInfo': 0.004275500017683953}
+
+
+"""
 
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 69     # Number of times training run will cycle through all training data
+
+    epochs_to_run           :int    = 1000     # Number of times training run will cycle through all training data
     training_set_size       :int    = 30  # Qty of training data
     default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
@@ -60,8 +67,8 @@ gladiators = [
     #,'test_newOpt'
    #,'NeuroForge_Template'
 
-    'BiggerIsNotBetter'
-    ,'All_Defaults'
+    #'BiggerIsNotBetter'
+    'All_Defaults'
     #,'Test_BCE'
     #'Test_BCE'
     #,'TestBatch'
@@ -101,17 +108,27 @@ training_pit                = "Predict_Income_2_Inputs"
 
 ######## Tests
 #training_pit         = "Adversarial_Noise"
-#training_pit         = "AutoNormalize_Challenge"
+training_pit         = "AutoNormalize_Challenge"
 #training_pit         = "Bit_Flip_Memory"
 #training_pit         = "Chaotic_Function_Prediction"
 #training_pit         = "Circle_In_Square"
 #training_pit         = "Custom_Function_Recovery"
-
 #training_pit         = "Iris_Two_Class"
 #training_pit         = "One_Giant_Outlier"
 #training_pit         = "Parity_Check"
 #training_pit         = "Sparse_Inputs"
 #training_pit         = "Titanic"
+#training_pit = 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
+#training_pit = 'Chaotic_Solar_Periodic'    #89
+#training_pit = 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
+training_pit = 'Hidden_Switch_Power'        # Needs work
+#training_pit = 'MultiModal_Temperature'
+#training_pit = 'Piecewise_Regime'
+#training_pit = 'Red_Herring_Features'
+#training_pit = 'Redundant_Features'
+#training_pit = 'Target_Drift_Commodity'
+#training_pit = 'XOR_Floats'
+training_pit = 'Nested_Sine_Flip'
 
 
 

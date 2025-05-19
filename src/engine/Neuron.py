@@ -123,5 +123,5 @@ class Neuron:
         if sql_statements:
             sql_query = f"INSERT INTO Weight (model_id, epoch, iteration, nid, weight_id, value_before, value) VALUES {', '.join(sql_statements)};"
             #print(f"Query for weights: {sql_query}")
-            db.execute(sql_query)
+            db.execute(sql_query, "Weight")
 

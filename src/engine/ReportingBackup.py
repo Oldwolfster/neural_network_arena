@@ -35,8 +35,40 @@ ORDER BY N.model, N.epoch_n, N.iteration_n, N.nid, W.weight_id;
         """
 
    # )
+def create_WeightAdjustments_tablesOrig_DELETEME(db: RamDB):
+    db.execute("""CREATE TABLE WeightAdjustments (
+                    epoch        INTEGER NOT NULL,
+                    iteration    INTEGER NOT NULL,
+                    model_id     TEXT NOT NULL,
+                    nid          INTEGER NOT NULL,
+                    weight_index INTEGER NOT NULL,
+                    batch_id     INTEGER NOT NULL DEFAULT 0,  -- ✅ New: batch number for joining/finalization
+                    arg_1        REAL NOT NULL,
+                    --op_1         TEXT NOT NULL, -- CHECK (op_1 IN ('+', '-', '*', '/', '=')),  
+                    arg_2        REAL NOT NULL,
+                    --op_2         TEXT NOT NULL, -- CHECK (op_2 IN ('+', '-', '*', '/', '=')),
+                    arg_3        REAL DEFAULT NULL,
+                    --op_3         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_4        REAL DEFAULT NULL,
+                    --op_4         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_5        REAL DEFAULT NULL,
+                    --op_5         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_6        REAL DEFAULT NULL,
+                    --op_6         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_7        REAL DEFAULT NULL,
+                    --op_7         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    arg_8        REAL DEFAULT NULL,
+                    --op_8         TEXT DEFAULT NULL, -- CHECK (op_3 IN ('+', '-', '*', '/', '=')),
+                    PRIMARY KEY (epoch, iteration, model_id, nid, weight_index)  -- Ensures unique weight update calculations
+                );""")
 
-def create_weight_adjustments_tableOld(db: RamDB, model_id: str, update_or_finalize: str, arg_count=12):
+    db.execute("""
+        CREATE INDEX IF NOT EXISTS idx_batch_lookup
+        ON WeightAdjustments (epoch, batch_id, model_id, nid, weight_index);
+        """)
+        #db.query_print("PRAGMA table_info(Iteration);")
+
+def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize: str, arg_count=12):
     """
     Creates a dedicated WeightAdjustments_<model_id> table with arg_1..arg_N fields.
     """
@@ -62,35 +94,6 @@ def create_weight_adjustments_tableOld(db: RamDB, model_id: str, update_or_final
         CREATE INDEX IF NOT EXISTS idx_batch_lookup_{update_or_finalize}_{model_id}
         ON {table_name} (epoch, batch_id, nid, weight_index);
     """)
-
-def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize: str, arg_count=12):
-    """
-    Creates a dedicated WeightAdjustments_<model_id> table with arg_1..arg_N fields.
-    """
-    table_name = f"WeightAdjustments_{update_or_finalize}_{model_id}"
-    fields = ",\n".join([f"    arg_{i+1} REAL DEFAULT NULL" for i in range(arg_count)])
-
-    sql = f"""
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            id           INTEGER PRIMARY KEY AUTOINCREMENT,
-            epoch        INTEGER NOT NULL,
-            iteration    INTEGER NOT NULL,
-            nid          INTEGER NOT NULL,
-            -- model_id     TEXT NOT NULL, removed - model is part of table name... why have column with 1 unique value??
-            weight_index INTEGER NOT NULL,
-            batch_id     INTEGER NOT NULL DEFAULT 0,
-            {fields}
-            
-        );
-    """
-
-    db.execute(sql)
-
-    db.execute(f"""
-        CREATE INDEX IF NOT EXISTS idx_batch_lookup_{update_or_finalize}_{model_id}
-        ON {table_name} (epoch, batch_id, nid, weight_index);
-    """)
-
 
 
 def prep_RamDB():

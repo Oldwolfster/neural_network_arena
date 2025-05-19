@@ -1,3 +1,8 @@
+import random
+from typing import List, Tuple
+from src.engine.BaseArena import BaseArena
+
+
 class Red_Herring_Features(BaseArena):
     """
     Some features are pure noise—model must ignore them to do well.

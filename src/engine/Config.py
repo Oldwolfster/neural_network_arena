@@ -23,54 +23,38 @@ class Config:
         self.training_data: TrainingData            = training_data
         self.scaler:        MultiScaler             = MultiScaler(training_data)
 
-
         # 🔹 Unique components
-        self.gladiator_name: str                     = gladiator_name
-        self.optimizer                               = None #: Optimizer
-        self.batch_mode: BatchMode                   = None
-        self.batch_size: int                         = None
-        self.architecture: list                      = None
-        self.initializer: type                       = None
-        self.loss_function: StrategyLossFunction             = None
-        self.hidden_activation: type                 = None  # Default to Tanh for regression and ReLU for BD
-        self.output_activation: type                 = None  # Will default to loss_function.recommended_output_activation if None
-        self.target_scaler                           = Scaler_NONE
-        self.roi_mode                                = ROI_Mode.SWEET_SPOT
-        self.bd_parameters                           = None # target a, target b, threshold.
+        self.gladiator_name: str                    = gladiator_name
+        self.optimizer                              = None #: Optimizer
+        self.batch_mode: BatchMode                  = None
+        self.batch_size: int                        = None
+        self.architecture: list                     = None
+        self.initializer: type                      = None
+        self.loss_function: StrategyLossFunction    = None
+        self.hidden_activation: type                = None  # Default to Tanh for regression and ReLU for BD
+        self.output_activation: type                = None  # Will default to loss_function.recommended_output_activation if None
+        self.target_scaler                          = Scaler_NONE
+        self.roi_mode                               = ROI_Mode.SWEET_SPOT
+        self.bd_parameters                          = None # target a, target b, threshold.
 
         # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
         self.seconds: float                          = 0.0
         self.cvg_condition: str                      = "Did Not Converge"
-        self.learning_rate: float                       = 0.0       # Read in beginning to instantiate  neurons with correct LR
-        self.final_epoch: int                        =   0 # Last epoch to run
+        self.learning_rate: float                    = 0.0       # Read in beginning to instantiate  neurons with correct LR
+        self.final_epoch: int                        = 0 # Last epoch to run
         self.lowest_error: float                     = 1e50
         self.lowest_error_epoch                      = 0
-        self._percent_off                               = None
-        self._accuracy_percent                      = None
-        #self.default_scalers                        = None
+        self._percent_off                            = None
+        self._accuracy_percent                       = None
         self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
-        #is_exploratory                          = False
         self.popup_headers                           = None #TODO Standardize these 4 names.
         self.popup_operators                         = None
         self.popup_finalizer_headers                 = None
         self.popup_finalizer_operators               = None
-        self.default_scalers                        = None
+        self.default_scalers                         = None
 
-    def data_reset_Deleteme(self):
-        self.seconds: float                          = 0.0
-        self.cvg_condition: str                      = "Did Not Converge"
-        self.learning_rate: float                    = 0.0
-        self.final_epoch: int                        = 0                         # Last epoch to run
-        self.lowest_error: float                     = 1e50
-        self.lowest_error_epoch                      = 0
-        self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
-
-        self.popup_headers                           = None #TODO Standardize these 4 names.
-        self.popup_operators                         = None
-        self.popup_finalizer_headers                 = None
-        self.popup_finalizer_operators               = None
     @property
-    def neuroforge_layers(self):
+    def neuroforge_layersDeleteMe(self):
         """
         Returns a structured list of layer definitions for visualization.
         Each item is a list of LayerComponent objects: either a Decider, Scaler, or Threshold.
@@ -94,7 +78,6 @@ class Config:
         #    layers.append([ThresholdComponent()])
 
         return layers
-
 
     @property
     def percent_off(self):
@@ -145,7 +128,6 @@ class Config:
                     self._accuracy_percent = max(0.0, min(100.0, raw_accuracy))
         return self._accuracy_percent
 
-
     def configure_popup_headers(self):
         (self.popup_headers, self.popup_operators,
          self.popup_finalizer_headers, self.popup_finalizer_operators) = self.optimizer.configure_optimizer(self)
@@ -156,7 +138,6 @@ class Config:
         else:
             if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
             else: return  self.bd_parameters[0]
-
 
     def set_defaults(self):
         self.smartNetworkSetup()
@@ -171,13 +152,15 @@ class Config:
         #print(f"Defaults applied:  Architecture ->{self.architecture}")
 
     def get_rules(self):        #  config.training_data.problem_type == " (0, 100, {"loss_function": Loss_BCEWithLogits}, "config.training_data.problem_type == 'Binary Decision'"),
+        # Below fields...
+        #   Allow overwrite, priority, field to set, value, condition to set it.
         return [
             #(0, 100, {"architecture": [1]}, "training_data.perceptron_ok == 'True'"),
-            (0, 100, {"output_activation": Activation_Sigmoid}, "training_data.problem_type == 'Binary Decision'"),
-            (0, 100, {"output_activation": Activation_NoDamnFunction}, "training_data.problem_type != 'Binary Decision'"),
-            (0, 200, {"loss_function": Loss_BCE}, "output_activation.name == 'Sigmoid'"),
-            (0, 200, {"loss_function": Loss_MSE}, "output_activation.name == 'None'"),
-            (0, 300, {"default_scalers": True}, "scaler.not_set_yet == False"),
+            (0, 100, {"output_activation": Activation_Sigmoid}          , "training_data.problem_type == 'Binary Decision'"),
+            (0, 100, {"output_activation": Activation_NoDamnFunction}   , "training_data.problem_type != 'Binary Decision'"),
+            (0, 200, {"loss_function": Loss_BCE}                        , "output_activation.name == 'Sigmoid'"),
+            (0, 200, {"loss_function": Loss_MSE}                        , "output_activation.name == 'None'"),
+            (0, 300, {"default_scalers": True}                          , "scaler.not_set_yet == False"),
             #(0, 210, {"loss_function": Loss_MSE}, "training_data.has_high_outliers()"),
             #(0, 210, {"loss_function": Loss_MAE}, "not training_data.has_high_outliers()"),
 

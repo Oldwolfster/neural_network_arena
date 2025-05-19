@@ -29,6 +29,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             model_infos     . append(info)
             model_configs   . append(config)
             print           (f"{gladiator} completed in {config} based on:{config.cvg_condition}")
+            print(self.db.get_add_timing())
 
         # Generate reports and send all model configs to NeuroForge
         print(f"🛠️  Random Seed:    {self.seed}")

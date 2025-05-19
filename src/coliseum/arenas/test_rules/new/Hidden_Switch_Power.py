@@ -1,3 +1,7 @@
+import random
+from typing import List, Tuple
+from src.engine.BaseArena import BaseArena
+
 class Hidden_Switch_Power(BaseArena):
     """
     The data-generating rule randomly switches between two formulas.

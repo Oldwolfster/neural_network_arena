@@ -1,3 +1,8 @@
+import random
+from typing import List, Tuple
+from src.engine.BaseArena import BaseArena
+import math
+
 class Chaotic_Solar_Periodic(BaseArena):
     """
     Energy output with a strong periodic (sinusoidal) trend and random chaotic dips (clouds).
