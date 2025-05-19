@@ -87,10 +87,11 @@ class DisplayModel__NeuronWeights:
         draw_rect_with_border(self.neuron.screen, bar_rect, bar_color, 2)
 
         # return surpresses activation and weighted sum
-        # 🔹 Writes the raw sum inside the neuron, bottom right corner, with a background for visibility.
+        # 🔹 Writes the raw sum below the neuron, bottom left corner, with a background for visibility.
         weighted_sum = self.calculate_weighted_sum()
-        text = f" Wt\nSum\n{smart_format(weighted_sum)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
-        draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height - 55 , Const.FONT_SIZE_WEIGHT, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+        text = f" Weighted Sum: {smart_format(weighted_sum)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
+        #draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height, Const.FONT_SIZE_WEIGHT, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
+        draw_text_with_background(self.neuron.screen, text, self.neuron.location_left +2, self.neuron.location_top + self.neuron.location_height-2, Const.FONT_SIZE_WEIGHT, border_color=Const.COLOR_YELLOW_BRIGHT)
 
         # 🔹 Writes the activation value inside the neuron, centered on the right wall, with a background for visibility.
         draw_text_with_background(self.neuron.screen, self.neuron.activation_value, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
@@ -125,7 +126,8 @@ class DisplayModel__NeuronWeights:
 
         # Ensure the remaining space is distributed across all bars
         if total_gaps >= available_height:
-            raise ValueError(f"Not enough space in neuron height to accommodate weights and gaps.\nNeuron Height: {neuron_height}, Available Height: {available_height},\nTotal Gaps: {total_gaps}, Computed Bar Height: {bar_height}" )
+            return 1
+        #    raise ValueError(f"Not enough space in neuron height to accommodate weights and gaps.\nNeuron Height: {neuron_height}, Available Height: {available_height},\nTotal Gaps: {total_gaps}, Computed Bar Height: {bar_height}" )
 
         # Compute actual bar height
         total_bar_height = available_height - total_gaps
