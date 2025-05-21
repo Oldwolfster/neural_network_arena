@@ -14,18 +14,12 @@ from src.engine.NeuroEngine import NeuroEngine
 def main():
     #if instead_of_run_show_past_runs and len(run_previous_training_data) == 0:
     shared_hyper = HyperParameters()
-    if history_to_show > 0:
-        list_snapshots(history_to_show)
-        #list_runs()
-    else:
-        #run_batch_of_matches(gladiators, training_pit)        #
-        #run_a_match(gladiators, training_pit, shared_hyper)
+    if single_match:
+
         neuro_engine = NeuroEngine()
-        neuro_engine.run_a_match(gladiators)
-        #run_batch_of_matches(gladiators, training_pit, shared_hyper)
-        #run_all_matchups(training_pit,shared_hyper)
-        #from src.backprop.tutorial.nn_xor import run_tutorial
-        #run_tutorial()
+        neuro_engine.run_a_match(gladiators, training_pit)
+    else:
+        pass
 
 
 if __name__ == '__main__':

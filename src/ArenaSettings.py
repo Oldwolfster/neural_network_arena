@@ -1,8 +1,7 @@
 from typing import List
 from dataclasses import dataclass, field
 
-history_to_show = 50
-history_to_show = 0
+single_match=True
 # git checkout 07552a9588a2d253cb2eedc2c3b5623870e1901b -- src/NeuroForge/GeneratorNeuron.py
 #git restore src/NeuroForge/GeneratorNeuron.py
 """
@@ -18,7 +17,7 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
 
-    epochs_to_run           :int    = 1000     # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 11     # Number of times training run will cycle through all training data
     training_set_size       :int    = 30  # Qty of training data
     default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
@@ -105,32 +104,37 @@ training_pit                = "Predict_Income_2_Inputs"
 #training_pit                = "California_Housing"
 #training_pit                = "Customer_Churn_4X3"
 #training_pit = "CarValueFromMiles"
-
+training_pit = "DefaultRisk__From_Income_Debt"
 ######## Tests
-#training_pit         = "Adversarial_Noise"
-training_pit         = "AutoNormalize_Challenge"
-#training_pit         = "Bit_Flip_Memory"
-#training_pit         = "Chaotic_Function_Prediction"
-#training_pit         = "Circle_In_Square"
-#training_pit         = "Custom_Function_Recovery"
-#training_pit         = "Iris_Two_Class"
-#training_pit         = "One_Giant_Outlier"
-#training_pit         = "Parity_Check"
-#training_pit         = "Sparse_Inputs"
-#training_pit         = "Titanic"
-#training_pit = 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
-#training_pit = 'Chaotic_Solar_Periodic'    #89
-#training_pit = 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
-training_pit = 'Hidden_Switch_Power'        # Needs work
-#training_pit = 'MultiModal_Temperature'
-#training_pit = 'Piecewise_Regime'
-#training_pit = 'Red_Herring_Features'
-#training_pit = 'Redundant_Features'
-#training_pit = 'Target_Drift_Commodity'
-#training_pit = 'XOR_Floats'
-training_pit = 'Nested_Sine_Flip'
+batch_arenas         = ["Adversarial_Noise"
+,"AutoNormalize_Challenge"
+,"Bit_Flip_Memory"
+]
+"""
+,"Chaotic_Function_Prediction"
+,"Circle_In_Square"
+,"Custom_Function_Recovery"
+,"Iris_Two_Class"
+,"One_Giant_Outlier"
+,"Parity_Check"
+,"Sparse_Inputs"
+,"Titanic"
+, 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
+,'Chaotic_Solar_Periodic'    #89
+, 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
+                       
+                       
+,'Hidden_Switch_Power'        # Needs work
+,'MultiModal_Temperature'
+,'Piecewise_Regime'
+,'Red_Herring_Features'
+,'Redundant_Features'
+, 'Target_Drift_Commodity'
+,'XOR_Floats'
+,'Nested_Sine_Flip'
+, 'DefaultRisk__From_Income_Debt'
 
-
+"""
 
 
 ############################################################

@@ -84,7 +84,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                     )
 
                 # Add the neuron data to the database
-                self.config.db.add(neuron, exclude_keys={"activation", "learning_rate"}, model=self.config.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
+                self.config.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, model=self.config.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
         Neuron.bulk_insert_weights(db = self.config.db, model_id = self.config.gladiator_name, epoch=epoch_num, iteration=iteration_num )
 
     def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn) -> list:

@@ -15,9 +15,10 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.db = prep_RamDB()
         self.shared_hyper       = HyperParameters()
         self.seed               = set_seed(self.shared_hyper.random_seed)
-        self.training_data      = self.instantiate_arena()
+        self.training_data      = None
 
-    def run_a_match(self, gladiators):
+    def run_a_match(self, gladiators, arena):
+        self.training_data  = self.instantiate_arena(arena)
         model_configs       = []
         model_infos         = []
 
@@ -145,10 +146,10 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
                 db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 
-    def instantiate_arena(self):
+    def instantiate_arena(self, arena):
         # Instantiate the arena and retrieve data
-        arena               = dynamic_instantiate(training_pit, 'coliseum\\arenas', self.shared_hyper.training_set_size)
-        arena.arena_name    = training_pit
+        arena               = dynamic_instantiate(arena, 'coliseum\\arenas', self.shared_hyper.training_set_size)
+        arena.arena_name    = arena
         src                 = arena.source_code
         result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
         labels              = []
