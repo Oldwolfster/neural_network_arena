@@ -108,8 +108,13 @@ class DisplayModel__Neuron_Base:
         font = pygame.font.Font(None, 30) #TODO remove and use EZ_Print
 
         # Banner text
+        #if self.nid == 2: print(f"self.height={self.location_height}")
         label_surface = font.render(self.banner_text, True, Const.COLOR_FOR_NEURON_TEXT)
-        output_surface = font.render(self.activation_function, True, Const.COLOR_FOR_NEURON_TEXT)
+        neuron_right_label = ""
+        if self.location_height> 60:
+            neuron_right_label =  self.activation_function
+
+        output_surface = font.render(neuron_right_label, True, Const.COLOR_FOR_NEURON_TEXT)
         label_strip_height = label_surface.get_height() + 8  # Padding
 
         # Draw the neuron body below the label

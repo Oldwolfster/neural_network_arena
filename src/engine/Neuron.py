@@ -47,6 +47,7 @@ class Neuron:
         if layer_id == len(Neuron.layers) - 1:
             Neuron.output_neuron = self  # Assign this neuron as the output neuron
 
+
     def initialize_weights(self, weight_initializer):
         self.weights, self.bias = weight_initializer((self.num_of_weights,))
         self.weights_before = self.weights.copy()
