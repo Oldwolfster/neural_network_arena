@@ -80,7 +80,7 @@ class GeneratorNeuron:
             if neuron_count > 0: true_layer_index += 1
         GeneratorNeuron.separate_graph_holder_from_neurons()
         GeneratorNeuron.model.layer_width = layer_width
-        print(f" layer_width = {layer_width}")
+        #print(f" layer_width = {layer_width}")
 
 
 
