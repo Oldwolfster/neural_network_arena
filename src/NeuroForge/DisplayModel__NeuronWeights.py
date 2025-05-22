@@ -45,7 +45,7 @@ class DisplayModel__NeuronWeights:
         if self.num_weights > 0:
             self.bar_height                 = self.calculate_bar_height(num_weights=self.num_weights, neuron_height=self.neuron_height, padding_top=self.padding_top,padding_bottom=self.padding_bottom, gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights)
             height_per_label                = self.neuron_height/self.num_weights
-            if self.neuron.nid==6:          print(f"height_per_label={height_per_label}")
+            #if self.neuron.nid==6:          print(f"height_per_label={height_per_label}")
             self.print_weight_lbl           = height_per_label > self.min_height_per_label
 
 

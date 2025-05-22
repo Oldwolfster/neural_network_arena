@@ -68,7 +68,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
         self.config.db.add(iteration_data)
-
+        if not self.config.hyper.record: return
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):
 
@@ -121,26 +121,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
         return val #        #return "Did Not Converge"
 
-    def get_metrics_from_ramdb(self, epoch: int) -> Dict[str, float]:
-        """
-        Fetch the latest epoch's metrics for the current model.
-
-        Returns:
-            Dict[str, float]: A dictionary containing the metrics, where all values are floats.
-        """
-        sql = """
-            SELECT *
-            FROM EpochSummary
-            WHERE model_id = ? and epoch = ?
-            ORDER BY epoch DESC
-            LIMIT 1;
-        """
-        # Pass the parameter correctly as a tuple
-        result = self.config.db.query(sql, params=(self.config.gladiator_name, epoch), as_dict=True)
-
-        if result:
-            return result[0]  # Return the first row as a dictionary
-        raise RuntimeError("No records found for the specified model_id")  # Raise error if no records are found
 
     ############# Record Backpass info for pop up window of NeuroForge #############
     ############# Record Backpass info for pop up window of NeuroForge #############
@@ -151,7 +131,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
         """
-
+        if not self.config.hyper.record: return
         sample_row = weight_update_metrics[0]
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
@@ -210,7 +190,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print("********  Distribute Error Calcs************")
         #for row in self.blame_calculations:
         #    print(row)
-
+        if not self.config.hyper.record: return
         sql = """
         INSERT INTO ErrorSignalCalcs
         (epoch, iteration, model_id, nid, weight_id, 

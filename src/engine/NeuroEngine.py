@@ -11,9 +11,9 @@ from src.ArenaSettings import *
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
 
     print_rules_once_per_gladiator = False #this is not working yet
-    def __init__(self):
+    def __init__(self, hyper):
         self.db = prep_RamDB()
-        self.shared_hyper       = HyperParameters()
+        self.shared_hyper       = hyper#HyperParameters()
         self.seed               = set_seed(self.shared_hyper.random_seed)
         self.training_data      = None
 
@@ -21,6 +21,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.training_data  = self.instantiate_arena(arena)
         model_configs       = []
         model_infos         = []
+        results             = []
 
         for gladiator in    gladiators:
             #NeuroEngine.print_rules_once_per_gladiator = False   # referenced in Config to surpress spam
@@ -29,13 +30,15 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
             model_infos     . append(info)
             model_configs   . append(config)
-            print           (f"{gladiator} completed in {config} based on:{config.cvg_condition}")
+            print           (f"{gladiator} completed in {config.seconds} based on:{config.cvg_condition} with relative accuracy of {config.accuracy_percent}")
             print(self.db.get_add_timing())
+            results.append(config.accuracy_percent)
 
         # Generate reports and send all model configs to NeuroForge
         print(f"🛠️  Random Seed:    {self.seed}")
         generate_reports(self.db, self.training_data, self.shared_hyper, model_infos)
-        neuroForge(model_configs)
+        if self.shared_hyper.record: neuroForge(model_configs)
+        return results
 
     def create_fresh_config(self, gladiator):
         return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)

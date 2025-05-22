@@ -2,6 +2,7 @@ from typing import List
 from dataclasses import dataclass, field
 
 single_match=True
+
 # git checkout 07552a9588a2d253cb2eedc2c3b5623870e1901b -- src/NeuroForge/GeneratorNeuron.py
 #git restore src/NeuroForge/GeneratorNeuron.py
 """
@@ -16,8 +17,8 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-
-    epochs_to_run           :int    = 11     # Number of times training run will cycle through all training data
+    record = True
+    epochs_to_run           :int    = 100     # Number of times training run will cycle through all training data
     training_set_size       :int    = 30  # Qty of training data
     default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
     min_no_epochs           :int    = 0        # run for at least this many epochs
@@ -105,36 +106,33 @@ training_pit                = "Predict_Income_2_Inputs"
 #training_pit                = "Customer_Churn_4X3"
 #training_pit = "CarValueFromMiles"
 training_pit = "DefaultRisk__From_Income_Debt"
+training_pit = "DiseaseRisk__From_HealthMetrics"
 ######## Tests
-batch_arenas         = ["Adversarial_Noise"
-,"AutoNormalize_Challenge"
+batch_arenas         = [
+"AutoNormalize_Challenge"
+,"Titanic"
 ,"Bit_Flip_Memory"
-]
-"""
+,"Iris_Two_Class"
 ,"Chaotic_Function_Prediction"
 ,"Circle_In_Square"
 ,"Custom_Function_Recovery"
-,"Iris_Two_Class"
 ,"One_Giant_Outlier"
 ,"Parity_Check"
 ,"Sparse_Inputs"
-,"Titanic"
 , 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
 ,'Chaotic_Solar_Periodic'    #89
 , 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
-                       
-                       
-,'Hidden_Switch_Power'        # Needs work
+#,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 ,'MultiModal_Temperature'
 ,'Piecewise_Regime'
 ,'Red_Herring_Features'
 ,'Redundant_Features'
-, 'Target_Drift_Commodity'
+,'Target_Drift_Commodity'
 ,'XOR_Floats'
 ,'Nested_Sine_Flip'
-, 'DefaultRisk__From_Income_Debt'
+,'DefaultRisk__From_Income_Debt'
+]
 
-"""
 
 
 ############################################################
