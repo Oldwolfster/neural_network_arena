@@ -1,32 +1,31 @@
 from typing import List
 from dataclasses import dataclass, field
+test_attribute = None
+test_strategy = None
+single_match = True
+test_attribute = 'loss_function'
 
-single_match=True
+        #test = lister.list_legos("hidden_activation")
+        #test = lister.list_legos("output_activation")
+        #test = lister.list_legos("optimizer")
+        # test = lister.list_legos("scaler") # works a bit different....
+       # test = lister.list_legos("initializer")
 
-# git checkout 07552a9588a2d253cb2eedc2c3b5623870e1901b -- src/NeuroForge/GeneratorNeuron.py
-#git restore src/NeuroForge/GeneratorNeuron.py
-"""
-{'Iteration': 0.16450350044760853, 'Neuron': 2.8318593004369177, 'error signal': 1.6005234980257228, 'weight adjustments': 1.0442858036258258, 'Weight': 0.8548651987221092, 'ModelInfo': 0.00019689998589456081}
-{'Iteration': 2.1772824999061413, 'Neuron': 31.44607887195889, 'error signal': 21.68801109836204, 'weight adjustments': 14.34727940801531, 'Weight': 13.3108859017957, 'ModelInfo': 0.004275500017683953}
-
-
-"""
 
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    record = True
-    epochs_to_run           :int    = 100     # Number of times training run will cycle through all training data
-    training_set_size       :int    = 30  # Qty of training data
-    default_learning_rate   :float  = .1      # Affects magnitude of weight adjustments #.0001 Equalizer
-    min_no_epochs           :int    = 0        # run for at least this many epochs
-    display_train_data      :bool = True    # Display the training data at the end of the rn.
-    run_neuroForge          :bool = True
-    #is_exploratory          :bool = True    # Autotuning or testing - don't save
-    random_seed             :int       = 599059 #748141
- #160995   #181026 #393828 #874170  331670
+    record                  :bool   = True
+    epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
+    training_set_size       :int    = 30        # Qty of training data
+    default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
+    min_no_epochs           :int    = 0         # run for at least this many epochs
+    display_train_data      :bool   = True        # Display the training data at the end of the rn.
+    run_neuroForge          :bool   = True
+    random_seed             :int    = 599059 #748141
+    #160995   #181026 #393828 #874170  331670
     # for seed 580636 - ONE EPOCH
     #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
     #for seed 946824, 366706 we got it in one!
@@ -106,10 +105,20 @@ training_pit                = "Predict_Income_2_Inputs"
 #training_pit                = "Customer_Churn_4X3"
 #training_pit = "CarValueFromMiles"
 training_pit = "DefaultRisk__From_Income_Debt"
-training_pit = "DiseaseRisk__From_HealthMetrics"
+training_pit = "DefaultRisk__From_Income_Debt"
 ######## Tests
+#"Regime_Trigger_Switch" #Impossible for normal FFNN
+#,"Pathological_Discontinuous_Chaos"     #Not a dependent function
+#,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 batch_arenas         = [
-"AutoNormalize_Challenge"
+"DefaultRisk__From_Income_Debt"
+
+
+]
+"""
+,"Deceptive_Multi_Regime_Entangler"
+,"MultiModal_Nonlinear_Interactions"
+,"AutoNormalize_Challenge"
 ,"Titanic"
 ,"Bit_Flip_Memory"
 ,"Iris_Two_Class"
@@ -122,7 +131,6 @@ batch_arenas         = [
 , 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
 ,'Chaotic_Solar_Periodic'    #89
 , 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
-#,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 ,'MultiModal_Temperature'
 ,'Piecewise_Regime'
 ,'Red_Herring_Features'
@@ -130,8 +138,9 @@ batch_arenas         = [
 ,'Target_Drift_Commodity'
 ,'XOR_Floats'
 ,'Nested_Sine_Flip'
-,'DefaultRisk__From_Income_Debt'
-]
+,'DefaultRisk__From_Income_Debt'    
+
+"""
 
 
 

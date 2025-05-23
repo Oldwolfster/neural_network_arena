@@ -1,6 +1,6 @@
 import numpy as np
 
-class WeightInitializer:
+class ScalerWeightInitializer:
     """Encapsulates weight initialization strategies with proper bias handling."""
 
     def __init__(self, method, bias_method=None, name="Custom", desc="", when_to_use="", best_for=""):
@@ -21,7 +21,7 @@ class WeightInitializer:
         return f"WeightInitializer(name={self.name})"
 
 # 🔹 **1. Uniform Random Initialization (Default)**
-Initializer_Uniform = WeightInitializer(
+Initializer_Uniform = ScalerWeightInitializer(
     method=lambda shape: np.random.uniform(-1, 1, shape),
     bias_method=lambda: np.random.uniform(-1, 1),  # Bias follows uniform distribution
     name="Uniform Random",
@@ -31,7 +31,7 @@ Initializer_Uniform = WeightInitializer(
 )
 
 # 🔹 **2. Normal Distribution Initialization**
-Initializer_Normal = WeightInitializer(
+Initializer_Normal = ScalerWeightInitializer(
     method=lambda shape: np.random.normal(0, 1, shape),
     bias_method=lambda: np.random.normal(0, 1),  # Bias follows normal distribution
     name="Normal Random",
@@ -41,7 +41,7 @@ Initializer_Normal = WeightInitializer(
 )
 
 # 🔹 **3. Xavier (Glorot) Initialization** - Optimized for **sigmoid/tanh**
-Initializer_Xavier = WeightInitializer(
+Initializer_Xavier = ScalerWeightInitializer(
     method=lambda shape: np.random.uniform(-np.sqrt(6 / sum(shape)), np.sqrt(6 / sum(shape)), shape),
     bias_method=lambda: np.random.uniform(-np.sqrt(6 / 2), np.sqrt(6 / 2)),  # Bias follows same scaling as weights
     name="Xavier (Glorot)",
@@ -51,7 +51,7 @@ Initializer_Xavier = WeightInitializer(
 ) #    pitfalls="Breaks with ReLU-based activations. Use He instead.",
 
 # 🔹 **4. He (Kaiming) Initialization** - Optimized for **ReLU-based activations**
-Initializer_He = WeightInitializer(
+Initializer_He = ScalerWeightInitializer(
     method=lambda shape: np.random.normal(0, np.sqrt(2 / shape[0]), shape),
     bias_method=lambda: np.random.normal(0, np.sqrt(2 / 2)),  # Bias follows weight scaling
     name="He (Kaiming)",
@@ -61,7 +61,7 @@ Initializer_He = WeightInitializer(
 )
 
 # 🔹 **5. Small Random Values (Near Zero)**
-Initializer_Tiny = WeightInitializer(
+Initializer_Tiny = ScalerWeightInitializer(
     method=lambda shape: np.random.randn(*shape) * 0.01,
     bias_method=lambda: np.random.randn() * 0.01,  # Bias also small
     name="Small Random",
@@ -71,7 +71,7 @@ Initializer_Tiny = WeightInitializer(
 )
 
 # 🔹 **6. LeCun Initialization** - Optimized for **SELU activation**
-Initializer_LeCun = WeightInitializer(
+Initializer_LeCun = ScalerWeightInitializer(
     method=lambda shape: np.random.normal(0, np.sqrt(1 / shape[0]), shape),
     bias_method=lambda: np.random.normal(0, np.sqrt(1 / 2)),  # Bias scaled similarly
     name="LeCun",
@@ -80,7 +80,7 @@ Initializer_LeCun = WeightInitializer(
     best_for="SELU, Tanh."
 )
 # 🔹 **7. Like my johnson **
-Initializer_Huge = WeightInitializer(
+Initializer_Huge = ScalerWeightInitializer(
     method=lambda shape: np.random.randn(*shape) * 10000.01+1111,
     bias_method=lambda: np.random.randn() * 0.01,  # Bias also small
     name="Large Random",
@@ -92,7 +92,7 @@ Initializer_Huge = WeightInitializer(
 def xavier_kill_relu(shape):
     return np.random.uniform(-2, -1, size=shape)
 
-Initializer_KillRelu = WeightInitializer(
+Initializer_KillRelu = ScalerWeightInitializer(
     method=xavier_kill_relu,
     bias_method=lambda: -1.0,
     name="Xavier Kill ReLU",

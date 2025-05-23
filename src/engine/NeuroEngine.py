@@ -16,15 +16,18 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.shared_hyper       = hyper#HyperParameters()
         self.seed               = set_seed(self.shared_hyper.random_seed)
         self.training_data      = None
+        self.test_attribute     = None
+        self.test_strategy      = None
 
-    def run_a_match(self, gladiators, arena):
+    def run_a_match(self, gladiators, arena, test_attribute=None, test_strategy=None):
         self.training_data  = self.instantiate_arena(arena)
         model_configs       = []
         model_infos         = []
         results             = []
+        self.test_attribute = test_attribute
+        self.test_strategy  = test_strategy
 
         for gladiator in    gladiators:
-            #NeuroEngine.print_rules_once_per_gladiator = False   # referenced in Config to surpress spam
             print           (f"Preparing to run model: {gladiator}")
             set_seed        (self.seed)
             info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
@@ -36,7 +39,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         # Generate reports and send all model configs to NeuroForge
         print(f"🛠️  Random Seed:    {self.seed}")
-        generate_reports(self.db, self.training_data, self.shared_hyper, model_infos)
+        generate_reports(self.db, self.training_data, self.shared_hyper, model_infos, arena)
         if self.shared_hyper.record: neuroForge(model_configs)
         return results
 
@@ -50,14 +53,18 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             learning_rate = self.check_for_learning_rate_sweep(gladiator)
 
         model_config                = self.create_fresh_config(gladiator)
+
+
         create_weight_tables        (self.db, gladiator)
         self.delete_records         (self.db, gladiator) # in case it had been run by LR sweep
         start_time                  = time.time()
-
         model_config.learning_rate  = learning_rate                         # Either from sweep or config if sweep found it was set in config
         set_seed                    (self.seed)
         nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
-        model_config                . set_defaults()
+
+        # 🧠 Inject test strategy if provided (e.g., test loss function, activation, etc.)
+
+        model_config                . set_defaults( self.test_attribute, self.test_strategy)
 
         # Actually train model
         last_mae                    = nn.train(0 if record_results else epochs)

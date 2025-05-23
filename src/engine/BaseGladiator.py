@@ -341,7 +341,7 @@ class Gladiator(ABC):
             print("⚠️ No best weights found — 'lowest_error' was never set.")
             return
 
-    def get_flat_initializers(self, architecture: List[int], initializers: List[WeightInitializer]) -> List[WeightInitializer]:
+    def get_flat_initializers(self, architecture: List[int], initializers: List[ScalerWeightInitializer]) -> List[ScalerWeightInitializer]:
         """
         Returns a flat list of weight initializers, ensuring compatibility with the number of neurons.
         If neuron_initializers is not set correctly, this method updates it.
@@ -387,7 +387,7 @@ class Gladiator(ABC):
         # Invalid case: raise error
         raise ValueError(f"Incompatible number of initializers ({len(initializers)}) for total neurons ({total_neurons})")
 
-    def initialize_neurons(self,  architecture: List[int] , initializers: List[WeightInitializer] = None, hidden_activation: ActivationFunction = None, output_activation: ActivationFunction = None):
+    def initialize_neurons(self,  architecture: List[int] , initializers: List[ScalerWeightInitializer] = None, hidden_activation: StrategyActivationFunction = None, output_activation: StrategyActivationFunction = None):
         """
         Initializes neurons based on the specified architecture, using appropriate weight initializers.
 

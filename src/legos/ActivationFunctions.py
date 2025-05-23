@@ -1,6 +1,6 @@
 import numpy as np
 
-class ActivationFunction:
+class StrategyActivationFunction:
     """Encapsulates an activation function and its derivative."""
     def __init__(self, function, derivative, name="Custom"):
         self.function = function
@@ -20,31 +20,31 @@ class ActivationFunction:
         return self.derivative(x)
 
 # Standard activations as objects
-Activation_NoDamnFunction = ActivationFunction(
+Activation_NoDamnFunction = StrategyActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,
     name="None"
 )
 
-Activation_Sigmoid = ActivationFunction(
+Activation_Sigmoid = StrategyActivationFunction(
     function=lambda x: 1 / (1 + np.exp(-x)),
     derivative=lambda x: x * (1 - x),  # More efficient if x = sigmoid(x)
     name="Sigmoid"
 )
 
-Activation_Tanh = ActivationFunction(
+Activation_Tanh = StrategyActivationFunction(
     function=np.tanh,
     derivative=lambda x: 1 - np.tanh(x)**2,
     name="Tanh"
 )
 
-Activation_ReLU = ActivationFunction(
+Activation_ReLU = StrategyActivationFunction(
     function=lambda x: np.maximum(0, x),
     derivative=lambda x: np.where(x > 0, 1, 0),
     name="ReLU"
 )
 
-Activation_LeakyReLU = ActivationFunction(
+Activation_LeakyReLU = StrategyActivationFunction(
     function=lambda x, alpha=0.01: np.where(x > 0, x, alpha * x),
     derivative=lambda x, alpha=0.01: np.where(x > 0, 1, alpha),
     name="LeakyReLU"
