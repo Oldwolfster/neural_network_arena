@@ -22,7 +22,7 @@ class BatchMode(IntEnum):
     #MINI_SHUFFLED           = auto()  # Mini-batches with fresh shuffle each epoch
     #MINI_SHUFFLED_STICKY    = auto()  # Mini-batches using same shuffled order each epoch
 
-class Optimizer:
+class StrategyOptimizer:
     def __init__(self,
             update_function,
             finalizer_function=None,
@@ -196,7 +196,7 @@ def sgd_finalize(batch_size):
 
     return logs
 
-Optimizer_SGD = Optimizer(
+Optimizer_SGD = StrategyOptimizer(
     name        = "Stochastic Gradient Descent",
     desc        = "Updates weights using the raw gradient scaled by learning rate.",
     when_to_use = "Simple problems, shallow networks, or when implementing your own optimizer.",
@@ -324,7 +324,7 @@ def adam_finalize(batch_size):
             neuron.accumulated_accepted_blame = [0.0 for _ in neuron.accumulated_accepted_blame]
     return logs
 
-Optimizer_Adam =Optimizer(
+Optimizer_Adam =StrategyOptimizer(
     name = "Adam",
     desc = "Adaptive Moment Estimation optimizer with per-weight momentum and scale tracking.",
     when_to_use = "Ideal for handling noisy or sparse gradients; frequently the best default.",

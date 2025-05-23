@@ -38,20 +38,21 @@ class Config:
         self.bd_parameters                          = None # target a, target b, threshold.
 
         # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
-        self.seconds: float                          = 0.0
-        self.cvg_condition: str                      = "Did Not Converge"
-        self.learning_rate: float                    = 0.0       # Read in beginning to instantiate  neurons with correct LR
-        self.final_epoch: int                        = 0 # Last epoch to run
-        self.lowest_error: float                     = 1e50
-        self.lowest_error_epoch                      = 0
-        self._percent_off                            = None
-        self._accuracy_percent                       = None
-        self.backprop_headers                        = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
-        self.popup_headers                           = None #TODO Standardize these 4 names.
-        self.popup_operators                         = None
-        self.popup_finalizer_headers                 = None
-        self.popup_finalizer_operators               = None
-        self.default_scalers                         = None
+        self.seconds: float                         = 0.0
+        self.cvg_condition: str                     = "Did Not Converge"
+        self.learning_rate: float                   = 0.0       # Read in beginning to instantiate  neurons with correct LR
+        self.final_epoch: int                       = 0 # Last epoch to run
+        self.lowest_error: float                    = 1e50
+        self.lowest_error_epoch                     = 0
+        self.exploratory                            = False
+        self._percent_off                           = None
+        self._accuracy_percent                      = None
+        self.backprop_headers                       = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
+        self.popup_headers                          = None #TODO Standardize these 4 names.
+        self.popup_operators                        = None
+        self.popup_finalizer_headers                = None
+        self.popup_finalizer_operators              = None
+        self.default_scalers                        = None
 
     @property
     def SetAllInputs(self):
@@ -63,32 +64,6 @@ class Config:
             # apply scaling logic across all inputs
             self.apply_default_scalers_to_all_inputs()
         self._set_all_inputs = value
-
-    @property
-    def neuroforge_layersDeleteMe(self):
-        """
-        Returns a structured list of layer definitions for visualization.
-        Each item is a list of LayerComponent objects: either a Decider, Scaler, or Threshold.
-        For right now, we will just use a str
-        """
-        layers = []
-
-        # Input scaler(s)
-        if self.input_scaler != Scaler_NONE:
-            layers.append("InputScalar")
-            #layers.append([ScalerComponent(name=self.input_scaler.name) for _ in range(self.input_count)])
-
-        # Main architecture
-        for n in self.architecture_core:
-            layers.append("Decider")
-            #layers.append([DeciderComponent() for _ in range(n)])
-
-
-        # Threshold neuron (optional, e.g. for binary decisions)
-        #if self.uses_threshold:
-        #    layers.append([ThresholdComponent()])
-
-        return layers
 
     @property
     def percent_off(self):
@@ -150,29 +125,33 @@ class Config:
             if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
             else: return  self.bd_parameters[0]
 
-    def set_defaults(self):
+    def set_defaults(self, test_attribute = None, test_strategy = None):
+        if test_attribute and test_strategy:
+            setattr(self, test_attribute, test_strategy)
         self.smartNetworkSetup()
         if self.training_data.binary_decision and not self.bd_parameters:
             self.bd_parameters  = self.loss_function.bd_defaults
 
     def smartNetworkSetup(self):
-        self.lego_selector.apply(self, self.get_rules(), True)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
+        self.lego_selector.apply(self, self.get_rules(), self.exploratory)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
         if self.default_scalers:
             self.scaler.set_all_input_scalers(Scaler_Robust)
-        NeuroForge.print_rules_once_per_gladiator = True
-        #print(f"Defaults applied:  Architecture ->{self.architecture}")
+
 
     def get_rules(self):        #  config.training_data.problem_type == " (0, 100, {"loss_function": Loss_BCEWithLogits}, "config.training_data.problem_type == 'Binary Decision'"),
         # Below fields...
         #   Allow overwrite, priority, field to set, value, condition to set it.
         return [
             #(0, 100, {"architecture": [1]}, "training_data.perceptron_ok == 'True'"),
-            (0, 100, {"output_activation": Activation_Sigmoid}          , "training_data.problem_type == 'Binary Decision'"),
-            (0, 100, {"output_activation": Activation_NoDamnFunction}   , "training_data.problem_type != 'Binary Decision'"),
-            (0, 200, {"loss_function": Loss_BCE}                        , "output_activation.name == 'Sigmoid'"),
-            (0, 200, {"loss_function": Loss_MSE}                        , "output_activation.name == 'None'"),
-            (0, 300, {"default_scalers": True}                          , "scaler.not_set_yet == False"),       #This one is different as ONE setting impacts scaler for ALL inputs
-            (0, 400, {"initializer": Initializer_He}                    , "hidden_activation.name == 'LeakyReLU'"),
+            # First choose loss (based on problem type or custom override)
+            (0, 200, {"loss_function": Loss_BCE}       , "training_data.problem_type == 'Binary Decision'"),
+            (0, 200, {"loss_function": Loss_MSE}       , "training_data.problem_type != 'Binary Decision'"),
+            (0, 300, {"output_activation": Activation_Sigmoid}        , "loss_function.name == 'Binary Cross-Entropy'"),
+            (0, 300, {"output_activation": Activation_NoDamnFunction} , "loss_function.name == 'Mean Squared Error'"),
+            (0, 300, {"output_activation": Activation_Tanh}           , "loss_function.name == 'Hinge Loss'"),
+
+            (0, 400, {"default_scalers": True}                          , "scaler.not_set_yet == False"),       #This one is different as ONE setting impacts scaler for ALL inputs
+            (0, 500, {"initializer": Initializer_He}                    , "hidden_activation.name == 'LeakyReLU'"),
             #(0, 210, {"loss_function": Loss_MSE}, "training_data.has_high_outliers()"),
             #(0, 210, {"loss_function": Loss_MAE}, "not training_data.has_high_outliers()"),
 
@@ -187,5 +166,8 @@ class Config:
             (0, 6697, {"initializer": Initializer_Xavier}, "1 == 1"),
             (0, 669, {"output_activation": Activation_NoDamnFunction}, "1 == 1"),
         ]
-
+            #(0, 200, {"output_activation": Activation_Sigmoid}          , "training_data.problem_type == 'Binary Decision'"),
+            #(0, 200, {"output_activation": Activation_NoDamnFunction}   , "training_data.problem_type != 'Binary Decision'"),
+            #(0, 300, {"loss_function": Loss_BCE}                        , "output_activation.name == 'Sigmoid'"),
+            #(0, 300, {"loss_function": Loss_MSE}                        , "output_activation.name == 'None'"),
 

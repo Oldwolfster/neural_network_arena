@@ -351,7 +351,7 @@ class RamDB:
         except sqlite3.Error as e:
             raise RuntimeError(f"SQL query failed: {e}")
 
-    def query_print(self, sql, as_dict=True, use_excel=False):
+    def query_print(self, sql, as_dict=True, use_excel=False, print_source = True):
         data = self.query(sql, as_dict=as_dict)  # Fetch the data from the database
 
         if not data:
@@ -385,9 +385,8 @@ class RamDB:
         else:
             from tabulate import tabulate
             report = tabulate(data, headers="keys" if as_dict else [], tablefmt="fancy_grid")
-            #if not surpress_call_stack:
-            print(f"PRINTING FROM RamDB query_print: {self.get_call_stack_line()}")
-                # print_call_stack()  # 🔹 Uncomment if needed
+            if print_source:
+                print(f"PRINTING FROM RamDB query_print: {self.get_call_stack_line()}")
             print(report)
 
         return data

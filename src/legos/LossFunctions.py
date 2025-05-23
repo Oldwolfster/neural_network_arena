@@ -120,16 +120,15 @@ class StrategyLossFunction:
         - 🚨 Errors if the output activation is incompatible.
         - ⚠️ Warnings if the hidden layer activation is suboptimal.
         """
-
+        return # right now it's more like spam
         output_activation = Neuron.output_neuron.activation
         hidden_activations = [neuron.activation for layer in Neuron.layers[:-1] for neuron in layer]  # All except output layer
 
         # 🚨 Hard error for output activation mismatch
         if self.allowed_activation_functions and output_activation not in self.allowed_activation_functions:
-            raise ValueError(
-                f"🚨 Invalid output activation {output_activation} for {self.name}. "
-                f"\nAllowed: {', '.join([act.name for act in self.allowed_activation_functions])}"
-            )
+            print(f"🚨 Invalid output activation {output_activation} for {self.name}. ")
+            print(f"\nAllowed: {', '.join([act.name for act in self.allowed_activation_functions])}")
+
         #TODO need to warn example like MSE with sig..
         """ below not working for none
         # ⚠️ Warning for hidden activations (optional)
@@ -159,7 +158,7 @@ def mse_derivative(y_pred, y_true):
 Loss_MSE = StrategyLossFunction(
     loss=mse_loss,
     derivative=mse_derivative,
-    name="Mean Squared Error (MSE)",
+    name="Mean Squared Error",
     short_name="MSE",
     desc="Calculates the average of the squares of differences between predictions and actual values.",
     when_to_use="Commonly used for regression problems.",
@@ -270,37 +269,7 @@ Loss_BCE = StrategyLossFunction(
     bd_defaults= [0, 1, 0.5]
 )
 
-# 🔹 **4. Categorical Cross-Entropy Loss**
-def categorical_crossentropy_loss(y_pred, y_true, epsilon=1e-15):
-    """
-    Computes the Categorical Cross-Entropy loss for multi-class classification.
-    Assumes that y_true is one-hot encoded.
-    """
-    y_pred = np.clip(y_pred, epsilon, 1 - epsilon)
-    # Sum over classes and average over samples.
-    return -np.mean(np.sum(y_true * np.log(y_pred), axis=1))
 
-def categorical_crossentropy_derivative(y_pred, y_true):
-    """
-    Computes the derivative of the Categorical Cross-Entropy loss with respect to predictions.
-    Assumes that y_pred is the output of a softmax layer.
-    """
-    # Originally: n = y_true.shape[0]
-    n = _get_n(y_true)
-    return (y_pred - y_true) / n
-
-Loss_CategoricalCrossEntropy = StrategyLossFunction(
-    loss=categorical_crossentropy_loss,
-    derivative=categorical_crossentropy_derivative,
-    name="Categorical Cross-Entropy",
-    short_name="CCL",
-    desc="Calculates loss for multi-class classification tasks using cross-entropy.",
-    when_to_use="Ideal for multi-class classification problems with one-hot encoded targets.",
-    best_for="Multi-class classification.",
-    derivative_formula="(prediction - target) / n",
-    #bd_rules = (None, None, "NEVER", None),
-    bd_defaults= [0, 0, 0]
-)
 
 # 🔹 **5. Hinge Loss**
 def hinge_loss(y_pred, y_true):
@@ -404,36 +373,6 @@ Loss_Huber = StrategyLossFunction(
     bd_defaults= [-1, 1, 0]
 )
 
-def simple_error_loss(y_pred, y_true):
-    """
-    Returns a simple average absolute error (not used in updates — for reporting only).
-    """
-    return np.mean(np.abs(y_pred - y_true))
-
-
-def simple_error_derivative(y_pred, y_true):
-    """
-    Returns a raw blame signal: prediction - target.
-    This matches the expected direction for weight -= lr * blame * input.
-    """
-    return y_pred - y_true  # <-- The "goofy" way, but matches your update logic
-
-
-Loss_SimpleError = StrategyLossFunction(
-    loss=simple_error_loss,
-    derivative=simple_error_derivative,
-    name="Simple Error-Based Update",
-    short_name="BLAME",
-    desc="Uses prediction - target as a direct blame signal. Matches classic update style of (error * input * lr).",
-    when_to_use="Great for binary decisions and early regression with raw directional updates.",
-    best_for="Classic perceptrons or any intuitive adjustment model.",
-    allowed_activations=None,
-    derivative_formula="prediction - target",
-    #bd_rules=(0, 1, "Binary Decision using raw error", "Use threshold of 0.5"),
-    bd_defaults= [-1, 1, 0]
-)
-
-
 
 def half_wit_loss(y_pred, y_true):
     """
@@ -487,3 +426,9 @@ Loss_Schrodinger = StrategyLossFunction(
     derivative_formula="1 / n  (for all values — direction is lost to the void)",
     bd_defaults= [-99, -97, -96]
 )
+
+
+
+# This allows others to introspect available loss functions if needed
+__all__ = [name for name, obj in globals().items()
+           if isinstance(obj, StrategyLossFunction)]
