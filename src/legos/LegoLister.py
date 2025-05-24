@@ -17,8 +17,11 @@ class LegoLister:
         if config_property not in self.registry:
             raise ValueError(f"No lego registered for '{config_property}'")
 
-        module_path, class_name = self.registry[config_property]
+        if config_property == "loss_function":
+            from src.Legos.LossFunctions import Loss_Hinge
+            return {"Loss_Hinge": Loss_Hinge}
 
+        module_path, class_name = self.registry[config_property]
         module = importlib.import_module(module_path)
         base_class = getattr(module, class_name)
 

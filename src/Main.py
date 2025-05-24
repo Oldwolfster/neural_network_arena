@@ -1,9 +1,9 @@
 import snakeviz
-
+import time
 from src.ArenaSettings import *
 #from src.engine.Engine import run_a_match, run_batch_of_matches, run_all_matchups
 from engine.SQL import list_runs
-
+import datetime
 
 import cProfile
 
@@ -21,13 +21,24 @@ def main():
         print(f"Result of single match ({gladiators[0]}): {result[0]:.2f}%")
     else:
         print(f"test_attribute={test_attribute}")
+        start_time                  = time.time()
+
+        start_str = datetime.datetime.fromtimestamp(start_time).strftime("%Y-%m-%d %H:%M:%S")
         if test_attribute:
             lister = LegoLister()
             test_legos = lister.list_legos(test_attribute)
             #print("Testing lookup:", list(test_legos.keys()))
             for name, strategy in test_legos.items():
-                print(f"\n➤ Running with {test_attribute} = {name}")
+                print(f"\n➤ Batch Mode on   {test_attribute} = {name}")
                 run_a_set(shared_hyper, neuro_engine, test_attribute, strategy)
+            end_time = time.time()
+            elapsed = end_time - start_time
+            end_str = datetime.datetime.fromtimestamp(end_time).strftime("%Y-%m-%d %H:%M:%S")
+            print(f"\n✅ Attribute testing completed")
+            print(f"   ├ Attribute : {test_attribute}")
+            print(f"   ├ Start     : {start_str}")
+            print(f"   ├ End       : {end_str}")
+            print(f"   └ Duration  : {elapsed:.2f} seconds")
         else:
             run_a_set(shared_hyper, neuro_engine)
 

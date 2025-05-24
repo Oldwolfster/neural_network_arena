@@ -2,14 +2,15 @@ from typing import List
 from dataclasses import dataclass, field
 test_attribute = None
 test_strategy = None
-single_match = True
-test_attribute = 'loss_function'
+single_match = False
+#single_match = True
+#test_attribute = 'loss_function'
 
-        #test = lister.list_legos("hidden_activation")
-        #test = lister.list_legos("output_activation")
-        #test = lister.list_legos("optimizer")
-        # test = lister.list_legos("scaler") # works a bit different....
-       # test = lister.list_legos("initializer")
+# test = lister.list_legos("hidden_activation")
+# test = lister.list_legos("output_activation")
+# test = lister.list_legos("optimizer")
+# test = lister.list_legos("scaler") # works a bit different....
+# test = lister.list_legos("initializer")
 
 
 @dataclass
@@ -114,8 +115,7 @@ batch_arenas         = [
 "DefaultRisk__From_Income_Debt"
 
 
-]
-"""
+
 ,"Deceptive_Multi_Regime_Entangler"
 ,"MultiModal_Nonlinear_Interactions"
 ,"AutoNormalize_Challenge"
@@ -139,7 +139,8 @@ batch_arenas         = [
 ,'XOR_Floats'
 ,'Nested_Sine_Flip'
 ,'DefaultRisk__From_Income_Debt'    
-
+]
+"""
 """
 
 

@@ -3,9 +3,6 @@ from dataclasses import dataclass
 
 from enum import Enum
 
-
-
-
 @dataclass
 class ReproducibilitySnapshot:
     arena_name: str
