@@ -31,11 +31,11 @@ class NeuroForge_Template(Gladiator):
         #config.batch_size           = 1
         #config.batch_mode           = BatchMode.SINGLE_SAMPLE   #NOTE single_sample or full overwrite batch_size
         #config.hidden_activation     = Activation_Tanh
-        config.loss_function        = Loss_MSE
+        #config.loss_function        = Loss_Hinge
         #config.roi_mode             = ROI_Mode.MOST_ACCURATE    #SWEET_SPOT(Default), ECONOMIC or MOST_ACCURATE
         #config.scaler.set_input_scaler     (Scaler_Robust, 0)
         #config.scaler.set_all_input_scalers     (Scaler_NONE)
-        #config.scaler.set_target_scaler     (Scaler_MinMax)
+
 
         #ez_debug(inp_scaler = config.input_scaler)
 

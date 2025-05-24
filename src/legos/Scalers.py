@@ -239,6 +239,63 @@ Scaler_ZScore = Scaler(
 )
 
 
+class MinMaxZeroCenteredMethod:
+    def scale(self, params, values):
+        dim = len(values[0]) if isinstance(values[0], (list, tuple)) else 1
+
+        if dim == 1:
+            vals = [v if isinstance(v, (int, float)) else v[0] for v in values]
+            min_val = min(vals)
+            max_val = max(vals)
+            range_val = max_val - min_val
+            params['min'] = min_val
+            params['max'] = max_val
+
+            if range_val == 0:
+                return [0.0 for _ in vals]
+            return [((v - min_val) / range_val) * 2 - 1 for v in vals]
+
+        else:
+            min_vals = [min(v[i] for v in values) for i in range(dim)]
+            max_vals = [max(v[i] for v in values) for i in range(dim)]
+            params['min'] = min_vals
+            params['max'] = max_vals
+
+            scaled = []
+            for v in values:
+                row = []
+                for i in range(dim):
+                    range_val = max_vals[i] - min_vals[i]
+                    if range_val == 0:
+                        row.append(0.0)
+                    else:
+                        row.append(((v[i] - min_vals[i]) / range_val) * 2 - 1)
+                scaled.append(row)
+            return scaled
+
+    def unscale(self, params, x):
+        if isinstance(x, list) and isinstance(x[0], (list, tuple)):
+            return [
+                [((xv[i] + 1) / 2) * (params['max'][i] - params['min'][i]) + params['min'][i] for i in range(len(xv))]
+                for xv in x
+            ]
+        elif isinstance(x, list):
+            return [
+                ((xv + 1) / 2) * (params['max'] - params['min']) + params['min'] for xv in x
+            ]
+        else:
+            return ((x + 1) / 2) * (params['max'] - params['min']) + params['min']
+
+
+Scaler_MinMax_Neg1to1 = Scaler(
+    method=MinMaxZeroCenteredMethod(),
+    name="Min-Max-Zero-Centered",
+    desc="Scales data to the range [-1,1] using min and max.",
+    when_to_use="When using tanh or other symmetric activation functions.",
+    best_for="Output targets or inputs feeding into Tanh activations."
+)
+
+
 class MaxAbsMethod:
     def scale(self, params, values):
         dim = len(values[0]) if isinstance(values[0], (list, tuple)) else 1

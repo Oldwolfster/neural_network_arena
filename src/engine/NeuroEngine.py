@@ -83,7 +83,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         create_weight_tables    (self.db, gladiator)
         self.delete_records     (self.db, gladiator) # in case it had been run by LR sweep
         temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_config)
-        temp_config             . set_defaults()
+        temp_config             . set_defaults( self.test_attribute, self.test_strategy)
         # If LR is manually set in model, skip sweep
         print(f"temp_config.learning_rate={temp_config.learning_rate}")
         if temp_config.learning_rate != 0.0:
@@ -107,7 +107,8 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
             _, config               = self.atomic_train_a_model(gladiator, lr, 20) #Pass learning rate being swept
-            print                   (f"  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
+
+            print                   (f"Gladiator: {gladiator}  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
             results.append          ((lr, config.lowest_error))
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
