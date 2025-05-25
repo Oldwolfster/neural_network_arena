@@ -39,7 +39,7 @@ class TrainingRunInfo:
         # ─── SET 3: Dimensional Coordinates (i.e. Run Settings) ─────────
         self.config_metadata:                Dict[str, Any] = field(default_factory=dict)
         #coming soon self.config_metadata_phases:    Dict[str, int] = {}  # For phase indexing (temp until smarter)
-
+list
         # ─── SET 4: Execution Meta (Control Layers) ─────────────────────
         #phase_id:       Optional[int] = None     # e.g., 101 for "LR Sweep Phase"
         #sweep_group_id: Optional[int] = None     # used to group together settings during sweeps
