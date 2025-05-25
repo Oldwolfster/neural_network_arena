@@ -150,7 +150,44 @@ def prep_RamDB():
 def create_weight_tables(db, gladiator):
     create_weight_adjustments_table(db, gladiator, "update")
     create_weight_adjustments_table(db, gladiator, "finalize")
+    delete_records         (db, gladiator) # in case it had been run by LR sweep
 
+def delete_records(db, gladiator_name, possible_columns=None):
+        """
+        Deletes records across all tables where one of the possible columns matches the given gladiator_name.
+
+        Args:
+            db: Your database connection or wrapper.
+            gladiator_name (str): The model ID or name to delete.
+            possible_columns (list of str, optional): Columns to check, in order of preference.
+        """
+        if possible_columns is None:
+            possible_columns = ['model_id', 'model', 'gladiator']
+
+        # Delete tables that have model_id in name rather than waste a column
+        table_name = f"WeightAdjustments_update_{gladiator_name}"
+        db.execute(f"DELETE FROM {table_name}")
+        table_name = f"WeightAdjustments_finalize_{gladiator_name}"
+        db.execute(f"DELETE FROM {table_name}")
+
+        # Get list of all table names
+        tables = db.query("SELECT name FROM sqlite_master WHERE type='table';")
+
+        for table_row in tables:
+            #ez_debug(table_row=table_row)
+            table_name = table_row['name']
+
+            # Get column names for this table
+            columns = db.query(f"PRAGMA table_info({table_name});", as_dict = False)
+            column_names = [col[1] for col in columns]
+
+            # Find first matching column
+            matching_column = next((col for col in possible_columns if col in column_names), None)
+
+            if matching_column:
+                #print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
+                #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
+                db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 
 
 def summary_report_launch(db: RamDB, arena):   #S.*, I.* FROM EpochSummary S
