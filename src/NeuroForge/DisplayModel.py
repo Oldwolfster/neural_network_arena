@@ -177,7 +177,7 @@ class DisplayModel(EZSurface):
             ) AS FilteredActivations;
         """
 
-        result = self.config.db.query(SQL_MAX_ACTIVATION, (model_id, model_id))
+        result = Const.TRIs[0].db.query(SQL_MAX_ACTIVATION, (model_id, model_id))
         #print(f"Max activation for run {result}")
         # Return the max activation or a default value to prevent division by zero
         return result[0]['max_activation'] if result and result[0]['max_activation'] is not None else 1.0

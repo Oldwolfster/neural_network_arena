@@ -17,10 +17,9 @@ class Config:
 
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData, gladiator_name:str):
 
-        #self.hyper:         HyperParameters         = hyper
+
         self.lego_selector: LegoSelector            = LegoSelector()
-        self.db:            RamDB                   = db
-        self.training_data: TrainingData            = training_data
+        self.training_data: TrainingData            = training_data # NOTE: training_data is stored in Config temporarily to support the rule engine.
 
         # 🔹 Unique components
         self.gladiator_name: str                    = gladiator_name
@@ -155,6 +154,7 @@ class Config:
 
     @property
     def accuracy_percent(self):
+        return 0
         if self._accuracy_percent is None:
             if self.training_data.problem_type == "Binary Decision":
                 SQL_MAX_ACC = """
