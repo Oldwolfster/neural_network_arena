@@ -24,7 +24,8 @@ class ArchitecturePopup(Popup_Base):
 
 
     def content_to_display(self):
-        configs = Const.configs
+        configs = [tri.config for tri in Const.TRIs]
+
         def get_labels():
             label_rows = [
                 ("Model Definition",     ""),  # spacer

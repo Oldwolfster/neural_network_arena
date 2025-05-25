@@ -19,11 +19,11 @@ from ..Legos.Optimizers import BatchMode
 
 class VCR:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
     #def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
-    def __init__(self, config, neurons: List):
+    def __init__(self, TRI, neurons: List):
         # Run Level members
-        self.config                 = config
         #self.training_data          = training_data
         #self.model_id               = model_id
+        self.TRI                    =TRI
         #        self.hyper                  = hyper
         self.neurons                = neurons
         #self.db                     = ramDb
@@ -31,9 +31,9 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
 
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
-        self.sample_count           = len(config.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
-        self.accuracy_threshold     = (config.hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
-        self.converge_detector      = ConvergenceDetector(config.hyper, config.training_data, config)
+        self.sample_count           = len(TRI.config.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
+        self.accuracy_threshold     = (TRI.hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
+        self.converge_detector      = ConvergenceDetector(TRI.hyper, TRI.training_data, TRI.config)
         self.abs_error_for_epoch    = 0
         self.convergence_signal     = None      # Will be set by convergence detector
         self.backpass_finalize_info = []
@@ -62,13 +62,13 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         self.abs_error_for_epoch += abs(iteration_data.error)
 
         ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
-        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.config.training_data.sample_count, self.config.batch_size,  self.config.optimizer.finalizer)
+        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.TRI.training_data.sample_count, self.TRI.config.batch_size,  self.TRI.config.optimizer.finalizer)
 
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
-        self.config.db.add(iteration_data)
-        if not self.config.hyper.record: return
+        self.TRI.db.add(iteration_data)
+        if not self.TRI.hyper.record: return
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):
 
@@ -84,8 +84,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                     )
 
                 # Add the neuron data to the database
-                self.config.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, model=self.config.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
-        Neuron.bulk_insert_weights(db = self.config.db, model_id = self.config.gladiator_name, epoch=epoch_num, iteration=iteration_num )
+                self.TRI.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, model=self.TRI.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
+        Neuron.bulk_insert_weights(db = self.TRI.db, model_id = self.TRI.gladiator_name, epoch=epoch_num, iteration=iteration_num )
 
     def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn) -> list:
         if iteration_num % batch_size == 0:
@@ -109,10 +109,10 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         return finalizer_log
 
     def finish_epoch(self, epoch: int):
-        mae = self.abs_error_for_epoch / self.config.training_data.sample_count
-        if mae < self.config.lowest_error:    # New lowest error
-            self.config.lowest_error = mae
-            self.config.lowest_error_epoch = epoch
+        mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
+        if mae < self.TRI.config.lowest_error:    # New lowest error
+            self.TRI.config.lowest_error = mae
+            self.TRI.config.lowest_error_epoch = epoch
 
         self.abs_error_for_epoch = 0 # Reset for next epoch
         self.epoch_curr_number += 1
@@ -131,12 +131,12 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
         """
-        if not self.config.hyper.record: return
+        if not self.TRI.hyper.record: return
         sample_row = weight_update_metrics[0]
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
 
-        table_name = f"WeightAdjustments_{update_or_finalize}_{self.config.gladiator_name}" #TODO susceptible to SQL injection
+        table_name = f"WeightAdjustments_{update_or_finalize}_{self.TRI.gladiator_name}" #TODO susceptible to SQL injection
         sql = f"""
             INSERT INTO {table_name}
             ({fields})
@@ -147,9 +147,9 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
 
         #print(f"Data about to be  INSERT{converted_rows}")
         #print("Below is table content")
-        #self.config.db.query_print(f"Select * from {table_name}")
+        #self.TRI.db.query_print(f"Select * from {table_name}")
 
-        self.config.db.executemany(sql, converted_rows,"weight adjustments")
+        self.TRI.db.executemany(sql, converted_rows,"weight adjustments")
         #print("Insert worked")
         weight_update_metrics.clear()
 
@@ -190,7 +190,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print("********  Distribute Error Calcs************")
         #for row in self.blame_calculations:
         #    print(row)
-        if not self.config.hyper.record: return
+        if not self.TRI.hyper.record: return
         sql = """
         INSERT INTO ErrorSignalCalcs
         (epoch, iteration, model_id, nid, weight_id, 
@@ -208,6 +208,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print(f"BLAME {self.blame_calculations}")
 
         #Heads up, sometimes overflow error look like key violation here
-        self.config.db.executemany(sql, blame_calculations, "error signal")
+        self.TRI.db.executemany(sql, blame_calculations, "error signal")
         blame_calculations.clear()
 

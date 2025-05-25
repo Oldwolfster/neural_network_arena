@@ -10,7 +10,7 @@ class DisplayPanelPrediction(EZForm):
         self.model_id       = model_id
         self.loss_function  = loss_function
         self.problem_type   = problem_type
-        self.target_name    = Const.configs[0].hyper.data_labels[-1].strip()
+        self.target_name    = Const.TRIs[0].hyper.data_labels[-1].strip()
 
         # Define the fields and default values for the form
         fields = {

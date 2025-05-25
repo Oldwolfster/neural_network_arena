@@ -15,7 +15,7 @@ from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
 from src.NeuroForge.GeneratorModel import ModelGenerator
 from src.NeuroForge.ui.WindowMatches import WindowMatches
-
+from src.engine.TrainingRunInfo import TrainingRunInfo
 
 class Display_Manager:
     """
@@ -27,17 +27,17 @@ class Display_Manager:
     Changing information is retrieved from the in-ram SQL Lite DB that stores the Models states (think VCR Tape of the models training)
     NOTE: The underscore in the class name is deliberate to separate it from the classes it manages (which all are prefixed with 'Display'
     """
-    def __init__(self, configs: List[Config]):
-        Const.configs       = configs  # Store all model configs
+    def __init__(self, TRIs: List[TrainingRunInfo]):
+        Const.TRIs       = TRIs  # Store all model configs
 
         self.the_hovered    = None # if an object is being hovered.
         self.hoverlings     = []
-        self.t_data_popup   = PopupTrainingData(configs[0])
+        self.t_data_popup   = PopupTrainingData()
         self.info_popup     = PopupInfoButton()
         self.components     = []  # List for EZSurface-based components
         self.eventors       = []  # Components that need event handling
         self.models         = []  # List for display models
-        self.db             = configs[0].db  # Temporary shortcut
+        self.db             = TRIs[0].db  # Temporary shortcut
         self.data_iteration = None
         self.data_epoch     = None
         self.last_iteration = 0
@@ -130,7 +130,7 @@ class Display_Manager:
 
     def initialize_components(self):
         """Initialize UI components like EZForm-based input panels and model displays."""
-        display_banner = DisplayBanner(Const.configs[0].training_data, Const.MAX_EPOCH, Const.MAX_ITERATION)
+        display_banner = DisplayBanner(Const.TRIs[0].training_data, Const.MAX_EPOCH, Const.MAX_ITERATION)
         self.components.append(display_banner)
         panel_width = 8
 
@@ -184,15 +184,15 @@ class Display_Manager:
         print("Show info")
 
     def create_prediction_panels(self, panel_width): #one needed per model
-        for idx, model_config in enumerate(Const.configs):
-            model_id = model_config.gladiator_name  # Assuming Config has a `model_id` attribute
-            problem_type = model_config.training_data.problem_type
+        for idx, TRI in enumerate(Const.TRIs):
+            model_id = TRI.gladiator_name  # Assuming Config has a `model_id` attribute
+            problem_type = TRI.training_data.problem_type
             #For now, this will show 2 and write the rest over the top of each other.
             top = 10 #Assume 1 model
             if idx == 1:    #move 2nd box down (0 based)
                 top = 52
             if idx <2:      #Only show two prediction panels
-                panel = DisplayPanelPrediction(model_id, problem_type, model_config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
+                panel = DisplayPanelPrediction(model_id, problem_type, TRI.config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
 
     def query_dict_iteration(self):
@@ -257,12 +257,12 @@ class Display_Manager:
         """
         Retrieves the highest epoch per model from EpochSummary and stores it in each config's final_epoch.
         """
-        for config in Const.configs:
+        for TRI in Const.TRIs:
             #model_id =   # Or whatever uniquely identifies this model in EpochSummary
             sql = "SELECT MAX(epoch) as max_epoch FROM EpochSummary WHERE model_id = ?"
-            result = db.query(sql, (config.gladiator_name,))
+            result = db.query(sql, (TRI.gladiator_name,))
             max_epoch = result[0].get("max_epoch") or 0
-            config.final_epoch = max_epoch
+            TRI.final_epoch = max_epoch
 
     def get_max_epoch(self, db: RamDB) -> int:
         """Retrieve highest epoch for all models."""

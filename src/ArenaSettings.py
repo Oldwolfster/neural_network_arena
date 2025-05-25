@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 test_attribute = None
 test_strategy = None
 single_match = False
-#single_match = True
+single_match = True
 #test_attribute = 'loss_function'
 
 # test = lister.list_legos("hidden_activation")
@@ -120,6 +120,8 @@ batch_arenas         = [
 ,"MultiModal_Nonlinear_Interactions"
 ,"AutoNormalize_Challenge"
 ,"Titanic"
+]
+"""
 ,"Bit_Flip_Memory"
 ,"Iris_Two_Class"
 ,"Chaotic_Function_Prediction"
@@ -139,8 +141,7 @@ batch_arenas         = [
 ,'XOR_Floats'
 ,'Nested_Sine_Flip'
 ,'DefaultRisk__From_Income_Debt'    
-]
-"""
+
 """
 
 
