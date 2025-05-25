@@ -54,7 +54,8 @@ class HyperParameters:
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-
+    'BiggerIsNotBetter'
+    ,'All_Defaults'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'
@@ -67,8 +68,7 @@ gladiators = [
     #,'test_newOpt'
    #,'NeuroForge_Template'
 
-    #'BiggerIsNotBetter'
-    'All_Defaults'
+
     #,'Test_BCE'
     #'Test_BCE'
     #,'TestBatch'
@@ -111,17 +111,16 @@ training_pit = "DefaultRisk__From_Income_Debt"
 #"Regime_Trigger_Switch" #Impossible for normal FFNN
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
-batch_arenas         = [
+#batch_arenas         = [
+arenas         = [
 "DefaultRisk__From_Income_Debt"
-
-
-
 ,"Deceptive_Multi_Regime_Entangler"
+ ]
+"""   
 ,"MultiModal_Nonlinear_Interactions"
 ,"AutoNormalize_Challenge"
 ,"Titanic"
-]
-"""
+
 ,"Bit_Flip_Memory"
 ,"Iris_Two_Class"
 ,"Chaotic_Function_Prediction"

@@ -3,6 +3,7 @@ from src.engine.TrainingData import TrainingData
 class MultiScaler:
     def __init__(self, training_data: TrainingData):
         #print("initializing Multiscaler")
+        #if not training_data: return
         self.training_data = training_data
         #print("training_dat")
         self.training_data.verify_targets_unchanged("Multiscaler constructor")
