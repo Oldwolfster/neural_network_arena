@@ -1,3 +1,4 @@
+import os
 import time
 from src.engine.Utils import dynamic_instantiate, set_seed
 from .SQL import record_training_data
@@ -20,13 +21,29 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
     def run_a_batch(self):
         lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)
-
-
+        print(gladiators) # is list of models to run (strings of file name)
+        print(arenas) # is list of arenas to run them in
+        print(lr_sweeps)
 
     def check_for_learning_rate_sweeps(self, gladiators):
         #Return a list of booleans coorespoinding to gladiators
+        needs_lr_sweep = []
         for gladiator in    gladiators:
-            self.check_gladiator_for_learning_rate_sweep(gladiator)
+            #self.check_gladiator_for_learning_rate_sweep(gladiator)
+            needs_lr_sweep.append(self.model_explicitly_sets_lr(gladiator))
+        return needs_lr_sweep
+
+
+    def model_explicitly_sets_lr(self, gladiator_name: str) -> bool:
+        for root, _, files in os.walk("coliseum/gladiators"):
+            for file in files:
+                if file == f"{gladiator_name}.py":
+                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
+                        for line in f:
+                            if "config.learning_rate" in line and not line.strip().startswith("#"):
+                                return True
+                    return False
+        raise FileNotFoundError(f"❌ Could not find file for gladiator '{gladiator_name}' (expected '{gladiator_name}.py') in 'coliseum/gladiators'.")
 
     def check_gladiator_for_learning_rate_sweep(self, gladiator):
         # Create temp instantiation of model to see if Learning rate is specified.

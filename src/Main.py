@@ -15,6 +15,12 @@ from src.engine.NeuroEngine import NeuroEngine
 def main():
     shared_hyper = HyperParameters()
     neuro_engine = NeuroEngine(shared_hyper)
+    neuro_engine.run_a_batch()
+
+
+def main1():
+    shared_hyper = HyperParameters()
+    neuro_engine = NeuroEngine(shared_hyper)
 
     if single_match:
         result = neuro_engine.run_a_match(gladiators, training_pit)
