@@ -88,7 +88,7 @@ class StrategyLossFunction:
 
     def __repr__(self):
         """Custom representation for debugging."""
-        return f"Loss function is '{self.name}'"
+        return self.name
 
     def grad(self, y_pred, y_true):
         """
@@ -187,7 +187,7 @@ def mae_derivative(y_pred, y_true):
 Loss_MAE = StrategyLossFunction(
     loss=mae_loss,
     derivative=mae_derivative,
-    name="Mean Absolute Error (MAE)",
+    name="Mean Absolute Error",
     short_name="MAE",
     desc="Calculates the average of the absolute differences between predictions and actual values.",
     when_to_use="Useful for regression tasks less sensitive to outliers.",

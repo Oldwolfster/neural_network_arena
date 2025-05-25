@@ -1,5 +1,19 @@
 from typing import List
 from dataclasses import dataclass, field
+from src.Legos.ActivationFunctions  import *
+from src.Legos.WeightInitializers   import *
+from src.Legos.Optimizers           import *
+from src.Legos.Scalers              import *
+from src.Legos.LossFunctions        import *
+
+
+
+dimensions={
+    "loss_function": [Loss_MSE, Loss_MAE],
+    # "hidden_activation": [Activation_ReLU, Activation_Tanh],
+    # Add more here as needed!
+}
+
 test_attribute = None
 test_strategy = None
 single_match = False
@@ -114,9 +128,10 @@ training_pit = "DefaultRisk__From_Income_Debt"
 #batch_arenas         = [
 arenas         = [
 "DefaultRisk__From_Income_Debt"
-,"Deceptive_Multi_Regime_Entangler"
+
  ]
 """   
+,"Deceptive_Multi_Regime_Entangler"
 ,"MultiModal_Nonlinear_Interactions"
 ,"AutoNormalize_Challenge"
 ,"Titanic"

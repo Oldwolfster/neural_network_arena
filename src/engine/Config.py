@@ -1,14 +1,16 @@
 from src.Legos.ActivationFunctions import *
-from .RamDB import RamDB
-from .TrainingData import TrainingData
 from src.Legos.WeightInitializers import *
 from src.Legos.Optimizers import *
 from src.Legos.Scalers import *
+from ..Legos.LossFunctions import *
+from .RamDB import RamDB
+from .TrainingData import TrainingData
+
 from .convergence.ConvergenceDetector import ROI_Mode
 from .. import NeuroForge
 from ..ArenaSettings import HyperParameters
 from ..Legos.LegoSelector import LegoSelector
-from ..Legos.LossFunctions import *
+
 from dataclasses import dataclass, field
 
 
