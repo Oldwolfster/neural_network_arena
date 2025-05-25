@@ -50,16 +50,15 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
 
 
-    def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=None):
-        record_results = epochs is None  #if epochs is specified it is LR Sweep, don't record and clean up
+    def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=0):
+        record_results = (epochs == 0)  #if epochs is specified it is LR Sweep, don't record and clean up
         if learning_rate is None:
             learning_rate = self.check_for_learning_rate_sweep(gladiator)
 
         model_config                = self.create_fresh_config(gladiator)
-        TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data,model_config, gladiator)
+        TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data,model_config, gladiator, self.seed)
 
         create_weight_tables        (self.db, gladiator)
-        self.delete_records         (self.db, gladiator) # in case it had been run by LR sweep
         start_time                  = time.time()
         model_config.learning_rate  = learning_rate                         # Either from sweep or config if sweep found it was set in config
         set_seed                    (self.seed)
@@ -71,7 +70,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         model_config                . set_defaults( self.test_attribute, self.test_strategy)
 
         # Actually train model
-        last_mae                    = nn.train(0 if record_results else epochs)
+        last_mae                    = nn.train(epochs)
         model_config                .configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
         model_config.seconds        = time.time() - start_time
         model_info                  = ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.architecture, model_config.training_data.problem_type )
@@ -84,9 +83,9 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
     def check_for_learning_rate_sweep(self, gladiator):
         # Create temp instantiation of model to see if Learning rate is specified.
         temp_config             = self.create_fresh_config(gladiator)
-        temp_TRI                = TrainingRunInfo(self.shared_hyper,self.db,self.training_data,temp_config, gladiator)
+        temp_TRI                = TrainingRunInfo(self.shared_hyper,self.db,self.training_data,temp_config, gladiator, self.seed)
         create_weight_tables    (self.db, gladiator)
-        self.delete_records     (self.db, gladiator) # in case it had been run by LR sweep
+
         temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_TRI)
         temp_config             . set_defaults( self.test_attribute, self.test_strategy)
         # If LR is manually set in model, skip sweep
@@ -125,42 +124,6 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         print                       (f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
         return                      best_lr
 
-    def delete_records(self, db, gladiator_name, possible_columns=None):
-        """
-        Deletes records across all tables where one of the possible columns matches the given gladiator_name.
-
-        Args:
-            db: Your database connection or wrapper.
-            gladiator_name (str): The model ID or name to delete.
-            possible_columns (list of str, optional): Columns to check, in order of preference.
-        """
-        if possible_columns is None:
-            possible_columns = ['model_id', 'model', 'gladiator']
-
-        # Delete tables that have model_id in name rather than waste a column
-        table_name = f"WeightAdjustments_update_{gladiator_name}"
-        db.execute(f"DELETE FROM {table_name}")
-        table_name = f"WeightAdjustments_finalize_{gladiator_name}"
-        db.execute(f"DELETE FROM {table_name}")
-
-        # Get list of all table names
-        tables = db.query("SELECT name FROM sqlite_master WHERE type='table';")
-
-        for table_row in tables:
-            #ez_debug(table_row=table_row)
-            table_name = table_row['name']
-
-            # Get column names for this table
-            columns = db.query(f"PRAGMA table_info({table_name});", as_dict = False)
-            column_names = [col[1] for col in columns]
-
-            # Find first matching column
-            matching_column = next((col for col in possible_columns if col in column_names), None)
-
-            if matching_column:
-                #print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
-                #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
-                db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 
     def instantiate_arena(self, arena):
         # Instantiate the arena and retrieve data
