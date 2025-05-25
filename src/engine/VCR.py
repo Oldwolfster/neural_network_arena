@@ -31,7 +31,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
 
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
-        self.sample_count           = len(TRI.config.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
+        self.sample_count           = len(TRI.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
         self.accuracy_threshold     = (TRI.hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
         self.converge_detector      = ConvergenceDetector(TRI.hyper, TRI.training_data, TRI.config)
         self.abs_error_for_epoch    = 0

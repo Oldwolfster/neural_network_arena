@@ -78,7 +78,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         #Record training details    #print(f"architecture = {model_config.architecture}")
         if record_results:
             record_snapshot         (model_config, last_mae, self.seed)        # Store Config for this model
-            model_config.db.add     (model_info)              #Writes record to ModelInfo table
+            TRI.db.add     (model_info)              #Writes record to ModelInfo table
         return                     TRI
 
     def check_for_learning_rate_sweep(self, gladiator):
