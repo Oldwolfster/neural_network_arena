@@ -11,12 +11,12 @@ from src.engine.TrainingData import TrainingData
 
 
 class TrainingRunInfo:
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData, config: Config, gladiator_name:str, seed):
+    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  gladiator_name:str, seed):
         # ─── SET 1: Global Shared Objects ───────────────────────────────
         self.hyper:              HyperParameters         = hyper
         self.db:                 RamDB                   = db
         self.training_data:      TrainingData            = training_data
-        self.config:             Config                  = config
+        self.config:             Config                  = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator_name)
         self.lego_selector:      LegoSelector            = LegoSelector()
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
