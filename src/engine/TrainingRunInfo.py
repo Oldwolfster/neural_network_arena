@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-
+#from src.engine.Reporting import generate_reports, create_weight_tables
 from src.ArenaSettings import HyperParameters
 from src.Legos.LegoSelector import LegoSelector
 from src.engine.Config import Config
@@ -11,19 +11,17 @@ from src.engine.TrainingData import TrainingData
 
 
 class TrainingRunInfo:
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  gladiator_name:str, seed):
+    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  ATAM, seed):
+        #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
         self.hyper:              HyperParameters         = hyper
         self.db:                 RamDB                   = db
         self.training_data:      TrainingData            = training_data
-        self.config:             Config                  = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator_name)
+        self.config:             Config                  = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=ATAM["gladiator"])
         self.lego_selector:      LegoSelector            = LegoSelector()
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
-        self.gladiator_name: str                         = gladiator_name
-
-        # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
-        self.gladiator_name:    str                 = gladiator_name
+        self.gladiator_name:    str                 = ATAM["gladiator"]
         self.time_start:        datetime            = datetime.now
         self.time_end:          datetime            = None
         self.final_error:       float               = None

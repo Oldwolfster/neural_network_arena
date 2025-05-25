@@ -1,8 +1,10 @@
 import os
+import pprint
 import time
 from src.engine.Utils import dynamic_instantiate, set_seed
 from .SQL import record_training_data
 from .StoreHistory import record_snapshot
+from .TrainingBatchInfo import TrainingBatchInfo
 from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports, create_weight_tables
 from src.engine.Reporting import prep_RamDB
@@ -20,10 +22,42 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.test_strategy      = None
 
     def run_a_batch(self):
-        lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)
+        #lr_sweeps = self.check_for_learning_rate_sweeps(gladiators) # Eventually Move this to TrainingBatchInfo
+        batch = TrainingBatchInfo(
+            gladiators=gladiators,
+            arenas=arenas,
+            dimensions=dimensions)
+
         print(gladiators) # is list of models to run (strings of file name)
         print(arenas) # is list of arenas to run them in
-        print(lr_sweeps)
+        #print(dimensions)
+        for ATAM in batch.ATAMs:
+            self.ATAM(ATAM, True)
+
+        pprint.pprint(batch.ATAMs)
+
+    #ATAM is short for  -->atomic_train_a_model
+    def ATAM(self, ATAM, record_results: bool, epochs=0):
+            set_seed                    (self.seed)
+            create_weight_tables        (self.db, ATAM["gladiator"])
+            self.training_data          = self.instantiate_arena(ATAM["arena"])
+            TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, ATAM, self.seed)
+            nn                          = dynamic_instantiate(ATAM["gladiator"], 'coliseum\\gladiators', TRI)
+
+
+
+            TRI.config                  . set_defaults( )
+            # Actually train model
+            last_mae                    = nn.train(epochs)
+            TRI.config                  .configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+            TRI                         . record_finish_time()
+            model_info                  = ModelInfo(ATAM["gladiator"], TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
+            #Record training details    #print(f"architecture = {model_config.architecture}")
+            if record_results:
+                record_snapshot         (TRI.config , last_mae, self.seed)        # Store Config for this model
+                TRI.db.add     (model_info)              #Writes record to ModelInfo table
+            return                     TRI
+
 
     def check_for_learning_rate_sweeps(self, gladiators):
         #Return a list of booleans coorespoinding to gladiators
