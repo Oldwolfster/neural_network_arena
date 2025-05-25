@@ -1,4 +1,4 @@
-import snakeviz
+
 import time
 from src.ArenaSettings import *
 #from src.engine.Engine import run_a_match, run_batch_of_matches, run_all_matchups
