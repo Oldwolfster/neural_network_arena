@@ -1,7 +1,6 @@
 import pygame
 import pygame_gui
 from src.NeuroForge import Const
-from src.NeuroForge.Const import add_items_to_architecture_not_in_NNA
 from src.NeuroForge.Display_Manager import Display_Manager
 from src.NeuroForge.VCR import VCR
 
@@ -12,18 +11,18 @@ from src.ArenaSettings import HyperParameters
 from src.engine.Utils_DataClasses import ModelInfo
 from typing import List
 from src.NeuroForge.ButtonMenu import ButtonMenu, ButtonInfo
+from src.engine.TrainingRunInfo import TrainingRunInfo
 
-
-def neuroForge(configs:  List[Config]):
+def neuroForge(TRIs:  List[TrainingRunInfo]):
     """Initialize NeuroForge and run the visualization loop."""
-    add_items_to_architecture_not_in_NNA(configs)
+
     pygame.init()
     Const.SCREEN = pygame.display.set_mode((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     pygame.display.set_caption("Neural Network Visualization")
     Const.UI_MANAGER = pygame_gui.UIManager((Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT))
     Const.vcr = VCR()  # Handles event processing
-    Const.dm = Display_Manager(configs)  # Assign `DisplayManager` directly
-    menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, configs[0].db)  # Create UI menu
+    Const.dm = Display_Manager(TRIs)  # Assign `DisplayManager` directly
+    menu = create_menu(Const.SCREEN_WIDTH, Const.SCREEN_HEIGHT, TRIs[0].db)  # Create UI menu
     menu_button = ButtonMenu()
 
     #info_button = ButtonInfo()

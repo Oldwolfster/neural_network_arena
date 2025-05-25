@@ -9,7 +9,7 @@ from src.Legos.Optimizers import BatchMode
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text, smart_format
 
 class PopupTrainingData(Popup_Base):
-    def __init__(self,  configs: List[Config]):
+    def __init__(self):
         super().__init__(column_width_overrides={
                 0: 20,
                 2: 20,
@@ -31,7 +31,7 @@ class PopupTrainingData(Popup_Base):
         return False  #return col_index == 0 or row_index == 0
 
     def content_to_display(self):
-        src = Const.configs[0].training_data.source_code
+        src = Const.TRIs[0].training_data.source_code
         lines = src.splitlines()
 
         # — extract the doc-string (without the """ markers) —

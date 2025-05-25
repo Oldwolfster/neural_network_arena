@@ -17,7 +17,7 @@ class Config:
 
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData, gladiator_name:str):
 
-        self.hyper:         HyperParameters         = hyper
+        #self.hyper:         HyperParameters         = hyper
         self.lego_selector: LegoSelector            = LegoSelector()
         self.db:            RamDB                   = db
         self.training_data: TrainingData            = training_data

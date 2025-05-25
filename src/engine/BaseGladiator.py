@@ -5,6 +5,7 @@ import numpy as np
 
 from src.Legos.ActivationFunctions import *
 from src.Legos.Optimizers import *
+from src.engine.TrainingRunInfo import TrainingRunInfo
 from src.engine.VCR import VCR
 from src.engine.Config import Config
 from src.engine.Neuron import Neuron
@@ -31,14 +32,15 @@ class Gladiator(ABC):
     2) Training Framework - does the brute force tasks of the arena - not intended for overriding
     3) Initialization - Preps everything for the framework and gladiator
 """
-    def __init__(self,  config: Config):
-        self.config             = config
-        self.db                 = config.db
-        self.hyper              = config.hyper
-        self.training_data      = config.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
+    #def __init__(self,  config: Config):
+    def __init__(self,  TRI: TrainingRunInfo):
+        self.config             = TRI.config
+        self.db                 = TRI.db
+        self.hyper              = TRI.hyper
+        self.training_data      = TRI.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.total_iterations   = 1                         # Timestep for optimizers such as adam
         #self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.VCR                = VCR(config, Neuron.neurons) # Args3, is ramdb
+        self.VCR                = VCR(TRI, Neuron.neurons) # Args3, is ramdb
         #self.learning_rate      = self.config.learning_rate  #
         self.number_of_epochs   = self.hyper.epochs_to_run
         #self._full_a1rchitecture = None

@@ -5,6 +5,7 @@ from .StoreHistory import record_snapshot
 from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports, create_weight_tables
 from src.engine.Reporting import prep_RamDB
+from .TrainingRunInfo import TrainingRunInfo
 from ..NeuroForge.NeuroForge import *
 from src.ArenaSettings import *
 
@@ -13,7 +14,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
     print_rules_once_per_gladiator = False #this is not working yet
     def __init__(self, hyper):
         self.db = prep_RamDB()
-        self.shared_hyper       = hyper#HyperParameters()
+        self.shared_hyper       = hyper
         self.seed               = set_seed(self.shared_hyper.random_seed)
         self.training_data      = None
         self.test_attribute     = None
@@ -24,23 +25,25 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         model_configs       = []
         model_infos         = []
         results             = []
+        TRIs                = []    #Store the training run infos
         self.test_attribute = test_attribute
         self.test_strategy  = test_strategy
+
 
         for gladiator in    gladiators:
             print           (f"Preparing to run model: {gladiator}")
             set_seed        (self.seed)
-            info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
-            model_infos     . append(info)
-            model_configs   . append(config)
-            print           (f"{gladiator} completed in {config.seconds} based on:{config.cvg_condition} with relative accuracy of {config.accuracy_percent}")
+            TRI             = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
+            TRIs            . append(TRI)
+
+            print           (f"{gladiator} completed in {TRI.config.seconds} based on:{TRI.config.cvg_condition} with relative accuracy of {TRI.config.accuracy_percent}")
             print(self.db.get_add_timing())
-            results.append(config.accuracy_percent)
+            results.append(TRI.config.accuracy_percent)
 
         # Generate reports and send all model configs to NeuroForge
         print(f"🛠️  Random Seed:    {self.seed}")
         generate_reports(self.db, self.training_data, self.shared_hyper, model_infos, arena)
-        if self.shared_hyper.record: neuroForge(model_configs)
+        if self.shared_hyper.record: neuroForge(TRIs)
         return results
 
     def create_fresh_config(self, gladiator):
@@ -53,14 +56,15 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             learning_rate = self.check_for_learning_rate_sweep(gladiator)
 
         model_config                = self.create_fresh_config(gladiator)
-
+        TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data,model_config, gladiator)
 
         create_weight_tables        (self.db, gladiator)
         self.delete_records         (self.db, gladiator) # in case it had been run by LR sweep
         start_time                  = time.time()
         model_config.learning_rate  = learning_rate                         # Either from sweep or config if sweep found it was set in config
         set_seed                    (self.seed)
-        nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
+        #nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
+        nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', TRI)
 
         # 🧠 Inject test strategy if provided (e.g., test loss function, activation, etc.)
 
@@ -75,14 +79,15 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         if record_results:
             record_snapshot         (model_config, last_mae, self.seed)        # Store Config for this model
             model_config.db.add     (model_info)              #Writes record to ModelInfo table
-        return                      model_info, model_config
+        return                     TRI
 
     def check_for_learning_rate_sweep(self, gladiator):
         # Create temp instantiation of model to see if Learning rate is specified.
         temp_config             = self.create_fresh_config(gladiator)
+        temp_TRI                = TrainingRunInfo(self.shared_hyper,self.db,self.training_data,temp_config, gladiator)
         create_weight_tables    (self.db, gladiator)
         self.delete_records     (self.db, gladiator) # in case it had been run by LR sweep
-        temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_config)
+        temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_TRI)
         temp_config             . set_defaults( self.test_attribute, self.test_strategy)
         # If LR is manually set in model, skip sweep
         print(f"temp_config.learning_rate={temp_config.learning_rate}")
@@ -106,13 +111,13 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
-            _, config               = self.atomic_train_a_model(gladiator, lr, 20) #Pass learning rate being swept
+            TRI               = self.atomic_train_a_model(gladiator, lr, 20) #Pass learning rate being swept
 
-            print                   (f"Gladiator: {gladiator}  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
-            results.append          ((lr, config.lowest_error))
+            print                   (f"Gladiator: {gladiator}  - LR: {lr:.1e} → Last MAE: {TRI.config.lowest_error:.5f}")
+            results.append          ((lr, TRI.config.lowest_error))
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
-            if factor == original_factor and lr == start_lr and config.lowest_error > 1e5:
+            if factor == original_factor and lr == start_lr and TRI.config.lowest_error > 1e5:
                 print(f"🛑 MAE {config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
                 factor = 0.1  # 🔄 now sweeping downward
             lr                      *= factor

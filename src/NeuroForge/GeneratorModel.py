@@ -20,9 +20,9 @@ class ModelGenerator:
         """Create DisplayModel instances for each model."""
         ModelGenerator.display_models = []
 
-        for config in Const.configs:  # Loop through stored Config objects
-            model_position = ModelGenerator.model_positions[config.gladiator_name]  # Fetch position
-            display_model = DisplayModel(config, model_position)  # Pass both config & position
+        for TRI in Const.TRIs:  # Loop through stored Config objects
+            model_position = ModelGenerator.model_positions[TRI.config.gladiator_name]  # Fetch position
+            display_model = DisplayModel(TRI.config, model_position)  # Pass both config & position
             display_model.initialize_with_model_info()
             ModelGenerator.display_models.append(display_model)
 
@@ -46,14 +46,14 @@ class ModelGenerator:
         """Extracts shape details for each model to determine visualization layout."""
         ModelGenerator.model_shapes = {}  # Reset stored data
 
-        for config in Const.configs:
-            layer_count = len(config.architecture)
+        for TRI in Const.TRIs:
+            layer_count = len(TRI.config.architecture)
 
             # Enforce minimum 2 neurons per layer for visualization purposes
-            padded_architecture = [max(2, n) for n in config.architecture]
+            padded_architecture = [max(2, n) for n in TRI.config.architecture]
             max_neurons = max(padded_architecture)
 
-            ModelGenerator.model_shapes[config.gladiator_name] = (layer_count, max_neurons)
+            ModelGenerator.model_shapes[TRI.config.gladiator_name] = (layer_count, max_neurons)
 
 class LayoutSelector_single_model:
     @staticmethod

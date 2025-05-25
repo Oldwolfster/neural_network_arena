@@ -1,7 +1,5 @@
 import time
 from src.engine.Utils import dynamic_instantiate, set_seed
-from src.engine.Utils_DataClasses import ez_debug
-from .SQL import retrieve_training_data
 from .SQL import record_training_data
 from .StoreHistory import record_snapshot
 from .TrainingData import TrainingData
@@ -12,34 +10,42 @@ from src.ArenaSettings import *
 
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
 
-    print_rules_once_per_gladiator = False
-    def __init__(self):
+    print_rules_once_per_gladiator = False #this is not working yet
+    def __init__(self, hyper):
         self.db = prep_RamDB()
-        self.shared_hyper       = HyperParameters()
+        self.shared_hyper       = hyper#HyperParameters()
         self.seed               = set_seed(self.shared_hyper.random_seed)
-        self.training_data      = self.instantiate_arena()
+        self.training_data      = None
+        self.test_attribute     = None
+        self.test_strategy      = None
 
-    def run_a_match(self, gladiators):
+    def run_a_match(self, gladiators, arena, test_attribute=None, test_strategy=None):
+        self.training_data  = self.instantiate_arena(arena)
         model_configs       = []
         model_infos         = []
+        results             = []
+        self.test_attribute = test_attribute
+        self.test_strategy  = test_strategy
 
         for gladiator in    gladiators:
-            #NeuroEngine.print_rules_once_per_gladiator = False   # referenced in Config to surpress spam
-            set_seed        (self.seed)
             print           (f"Preparing to run model: {gladiator}")
-            #learning_rate  = self.check_for_learning_rate_sweep(gladiator)
+            set_seed        (self.seed)
             info, config    = self.atomic_train_a_model(gladiator) #Don't pass LR as we don't know it yet
             model_infos     . append(info)
             model_configs   . append(config)
-            print           (f"{gladiator} completed in {config} based on:{config.cvg_condition}")
+            print           (f"{gladiator} completed in {config.seconds} based on:{config.cvg_condition} with relative accuracy of {config.accuracy_percent}")
+            print(self.db.get_add_timing())
+            results.append(config.accuracy_percent)
 
         # Generate reports and send all model configs to NeuroForge
         print(f"🛠️  Random Seed:    {self.seed}")
-        generate_reports(self.db, self.training_data, self.shared_hyper, model_infos)
-        neuroForge(model_configs)
+        generate_reports(self.db, self.training_data, self.shared_hyper, model_infos, arena)
+        if self.shared_hyper.record: neuroForge(model_configs)
+        return results
 
     def create_fresh_config(self, gladiator):
         return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
+
 
     def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=None):
         record_results = epochs is None  #if epochs is specified it is LR Sweep, don't record and clean up
@@ -47,14 +53,18 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             learning_rate = self.check_for_learning_rate_sweep(gladiator)
 
         model_config                = self.create_fresh_config(gladiator)
+
+
         create_weight_tables        (self.db, gladiator)
         self.delete_records         (self.db, gladiator) # in case it had been run by LR sweep
         start_time                  = time.time()
-
         model_config.learning_rate  = learning_rate                         # Either from sweep or config if sweep found it was set in config
         set_seed                    (self.seed)
         nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', model_config)
-        model_config                . set_defaults()
+
+        # 🧠 Inject test strategy if provided (e.g., test loss function, activation, etc.)
+
+        model_config                . set_defaults( self.test_attribute, self.test_strategy)
 
         # Actually train model
         last_mae                    = nn.train(0 if record_results else epochs)
@@ -63,14 +73,19 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         model_info                  = ModelInfo(gladiator, model_config.seconds, model_config.cvg_condition, model_config.architecture, model_config.training_data.problem_type )
         #Record training details    #print(f"architecture = {model_config.architecture}")
         if record_results:
-            record_snapshot             (model_config, last_mae)        # Store Config for this model
-            model_config.db.add         (model_info)              #Writes record to ModelInfo table
+            record_snapshot         (model_config, last_mae, self.seed)        # Store Config for this model
+            model_config.db.add     (model_info)              #Writes record to ModelInfo table
         return                      model_info, model_config
 
     def check_for_learning_rate_sweep(self, gladiator):
-        temp_config = self.create_fresh_config(gladiator)
-
+        # Create temp instantiation of model to see if Learning rate is specified.
+        temp_config             = self.create_fresh_config(gladiator)
+        create_weight_tables    (self.db, gladiator)
+        self.delete_records     (self.db, gladiator) # in case it had been run by LR sweep
+        temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_config)
+        temp_config             . set_defaults( self.test_attribute, self.test_strategy)
         # If LR is manually set in model, skip sweep
+        print(f"temp_config.learning_rate={temp_config.learning_rate}")
         if temp_config.learning_rate != 0.0:
             return temp_config.learning_rate
 
@@ -91,18 +106,17 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         results = []
         while lr < stop_lr and lr >= min_lr_limit:
-            _, config               = self.atomic_train_a_model(gladiator, lr) #Don't pass LR as we don't know it yet
+            _, config               = self.atomic_train_a_model(gladiator, lr, 20) #Pass learning rate being swept
+
+            print                   (f"Gladiator: {gladiator}  - LR: {lr:.1e} → Last MAE: {config.lowest_error:.5f}")
             results.append          ((lr, config.lowest_error))
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
-            if factor == original_factor and lr == start_lr and config.lowest_error > 1e10:
+            if factor == original_factor and lr == start_lr and config.lowest_error > 1e5:
                 print(f"🛑 MAE {config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
                 factor = 0.1  # 🔄 now sweeping downward
             lr                      *= factor
         best_lr, best_metric        = min(results, key=lambda x: x[1])
-        print                       ("\n📋 Learning Rate Sweep Results:")
-        for lr, mae in results:
-            print                   (f"  - LR: {lr:.1e} → Last MAE: {mae:.5f}")
         print                       (f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
         return                      best_lr
 
@@ -143,10 +157,10 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
                 db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 
-    def instantiate_arena(self):
+    def instantiate_arena(self, arena):
         # Instantiate the arena and retrieve data
-        arena               = dynamic_instantiate(training_pit, 'coliseum\\arenas', self.shared_hyper.training_set_size)
-        arena.arena_name    = training_pit
+        arena               = dynamic_instantiate(arena, 'coliseum\\arenas', self.shared_hyper.training_set_size)
+        arena.arena_name    = arena
         src                 = arena.source_code
         result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
         labels              = []
@@ -168,7 +182,5 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         # Assign the labels to hyperparameters and return
         self.shared_hyper.data_labels = labels
         td.arena_name = training_pit
-        record_training_data(td.get_list())
+        #Deprecated - use random seed instead record_training_data(td.get_list())
         return td
-
-
