@@ -8,10 +8,8 @@ from src.engine.Reporting import prep_RamDB
 from .TrainingRunInfo import TrainingRunInfo
 from ..NeuroForge.NeuroForge import *
 from src.ArenaSettings import *
-
+from src.ArenaSettings import *
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
-
-    print_rules_once_per_gladiator = False #this is not working yet
     def __init__(self, hyper):
         self.db = prep_RamDB()
         self.shared_hyper       = hyper
@@ -20,6 +18,28 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.test_attribute     = None
         self.test_strategy      = None
 
+    def run_a_batch(self):
+        lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)
+
+
+
+    def check_for_learning_rate_sweeps(self, gladiators):
+        #Return a list of booleans coorespoinding to gladiators
+        for gladiator in    gladiators:
+            self.check_gladiator_for_learning_rate_sweep(gladiator)
+
+    def check_gladiator_for_learning_rate_sweep(self, gladiator):
+        # Create temp instantiation of model to see if Learning rate is specified.
+        temp_TRI                = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, gladiator, self.seed)
+        #create_weight_tables    (self.db, gladiator)
+
+        temp_nn                 = dynamic_instantiate(gladiator, 'coliseum\\gladiators', temp_TRI)
+        print (f"temp_TRI.config.learning_rate is {temp_TRI.config.learning_rate}")
+
+        #return self.learning_rate_sweep(gladiator)
+    #########################################
+    # Old way is below
+    ###########################################
     def run_a_match(self, gladiators, arena, test_attribute=None, test_strategy=None):
         self.training_data  = self.instantiate_arena(arena)
         model_configs       = []
@@ -51,26 +71,21 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
 
     def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=0):
-        record_results = (epochs == 0)  #if epochs is specified it is LR Sweep, don't record and clean up
+        record_results              = (epochs == 0)  #if epochs is specified it is LR Sweep, don't record and clean up
         if learning_rate is None:   learning_rate = self.check_for_learning_rate_sweep(gladiator)
-
-        #model_config                = self.create_fresh_config(gladiator)
         TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, gladiator, self.seed)
         create_weight_tables        (self.db, gladiator)
-        start_time                  = time.time()
         TRI.config.learning_rate  = learning_rate                         # Either from sweep or config if sweep found it was set in config
         set_seed                    (self.seed)
-
         nn                          = dynamic_instantiate(gladiator, 'coliseum\\gladiators', TRI)
 
         # 🧠 Inject test strategy if provided (e.g., test loss function, activation, etc.)
 
         TRI.config                  . set_defaults( self.test_attribute, self.test_strategy)
-
         # Actually train model
         last_mae                    = nn.train(epochs)
         TRI.config                  .configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-        TRI                         . record_finish_time
+        TRI                         . record_finish_time()
         model_info                  = ModelInfo(gladiator, TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
         #Record training details    #print(f"architecture = {model_config.architecture}")
         if record_results:
