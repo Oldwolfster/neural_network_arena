@@ -34,6 +34,7 @@ class Gladiator(ABC):
 """
     #def __init__(self,  config: Config):
     def __init__(self,  TRI: TrainingRunInfo):
+        self.TRI                = TRI # TrainingRunInfo
         self.config             = TRI.config
         self.db                 = TRI.db
         self.hyper              = TRI.hyper

@@ -35,7 +35,7 @@ class TrainingRunInfo:
             return None
 
         # ─── SET 3: Dimensional Coordinates (i.e. Run Settings) ─────────
-        self.config_metadata:                Dict[str, Any] = field(default_factory=dict)
+        self.config_metadata: Dict[str, Any] = {}
         #coming soon self.config_metadata_phases:    Dict[str, int] = {}  # For phase indexing (temp until smarter)
 
         # ─── SET 4: Execution Meta (Control Layers) ─────────────────────

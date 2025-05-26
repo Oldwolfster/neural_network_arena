@@ -14,47 +14,35 @@ from src.ArenaSettings import *
 from src.ArenaSettings import *
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
     def __init__(self, hyper):
-        self.db = prep_RamDB()
-        self.shared_hyper       = hyper
-        self.seed               = set_seed(self.shared_hyper.random_seed)
-        self.training_data      = None
-        self.test_attribute     = None
-        self.test_strategy      = None
+        self.db                     = prep_RamDB()
+        self.shared_hyper           = hyper
+        self.seed                   = set_seed(self.shared_hyper.random_seed)
+        self.training_data          = None
+        self.test_attribute         = None #TODO DELETE ME
+        self.test_strategy          = None #TODO DELETE ME
 
-    def run_a_batch(self):
-        #lr_sweeps = self.check_for_learning_rate_sweeps(gladiators) # Eventually Move this to TrainingBatchInfo
-        batch = TrainingBatchInfo(
-            gladiators=gladiators,
-            arenas=arenas,
-            dimensions=dimensions)
+    def run_a_batch(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
+        TRIs : TrainingRunInfo      = []
+        batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
+        for setup in batch.setups:  TRIs.append(self.ATAM(setup, 3))                 # pprint.pprint(batch.ATAMs)
+        print(f"MAE of{TRIs[-1].    get("lowest_mae")}: {setup}")
+        generate_reports            (self.db, self.training_data)
+        neuroForge                  (TRIs)
 
-        print(gladiators) # is list of models to run (strings of file name)
-        print(arenas) # is list of arenas to run them in
-        #print(dimensions)
-        for ATAM in batch.ATAMs:
-            self.ATAM(ATAM, True)
 
-        pprint.pprint(batch.ATAMs)
-
-    #ATAM is short for  -->atomic_train_a_model
-    def ATAM(self, ATAM, record_results: bool, epochs=0):
+    def ATAM(self, setup, record_level: int, epochs=0): #ATAM is short for  -->atomic_train_a_model
             set_seed                    (self.seed)
-            create_weight_tables        (self.db, ATAM["gladiator"])
-            self.training_data          = self.instantiate_arena(ATAM["arena"])
-            TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, ATAM, self.seed)
-            nn                          = dynamic_instantiate(ATAM["gladiator"], 'coliseum\\gladiators', TRI)
-
-
-
-            TRI.config                  . set_defaults( )
-            # Actually train model
-            last_mae                    = nn.train(epochs)
+            create_weight_tables        (self.db, setup["gladiator"])
+            self.training_data          = self.instantiate_arena(setup["arena"])
+            TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, setup, self.seed)
+            NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
+            NN.train(epochs)            # Actually train model
             TRI.config                  .configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
             TRI                         . record_finish_time()
-            model_info                  = ModelInfo(ATAM["gladiator"], TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
+            model_info                  = ModelInfo(setup["gladiator"], TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
             #Record training details    #print(f"architecture = {model_config.architecture}")
             if record_results:
-                record_snapshot         (TRI.config , last_mae, self.seed)        # Store Config for this model
+                record_snapshot         (TRI.config , TRI.get("lowest_mae"), self.seed)        # Store Config for this model
                 TRI.db.add     (model_info)              #Writes record to ModelInfo table
             return                     TRI
 
