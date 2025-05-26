@@ -10,6 +10,7 @@ from .RamDB import RamDB
 
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
+from .TrainingRunInfo import TrainingRunInfo
 from .Utils_DataClasses import Iteration
 from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
 from typing import Dict
@@ -23,7 +24,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         # Run Level members
         #self.training_data          = training_data
         #self.model_id               = model_id
-        self.TRI                    =TRI
+        self.TRI : TrainingRunInfo   =TRI
         #        self.hyper                  = hyper
         self.neurons                = neurons
         #self.db                     = ramDb
@@ -109,6 +110,20 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         return finalizer_log
 
     def finish_epoch(self, epoch: int):
+
+        mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
+        self.TRI.set("mae", mae)
+        if self.TRI.set_if_lower("lowest_mae",mae):
+            self.TRI.set("lowest_error_epoch", epoch)
+
+        self.abs_error_for_epoch = 0 # Reset for next epoch
+        self.epoch_curr_number += 1
+        #epoch_metrics = self.get_metrics_from_ramdb(epoch)
+        #val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
+        val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
+        return val #        #return "Did Not Converge"
+
+    def finish_epochOrig(self, epoch: int):
         mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
         if mae < self.TRI.config.lowest_error:    # New lowest error
             self.TRI.config.lowest_error = mae
@@ -120,7 +135,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
         val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
         return val #        #return "Did Not Converge"
-
 
     ############# Record Backpass info for pop up window of NeuroForge #############
     ############# Record Backpass info for pop up window of NeuroForge #############

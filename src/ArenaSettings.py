@@ -9,7 +9,7 @@ from src.Legos.LossFunctions        import *
 
 
 dimensions={
-    "loss_function": [Loss_MSE, Loss_MAE],
+    "loss_function": [Loss_MSE]#, Loss_MAE],
     # "hidden_activation": [Activation_ReLU, Activation_Tanh],
     # Add more here as needed!
 }
@@ -68,8 +68,8 @@ class HyperParameters:
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    'BiggerIsNotBetter'
-    ,'All_Defaults'
+    'All_Defaults'
+    #,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'
@@ -113,9 +113,7 @@ training_pit                = "Predict_Income_2_Inputs"
 #training_pit                = "Moons"
 #training_pit                = "Manual"
 #training_pit                = "Predict_Income_2_Inputs_5Coefficents"
-
 ##training_pit              = "Salary2InputsNonlinear"
-
 #training_pit                = "California_Housing"
 #training_pit                = "Customer_Churn_4X3"
 #training_pit = "CarValueFromMiles"

@@ -16,7 +16,7 @@ class TrainingBatchInfo:
         self.gladiators = gladiators
         self.arenas = arenas
         self.dimensions = dimensions or {"__noop__": [None]}  # placeholder
-        self.ATAMs = []
+        self.setups = []
         self.build_run_instructions()
 
     def build_run_instructions(self):
@@ -31,7 +31,7 @@ class TrainingBatchInfo:
                     config_dict = dict(zip(config_keys, combo))
                     config_dict["gladiator"] = gladiator
                     config_dict["arena"] = arena
-                    self.ATAMs.append(config_dict)
+                    self.setups.append(config_dict)
 
 
     def get_unique_run_id():

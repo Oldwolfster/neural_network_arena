@@ -10,8 +10,8 @@ from src.engine.Utils_DataClasses import Iteration
 from src.Legos.WeightInitializers import *
 
 
-def generate_reports(db : RamDB, training_data, hyper : HyperParameters, model_info_list: List[ModelInfo],arena ):
-    summary_report_launch(db, arena)
+def generate_reports(db : RamDB, training_data  ):
+    summary_report_launch(db)
     print(training_data.get_list())
     #db.query_print("SELECT * FROM WeightAdjustments")
 """ 
@@ -190,7 +190,7 @@ def delete_records(db, gladiator_name, possible_columns=None):
                 db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
 
 
-def summary_report_launch(db: RamDB, arena):   #S.*, I.* FROM EpochSummary S
+def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
     # model_id           │   epoch │   correct │   wrong │   mean_absolute_error │   mean_squared_error │   root_mean_squared_error │ weights                                    │ biases              │   seconds │
     # round((S.correct * 1.0 / (S.correct + S.wrong)) * 100,2) AS [Accuracy],
     SQL = """
@@ -208,7 +208,7 @@ def summary_report_launch(db: RamDB, arena):   #S.*, I.* FROM EpochSummary S
         JOIN ModelInfo I 
         ON S.model_id = I.model_id        
         """
-    print(f"GLADIATOR COMPARISON ================================================ {arena}")
+    print(f"GLADIATOR COMPARISON ================================================")
     summary_overview = db.query_print(SQL, print_source=False)
 
 
