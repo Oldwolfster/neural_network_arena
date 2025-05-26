@@ -5,10 +5,20 @@ import ast  # For safely evaluating strings back to data structures
 from tabulate import tabulate
 
 from src.engine.Config import Config
-from src.engine.Utils_DataClasses import ReproducibilitySnapshot
+from src.engine.Utils_DataClasses import ReproducibilitySnapshot, ModelInfo
 from datetime import datetime
 
-def record_snapshot( config: Config, last_mae, random_seed):
+def record_results(TRI, setup, record_level):
+    config = TRI.config
+    last_mae = TRI.get("lowest_mae")
+    random_seed = TRI.seed
+
+    TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+    TRI                         . record_finish_time()
+
+    model_info                  = ModelInfo(setup["gladiator"], TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
+    TRI.db.add     (model_info)              #Writes record to ModelInfo table
+
     conn = get_db_connection()
     create_snapshot_table(conn)
     log_entry = ReproducibilitySnapshot.from_config(config, last_mae, random_seed)
