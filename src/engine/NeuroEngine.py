@@ -3,7 +3,7 @@ import pprint
 import time
 from src.engine.Utils import dynamic_instantiate, set_seed
 from .SQL import record_training_data
-from .StoreHistory import record_snapshot
+from .StoreHistory import record_results
 from .TrainingBatchInfo import TrainingBatchInfo
 from .TrainingData import TrainingData
 from src.engine.Reporting import generate_reports, create_weight_tables
@@ -24,27 +24,20 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
     def run_a_batch(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
         TRIs : TrainingRunInfo      = []
         batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
-        for setup in batch.setups:  TRIs.append(self.ATAM(setup, 3))                 # pprint.pprint(batch.ATAMs)
+        for setup in batch.setups:  TRIs.append(self.atomic_train_a_model(setup, 3))                 # pprint.pprint(batch.ATAMs)
         print(f"MAE of{TRIs[-1].    get("lowest_mae")}: {setup}")
         generate_reports            (self.db, self.training_data)
         neuroForge                  (TRIs)
 
-
-    def ATAM(self, setup, record_level: int, epochs=0): #ATAM is short for  -->atomic_train_a_model
-            set_seed                    (self.seed)
-            create_weight_tables        (self.db, setup["gladiator"])
+    def atomic_train_a_model(self, setup, record_level: int, epochs=0): #ATAM is short for  -->atomic_train_a_model
+            set_seed                    ( self.seed)
+            create_weight_tables        ( self.db, setup["gladiator"])
             self.training_data          = self.instantiate_arena(setup["arena"])
             TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, setup, self.seed)
             NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
             NN.train(epochs)            # Actually train model
-            TRI.config                  .configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-            TRI                         . record_finish_time()
-            model_info                  = ModelInfo(setup["gladiator"], TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
-            #Record training details    #print(f"architecture = {model_config.architecture}")
-            if record_results:
-                record_snapshot         (TRI.config , TRI.get("lowest_mae"), self.seed)        # Store Config for this model
-                TRI.db.add     (model_info)              #Writes record to ModelInfo table
-            return                     TRI
+            record_results              ( TRI, setup, record_level)        # Store Config for this model
+            return                      TRI
 
 
     def check_for_learning_rate_sweeps(self, gladiators):
@@ -109,7 +102,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 #        return Config(hyper=self.shared_hyper,db=self.db, training_data=self.training_data, gladiator_name=gladiator)
 
 
-    def atomic_train_a_model(self, gladiator, learning_rate=None, epochs=0):
+    def atomic_train_a_model_ORIGINAL (self, gladiator, learning_rate=None, epochs=0):
         record_results              = (epochs == 0)  #if epochs is specified it is LR Sweep, don't record and clean up
         if learning_rate is None:   learning_rate = self.check_for_learning_rate_sweep(gladiator)
         TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, gladiator, self.seed)
