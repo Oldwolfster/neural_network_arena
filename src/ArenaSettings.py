@@ -61,8 +61,8 @@ dimensions={
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    #'All_Defaults'
-    'BiggerIsNotBetter'
+    'All_Defaults'
+    #'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'

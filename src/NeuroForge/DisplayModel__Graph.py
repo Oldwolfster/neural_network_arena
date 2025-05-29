@@ -9,7 +9,7 @@ from src.engine.Utils import smart_format
 
 class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):
-    def __init__(self, width, height, left, top, model_surface, model_id, my_model):
+    def __init__(self, width, height, left, top, model_surface, run_id, my_model):
         """Creates a Graph showing MAE over epoch"""
         #super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color=Const.COLOR_BLUE)
         #super().__init__(width_pct=0, left_pct=0, top_pct=0, height_pct=0,                         pixel_adjust_width=width, pixel_adjust_left=left,                         pixel_adjust_top=top, pixel_adjust_height=height)
@@ -21,8 +21,8 @@ class DisplayModel__Graph():
         self.location_top           = top
         self.location_width         = width
         self.location_height        = height
-        SQL = "SELECT epoch, mean_absolute_error FROM EpochSummary WHERE model_id = ? ORDER BY epoch"
-        self.results = Const.dm.db.query(SQL, (model_id,))
+        SQL = "SELECT epoch, mean_absolute_error FROM EpochSummary WHERE run_id = ? ORDER BY epoch"
+        self.results = Const.dm.db.query(SQL, (run_id,))
 
         # Build and store the plot surface once.
         self.plot_surface = self.create_plot_surface_from_results()

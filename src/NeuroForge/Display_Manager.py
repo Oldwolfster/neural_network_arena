@@ -185,14 +185,14 @@ class Display_Manager:
 
     def create_prediction_panels(self, panel_width): #one needed per model
         for idx, TRI in enumerate(Const.TRIs):
-            model_id = TRI.gladiator_name  # Assuming Config has a `model_id` attribute
+            run_id = TRI.run_id  # Assuming Config has a `run_id` attribute
             problem_type = TRI.training_data.problem_type
             #For now, this will show 2 and write the rest over the top of each other.
             top = 10 #Assume 1 model
             if idx == 1:    #move 2nd box down (0 based)
                 top = 52
             if idx <2:      #Only show two prediction panels
-                panel = DisplayPanelPrediction(model_id, problem_type, TRI.config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
+                panel = DisplayPanelPrediction(run_id, problem_type, TRI.config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
 
     def query_dict_iteration(self):
@@ -201,48 +201,48 @@ class Display_Manager:
             SELECT i.*
             FROM Iteration i
             JOIN (
-                SELECT model_id, MAX(epoch) AS latest_epoch
+                SELECT run_id, MAX(epoch) AS latest_epoch
                 FROM Iteration
                 WHERE epoch <= ?
-                GROUP BY model_id
-            ) latest ON i.model_id = latest.model_id AND i.epoch = latest.latest_epoch
+                GROUP BY run_id
+            ) latest ON i.run_id = latest.run_id AND i.epoch = latest.latest_epoch
             WHERE i.iteration = ?
         """
         params = (Const.vcr.CUR_EPOCH_MASTER, Const.vcr.CUR_ITERATION)
         rs = self.db.query(sql, params)
 
-        self.data_iteration = {row["model_id"]: row for row in rs}
+        self.data_iteration = {row["run_id"]: row for row in rs}
 
     def query_dict_epoch(self):
         sql = """
             SELECT e.*
             FROM EpochSummary e
             JOIN (
-                SELECT model_id, MAX(epoch) AS latest_epoch
+                SELECT run_id, MAX(epoch) AS latest_epoch
                 FROM EpochSummary
                 WHERE epoch <= ?
-                GROUP BY model_id
-            ) latest ON e.model_id = latest.model_id AND e.epoch = latest.latest_epoch
+                GROUP BY run_id
+            ) latest ON e.run_id = latest.run_id AND e.epoch = latest.latest_epoch
         """
         rs = self.db.query(sql, (Const.vcr.CUR_EPOCH_MASTER,))
-        self.data_epoch = {row["model_id"]: row for row in rs}
+        self.data_epoch = {row["run_id"]: row for row in rs}
 
-    def get_model_iteration_data(self, model_id: str = None) -> dict:
+    def get_model_iteration_data(self, run_id: str = None) -> dict:
         """Retrieve iteration data for a specific model from the cached dictionary."""
-        if model_id:
-            return self.data_iteration.get(model_id, {})
+        if run_id:
+            return self.data_iteration.get(run_id, {})
 
-        # If no model_id is provided, return the first available model's data
+        # If no run_id is provided, return the first available model's data
         for model in self.data_iteration.values():
             return model  # Return the first entry found
         return {}
 
-    def get_model_epoch_data(self, model_id: str = None) -> dict:
+    def get_model_epoch_data(self, run_id: str = None) -> dict:
         """Retrieve iteration data for a specific model from the cached dictionary."""
-        if model_id:
-            return self.data_epoch.get(model_id, {})
+        if run_id:
+            return self.data_epoch.get(run_id, {})
 
-        # If no model_id is provided, return the first available model's data
+        # If no run_id is provided, return the first available model's data
         for model in self.data_epoch.values():
             return model  # Return the first entry found
         return {}
@@ -258,9 +258,8 @@ class Display_Manager:
         Retrieves the highest epoch per model from EpochSummary and stores it in each config's final_epoch.
         """
         for TRI in Const.TRIs:
-            #model_id =   # Or whatever uniquely identifies this model in EpochSummary
-            sql = "SELECT MAX(epoch) as max_epoch FROM EpochSummary WHERE model_id = ?"
-            result = db.query(sql, (TRI.gladiator_name,))
+            sql = "SELECT MAX(epoch) as max_epoch FROM EpochSummary WHERE run_id = ?"
+            result = db.query(sql, (TRI.run_id,))
             max_epoch = result[0].get("max_epoch") or 0
             TRI.final_epoch = max_epoch
 

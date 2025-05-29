@@ -36,38 +36,12 @@ ORDER BY N.model, N.epoch_n, N.iteration_n, N.nid, W.weight_id;
 
    # )
 
-def create_weight_adjustments_tableOld(db: RamDB, model_id: str, update_or_finalize: str, arg_count=12):
-    """
-    Creates a dedicated WeightAdjustments_<model_id> table with arg_1..arg_N fields.
-    """
-    table_name = f"WeightAdjustments_{update_or_finalize}_{model_id}"
-    fields = ",\n".join([f"    arg_{i+1} REAL DEFAULT NULL" for i in range(arg_count)])
 
-    sql = f"""
-        CREATE TABLE IF NOT EXISTS {table_name} (
-            epoch        INTEGER NOT NULL,
-            iteration    INTEGER NOT NULL,
-            nid          INTEGER NOT NULL,
-            -- model_id     TEXT NOT NULL, removed - model is part of table name... why have column with 1 unique value??
-            weight_index INTEGER NOT NULL,
-            batch_id     INTEGER NOT NULL DEFAULT 0,
-            {fields},
-            PRIMARY KEY (epoch, iteration, nid, weight_index)
-        );
+def create_weight_adjustments_table(db: RamDB, run_id: int, update_or_finalize: str, arg_count=12):
     """
-
-    db.execute(sql)
-
-    db.execute(f"""
-        CREATE INDEX IF NOT EXISTS idx_batch_lookup_{update_or_finalize}_{model_id}
-        ON {table_name} (epoch, batch_id, nid, weight_index);
-    """)
-
-def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize: str, arg_count=12):
+    Creates a dedicated WeightAdjustments_<run_id> table with arg_1..arg_N fields.
     """
-    Creates a dedicated WeightAdjustments_<model_id> table with arg_1..arg_N fields.
-    """
-    table_name = f"WeightAdjustments_{update_or_finalize}_{model_id}"
+    table_name = f"WeightAdjustments_{update_or_finalize}_{run_id}"
     fields = ",\n".join([f"    arg_{i+1} REAL DEFAULT NULL" for i in range(arg_count)])
 
     sql = f"""
@@ -87,7 +61,7 @@ def create_weight_adjustments_table(db: RamDB, model_id: str, update_or_finalize
     db.execute(sql)
 
     db.execute(f"""
-        CREATE INDEX IF NOT EXISTS idx_batch_lookup_{update_or_finalize}_{model_id}
+        CREATE INDEX IF NOT EXISTS idx_batch_lookup_{update_or_finalize}_{run_id}
         ON {table_name} (epoch, batch_id, nid, weight_index);
     """)
 
@@ -97,14 +71,14 @@ def prep_RamDB():
     db=RamDB()
 
     #Create dummy records to create table so we can create the view
-    dummy_iteration = Iteration(model_id="dummy", epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, inputs_unscaled="", target_unscaled=0.1, prediction_unscaled=0.1, prediction_raw=0.1, loss=0.1, loss_gradient=0.1, loss_function="dummy", accuracy_threshold=0.0)
+    dummy_iteration = Iteration(run_id=0, epoch=0, iteration=0, inputs="", target=0.1, prediction=0.1, inputs_unscaled="", target_unscaled=0.1, prediction_unscaled=0.1, prediction_raw=0.1, loss=0.1, loss_gradient=0.1, loss_function="dummy", accuracy_threshold=0.0)
     dummy_neuron = Neuron(0,1,0.0,Initializer_Tiny ,0)
     db.add(dummy_iteration)
 
-    db.add(dummy_neuron,exclude_keys={"activation", "output_neuron"}, model='dummy', epoch_n = 0, iteration_n = 0 )
+    db.add(dummy_neuron,exclude_keys={"activation", "output_neuron"}, run_id=0, epoch_n = 0, iteration_n = 0 )
     #db.execute("CREATE INDEX idx_model_epoch_iteration ON Neuron (model, epoch_n, iteration_n);")
-    db.execute("CREATE INDEX idx_epoch_iteration ON Neuron (epoch_n, iteration_n);")
-    db.execute("CREATE INDEX idx__iteration ON Iteration (iteration);")
+    db.execute("CREATE INDEX idx_epoch_iteration ON Neuron (run_id, epoch_n, iteration_n);")
+    db.execute("CREATE INDEX idx__iteration ON Iteration (run_id,  iteration);")
 
 
     epoch_create_view_epochSummary(db)
@@ -113,21 +87,21 @@ def prep_RamDB():
     db.execute(
         """
         CREATE TABLE IF NOT EXISTS Weight (
-            model_id TEXT NOT NULL,
+            run_id INT NOT NULL,
             epoch INTEGER NOT NULL,
             iteration INTEGER NOT NULL,
             nid INTEGER NOT NULL,
             weight_id INTEGER NOT NULL,
             value_before REAL NOT NULL,
             value REAL NOT NULL,            
-            PRIMARY KEY (model_id, epoch, iteration, nid, weight_id)       
+            PRIMARY KEY (run_id, epoch, iteration, nid, weight_id)       
         );""")
 
     db.execute("""
         CREATE TABLE IF NOT EXISTS ErrorSignalCalcs (
             epoch        INTEGER NOT NULL,
             iteration    INTEGER NOT NULL,
-            model_id     TEXT NOT NULL,
+            run_id     TEXT NOT NULL,
             nid          INTEGER NOT NULL,
             weight_id    INTEGER NOT NULL,
             arg_1        REAL NOT NULL,
@@ -137,7 +111,7 @@ def prep_RamDB():
             arg_3        REAL DEFAULT NULL,
             op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
             result       REAL NOT NULL,
-            PRIMARY KEY (epoch, iteration, model_id, nid,weight_id)  -- Ensures unique calculations per neuron per step
+            PRIMARY KEY (epoch, iteration, run_id, nid,weight_id)  -- Ensures unique calculations per neuron per step
         );""")
 
     #this will no longer run with engine refactoredto TurboForge... instead atomic creates individually
@@ -152,7 +126,7 @@ def create_weight_tables(db, gladiator):
     create_weight_adjustments_table(db, gladiator, "finalize")
     delete_records         (db, gladiator) # in case it had been run by LR sweep
 
-def delete_records(db, gladiator_name, possible_columns=None):
+def delete_records(db, run_id, possible_columns=None):
         """
         Deletes records across all tables where one of the possible columns matches the given gladiator_name.
 
@@ -162,12 +136,12 @@ def delete_records(db, gladiator_name, possible_columns=None):
             possible_columns (list of str, optional): Columns to check, in order of preference.
         """
         if possible_columns is None:
-            possible_columns = ['model_id', 'model', 'gladiator']
+            possible_columns = ['run_id', 'model', 'gladiator']
 
-        # Delete tables that have model_id in name rather than waste a column
-        table_name = f"WeightAdjustments_update_{gladiator_name}"
+        # Delete tables that have run_id in name rather than waste a column
+        table_name = f"WeightAdjustments_update_{run_id}"
         db.execute(f"DELETE FROM {table_name}")
-        table_name = f"WeightAdjustments_finalize_{gladiator_name}"
+        table_name = f"WeightAdjustments_finalize_{run_id}"
         db.execute(f"DELETE FROM {table_name}")
 
         # Get list of all table names
@@ -187,26 +161,26 @@ def delete_records(db, gladiator_name, possible_columns=None):
             if matching_column:
                 #print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
                 #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
-                db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{gladiator_name}'")
+                db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{run_id}'")
 
 
 def summary_report_launch(db: RamDB):   #S.*, I.* FROM EpochSummary S
-    # model_id           │   epoch │   correct │   wrong │   mean_absolute_error │   mean_squared_error │   root_mean_squared_error │ weights                                    │ biases              │   seconds │
+    # run_id           │   epoch │   correct │   wrong │   mean_absolute_error │   mean_squared_error │   root_mean_squared_error │ weights                                    │ biases              │   seconds │
     # round((S.correct * 1.0 / (S.correct + S.wrong)) * 100,2) AS [Accuracy],
     SQL = """
-        SELECT  S.model_id as [Gladiator\nComparison], ROUND(I.seconds, 2) AS [Run\nTime],
+        SELECT  S.run_id as [Gladiator\nComparison], ROUND(I.seconds, 2) AS [Run\nTime],
                 S.epoch[Epoch of\nConv], s.correct[Correct], s.wrong[Wrong], 
                 Accuracy,
                 s.mean_absolute_error[Mean\nAbs Err], s.root_mean_squared_error[RMSE], s.weights[Weights], s.biases[Biases] 
         FROM EpochSummary S
         JOIN (
-            Select model_id,max(epoch) LastEpoch
+            Select run_id,max(epoch) LastEpoch
             FROM EpochSummary 
-            GROUP BY model_ID
+            GROUP BY run_id
             ) M
-        On S.model_id = M.model_id and S.epoch = M.LastEpoch
+        On S.run_id = M.run_id and S.epoch = M.LastEpoch
         JOIN ModelInfo I 
-        ON S.model_id = I.model_id        
+        ON S.run_id = I.run_id        
         """
     print(f"GLADIATOR COMPARISON ================================================")
     summary_overview = db.query_print(SQL, print_source=False)
@@ -220,7 +194,7 @@ def epoch_create_view_epochSummary(db: RamDB):
     SQL = """
         CREATE VIEW IF NOT EXISTS EpochSummary AS
         SELECT DISTINCT
-            m.model_id,
+            m.run_id,
             m.epoch,
             m.correct,
             round((m.correct * 1.0 / (m.correct + m.wrong)) * 100,3) AS [Accuracy],
@@ -232,7 +206,7 @@ def epoch_create_view_epochSummary(db: RamDB):
             n.combined_biases AS biases
         FROM (
             SELECT 
-                model_id,
+                run_id,
                 epoch,
                 SUM(is_true) AS correct,
                 SUM(is_false) AS wrong,
@@ -240,24 +214,24 @@ def epoch_create_view_epochSummary(db: RamDB):
                 SUM(squared_error) / COUNT(*) AS mean_squared_error,
                 SQRT(SUM(squared_error) / COUNT(*)) AS root_mean_squared_error
             FROM Iteration
-            GROUP BY model_id, epoch
+            GROUP BY run_id, epoch
         ) m
         LEFT JOIN (
             SELECT 
-                model AS model_id,
+                run_id,
                 epoch_n AS epoch,
                 GROUP_CONCAT(nid || ': ' || weights, '\n') AS combined_weights,
                 GROUP_CONCAT(nid || ': ' || bias, '\n') AS combined_biases
             FROM Neuron
-            WHERE (model, epoch_n, iteration_n) IN (
+            WHERE (run_id, epoch_n, iteration_n) IN (
                 SELECT 
-                    model_id, epoch, MAX(iteration) AS max_iteration
+                    run_id, epoch, MAX(iteration) AS max_iteration
                 FROM Iteration
-                GROUP BY model_id, epoch
+                GROUP BY run_id, epoch
             )
-            GROUP BY model, epoch_n
+            GROUP BY run_id, epoch_n
         ) n
-        ON m.model_id = n.model_id AND m.epoch = n.epoch
+        ON m.run_id = n.run_id AND m.epoch = n.epoch
         ORDER BY m.epoch;
     """
     try:
@@ -278,7 +252,7 @@ def neuron_report_launch(db: RamDB):
     SELECT  *
     FROM    Iteration I
     JOIN    Neuron N
-    ON      I.model_id  = N.model 
+    ON      I.run_id  = N.run_id 
     AND     I.epoch     = N.epoch_n
     AND     I.iteration = N.iteration_n
     ORDER BY epoch, iteration, model, nid 

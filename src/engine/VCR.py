@@ -85,8 +85,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                     )
 
                 # Add the neuron data to the database
-                self.TRI.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, model=self.TRI.gladiator_name, epoch_n=epoch_num, iteration_n=iteration_num)
-        Neuron.bulk_insert_weights(db = self.TRI.db, model_id = self.TRI.gladiator_name, epoch=epoch_num, iteration=iteration_num )
+                self.TRI.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, run_id=self.TRI.run_id, epoch_n=epoch_num, iteration_n=iteration_num)
+        Neuron.bulk_insert_weights(db = self.TRI.db, run_id = self.TRI.run_id, epoch=epoch_num, iteration=iteration_num )
 
     def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn) -> list:
         if iteration_num % batch_size == 0:
@@ -207,7 +207,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         if not self.TRI.hyper.record: return
         sql = """
         INSERT INTO ErrorSignalCalcs
-        (epoch, iteration, model_id, nid, weight_id, 
+        (epoch, iteration, run_id, nid, weight_id, 
          arg_1, op_1, arg_2, op_2, arg_3, op_3, result)
         VALUES 
         (?, ?, ?, ?, ?, 

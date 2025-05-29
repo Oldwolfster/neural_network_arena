@@ -68,7 +68,9 @@ class NNA_history:
 
 @dataclass
 class ModelInfo:
-    model_id: str
+    #model_id: str
+    run_id : int
+    gladiator: str
     seconds: float
     cvg_condition: str
     full_architecture: List[int]
@@ -77,7 +79,7 @@ class ModelInfo:
 
 @dataclass
 class Iteration:
-    model_id: str
+    run_id: int
     epoch: int
     iteration: int
     inputs: str  # Serialized as JSON

@@ -12,7 +12,20 @@ from .TrainingRunInfo import TrainingRunInfo
 from ..NeuroForge.NeuroForge import *
 from src.ArenaSettings import *
 from src.ArenaSettings import *
+"""
+Part of this refactor is revamping the sql
+Tracking that here.
+1) DONE: Model_Info
+2) Neuron
+3) Iteration
+4) Weight Adj tbl 1 WeightAdjustments_update_
+5) Weight Adj Tbl 2 WeightAdjustments_finalize_
+6) ErrorSignalCalcs
+7) Weight
+ModelInfo
+  
 
+"""
 
 
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
@@ -34,8 +47,10 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 setup["learning_rate"] = self.learning_rate_sweep(setup)
             TRIs.append(self.atomic_train_a_model(setup, 3, epochs=0, run_id=i))                 # pprint.pprint(batch.ATAMs)
             print(f"MAE of {TRIs[-1].get("lowest_mae")}")
+        #TRIs[0].db.query_print("Select * From EpochSummary")
         generate_reports            (self.db, TRIs[0].training_data)
         TRIs[0].db.list_tables(3)
+        #TRIs[0].db.query_print("Select * From Weight")
         neuroForge                  (TRIs[-4:])
 
 

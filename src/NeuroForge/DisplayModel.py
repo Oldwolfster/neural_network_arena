@@ -13,7 +13,7 @@ from src.engine.Utils import draw_rect_with_border, draw_text_with_background, e
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("TRI", "last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    __slots__ = ("TRI", "last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "run_id", "graph_holder", "graph")
     def __init__(self, TRI: TrainingRunInfo, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -36,7 +36,8 @@ class DisplayModel(EZSurface):
         self.graph          = None
         self.input_scaler_neuron = None
         self.prediction_scaler_neuron = None
-        self.model_id       = TRI.gladiator_name
+        #self.run_id       = TRI.gladiator_name
+        self.run_id       = TRI.run_id
         #self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.neurons        = []
         self.arrows_forward = []  # List of neuron connections
@@ -101,7 +102,7 @@ class DisplayModel(EZSurface):
 
     def initialize_with_model_info(self):
         """Create neurons and connections based on architecture."""
-        max_activation = self.get_max_activation_for_model(self.model_id)
+        max_activation = self.get_max_activation_for_model(self.run_id)
         GeneratorNeuron.create_neurons(self, max_activation)
         for layer in self.neurons:
             for neuron in layer:
@@ -115,7 +116,7 @@ class DisplayModel(EZSurface):
 
 
     def create_graph(self, gh):
-        return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, model_id=self.model_id, my_model=self)
+        return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, run_id=self.run_id, my_model=self)
 
     def render(self):
         """Draw neurons and connections."""
@@ -157,11 +158,11 @@ class DisplayModel(EZSurface):
             (0, 0, self.width, self.height), 3
         )
 
-    def get_max_activation_for_model(self,  model_id: str):
+    def get_max_activation_for_model(self,  run_id: str):
         """
         Retrieves the highest absolute activation value across all epochs and iterations for the given model.
 
-        :param model_id: The model identifier
+        :param run_id: The model identifier
         :return: The maximum absolute activation value in the run
         """
 
@@ -170,14 +171,14 @@ class DisplayModel(EZSurface):
             FROM (
                 SELECT ABS(activation_value) AS abs_activation
                 FROM Neuron
-                WHERE model = ?
+                WHERE run_id = ?
                 ORDER BY abs_activation ASC
                 LIMIT (SELECT CAST(COUNT(*) * 0.95 AS INT) 
-                       FROM Neuron WHERE model = ?)
+                       FROM Neuron WHERE run_id = ?)
             ) AS FilteredActivations;
         """
 
-        result = Const.TRIs[0].db.query(SQL_MAX_ACTIVATION, (model_id, model_id))
+        result = Const.TRIs[0].db.query(SQL_MAX_ACTIVATION, (run_id,run_id))
         #print(f"Max activation for run {result}")
         # Return the max activation or a default value to prevent division by zero
         return result[0]['max_activation'] if result and result[0]['max_activation'] is not None else 1.0

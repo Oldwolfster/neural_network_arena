@@ -18,7 +18,7 @@ def record_results(TRI, record_level):
     TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
     TRI                         . record_finish_time()
 
-    model_info                  = ModelInfo(TRI.gladiator_name, TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
+    model_info                  = ModelInfo(TRI.run_id,  TRI.gladiator_name, TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
     TRI.db.add     (model_info)              #Writes record to ModelInfo table
 
     conn = get_db_connection()
