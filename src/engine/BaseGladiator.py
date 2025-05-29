@@ -147,7 +147,7 @@ class Gladiator(ABC):
 
         # Step 4: Record iteration data
         iteration_data = Iteration(
-            model_id=self.config.gladiator_name,
+            run_id=self.TRI.run_id,
             epoch=self.epoch + 1,
             iteration=self.iteration + 1,
             inputs=dumps(sample[:-1].tolist()),  # Serialize inputs as JSON

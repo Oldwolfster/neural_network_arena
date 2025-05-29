@@ -328,7 +328,7 @@ class RamDB:
                 return [dict(zip(column_names, row)) for row in rows]
             return rows
         except sqlite3.Error as e:
-            raise RuntimeError(f"SQL query failed: {e}") from None #TODO this should put it one up th ecall stack..
+            raise RuntimeError(f"SQL query failed: {e}\nquery = {sql}") from None #TODO this should put it one up th ecall stack..
 
 
     def query_scalar_list(self, sql, params=None):
@@ -392,7 +392,7 @@ class RamDB:
         return data
 
 
-    def list_tables(self, detail_level=2):
+    def list_tablesCRAP(self, detail_level=2):
         """
         :param detail_level - 1 just tables.  2 tables and fields, 3 include data type
         List all tables in the database.
@@ -414,6 +414,43 @@ class RamDB:
             print(tabulate(self.tables, headers="keys", tablefmt="fancy_grid"))
         if detail_level==1:
             print(tabulate([{"Table Name": table_name} for table_name in self.tables.keys()], headers="keys", tablefmt="fancy_grid"))
+
+
+    def list_tables(self, detail_level=2):
+        """
+        :param detail_level - 1 just tables.  2 tables and fields, 3 include data type
+        Dynamically list all tables in the database using sqlite_master.
+        """
+        if detail_level not in (1, 2, 3):
+            raise RuntimeError(f"Invalid value for detail_level (use 1, 2, or 3), not ==> {detail_level}")
+
+        cursor = self.conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        table_names = [row[0] for row in cursor.fetchall()]
+
+        if not table_names:
+            print("No tables found.")
+            return
+
+        if detail_level == 1:
+            print(tabulate([{"Table Name": name} for name in table_names], headers="keys", tablefmt="fancy_grid"))
+
+        elif detail_level == 2:
+            all_fields = {}
+            for name in table_names:
+                cursor.execute(f"PRAGMA table_info({name})")
+                columns = [row[1] for row in cursor.fetchall()]
+                all_fields[name] = columns
+            print(tabulate(all_fields, headers="keys", tablefmt="fancy_grid"))
+
+        elif detail_level == 3:
+            for name in table_names:
+                cursor.execute(f"PRAGMA table_info({name})")
+                schema = [{"Column": row[1], "Type": row[2]} for row in cursor.fetchall()]
+                print(f"\nTable: {name}")
+                print(tabulate(schema, headers="keys", tablefmt="fancy_grid"))
+
+
 
     def reconstruct_objects(self, table_name, cls, where_clause=""):
         """

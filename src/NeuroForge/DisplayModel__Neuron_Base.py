@@ -21,14 +21,14 @@ class DisplayModel__Neuron_Base:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("am_really_short", "my_model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("am_really_short", "my_model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "run_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
 
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
         """Custom representation for debugging."""
         return f"Neuron {self.label})"
-    def __init__(self, my_model, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  model_id: str, screen: pygame.surface, max_activation: float, is_input = ""):
-        self.model_id               = model_id
+    def __init__(self, my_model, left: int, top: int, width: int, height:int, nid: int, layer: int, position: int, output_layer: int, text_version: str,  run_id: str, screen: pygame.surface, max_activation: float, is_input = ""):
+        self.run_id                 = run_id
         self.my_model               = my_model
         self.config                 = self.my_model.config
         #print (f"In DM_Neuron {self.my_model} ")
@@ -150,11 +150,11 @@ class DisplayModel__Neuron_Base:
         SQL_MAX_PER_WEIGHT = """                        
             SELECT MAX(ABS(value)) AS max_weight
             FROM Weight
-            WHERE model_id = ? AND nid = ?
+            WHERE run_id = ? AND nid = ?
             GROUP BY weight_id
             ORDER BY weight_id ASC
         """
-        max_per_weight = self.db.query_scalar_list(SQL_MAX_PER_WEIGHT, (self.model_id, self.nid))
+        max_per_weight = self.db.query_scalar_list(SQL_MAX_PER_WEIGHT, (self.run_id, self.nid))
         self.max_per_weight = max_per_weight if max_per_weight != 0 else 1
 
     def update_rs(self):
@@ -163,13 +163,13 @@ class DisplayModel__Neuron_Base:
             SELECT  *
             FROM    Iteration I
             JOIN    Neuron N
-            ON      I.model_id  = N.model 
+            ON      I.run_id  = N.run_id 
             AND     I.epoch     = N.epoch_n
             AND     I.iteration = N.iteration_n
-            WHERE   model = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
-            ORDER BY epoch, iteration, model, nid 
+            WHERE   N.run_id = ? AND iteration_n = ? AND epoch_n = ? AND nid = ?
+            ORDER BY epoch, iteration, N.run_id, nid 
         """
-        rs = self.db.query(SQL, (self.model_id, Const.vcr.CUR_ITERATION, self.my_model.display_epoch, self.nid)) # Execute query
+        rs = self.db.query(SQL, (self.run_id, Const.vcr.CUR_ITERATION, self.my_model.display_epoch, self.nid)) # Execute query
         # ✅ Check if `rs` is empty before accessing `rs[0]`
         if not rs:
             return False  # No results found
@@ -190,12 +190,12 @@ class DisplayModel__Neuron_Base:
         SELECT AVG(ABS(error_signal)) AS avg_error_signal            
         FROM Neuron
         WHERE 
-        model   = ? and
+        run_id   = ? and
         epoch_n = ? and  -- Replace with the current epoch(ChatGPT is trolling us)
         nid     = ?      
         """
         #print(f"In update_avg_error  self.my_model={self.my_model}")
-        params = (self.model_id,  self.my_model.display_epoch, self.nid)
+        params = (self.run_id,  self.my_model.display_epoch, self.nid)
         rs = self.db.query(SQL, params)  # Execute query
 
         # ✅ Check if `rs` is empty before accessing `rs[0]`
@@ -211,10 +211,10 @@ class DisplayModel__Neuron_Base:
         SQL = """
             SELECT weight_id, value, value_before
             FROM Weight
-            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            WHERE run_id = ? AND nid = ? AND epoch = ? AND iteration = ?
             ORDER BY weight_id ASC
         """
-        weights_data = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
+        weights_data = self.db.query(SQL, (self.run_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
 
         if weights_data:
             self.weights = [column[1] for column in weights_data]  # Extract values
@@ -607,10 +607,10 @@ class DisplayModel__Neuron_Base:
         SQL = """
             SELECT arg_1, arg_2
             FROM ErrorSignalCalcs
-            WHERE model_id = ? AND nid = ? AND epoch = ? AND iteration = ?
+            WHERE run_id = ? AND nid = ? AND epoch = ? AND iteration = ?
             ORDER BY weight_id ASC
         """
-        backprop_error_elements = self.db.query(SQL, (self.model_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
+        backprop_error_elements = self.db.query(SQL, (self.run_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
 
         if backprop_error_elements:             # Split the elements into two lists using the helper function
             list1, list2 = self.split_error_elements(backprop_error_elements)
@@ -631,7 +631,7 @@ class DisplayModel__Neuron_Base:
     def tooltip_columns_for_forward_pass(self):
 
         #Next we need the actual inputs.
-        iteration_data = Const.dm.get_model_iteration_data(self.model_id)
+        iteration_data = Const.dm.get_model_iteration_data(self.run_id)
         all_columns = []
         inputs          = self.tooltip_column_forward_pass_one_inputs(iteration_data) #first item on the list is the literal "Input"
 

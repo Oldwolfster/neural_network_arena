@@ -99,7 +99,7 @@ class GeneratorNeuron:
                 y_position = neuron_index * neuron_height + ((neuron_index+1) * gap_width)
                 #ez_debug(GeneratorNeuron_output_layer=GeneratorNeuron.output_layer)
                 #if not GeneratorNeuron.output_layer==layer_index and neuron_index >0:  #don't create neuron for graph
-                neuron = DisplayModel__Neuron( GeneratorNeuron.model, left=x_position, top=y_position, width=layer_width, height=neuron_height, nid=GeneratorNeuron.nid, layer=true_layer_index, position=neuron_index, output_layer=GeneratorNeuron.output_layer, text_version=text_version, model_id=GeneratorNeuron.model.config.gladiator_name, screen=GeneratorNeuron.model.surface, max_activation=max_act)
+                neuron = DisplayModel__Neuron( GeneratorNeuron.model, left=x_position, top=y_position, width=layer_width, height=neuron_height, nid=GeneratorNeuron.nid, layer=true_layer_index, position=neuron_index, output_layer=GeneratorNeuron.output_layer, text_version=text_version, run_id=GeneratorNeuron.model.run_id, screen=GeneratorNeuron.model.surface, max_activation=max_act)
                 layer_neurons.append(neuron)
                 GeneratorNeuron.nid += 1
             GeneratorNeuron.model.neurons.append(layer_neurons)
@@ -119,7 +119,7 @@ class GeneratorNeuron:
                     position=abs(neuron_index),
                     output_layer=0,
                     text_version=text_version,
-                    model_id=GeneratorNeuron.model.config.gladiator_name,
+                    run_id=GeneratorNeuron.model.run_id,
                     my_model=GeneratorNeuron.model,
                     screen= GeneratorNeuron.model.surface, max_activation=max_act,
                     is_input=is_input
