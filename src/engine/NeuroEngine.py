@@ -12,6 +12,9 @@ from .TrainingRunInfo import TrainingRunInfo
 from ..NeuroForge.NeuroForge import *
 from src.ArenaSettings import *
 from src.ArenaSettings import *
+
+
+
 class NeuroEngine:   # Note: one different standard than PEP8... we align code vertically for better readability and asthetics
     def __init__(self, hyper):
         self.db                     = prep_RamDB()
@@ -21,7 +24,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.test_attribute         = None #TODO DELETE ME
         self.test_strategy          = None #TODO DELETE ME
 
-    def run_a_batch(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
+    def run_a_batchOrig(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
         TRIs : TrainingRunInfo      = []
         batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
         for setup in batch.setups:  TRIs.append(self.atomic_train_a_model(setup, 3))                 # pprint.pprint(batch.ATAMs)
@@ -29,24 +32,32 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         generate_reports            (self.db, self.training_data)
         neuroForge                  (TRIs)
 
+    def run_a_batch(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
+        TRIs: List[TrainingRunInfo] = []
+        batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
+        #print(f"batch={batch}")
+        for setup in batch.setups:
+            print(f"setup={setup}")
+            TRIs.append(self.atomic_train_a_model(setup, 3))                 # pprint.pprint(batch.ATAMs)
+            print(f"MAE of{TRIs[-1].    get("lowest_mae")}: {setup}")
+        generate_reports            (self.db, TRIs[0].training_data)
+        neuroForge                  (TRIs)
+
+
     def atomic_train_a_model(self, setup, record_level: int, epochs=0): #ATAM is short for  -->atomic_train_a_model
             set_seed                    ( self.seed)
+            training_data               = self.instantiate_arena(setup["arena"]) # Passed to base_gladiator through TRI
+            set_seed                    ( self.seed)    #Reset seed as it likely was used in training_data
             create_weight_tables        ( self.db, setup["gladiator"])
-            self.training_data          = self.instantiate_arena(setup["arena"])
-            TRI                         = TrainingRunInfo(self.shared_hyper,self.db,self.training_data, setup, self.seed)
+
+            TRI                         = TrainingRunInfo(self.shared_hyper,self.db, training_data, setup, self.seed)
             NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
             NN.train(epochs)            # Actually train model
             record_results              ( TRI, setup, record_level)        # Store Config for this model
             return                      TRI
 
 
-    def check_for_learning_rate_sweeps(self, gladiators):
-        #Return a list of booleans coorespoinding to gladiators
-        needs_lr_sweep = []
-        for gladiator in    gladiators:
-            #self.check_gladiator_for_learning_rate_sweep(gladiator)
-            needs_lr_sweep.append(self.model_explicitly_sets_lr(gladiator))
-        return needs_lr_sweep
+
 
 
     def model_explicitly_sets_lr(self, gladiator_name: str) -> bool:
@@ -59,6 +70,38 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                                 return True
                     return False
         raise FileNotFoundError(f"❌ Could not find file for gladiator '{gladiator_name}' (expected '{gladiator_name}.py') in 'coliseum/gladiators'.")
+
+    def learning_rate_sweep(self, gladiator) -> float:
+        """
+        Sweep learning rates and pick the best based on last_mae.
+        Starts low and increases logarithmically.
+        """
+        start_lr                    = 1e-6
+        stop_lr                     = 10
+        original_factor             = 10                #in case it switches directions, only switch once.
+        factor                      = original_factor
+        lr                          = start_lr
+        min_lr_limit                = 1e-15  # hard stop
+
+        results = []
+        while lr < stop_lr and lr >= min_lr_limit:
+            TRI               = self.atomic_train_a_model(gladiator, lr, 20) #Pass learning rate being swept
+
+            print                   (f"Gladiator: {gladiator}  - LR: {lr:.1e} → Last MAE: {TRI.config.lowest_error:.5f}")
+            results.append          ((lr, TRI.config.lowest_error))
+
+            # 🔁 If we're still using the original direction, and the lowest LR blew up...
+            if factor == original_factor and lr == start_lr and TRI.config.lowest_error > 1e5:
+                print(f"🛑 MAE {config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
+                factor = 0.1  # 🔄 now sweeping downward
+            lr                      *= factor
+        best_lr, best_metric        = min(results, key=lambda x: x[1])
+        print                       (f"\n🏆 Best learning_rate={best_lr:.1e} (last_mae={best_metric:.4f})")
+        return                      best_lr
+
+
+
+
 
     def check_gladiator_for_learning_rate_sweep(self, gladiator):
         # Create temp instantiation of model to see if Learning rate is specified.

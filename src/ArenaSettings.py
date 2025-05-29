@@ -9,7 +9,7 @@ from src.Legos.LossFunctions        import *
 
 
 dimensions={
-    "loss_function": [Loss_MSE]#, Loss_MAE],
+    "loss_function": [[Loss_MSE], [Loss_MAE]],
     # "hidden_activation": [Activation_ReLU, Activation_Tanh],
     # Add more here as needed!
 }
