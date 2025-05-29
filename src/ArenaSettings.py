@@ -6,20 +6,6 @@ from src.Legos.Optimizers           import *
 from src.Legos.Scalers              import *
 from src.Legos.LossFunctions        import *
 
-
-
-dimensions={
-    #"loss_function": [Loss_MSE, Loss_MAE, Loss_BCE],
-    # "hidden_activation": [Activation_ReLU, Activation_Tanh],
-    # Add more here as needed!
-}
-
-test_attribute = None
-test_strategy = None
-single_match = False
-single_match = True
-#test_attribute = 'loss_function'
-
 # test = lister.list_legos("hidden_activation")
 # test = lister.list_legos("output_activation")
 # test = lister.list_legos("optimizer")
@@ -64,12 +50,19 @@ class HyperParameters:
     criteria_neuron :List[int] = None       # None = show all - otherwise list of neurons to include
     criteria_weight :List[int] = None       # None = show all - 0= Ommit weights - Otherwise list all weights to include
 
+
+dimensions={
+    #"loss_function": [Loss_MSE, Loss_BCE, Loss_MAE],
+    # "hidden_activation": [Activation_ReLU, Activation_Tanh],
+    # Add more here as needed!
+}
+
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    'All_Defaults'
-    ,'BiggerIsNotBetter'
+    #'All_Defaults'
+    'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'

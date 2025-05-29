@@ -18,7 +18,8 @@ class TrainingBatchInfo:
         self.dimensions = dimensions
         self.setups = []
         self.build_run_instructions()
-        self.remove_lists_from_setups()
+        #self.remove_lists_from_setups()
+        print(f"Setups={self.setups}")
 
     def remove_lists_from_setups(self):
         for setup in self.setups:
