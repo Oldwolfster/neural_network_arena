@@ -56,18 +56,16 @@ class Gladiator(ABC):
         self.blame_calculations = []
         self.weight_update_calculations = []
         self.convergence_phase  = "watch"
-        self.retrieve_setup_from_model()
+        self.finalize_setup()
 
     ################################################################################################
     ################################ SECTION 1 - pipeline ####################################
     ################################################################################################
 
-    def retrieve_setup_from_model(self):
-        #ez_debug(bluuuprint= self.config.architecture)
-        #print("check architecture")
+    def finalize_setup(self):
         self.configure_model(self.config)  #Typically overwritten in child  class.
-        #ez_debug(bluuuprint2= self.config.architecture)
-        self.config.set_defaults()
+
+        self.config.smartNetworkSetup(self.TRI.setup)
 
         self.initialize_neurons(
             architecture=self.config.architecture.copy(),  # Avoid mutation
@@ -79,16 +77,16 @@ class Gladiator(ABC):
         #print(f"Neuron count = {len(Neuron.neurons)}")
         self.customize_neurons(self.config)
 
-    def configure_model(self, config: Config):
+    def configure_model(self, config: Config): #Typically overwritten in child  class.
         pass
 
-    def customize_neurons(self,config: Config):
+    def customize_neurons(self,config: Config): #Typically overwritten in child  class.
         pass
 
     def scale_samples(self):  #Scales the inputs and targets according to the config in the model and config defaults
         self.config.scaler.scale_all()
 
-    def train(self, exploratory_epochs = 0) -> float:  #tuple[str, list[int]]:
+    def train(self, exploratory_epochs = 0):  #tuple[str, list[int]]:
         """
         Main method invoked from Framework to train model.
 
@@ -105,12 +103,12 @@ class Gladiator(ABC):
         epochs_to_run = self.number_of_epochs if exploratory_epochs == 0 else exploratory_epochs
 
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
-            self.config.final_epoch = epoch                             # If correct, great, ifn not, corrected next epoch.
+            self.config.final_epoch = epoch                             # If correct, great, if not, corrected next epoch.
             self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
-
+            self.TRI.set("total_error_for_epoch",self.total_error_for_epoch)
             if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
-                return self.total_error_for_epoch
-        return self.total_error_for_epoch      # When it does not converge still return info
+                return
+
 
     def run_an_epoch(self, epoch_num: int) -> str:
         """

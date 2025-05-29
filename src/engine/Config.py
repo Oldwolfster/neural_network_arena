@@ -18,8 +18,6 @@ class Config:
     # 🔹 Shared components for all models
 
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData, gladiator_name:str):
-
-
         self.lego_selector: LegoSelector            = LegoSelector()
         self.training_data: TrainingData            = training_data # NOTE: training_data is stored in Config temporarily to support the rule engine.
 
@@ -82,20 +80,31 @@ class Config:
             if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
             else: return  self.bd_parameters[0]
 
-    def set_defaults(self, test_attribute = None, test_strategy = None):
+    def set_defaultsDETLETME(self, test_attribute = None, test_strategy = None):
         if test_attribute and test_strategy:
             setattr(self, test_attribute, test_strategy)
         self.smartNetworkSetup()
         if self.training_data.binary_decision and not self.bd_parameters:
             self.bd_parameters  = self.loss_function.bd_defaults
 
-    def smartNetworkSetup(self):
+    def smartNetworkSetup(self, setup):
+
+        self.update_attributes_from_setup(setup)
         self.lego_selector.apply(self, self.get_rules(), self.exploratory)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
         if self.default_scalers:
             self.scaler.set_all_input_scalers(Scaler_Robust)
         if self.target_scaler:
             self.scaler.set_target_scaler(self.target_scaler)
+        #print(f"loss function {self.loss_function}")
+        if self.training_data.binary_decision and not self.bd_parameters:
+            self.bd_parameters  = self.loss_function.bd_defaults
 
+    def update_attributes_from_setup(self, setup):  #setup looks like this setup={'loss_function': [Mean Absolute Error], 'gladiator': 'All_Defaults', 'arena': 'DefaultRisk__From_Income_Debt', 'lr_specified': True}
+        # only update attribute if it exists
+        #print(f"setup= {setup}")
+        for key, value in setup.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
 
     def get_rules(self):        #  config.training_data.problem_type == " (0, 100, {"loss_function": Loss_BCEWithLogits}, "config.training_data.problem_type == 'Binary Decision'"),
         # Below fields...

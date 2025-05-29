@@ -18,11 +18,19 @@ class TrainingBatchInfo:
         self.dimensions = dimensions
         self.setups = []
         self.build_run_instructions()
+        self.remove_lists_from_setups()
+
+    def remove_lists_from_setups(self):
+        for setup in self.setups:
+            for key, value in setup.items():
+                if isinstance(value, list) and len(value) == 1:
+                    setup[key] = value[0]
+
+
 
     def build_run_instructions(self):
         config_keys = list(self.dimensions.keys())
         config_values = list(self.dimensions.values())
-
         combos = list(product(*config_values))
 
         for gladiator in self.gladiators:
