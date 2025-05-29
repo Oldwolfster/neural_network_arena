@@ -35,9 +35,11 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
     def run_a_batch(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
         TRIs: List[TrainingRunInfo] = []
         batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
-        #print(f"batch={batch}")
+        print(f"batch={batch}")
         for setup in batch.setups:
             print(f"setup={setup}")
+            if not setup.get("lr_specified", False): #feels backwards but is correct
+                setup["learning_rate"] = self.learning_rate_sweep(setup)
             TRIs.append(self.atomic_train_a_model(setup, 3))                 # pprint.pprint(batch.ATAMs)
             print(f"MAE of{TRIs[-1].    get("lowest_mae")}: {setup}")
         generate_reports            (self.db, TRIs[0].training_data)
@@ -50,28 +52,47 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             set_seed                    ( self.seed)    #Reset seed as it likely was used in training_data
             create_weight_tables        ( self.db, setup["gladiator"])
 
-            TRI                         = TrainingRunInfo(self.shared_hyper,self.db, training_data, setup, self.seed)
+            TRI                         = TrainingRunInfo(self.shared_hyper, self.db, training_data, setup, self.seed)
             NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
             NN.train(epochs)            # Actually train model
-            record_results              ( TRI, setup, record_level)        # Store Config for this model
+            record_results              ( TRI, record_level)        # Store Config for this model #TODO make use of RecordLevel
             return                      TRI
 
+    def learning_rate_sweep(self, setup: dict) -> float:
+        """
+        Sweep learning rates from 1.0 down to 1e-12 (logarithmically).
+        Stops early if no improvement after `patience` trials.
+        Modifies only 'learning_rate' in the setup dict.
+        """
+        gladiator    = setup.get("gladiator")
+        start_lr     = 1e-6
+        min_lr       = 1e-14
+        max_lr       = 1
+        factor       = 10
+        max_trials   = 20
+
+        best_error   = float("inf")
+        best_lr      = None
+
+        lr           = start_lr
 
 
+        while lr >= min_lr and lr < max_lr:
+            setup["learning_rate"] = lr
+            TRI = self.atomic_train_a_model(setup,  record_level=0, epochs=20)
+            error = TRI.get("total_error_for_epoch")
+            if error > 1e20 and factor == 10:        #Try in the middle - if gradient explosion
+                factor = .01                       # reverse direction
+            print(f"😈Gladiator: {gladiator} - LR: {lr:.1e} → Last MAE: {error:.5f}")
+            if error < best_error:
+                best_error = error
+                best_lr = lr
+            lr *= factor
+        print(f"\n🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f})")
+        return best_lr
 
 
-    def model_explicitly_sets_lr(self, gladiator_name: str) -> bool:
-        for root, _, files in os.walk("coliseum/gladiators"):
-            for file in files:
-                if file == f"{gladiator_name}.py":
-                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                        for line in f:
-                            if "config.learning_rate" in line and not line.strip().startswith("#"):
-                                return True
-                    return False
-        raise FileNotFoundError(f"❌ Could not find file for gladiator '{gladiator_name}' (expected '{gladiator_name}.py') in 'coliseum/gladiators'.")
-
-    def learning_rate_sweep(self, gladiator) -> float:
+    def learning_rate_sweepOLD(self, gladiator) -> float:
         """
         Sweep learning rates and pick the best based on last_mae.
         Starts low and increases logarithmically.
@@ -184,7 +205,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         print(f"🌀 Running LEARNING RATE SWEEP for {gladiator}")
         return self.learning_rate_sweep(gladiator)
 
-    def learning_rate_sweep(self, gladiator) -> float:
+    def learning_rate_sweepOrig(self, gladiator) -> float:
         """
         Sweep learning rates and pick the best based on last_mae.
         Starts low and increases logarithmically.
@@ -205,7 +226,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
             # 🔁 If we're still using the original direction, and the lowest LR blew up...
             if factor == original_factor and lr == start_lr and TRI.config.lowest_error > 1e5:
-                print(f"🛑 MAE {config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
+                print(f"🛑 MAE {TRI.config.lowest_error:.2e} too high at LR {lr:.1e}, reversing sweep direction...")
                 factor = 0.1  # 🔄 now sweeping downward
             lr                      *= factor
         best_lr, best_metric        = min(results, key=lambda x: x[1])

@@ -11,17 +11,18 @@ from src.engine.TrainingData import TrainingData
 
 
 class TrainingRunInfo:
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  ATAM, seed):
+    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
-        self.hyper:              HyperParameters         = hyper
-        self.db:                 RamDB                   = db
-        self.training_data:      TrainingData            = training_data
-        self.config:             Config                  = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=ATAM["gladiator"])
-        self.lego_selector:      LegoSelector            = LegoSelector()
+        self.hyper:              HyperParameters        = hyper
+        self.db:                 RamDB                  = db
+        self.training_data:      TrainingData           = training_data
+        self.config:             Config                 = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=setup["gladiator"])
+        self.lego_selector:      LegoSelector           = LegoSelector()
+        self.setup                                      = setup
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
-        self.gladiator_name:    str                 = ATAM["gladiator"]
+        self.gladiator_name:    str                 = setup["gladiator"]
         self.time_start:        datetime            = datetime.now
         self.time_end:          datetime            = None
         self.final_error:       float               = None
