@@ -7,13 +7,14 @@ from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
 from src.NeuroForge.PopupArchitecture import ArchitecturePopup
+from src.engine import TrainingRunInfo
 from src.engine.Config import Config
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
-    def __init__(self, config: Config, position: dict )   :
+    __slots__ = ("TRI", "last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "model_id", "graph_holder", "graph")
+    def __init__(self, TRI: TrainingRunInfo, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
             width_pct=0, height_pct=0, left_pct=0, top_pct=0,  # Ignore percent-based positioning
@@ -25,16 +26,17 @@ class DisplayModel(EZSurface):
         )
         self.hoverlings: list   = []  # ✅ Store the neuron and objects that react when being hovered over
         self.buttons        = []
-        self.config         = config
-        self.arch_popup     = ArchitecturePopup(self, config)
+        self.TRI            = TRI
+        self.config         = TRI.config
+        self.arch_popup     = ArchitecturePopup(self, self.config)
         self.layer_width        = 0 # Set in GenerateNeuron static class
 
-        self.last_epoch     = config.final_epoch
+        self.last_epoch     = self.config.final_epoch
         #print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
         self.input_scaler_neuron = None
         self.prediction_scaler_neuron = None
-        self.model_id       = config.gladiator_name
+        self.model_id       = TRI.gladiator_name
         #self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.neurons        = []
         self.arrows_forward = []  # List of neuron connections
@@ -50,8 +52,6 @@ class DisplayModel(EZSurface):
                 surface_offset=(self.left, self.top))
 
         self.buttons.append(btn)
-
-
         self.hoverlings.extend(self.buttons)
 
 

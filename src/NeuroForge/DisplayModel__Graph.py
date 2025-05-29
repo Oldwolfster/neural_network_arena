@@ -9,7 +9,7 @@ from src.engine.Utils import smart_format
 
 class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):
-    def __init__(self, width, height, left, top, model_surface, model_id ,my_model):
+    def __init__(self, width, height, left, top, model_surface, model_id, my_model):
         """Creates a Graph showing MAE over epoch"""
         #super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color=Const.COLOR_BLUE)
         #super().__init__(width_pct=0, left_pct=0, top_pct=0, height_pct=0,                         pixel_adjust_width=width, pixel_adjust_left=left,                         pixel_adjust_top=top, pixel_adjust_height=height)
@@ -29,7 +29,8 @@ class DisplayModel__Graph():
 
         # Create header text
         self.header_text = "Error History"
-        self.error_text = f"{smart_format(my_model.config.lowest_error)} at {my_model.config.lowest_error_epoch} "
+        #self.error_text = f"{smart_format(my_model.config.lowest_error)} at {my_model.config.lowest_error_epoch} "
+        self.error_text = "Coming soon"
         self.font = pygame.font.Font(None, 30)
 
     def process_an_event(self, event):

@@ -47,12 +47,10 @@ class DisplayModel__NeuronWeights:
             height_per_label                = self.neuron_height/self.num_weights
             #if self.neuron.nid==6:          print(f"height_per_label={height_per_label}")
             self.print_weight_lbl           = height_per_label > self.min_height_per_label
-
-
+            #ez_debug(neuron=self.neuron.nid, bar=self.bar_height, label=height_per_label)
 
     def render(self):                   #self.debug_weight_changes()
         self.draw_weight_bars()
-
         self.draw_activation_bar()
 
     def draw_activation_bar(self):
@@ -91,7 +89,8 @@ class DisplayModel__NeuronWeights:
         weighted_sum = self.calculate_weighted_sum()
         text = f" Weighted Sum: {smart_format(weighted_sum)}"  # ✅ Rounded to 2 decimal places  ✅ Convert to string
         #draw_text_with_background(self.neuron.screen, text, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height, Const.FONT_SIZE_WEIGHT, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)
-        draw_text_with_background(self.neuron.screen, text, self.neuron.location_left +2, self.neuron.location_top + self.neuron.location_height-2, Const.FONT_SIZE_WEIGHT, border_color=Const.COLOR_YELLOW_BRIGHT)
+        if not self.neuron.am_really_short:
+            draw_text_with_background(self.neuron.screen, text, self.neuron.location_left +2, self.neuron.location_top + self.neuron.location_height-2, Const.FONT_SIZE_WEIGHT, border_color=Const.COLOR_YELLOW_BRIGHT)
 
         # 🔹 Writes the activation value inside the neuron, centered on the right wall, with a background for visibility.
         draw_text_with_background(self.neuron.screen, self.neuron.activation_value, self.neuron.location_left + self.neuron.location_width-4, self.neuron.location_top + self.neuron.location_height // 2 , Const.FONT_SIZE_WEIGHT+2, right_align=True, border_color=Const.COLOR_YELLOW_BRIGHT)

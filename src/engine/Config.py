@@ -40,8 +40,6 @@ class Config:
         self.cvg_condition: str                     = "Did Not Converge"
         self.learning_rate: float                   = 0.0       # Read in beginning to instantiate  neurons with correct LR
         self.final_epoch: int                       = 0 # Last epoch to run
-        self.lowest_error: float                    = 1e50
-        self.lowest_error_epoch                     = 0
         self.exploratory                            = False
         self._percent_off                           = None
         self._accuracy_percent                      = None
@@ -79,13 +77,6 @@ class Config:
         else:
             if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
             else: return  self.bd_parameters[0]
-
-    def set_defaultsDETLETME(self, test_attribute = None, test_strategy = None):
-        if test_attribute and test_strategy:
-            setattr(self, test_attribute, test_strategy)
-        self.smartNetworkSetup()
-        if self.training_data.binary_decision and not self.bd_parameters:
-            self.bd_parameters  = self.loss_function.bd_defaults
 
     def smartNetworkSetup(self, setup):
 

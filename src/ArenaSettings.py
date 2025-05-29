@@ -9,7 +9,7 @@ from src.Legos.LossFunctions        import *
 
 
 dimensions={
-    "loss_function": [Loss_MSE, Loss_MAE, Loss_BCE],
+    #"loss_function": [Loss_MSE, Loss_MAE, Loss_BCE],
     # "hidden_activation": [Activation_ReLU, Activation_Tanh],
     # Add more here as needed!
 }
@@ -69,7 +69,7 @@ class HyperParameters:
 ############################################################
 gladiators = [
     'All_Defaults'
-    #,'BiggerIsNotBetter'
+    ,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'
