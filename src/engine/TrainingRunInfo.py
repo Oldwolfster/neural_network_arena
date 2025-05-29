@@ -11,7 +11,7 @@ from src.engine.TrainingData import TrainingData
 
 
 class TrainingRunInfo:
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed):
+    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
         self.hyper:              HyperParameters        = hyper
@@ -26,7 +26,7 @@ class TrainingRunInfo:
         self.time_start:        datetime            = datetime.now
         self.time_end:          datetime            = None
         self.seed:              int                 = seed
-        self.run_id:            int                 = None
+        self.run_id:            int                 = run_id
 
         @property
         def time_seconds(self) -> float:

@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from enum import Enum
 
 @dataclass
-class ReproducibilitySnapshot:
+class NNA_history:
+    run_id: int
     arena_name: str
     gladiator_name: str
     architecture: list
@@ -24,8 +25,9 @@ class ReproducibilitySnapshot:
 
     @classmethod
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
-    def from_config(cls, config, lowest_mae: float,total_error_for_epoch: float, random_seed, ):
+    def from_config(cls, TRI, config, lowest_mae: float,total_error_for_epoch: float, random_seed, ):
         return cls(
+            run_id = TRI.run_id,
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
             architecture=config.architecture,

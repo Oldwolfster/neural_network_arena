@@ -79,7 +79,8 @@ class ArchitecturePopup(Popup_Base):
 
                 return hid_act
 
-        def describe(cfg):
+        def describe(TRI):
+            cfg = TRI.config
             describe_rows = [
                 cfg.gladiator_name,  # Training Setup header, no value
                 architecture(cfg.architecture),
@@ -105,8 +106,8 @@ class ArchitecturePopup(Popup_Base):
                 "",  # Training Outcome header
                 smart_format(cfg.seconds),
                 f"{cfg.final_epoch} (Epochs)",
-                smart_format(cfg.lowest_error),
-                cfg.lowest_error_epoch,
+                smart_format(TRI.get("lowest_mae")),
+                TRI.get("lowest_error_epoch"),
                 cfg.cvg_condition,
             ]
             return describe_rows  # <== This was over-indented before
@@ -116,14 +117,15 @@ class ArchitecturePopup(Popup_Base):
         labels = get_labels()
         label_count = len(labels)
 
-        def safe_describe(cfg):
-            rows = describe(cfg)
+        def safe_describe(TRI):
+            rows = describe(TRI)
             if len(rows) < label_count:
                 rows += [""] * (label_count - len(rows))
             elif len(rows) > label_count:
                 rows = rows[:label_count]
             return rows
-
-        rows = [[group, label] + [safe_describe(cfg)[i] for cfg in configs] for i, (group, label) in enumerate(labels)]
+        #configs = [tri.config for tri in Const.TRIs]
+        rows = [[group, label] + [safe_describe(TRI)[i] for TRI in Const.TRIs] for i, (group, label) in enumerate(labels)]
+        #rows = [[group, label] + [safe_describe(cfg)[i] for cfg in configs] for i, (group, label) in enumerate(labels)]
         return [list(col) for col in zip(*rows)]
 

@@ -5,7 +5,7 @@ import ast  # For safely evaluating strings back to data structures
 from tabulate import tabulate
 
 from src.engine.Config import Config
-from src.engine.Utils_DataClasses import ReproducibilitySnapshot, ModelInfo
+from src.engine.Utils_DataClasses import NNA_history, ModelInfo
 from datetime import datetime
 
 def record_results(TRI, record_level):
@@ -23,28 +23,28 @@ def record_results(TRI, record_level):
 
     conn = get_db_connection()
     create_snapshot_table(conn)
-    log_entry = ReproducibilitySnapshot.from_config(config, lowest_mae,total_error, random_seed)
+    log_entry = NNA_history.from_config(TRI, config, lowest_mae,total_error, random_seed)
     insert_snapshot(conn, log_entry)
     conn.close()
 
 
-def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
+def insert_snapshot(conn, snapshot: NNA_history):
     cursor = conn.cursor()
     #run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     timestamp = datetime.now()
 
     cursor.execute('''
-    INSERT INTO reproducibility_snapshots (
-        final_error, timestamp, arena_name, gladiator_name, architecture, problem_type, 
+    INSERT INTO NNA_history (
+        run_id, best_mae, timestamp, arena_name, gladiator_name, architecture, problem_type, 
         loss_function_name, hidden_activation_name, output_activation_name, 
         weight_initializer_name, normalization_scheme, seed, learning_rate, 
         epoch_count, convergence_condition, runtime_seconds, final_error
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-         snapshot.best_mae, timestamp, snapshot.arena_name, snapshot.gladiator_name,
-        repr(snapshot.architecture), snapshot.problem_type, snapshot.loss_function_name,
-        snapshot.hidden_activation_name, snapshot.output_activation_name,
+        snapshot.run_id, snapshot.best_mae, timestamp, snapshot.arena_name, snapshot.gladiator_name,
+        repr(snapshot.architecture), snapshot.problem_type
+        , snapshot.loss_function_name,        snapshot.hidden_activation_name, snapshot.output_activation_name,
         snapshot.weight_initializer_name, snapshot.normalization_scheme,
         snapshot.seed, snapshot.learning_rate, snapshot.epoch_count, snapshot.convergence_condition,
         snapshot.runtime_seconds, snapshot.final_error
@@ -56,7 +56,7 @@ def insert_snapshot(conn, snapshot: ReproducibilitySnapshot):
 def list_snapshots_in_console(result_rows: int):
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute(f"SELECT seed as _seed,* FROM reproducibility_snapshots ORDER BY timestamp DESC LIMIT {result_rows} ")
+    cursor.execute(f"SELECT seed as _seed,* FROM NNA_history ORDER BY timestamp DESC LIMIT {result_rows} ")
 
     rows = cursor.fetchall()
     headers = [description[0] for description in cursor.description]
@@ -70,7 +70,7 @@ def list_snapshots(result_rows: int, filename="snapshots.csv"):
     cursor = conn.cursor()
     cursor.execute(f"""
         SELECT seed AS _seed, *
-        FROM reproducibility_snapshots
+        FROM NNA_history
         ORDER BY timestamp DESC
         LIMIT {result_rows}
     """)
@@ -104,10 +104,12 @@ def list_snapshots(result_rows: int, filename="snapshots.csv"):
 
 def create_snapshot_table(conn):
     cursor = conn.cursor()
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS reproducibility_snapshots (
+    cursor.execute('''    
+    CREATE TABLE IF NOT EXISTS NNA_history (
         timestamp DATETIME,
+        run_id INTEGER,
         runtime_seconds REAL,
+        best_mae REAL,
         final_error REAL,        
         arena_name TEXT,
         gladiator_name TEXT,
@@ -122,7 +124,7 @@ def create_snapshot_table(conn):
         convergence_condition TEXT,        
         problem_type TEXT,
         seed INTEGER,
-        run_id INTEGER PRIMARY KEY AUTOINCREMENT
+        pk INTEGER PRIMARY KEY AUTOINCREMENT
     )
     ''')
     conn.commit()

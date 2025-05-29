@@ -21,7 +21,10 @@ class ModelGenerator:
         ModelGenerator.display_models = []
 
         for TRI in Const.TRIs:  # Loop through stored Config objects
-            model_position = ModelGenerator.model_positions[TRI.config.gladiator_name]  # Fetch position
+            if TRI.run_id not in ModelGenerator.model_positions:
+                continue  # Skip models not assigned a position
+
+            model_position = ModelGenerator.model_positions[TRI.run_id]  # Fetch position
             display_model = DisplayModel(TRI, model_position)  # Pass both config & position
             display_model.initialize_with_model_info()
             ModelGenerator.display_models.append(display_model)
@@ -34,7 +37,7 @@ class ModelGenerator:
         ModelGenerator.model_count = len(ModelGenerator.model_shapes)
         if ModelGenerator.model_count == 1:
             LayoutSelector_single_model.determine_layout()
-        elif 2 <= ModelGenerator.model_count <= 3:
+        elif 2 <= ModelGenerator.model_count <= 4:
             LayoutSelector_2_or_3.determine_layout()
         else:
             print(f"🚨 Unsupported model count: {ModelGenerator.model_count}")  # Placeholder for future expansion
@@ -53,7 +56,7 @@ class ModelGenerator:
             padded_architecture = [max(2, n) for n in TRI.config.architecture]
             max_neurons = max(padded_architecture)
 
-            ModelGenerator.model_shapes[TRI.config.gladiator_name] = (layer_count, max_neurons)
+            ModelGenerator.model_shapes[TRI.run_id] = (layer_count, max_neurons)
 
 class LayoutSelector_single_model:
     @staticmethod

@@ -12,7 +12,7 @@ from src.engine.Neuron import Neuron
 from datetime import datetime
 from src.engine.Utils_DataClasses import ez_debug
 
-from src.engine.Utils_DataClasses import Iteration, ReproducibilitySnapshot
+from src.engine.Utils_DataClasses import Iteration
 from src.Legos.WeightInitializers import *
 from typing import List, Tuple
 

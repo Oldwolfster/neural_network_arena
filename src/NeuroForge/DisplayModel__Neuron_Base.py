@@ -119,11 +119,11 @@ class DisplayModel__Neuron_Base:
         label_strip_height = label_surface.get_height() + 8  # Padding
 
         # Draw the neuron body below the label
-        self.am_really_short = self.location_height < label_strip_height
+        self.am_really_short = self.location_height < label_strip_height*2
+        #ez_debug(nid=self.nid, location_height = self.location_height, label_strip_height=label_strip_height)
         if not self.am_really_short:
             body_y_start = self.location_top + label_strip_height
             body_height = self.location_height - label_strip_height
-            #ez_debug(nid=self.nid, location_height = self.location_height, label_strip_height=label_strip_height)
             pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
 
         # Draw neuron banner
