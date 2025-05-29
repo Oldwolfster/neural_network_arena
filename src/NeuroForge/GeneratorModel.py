@@ -22,7 +22,7 @@ class ModelGenerator:
 
         for TRI in Const.TRIs:  # Loop through stored Config objects
             model_position = ModelGenerator.model_positions[TRI.config.gladiator_name]  # Fetch position
-            display_model = DisplayModel(TRI.config, model_position)  # Pass both config & position
+            display_model = DisplayModel(TRI, model_position)  # Pass both config & position
             display_model.initialize_with_model_info()
             ModelGenerator.display_models.append(display_model)
 

@@ -11,7 +11,8 @@ from datetime import datetime
 def record_results(TRI, record_level):
     if record_level == 0: return
     config = TRI.config
-    last_mae = TRI.get("lowest_mae")
+    lowest_mae = TRI.get("lowest_mae")
+    total_error = TRI.get("total_error_for_epoch")
     random_seed = TRI.seed
 
     TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
@@ -22,7 +23,7 @@ def record_results(TRI, record_level):
 
     conn = get_db_connection()
     create_snapshot_table(conn)
-    log_entry = ReproducibilitySnapshot.from_config(config, last_mae, random_seed)
+    log_entry = ReproducibilitySnapshot.from_config(config, lowest_mae,total_error, random_seed)
     insert_snapshot(conn, log_entry)
     conn.close()
 

@@ -25,7 +25,6 @@ class TrainingRunInfo:
         self.gladiator_name:    str                 = setup["gladiator"]
         self.time_start:        datetime            = datetime.now
         self.time_end:          datetime            = None
-        self.final_error:       float               = None
         self.seed:              int                 = seed
         self.run_id:            int                 = None
 

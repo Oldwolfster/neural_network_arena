@@ -24,12 +24,12 @@ class ReproducibilitySnapshot:
 
     @classmethod
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
-    def from_config(cls, config, last_mae: float, random_seed):
+    def from_config(cls, config, lowest_mae: float,total_error_for_epoch: float, random_seed, ):
         return cls(
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
             architecture=config.architecture,
-            best_mae= config.lowest_error,
+            best_mae= lowest_mae,
             problem_type=config.training_data.problem_type,
             loss_function_name=config.loss_function.name,
             hidden_activation_name=config.hidden_activation.name,
@@ -43,7 +43,7 @@ class ReproducibilitySnapshot:
             epoch_count=config.final_epoch,
             convergence_condition=config.cvg_condition or "None",
             runtime_seconds=config.seconds,
-            final_error=last_mae
+            final_error=total_error_for_epoch
         )
 
     def display(self):

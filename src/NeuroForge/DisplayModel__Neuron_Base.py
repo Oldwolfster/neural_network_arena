@@ -21,7 +21,7 @@ class DisplayModel__Neuron_Base:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("my_model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("am_really_short", "my_model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "model_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
 
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
@@ -59,6 +59,7 @@ class DisplayModel__Neuron_Base:
         self.activation_gradient    = 0.0
 
         # Visualization properties
+        self.am_really_short        = False
         self.banner_text            = ""
         self.tooltip_columns        = []
         self.weight_adjustments     = ""
@@ -118,9 +119,12 @@ class DisplayModel__Neuron_Base:
         label_strip_height = label_surface.get_height() + 8  # Padding
 
         # Draw the neuron body below the label
-        body_y_start = self.location_top + label_strip_height
-        body_height = self.location_height - label_strip_height
-        pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
+        self.am_really_short = self.location_height < label_strip_height
+        if not self.am_really_short:
+            body_y_start = self.location_top + label_strip_height
+            body_height = self.location_height - label_strip_height
+            #ez_debug(nid=self.nid, location_height = self.location_height, label_strip_height=label_strip_height)
+            pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
 
         # Draw neuron banner
         banner_rect = pygame.Rect(self.location_left, self.location_top + 4, self.location_width, label_strip_height)
