@@ -491,7 +491,7 @@ class DisplayModel__Neuron_Base:
         # build the SELECT clause dynamically
         num_args   = len(headers)
         arg_fields = [f"arg_{i+1}" for i in range(num_args)]
-        table      = f"WeightAdjustments_update_{self.config.gladiator_name}"
+        table      = f"WeightAdjustments_update_{self.run_id}"
 
         sql = f"""
             SELECT {', '.join(arg_fields)}

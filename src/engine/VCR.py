@@ -150,7 +150,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
 
-        table_name = f"WeightAdjustments_{update_or_finalize}_{self.TRI.gladiator_name}" #TODO susceptible to SQL injection
+        table_name = f"WeightAdjustments_{update_or_finalize}_{self.TRI.run_id}" #TODO susceptible to SQL injection
         sql = f"""
             INSERT INTO {table_name}
             ({fields})

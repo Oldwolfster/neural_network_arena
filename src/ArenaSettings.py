@@ -53,7 +53,9 @@ class HyperParameters:
 
 dimensions={
     #"loss_function": [Loss_MSE, Loss_BCE, Loss_MAE],
-    # "hidden_activation": [Activation_ReLU, Activation_Tanh],
+    "loss_function": [Loss_BCE],
+    #"hidden_activation": [Activation_ReLU, Activation_Tanh],
+    "hidden_activation": [Activation_Tanh],
     # Add more here as needed!
 }
 
@@ -62,7 +64,7 @@ dimensions={
 ############################################################
 gladiators = [
     'All_Defaults'
-    #'BiggerIsNotBetter'
+    ,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'

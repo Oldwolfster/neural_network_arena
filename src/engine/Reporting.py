@@ -99,9 +99,9 @@ def prep_RamDB():
 
     db.execute("""
         CREATE TABLE IF NOT EXISTS ErrorSignalCalcs (
+            run_id       INTEGER NOT NULL,
             epoch        INTEGER NOT NULL,
-            iteration    INTEGER NOT NULL,
-            run_id     TEXT NOT NULL,
+            iteration    INTEGER NOT NULL,            
             nid          INTEGER NOT NULL,
             weight_id    INTEGER NOT NULL,
             arg_1        REAL NOT NULL,
@@ -111,7 +111,7 @@ def prep_RamDB():
             arg_3        REAL DEFAULT NULL,
             op_3         TEXT DEFAULT NULL CHECK (op_3 IN ('+', '-', '*', '/', '=')),
             result       REAL NOT NULL,
-            PRIMARY KEY (epoch, iteration, run_id, nid,weight_id)  -- Ensures unique calculations per neuron per step
+            PRIMARY KEY (run_id, epoch, iteration,  nid,weight_id)  -- Ensures unique calculations per neuron per step
         );""")
 
     #this will no longer run with engine refactoredto TurboForge... instead atomic creates individually
@@ -121,10 +121,10 @@ def prep_RamDB():
 
     return db
 
-def create_weight_tables(db, gladiator):
-    create_weight_adjustments_table(db, gladiator, "update")
-    create_weight_adjustments_table(db, gladiator, "finalize")
-    delete_records         (db, gladiator) # in case it had been run by LR sweep
+def create_weight_tables(db, run_id):
+    create_weight_adjustments_table(db, run_id, "update")
+    create_weight_adjustments_table(db, run_id, "finalize")
+    delete_records         (db, run_id) # in case it had been run by LR sweep
 
 def delete_records(db, run_id, possible_columns=None):
         """

@@ -49,16 +49,15 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print(f"MAE of {TRIs[-1].get("lowest_mae")}")
         #TRIs[0].db.query_print("Select * From EpochSummary")
         generate_reports            (self.db, TRIs[0].training_data)
-        TRIs[0].db.list_tables(3)
+        #TRIs[0].db.list_tables(3)
         #TRIs[0].db.query_print("Select * From Weight")
         neuroForge                  (TRIs[-4:])
-
 
     def atomic_train_a_model(self, setup, record_level: int, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model
             set_seed                    ( self.seed)
             training_data               = self.instantiate_arena(setup["arena"]) # Passed to base_gladiator through TRI
             set_seed                    ( self.seed)    #Reset seed as it likely was used in training_data
-            create_weight_tables        ( self.db, setup["gladiator"])
+            create_weight_tables        ( self.db, run_id)
 
             TRI                         = TrainingRunInfo(self.shared_hyper, self.db, training_data, setup, self.seed, run_id)
             NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
