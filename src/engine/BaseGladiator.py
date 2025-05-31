@@ -120,7 +120,6 @@ class Gladiator(ABC):
         self                . total_error_for_epoch += abs(error)
 
         # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
-        #TODO optimize pass also has prediction_raw... seems there should only be one.
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
         prediction          = self.config.threshold_prediction(prediction_raw)
 
@@ -143,34 +142,32 @@ class Gladiator(ABC):
         )
         self.VCR.record_iteration(iteration_data, Neuron.layers)
 
-    def optimize_passes(self, sample):
+    def optimize_passes(self, sample_scaled):
         # Step 1: Forward pass
-        prediction_raw = self.forward_pass(sample)  # Call model-specific logic
+        prediction_raw = self.forward_pass(sample_scaled)  # Call model-specific logic
         if prediction_raw is None: raise ValueError(f"{self.__class__.__name__}.forward_pass must return a value for sample={sample!r}"            ) # ensure forward_pass actually returned something
 
         # Step 2: Judge pass - calculate error, loss, and blame (gradient)
-        error_scaled, loss,  loss_gradient = self.judge_pass(sample, prediction_raw)
+        error_scaled, loss,  loss_gradient = self.judge_pass(sample_scaled, prediction_raw)
 
         # Step 3: Backwards Pass -  Delegate to models logic for backprop or call default if not overridden
-        self.back_pass(sample, loss_gradient)  # Call model-specific logic
+        self.back_pass(sample_scaled, loss_gradient)  # Call model-specific logic
 
         # 🎯 Record blame and weight updates or NeuroForge             (⬅️ Last step we need)
         self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
         self.VCR.record_weight_updates      (self.weight_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
         return error_scaled, loss, loss_gradient
 
-
     ################################################################################################
     ################################ SECTION 1 - Training Default Methods ##########################
     ################################################################################################
-    def forward_pass(self, training_sample: Tuple[float, float, float]) -> None:
+    def forward_pass(self, training_sample: Tuple[float, float, float]) -> float:
         """
         🚀 Computes forward pass for each neuron in the XOR MLP.
         🔍 Activation of Output neuron will be considered 'Raw Prediction'
         Args:
             training_sample: tuple where first elements are inputs and last element is target (assume one target)
         """
-
         input_values = training_sample[:-1]
 
         # 🚀 Compute raw sums + activations for each layer
@@ -181,7 +178,7 @@ class Gladiator(ABC):
                 neuron.raw_sum += neuron.bias
                 neuron.activate()
                 #print(f"neuron.activation={neuron.activation_value}")
-        return  Neuron.layers[-1][0].activation_value  # Extract output neuron’s activation
+        return  Neuron.output_neuron.activation_value  # Extract output neuron’s activation
 
     def back_pass(self, training_sample : Tuple[float, float, float], loss_gradient: float):
         """
@@ -271,7 +268,6 @@ class Gladiator(ABC):
     ############################### END OF BACKPASS ###############################
     ############################### END OF BACKPASS ###############################
 
-
     def judge_pass(self, sample, prediction_raw: float):
         """
         Computes error, loss, and blame based on the configured loss function.
@@ -300,7 +296,6 @@ class Gladiator(ABC):
 
                 setattr(neuron, f"weights{to_suffix}", np.copy(from_weights))
                 setattr(neuron, f"bias{to_suffix}", from_bias)
-
 
     def update_best_weights_if_new_lowest_error(self, current_error: float):
         """
@@ -456,67 +451,10 @@ class Gladiator(ABC):
             print(f"⚠️ {rule}")  # Show warning but allow modification
         self._bd_threshold = value
 
-
     @property
     def last_epoch_mae(self):
         return self.total_error_for_epoch/self.config.training_data.sample_count
 
-    @property
-    def weights(self):
-        """
-        Getter for learning rate.
-        """
-        return Neuron.neurons[0].weights
-    #@property
-    def learning_rateNOT_HERE_IN_CONFIG(self):
-        """
-        Getter for learning rate.
-        """
-        return self._learning_rate
-
-    #@learning_rate.setter
-    def learning_rateNOT_HERE_IN_CONFIG(self, new_learning_rate: float):
-        """
-        Updates the learning rate for the Gladiator and ensures all neurons reflect the change.
-
-        Args:
-            new_learning_rate (float): The new learning rate to set.
-        """
-
-        self._learning_rate = new_learning_rate
-        self.config.learning_rate = new_learning_rate
-        for neuron in Neuron.neurons:
-            neuron.set_learning_rate(new_learning_rate)
-            #if neuron.nid == 0:
-                #self.db.query_print("Select 1 as in_LR_Setter")
-                #print(f"self._learning_rate={self._learning_rate}")
-            #neuron.learning_rate_report("Before")
-            #if neuron.nid == 0:
-                #neuron.set_learning_rate(new_learning_rate)
-                #neuron.learning_rate_report("After")
-
-    def print_reproducibility_info(self, epoch_count):
-        print("\n🧬 Reproducibility Snapshot")
-        print("────────────────────────────")
-        print(f"Arena:             {self.config.training_data.arena_name}")
-        print(f"Gladiator:         {self.config.gladiator_name}")
-        print(f"Architecture:      {self.config.architecture}")
-        print(f"Problem Type:      {self.config.training_data.problem_type}")
-        print(f"Loss Function:     {self.config.loss_function.__class__.__name__}")
-        print(f"Hidden AF:         {self.config.hidden_activation.name}")
-        print(f"Output AF:         {self.config.output_activation.name}")
-        print(f"Weight Init:       {self.config.initializer.name}")
-        print(f"Data Norm Scheme:  {self.config.training_data.norm_scheme}")
-        print(f"Seed:              {self.config.hyper.random_seed}")
-        print(f"Learning Rate:     {self._learning_rate}")
-        print(f"Epochs Run:        {epoch_count}")
-        print(f"Convergence Rule:  {self.config.cvg_condition}")
-        #print(f"Final Error:       {self.config.db.get_final_mae(self.config.gladiator_name):.4f}")
-        #print(f"Final Accuracy:    {self.config.db.get_final_accuracy(self.config.gladiator_name):.2%}")
-        #print(f"Runtime (secs):    {self.config.seconds:.2f}")
-
-
-        print("────────────────────────────\n")
         def on_epoch_end(self, epoch, error_summary):
             """
             Optional override: Called after each epoch.
