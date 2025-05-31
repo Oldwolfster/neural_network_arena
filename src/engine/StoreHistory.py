@@ -11,10 +11,6 @@ from datetime import datetime
 def record_results(TRI, record_level):
     if record_level == 0: return
     config = TRI.config
-    lowest_mae = TRI.get("lowest_mae")
-    total_error = TRI.get("total_error_for_epoch")
-    random_seed = TRI.seed
-
     TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
     TRI                         . record_finish_time()
 
@@ -36,13 +32,13 @@ def insert_snapshot(conn, snapshot: NNA_history):
 
     cursor.execute('''
     INSERT INTO NNA_history (
-        run_id, best_mae, timestamp, arena_name, gladiator_name, architecture, problem_type, 
+        run_id, accuracy, best_mae, timestamp, arena_name, gladiator_name, architecture, problem_type, 
         loss_function_name, hidden_activation_name, output_activation_name, 
         weight_initializer_name, normalization_scheme, seed, learning_rate, 
         epoch_count, convergence_condition, runtime_seconds, final_error
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        snapshot.run_id, snapshot.best_mae, timestamp, snapshot.arena_name, snapshot.gladiator_name,
+        snapshot.run_id, snapshot.accuracy, snapshot.best_mae, timestamp, snapshot.arena_name, snapshot.gladiator_name,
         repr(snapshot.architecture), snapshot.problem_type
         , snapshot.loss_function_name,        snapshot.hidden_activation_name, snapshot.output_activation_name,
         snapshot.weight_initializer_name, snapshot.normalization_scheme,
@@ -103,16 +99,18 @@ def list_snapshots(result_rows: int, filename="snapshots.csv"):
     os.startfile(filename)
 
 def create_snapshot_table(conn):
+    print("creating table")
     cursor = conn.cursor()
     cursor.execute('''    
     CREATE TABLE IF NOT EXISTS NNA_history (
         timestamp DATETIME,
         run_id INTEGER,
         runtime_seconds REAL,
-        best_mae REAL,
-        final_error REAL,        
+        gladiator_name TEXT,      
         arena_name TEXT,
-        gladiator_name TEXT,
+        accuracy REAL,
+        best_mae REAL,
+        final_error REAL,
         architecture TEXT,        
         loss_function_name TEXT,
         hidden_activation_name TEXT,
@@ -128,6 +126,7 @@ def create_snapshot_table(conn):
     )
     ''')
     conn.commit()
+    print("created")
 
 
 def get_db_connection(db_name='arena_history.db', subfolder='history'):

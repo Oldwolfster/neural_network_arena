@@ -126,7 +126,8 @@ class TrainingData:
         if "mean_absolute_target" not in self._cache:
             if not self.raw_data:
                 raise ValueError("Training data is empty; cannot compute mean target.")
-            self._cache["mean_absolute_target"] = np.mean([abs(t[-1]) for t in self.raw_data])
+            #self._cache["mean_absolute_target"] = np.mean([abs(t[-1]) for t in self.raw_data])
+            self._cache["mean_absolute_target"] = np.mean(np.abs([t[-1] for t in self.raw_data]))
         return self._cache["mean_absolute_target"]
 
 
