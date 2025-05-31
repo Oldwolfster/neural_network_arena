@@ -1,8 +1,5 @@
 from abc import ABC
 from json import dumps
-
-import numpy as np
-
 from src.Legos.ActivationFunctions import *
 from src.Legos.Optimizers import *
 from src.engine.TrainingRunInfo import TrainingRunInfo
@@ -11,7 +8,6 @@ from src.engine.Config import Config
 from src.engine.Neuron import Neuron
 from datetime import datetime
 from src.engine.Utils_DataClasses import ez_debug
-
 from src.engine.Utils_DataClasses import Iteration
 from src.Legos.WeightInitializers import *
 from typing import List, Tuple
@@ -34,28 +30,25 @@ class Gladiator(ABC):
 """
     #def __init__(self,  config: Config):
     def __init__(self,  TRI: TrainingRunInfo):
-        self.TRI                = TRI # TrainingRunInfo
-        self.config             = TRI.config
-        self.db                 = TRI.db
-        self.hyper              = TRI.hyper
-        self.training_data      = TRI.training_data              # Only needed for sqlMgr ==> self.ramDb = args[3]
-        self.total_iterations   = 1                         # Timestep for optimizers such as adam
-        #self.training_samples   = None                      # To early to get, becaus normalization wouldn't be applied yet self.training_data.get_list()   # Store the list version of training data
-        self.VCR                = VCR(TRI, Neuron.neurons) # Args3, is ramdb
-        #self.learning_rate      = self.config.learning_rate  #
-        self.number_of_epochs   = self.hyper.epochs_to_run
-        #self._full_a1rchitecture = None
-        self._bd_threshold       = None
-        self._bd_class_alpha     = None
-        self._bd_class_beta      = None
-        self.total_error_for_epoch          = 0
-        self.iteration          = 0
-        self.epoch              = 0
-        self.too_high_adjst     = self.training_data.input_max * 5 #TODO make 5 hyperparamter
-        self.max_adj            = self.training_data.everything_max_magnitude()
-        self.blame_calculations = []
-        self.weight_update_calculations = []
-        self.convergence_phase  = "watch"
+        self.TRI                    = TRI # TrainingRunInfo
+        self.config                 = TRI.config
+        self.db                     = TRI.db
+        self.hyper                  = TRI.hyper
+        self.training_data          = TRI.training_data         # Only needed for sqlMgr ==> self.ramDb = args[3]
+        self.VCR                    = VCR(TRI, Neuron.neurons)  # Args3, is ramdb
+        self.total_iterations       = 1                         # Timestep for optimizers such as adam
+        self.number_of_epochs       = self.hyper.epochs_to_run
+        self._bd_threshold          = None
+        self._bd_class_alpha        = None
+        self._bd_class_beta         = None
+        self.total_error_for_epoch  = 0
+        self.iteration              = 0
+        self.epoch                  = 0
+        self.too_high_adjst         = self.training_data.input_max * 5 #TODO make 5 hyperparamter
+        self.max_adj                = self.training_data.everything_max_magnitude()
+        self.blame_calculations     = []
+        self.weight_calculations    = []
+        self.convergence_phase      = "watch"
         self.finalize_setup()
 
     ################################################################################################
@@ -63,25 +56,18 @@ class Gladiator(ABC):
     ################################################################################################
 
     def finalize_setup(self):
-        self.configure_model(self.config)  #Typically overwritten in child  class.
-
+        self.configure_model(self.config)                   # Typically overwritten in child  class.
         self.config.smartNetworkSetup(self.TRI.setup)
-
         self.initialize_neurons(
-            architecture=self.config.architecture.copy(),  # Avoid mutation
-            initializers=[self.config.initializer],  # <- List of 1 initializer
+            architecture=self.config.architecture.copy(),   # Avoid mutation
+            initializers=[self.config.initializer],         # <- List of 1 initializer
             hidden_activation=self.config.hidden_activation,
             output_activation=self.config.output_activation
             or self.config.loss_function.recommended_output_activation)
+        self.customize_neurons(self.config)                 # Typically overwritten in child  class.
 
-        #print(f"Neuron count = {len(Neuron.neurons)}")
-        self.customize_neurons(self.config)
-
-    def configure_model(self, config: Config): #Typically overwritten in child  class.
-        pass
-
-    def customize_neurons(self,config: Config): #Typically overwritten in child  class.
-        pass
+    def configure_model(self, config: Config):  pass #Typically overwritten in child  class.
+    def customize_neurons(self,config: Config): pass #Typically overwritten in child  class.
 
     def scale_samples(self):  #Scales the inputs and targets according to the config in the model and config defaults
         self.config.scaler.scale_all()
@@ -109,7 +95,6 @@ class Gladiator(ABC):
             if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
                 return
 
-
     def run_an_epoch(self, epoch_num: int) -> str:
         """
         Executes a training epoch i.e. trains on all samples
@@ -126,7 +111,7 @@ class Gladiator(ABC):
 
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
             self.run_a_sample(np.array(sample), np.array(sample_unscaled))
-            if self.total_error_for_epoch > 1e30:   return  "Gradient Explosion" #Check for gradient explosion
+            if self.total_error_for_epoch > 1e21:   return  "Gradient Explosion" #Check for gradient explosion
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def run_a_sample(self, sample, sample_unscaled):
@@ -134,37 +119,30 @@ class Gladiator(ABC):
         error, loss, blame  = self.optimize_passes(sample)
         self                . total_error_for_epoch += abs(error)
 
-         # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
+        # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
         #TODO optimize pass also has prediction_raw... seems there should only be one.
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
         prediction          = self.config.threshold_prediction(prediction_raw)
 
-        #print(f"target unscaled\t{sample_unscaled[-1]}")
-        #print(f"prediction unscaled\t{self.config.scaler.unscale_target(prediction_raw)}")
-        #print(" ")
-
-
-
         # Step 4: Record iteration data
         iteration_data = Iteration(
-            run_id=self.TRI.run_id,
-            epoch=self.epoch + 1,
-            iteration=self.iteration + 1,
-            inputs=dumps(sample[:-1].tolist()),  # Serialize inputs as JSON
-            inputs_unscaled=dumps(sample_unscaled[:-1].tolist()),  # Serialize inputs as JSON
-            target=sample[-1],
-            target_unscaled=sample_unscaled[-1],
-            prediction=prediction,
-            prediction_unscaled=self.config.scaler.unscale_target(prediction_raw),#converts prediction back to "unscaled space"
-            prediction_raw=prediction_raw,
-            loss=loss,
-            loss_function=self.config.loss_function.name,
-            loss_gradient=blame,
-            accuracy_threshold=self.hyper.accuracy_threshold,
+            run_id              =self.TRI.run_id,
+            epoch               =self.epoch + 1,
+            iteration           =self.iteration + 1,
+            inputs              =dumps(sample[:-1].tolist()),  # Serialize inputs as JSON
+            inputs_unscaled     =dumps(sample_unscaled[:-1].tolist()),  # Serialize inputs as JSON
+            target              =sample[-1],
+            target_unscaled     =sample_unscaled[-1],
+            prediction          =prediction,
+            prediction_unscaled =self.config.scaler.unscale_target(prediction_raw),#converts prediction back to "unscaled space"
+            prediction_raw      =prediction_raw,
+            loss                =loss,
+            loss_function       =self.config.loss_function.name,
+            loss_gradient       =blame,
+            accuracy_threshold  =self.hyper.accuracy_threshold,
         )
         self.VCR.record_iteration(iteration_data, Neuron.layers)
 
-    # noinspection PyTypeChecker
     def optimize_passes(self, sample):
         # Step 1: Forward pass
         prediction_raw = self.forward_pass(sample)  # Call model-specific logic
@@ -178,7 +156,7 @@ class Gladiator(ABC):
 
         # 🎯 Record blame and weight updates or NeuroForge             (⬅️ Last step we need)
         self.VCR.record_blame_calculations  (self.blame_calculations)           # Write and clear error signal calculations to db for NeuroForge popup
-        self.VCR.record_weight_updates      (self.weight_update_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
+        self.VCR.record_weight_updates      (self.weight_calculations, "update")   # Write and clear distribute error calculations to db for NeuroForge popup
         return error_scaled, loss, loss_gradient
 
 
@@ -255,7 +233,7 @@ class Gladiator(ABC):
 
             # 🔹 Store calculation step as a structured tuple, now including weight index
             self.blame_calculations.append([
-                self.epoch+1, self.iteration+1, self.config.gladiator_name, neuron.nid, next_neuron.position,
+                self.epoch+1, self.iteration+1, self.TRI.run_id, neuron.nid, next_neuron.position,
                 weight_to_next, "*", error_from_next, "=", None, None, weight_to_next * error_from_next
             ])        
 
@@ -278,7 +256,7 @@ class Gladiator(ABC):
         blame = neuron.error_signal
         input_vector = [1.0] + list(prev_layer_values)
 
-        self.weight_update_calculations.extend( #Note list from _Finalize is gathered in VCR
+        self.weight_calculations.extend( #Note list from _Finalize is gathered in VCR
             self.config.optimizer.update(
                 neuron, input_vector, blame, self.total_iterations ,
                 config      = self.config,

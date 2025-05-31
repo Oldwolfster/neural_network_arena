@@ -156,7 +156,7 @@ class MLP_Hayabusa(Gladiator):
                 neuron.weights[i - 1] -= adjustment
 
             # 🔹 Store structured calculation for weights
-            self.weight_update_calculations.append([
+            self.weight_calculations.append([
                 self.epoch + 1, self.iteration + 1, self.gladiator, neuron.nid, i,
                 prev_value, "*", blame, "*", learning_rate, "=", adjustment
             ])

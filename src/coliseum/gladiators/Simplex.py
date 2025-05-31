@@ -70,7 +70,7 @@ class NeuroForge_Template(Gladiator):
             #print(f"trying to find path down{self.epoch+1}, {self.iteration+1}\tprev_value{prev_value}\terror_signal{error_signal}\tlearning_rate{learning_rate}\tprev_value{adjustment}\t")
 
             # 🔹 Store structured calculation for weights
-            self.weight_update_calculations.append([
+            self.weight_calculations.append([
                 # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
                 self.epoch+1, self.iteration+1, self.gladiator, neuron.nid, i+1,
                 prev_value, "*", error_signal, "*", neuron.learning_rates[i+1], "=", adjustment
@@ -87,7 +87,7 @@ class NeuroForge_Template(Gladiator):
         neuron.bias -= adjustment_bias
 
         # 🔹 Store structured calculation for bias
-        self.weight_update_calculations.append([
+        self.weight_calculations.append([
         # epoch, iteration, model_id, neuron_id, weight_index, arg_1, op_1, arg_2, op_2, arg_3, op_3, result
             self.epoch+1 , self.iteration+1, self.gladiator, neuron.nid, 0,
                 "1", "*", error_signal, "*", neuron.learning_rates[0],   "=", adjustment_bias
