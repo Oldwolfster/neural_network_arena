@@ -23,7 +23,7 @@ def record_results(TRI, record_level):
 
     conn = get_db_connection()
     create_snapshot_table(conn)
-    log_entry = NNA_history.from_config(TRI, config, lowest_mae,total_error, random_seed)
+    log_entry = NNA_history.from_config(TRI, config)
     insert_snapshot(conn, log_entry)
     conn.close()
 

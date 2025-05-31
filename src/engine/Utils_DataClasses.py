@@ -25,13 +25,13 @@ class NNA_history:
 
     @classmethod
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
-    def from_config(cls, TRI, config, lowest_mae: float,total_error_for_epoch: float, random_seed, ):
+    def from_config(cls, TRI, config ):
         return cls(
             run_id = TRI.run_id,
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
             architecture=config.architecture,
-            best_mae= lowest_mae,
+            best_mae= TRI.get("lowest_mae"),
             problem_type=config.training_data.problem_type,
             loss_function_name=config.loss_function.name,
             hidden_activation_name=config.hidden_activation.name,
@@ -40,12 +40,12 @@ class NNA_history:
             ).name,
             weight_initializer_name=config.initializer.name,
             normalization_scheme="WIP",
-            seed=random_seed,
+            seed=TRI.seed,
             learning_rate=config.learning_rate,
             epoch_count=config.final_epoch,
             convergence_condition=config.cvg_condition or "None",
             runtime_seconds=config.seconds,
-            final_error=total_error_for_epoch
+            final_error=TRI.get("mae")
         )
 
     def display(self):

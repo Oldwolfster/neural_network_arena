@@ -18,22 +18,15 @@ from typing import Dict
 from ..Legos.Optimizers import BatchMode
 
 
-class VCR:       #(gladiator, training_set_size, converge_epochs, converge_threshold, accuracy_threshold, arena_data)  # Create a new Metrics instance with the name as a string
-    #def __init__(self, config, model_id, hyper: HyperParameters, training_data: TrainingData, neurons: List, ramDb: RamDB):
+class VCR:
     def __init__(self, TRI, neurons: List):
         # Run Level members
-        #self.training_data          = training_data
-        #self.model_id               = model_id
-        self.TRI : TrainingRunInfo   =TRI
-        #        self.hyper                  = hyper
+        self.TRI : TrainingRunInfo  = TRI
         self.neurons                = neurons
-        #self.db                     = ramDb
         self.batch_id               = 0
-
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
         self.sample_count           = len(TRI.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
-        self.accuracy_threshold     = (TRI.hyper.accuracy_threshold)    # In regression, how close must it be to be considered "accurate"
         self.converge_detector      = ConvergenceDetector(TRI.hyper, TRI.training_data, TRI.config)
         self.abs_error_for_epoch    = 0
         self.convergence_signal     = None      # Will be set by convergence detector
@@ -58,12 +51,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         """
         Add the current iteration data to the database
         """
-        epoch_num = iteration_data.epoch
-        iteration_num = iteration_data.iteration
         self.abs_error_for_epoch += abs(iteration_data.error)
-
-        ############## CALL THE FINALIZER ON THE OPTIMIZER STRATEGY ##################
-        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_num,   self.TRI.training_data.sample_count, self.TRI.config.batch_size,  self.TRI.config.optimizer.finalizer)
+        record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_data.iteration,   self.TRI.training_data.sample_count, self.TRI.config.batch_size,  self.TRI.config.optimizer.finalizer)
 
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
@@ -85,8 +74,8 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                     )
 
                 # Add the neuron data to the database
-                self.TRI.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, run_id=self.TRI.run_id, epoch_n=epoch_num, iteration_n=iteration_num)
-        Neuron.bulk_insert_weights(db = self.TRI.db, run_id = self.TRI.run_id, epoch=epoch_num, iteration=iteration_num )
+                self.TRI.db.add(neuron, exclude_keys={"activation", "learning_rate", "weights", "weights_before"}, run_id=self.TRI.run_id, epoch_n=iteration_data.epoch, iteration_n=iteration_data.iteration)
+        Neuron.bulk_insert_weights(db = self.TRI.db, run_id = self.TRI.run_id, epoch=iteration_data.epoch, iteration=iteration_data.iteration )
 
     def maybe_finalize_batch(self, iteration_num: int, total_samples: int, batch_size: int, finalizer_fn) -> list:
         if iteration_num % batch_size == 0:
@@ -99,7 +88,7 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
                 return self.finish_batch(remainder,iteration_num,finalizer_fn)
         return []  # Nothing to finalize this round
 
-    def finish_batch(self,batch_size, iteration_num, finalizer_fn) -> list:
+    def finish_batch(self, batch_size, iteration_num, finalizer_fn) -> list:
         """
             Runs the optimizer's finalizer function with the correct batch_id,
             and increments the internal batch counter for the next batch.
@@ -110,18 +99,14 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         return finalizer_log
 
     def finish_epoch(self, epoch: int):
-
         mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
         self.TRI.set("mae", mae)
-        if self.TRI.set_if_lower("lowest_mae",mae):
+        if self.TRI.set_if_lower("lowest_mae", mae):
             self.TRI.set("lowest_error_epoch", epoch)
-
         self.abs_error_for_epoch = 0 # Reset for next epoch
         self.epoch_curr_number += 1
-        #epoch_metrics = self.get_metrics_from_ramdb(epoch)
-        #val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
         val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
-        return val #        #return "Did Not Converge"
+        return val
 
     def finish_epochOrig(self, epoch: int):
         mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
@@ -167,7 +152,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
         #print("Insert worked")
         weight_update_metrics.clear()
 
-
     def convert_numpy_scalars_because_python_is_shit(self, row):
         """
         Converts any NumPy scalar values in the given row to their native Python types.
@@ -184,7 +168,6 @@ class VCR:       #(gladiator, training_set_size, converge_epochs, converge_thres
             arg_n = i - 5 + 1
             custom_fields.append(f"arg_{arg_n}")
         return ", ".join(base_fields + custom_fields)
-
 
     def build_weight_update_placeholders(self, sample_row):
         #base_placeholders = ["?"] * 6
