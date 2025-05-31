@@ -44,12 +44,12 @@ class DisplayModel(EZSurface):
         #_, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
         btn = Button_Base(
-                text=f"{beautify_text(self.config.gladiator_name)}",
+                text=f"{beautify_text(self.config.gladiator_name)} {TRI.run_id}",
                 width_pct=10, height_pct=4, left_pct=1, top_pct=1,
                 on_click=self.show_info,
                 on_hover=lambda: self.arch_popup.show_me(),
                 shadow_offset=-5, auto_size=True, my_surface=self.surface,
-                text_line2=f"Accuracy: {self.format_percent(self.config.accuracy_percent)} ",
+                text_line2=f"Accuracy: {self.format_percent(TRI.accuracy)} ",
                 surface_offset=(self.left, self.top))
 
         self.buttons.append(btn)

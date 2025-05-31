@@ -106,7 +106,9 @@ class Gladiator(ABC):
 
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
             self.run_a_sample(np.array(sample), np.array(sample_unscaled))
-            if self.VCR.abs_error_for_epoch > 1e21:   return  "Gradient Explosion" #Check for gradient explosion
+            if self.VCR.abs_error_for_epoch > 1e21:
+                self.TRI.set("mae", self.VCR.abs_error_for_epoch)
+                return  "Gradient Explosion" #Check for gradient explosion
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def run_a_sample(self, sample, sample_unscaled):

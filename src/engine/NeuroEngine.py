@@ -77,17 +77,21 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         max_lr       = 1
         factor       = 10
         max_trials   = 20
-
         best_error   = float("inf")
         best_lr      = None
-
         lr           = start_lr
-
 
         while lr >= min_lr and lr < max_lr:
             setup["learning_rate"] = lr
             TRI = self.atomic_train_a_model(setup,  record_level=0, epochs=20)
             error = TRI.get("mae")
+           # if error is None:
+           #     # If TRI.get("mae") returned None, skip this lr and move on
+           #     print(f"⚠️ Gladiator: {gladiator} - LR: {lr:.1e} → MAE returned None, skipping.")
+           #     factor = .01
+           #     lr *= factor
+           #     continue
+
             if error > 1e20 and factor == 10:        #Try in the middle - if gradient explosion
                 factor = .01                       # reverse direction
             print(f"😈Gladiator: {gladiator} - LR: {lr:.1e} → Last MAE: {error:.5f}")

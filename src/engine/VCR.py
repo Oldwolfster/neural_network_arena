@@ -29,6 +29,7 @@ class VCR:
         self.sample_count           = len(TRI.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
         self.converge_detector      = ConvergenceDetector(TRI.hyper, TRI.training_data, TRI.config)
         self.abs_error_for_epoch    = 0
+        self.bd_correct             = 0
         self.convergence_signal     = None      # Will be set by convergence detector
         self.backpass_finalize_info = []
 
@@ -52,6 +53,9 @@ class VCR:
         Add the current iteration data to the database
         """
         self.abs_error_for_epoch += abs(iteration_data.error)
+        if iteration_data.is_true: self.bd_correct += 1
+
+        self.bd_correct
         record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_data.iteration,   self.TRI.training_data.sample_count, self.TRI.config.batch_size,  self.TRI.config.optimizer.finalizer)
 
         if any(record_weight_updates_from_finalize):
@@ -100,10 +104,13 @@ class VCR:
 
     def finish_epoch(self, epoch: int):
         mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
+        #print(f"mae={mae}")
         self.TRI.set("mae", mae)
         if self.TRI.set_if_lower("lowest_mae", mae):
             self.TRI.set("lowest_error_epoch", epoch)
-        self.abs_error_for_epoch = 0 # Reset for next epoch
+        self.TRI.set("bd_correct", self.bd_correct)
+        self.abs_error_for_epoch = 0                        # Reset for next epoch
+        self.bd_correct = 0                                 # Reset for next epoch
         self.epoch_curr_number += 1
         val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
         return val

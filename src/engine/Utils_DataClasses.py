@@ -8,6 +8,7 @@ class NNA_history:
     run_id: int
     arena_name: str
     gladiator_name: str
+    accuracy: float
     architecture: list
     problem_type: str
     best_mae: float
@@ -30,6 +31,7 @@ class NNA_history:
             run_id = TRI.run_id,
             arena_name=config.training_data.arena_name,
             gladiator_name=config.gladiator_name,
+            accuracy=TRI.accuracy,
             architecture=config.architecture,
             best_mae= TRI.get("lowest_mae"),
             problem_type=config.training_data.problem_type,
@@ -86,7 +88,7 @@ class Iteration:
     inputs_unscaled: str  # Serialized as JSON
     target: float
     target_unscaled: float
-    prediction: float  # After threshold(step function) is applied AND After unscaling is applied
+    prediction: float  # After threshold(step function) is applied but before unscaling is applied
     prediction_unscaled: float #After unscaling is applied
     prediction_raw: float
     loss_function: str

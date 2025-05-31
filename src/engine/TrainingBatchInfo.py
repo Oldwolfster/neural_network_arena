@@ -4,6 +4,7 @@ from typing import Dict
 from typing import Any
 from itertools import product
 import os
+from src.Legos.LegoLister import LegoLister
 
 # test = lister.list_legos("hidden_activation")
 # test = lister.list_legos("output_activation")
@@ -14,9 +15,11 @@ import os
 class TrainingBatchInfo:
     def __init__(self, gladiators, arenas, dimensions: Dict[str, List[Any]]):
         self.gladiators = gladiators
+        self.lister = LegoLister()
         self.arenas = arenas
         self.dimensions = dimensions
         self.setups = []
+        self.expand_wildcards()
         self.build_run_instructions()
         #self.remove_lists_from_setups()
         print(f"Setups={self.setups}")
@@ -27,6 +30,12 @@ class TrainingBatchInfo:
                 if isinstance(value, list) and len(value) == 1:
                     setup[key] = value[0]
 
+    def expand_wildcards(self):
+        for key, val in self.dimensions.items():
+            if val == "*":
+                legos = self.lister.list_legos(key)
+                # → Convert “legos” from a dict(name→obj) into a list of obj’s
+                self.dimensions[key] = list(legos.values())
 
 
     def build_run_instructions(self):
