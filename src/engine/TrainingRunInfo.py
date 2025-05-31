@@ -9,17 +9,16 @@ from src.engine.RamDB import RamDB
 from src.engine.TrainingData import TrainingData
 
 
-
 class TrainingRunInfo:
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
-        self.hyper:              HyperParameters        = hyper
-        self.db:                 RamDB                  = db
-        self.training_data:      TrainingData           = training_data
-        self.config:             Config                 = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=setup["gladiator"])
-        self.lego_selector:      LegoSelector           = LegoSelector()
-        self.setup                                      = setup
+        self.hyper:              HyperParameters    = hyper
+        self.db:                 RamDB              = db
+        self.training_data:      TrainingData       = training_data
+        self.config:             Config             = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=setup["gladiator"])
+        self.lego_selector:      LegoSelector       = LegoSelector()
+        self.setup                                  = setup
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
         self.gladiator_name:    str                 = setup["gladiator"]
@@ -28,21 +27,8 @@ class TrainingRunInfo:
         self.seed:              int                 = seed
         self.run_id:            int                 = run_id
 
-        @property
-        def time_seconds(self) -> float:
-            if self.time_start is not None and self.time_end is not None:
-                return (self.time_end - self.time_start).total_seconds()
-            return None
-
-        # ─── SET 3: Dimensional Coordinates (i.e. Run Settings) ─────────
+        # ─── SET 3: Dictonary for holding everything else
         self.config_metadata: Dict[str, Any] = {}
-        #coming soon self.config_metadata_phases:    Dict[str, int] = {}  # For phase indexing (temp until smarter)
-
-        # ─── SET 4: Execution Meta (Control Layers) ─────────────────────
-        #phase_id:       Optional[int] = None     # e.g., 101 for "LR Sweep Phase"
-        #sweep_group_id: Optional[int] = None     # used to group together settings during sweeps
-        #is_baseline:    bool = False             # Was this a default fallback?
-        #is_reference:   bool = False             # Is this a winning config for reuse?
 
     # ─── Idiot-Proof Helpers ────────────────────────────────────────
     def get(self, key, default=None):
@@ -94,3 +80,9 @@ class TrainingRunInfo:
         print("────────────────────────")
         for k, v in self.config_metadata.items():
             print(f"{k:20}: {v}")
+
+    @property
+    def time_seconds(self) -> float:
+        if self.time_start is not None and self.time_end is not None:
+            return (self.time_end - self.time_start).total_seconds()
+        return -1.0

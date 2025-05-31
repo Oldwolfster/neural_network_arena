@@ -1,3 +1,4 @@
+# pylint: disable=no-self-use
 from abc import ABC
 from json import dumps
 from src.Legos.ActivationFunctions import *
@@ -12,9 +13,6 @@ from src.engine.Utils_DataClasses import Iteration
 from src.Legos.WeightInitializers import *
 from typing import List, Tuple
 
-"""
-
-"""
 
 class Gladiator(ABC):
     """
@@ -41,10 +39,9 @@ class Gladiator(ABC):
         self._bd_threshold          = None
         self._bd_class_alpha        = None
         self._bd_class_beta         = None
-        self.total_error_for_epoch  = 0
         self.iteration              = 0
         self.epoch                  = 0
-        self.too_high_adjst         = self.training_data.input_max * 5 #TODO make 5 hyperparamter
+        self.too_high_adjst         = self.training_data.input_max * 5 #TODO make '5' a hyperparamter
         self.max_adj                = self.training_data.everything_max_magnitude()
         self.blame_calculations     = []
         self.weight_calculations    = []
@@ -59,10 +56,10 @@ class Gladiator(ABC):
         self.configure_model(self.config)                   # Typically overwritten in child  class.
         self.config.smartNetworkSetup(self.TRI.setup)
         self.initialize_neurons(
-            architecture=self.config.architecture.copy(),   # Avoid mutation
-            initializers=[self.config.initializer],         # <- List of 1 initializer
-            hidden_activation=self.config.hidden_activation,
-            output_activation=self.config.output_activation
+            architecture        = self.config.architecture.copy(),   # Avoid mutation
+            initializers        = [self.config.initializer],         # <- List of 1 initializer
+            hidden_activation   = self.config.hidden_activation,
+            output_activation   = self.config.output_activation
             or self.config.loss_function.recommended_output_activation)
         self.customize_neurons(self.config)                 # Typically overwritten in child  class.
 
@@ -91,7 +88,6 @@ class Gladiator(ABC):
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
             self.config.final_epoch = epoch                             # If correct, great, if not, corrected next epoch.
             self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
-            self.TRI.set("total_error_for_epoch",self.total_error_for_epoch)
             if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
                 return
 
@@ -106,22 +102,20 @@ class Gladiator(ABC):
         """
 
         self.epoch = epoch_num      # Set so the child model has access
-        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} Loss = {self.last_epoch_mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        self.total_error_for_epoch = 0
+        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} MAE = {self.TRI.get("mae")} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
             self.run_a_sample(np.array(sample), np.array(sample_unscaled))
-            if self.total_error_for_epoch > 1e21:   return  "Gradient Explosion" #Check for gradient explosion
+            if self.VCR.abs_error_for_epoch > 1e21:   return  "Gradient Explosion" #Check for gradient explosion
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def run_a_sample(self, sample, sample_unscaled):
         self                . snapshot_weights("", "_before")
         error, loss, blame  = self.optimize_passes(sample)
-        self                . total_error_for_epoch += abs(error)
 
         # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
-        prediction          = self.config.threshold_prediction(prediction_raw)
+        prediction_thresh   = self.config.threshold_prediction(prediction_raw)
 
         # Step 4: Record iteration data
         iteration_data = Iteration(
@@ -132,7 +126,7 @@ class Gladiator(ABC):
             inputs_unscaled     =dumps(sample_unscaled[:-1].tolist()),  # Serialize inputs as JSON
             target              =sample[-1],
             target_unscaled     =sample_unscaled[-1],
-            prediction          =prediction,
+            prediction          =prediction_thresh,
             prediction_unscaled =self.config.scaler.unscale_target(prediction_raw),#converts prediction back to "unscaled space"
             prediction_raw      =prediction_raw,
             loss                =loss,
@@ -297,7 +291,7 @@ class Gladiator(ABC):
                 setattr(neuron, f"weights{to_suffix}", np.copy(from_weights))
                 setattr(neuron, f"bias{to_suffix}", from_bias)
 
-    def update_best_weights_if_new_lowest_error(self, current_error: float):
+    def update_best_weights_if_new_lowest_errorDELETEME(self, current_error: float):
         """
         Checks if the current error is the lowest seen so far, and if so,
         stores weights and bias as the new best.
@@ -451,18 +445,14 @@ class Gladiator(ABC):
             print(f"⚠️ {rule}")  # Show warning but allow modification
         self._bd_threshold = value
 
-    @property
-    def last_epoch_mae(self):
-        return self.total_error_for_epoch/self.config.training_data.sample_count
+    def on_epoch_end(self, epoch, error_summary):
+        """
+        Optional override: Called after each epoch.
+        """
+        pass
 
-        def on_epoch_end(self, epoch, error_summary):
-            """
-            Optional override: Called after each epoch.
-            """
-            pass
-
-        def on_training_complete(self):
-            """
-            Optional override: Called after training run completes.
-            """
-            pass
+    def on_training_complete(self):
+        """
+        Optional override: Called after training run completes.
+        """
+        pass
