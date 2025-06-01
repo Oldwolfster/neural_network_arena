@@ -11,7 +11,7 @@ from .RamDB import RamDB
 from src.ArenaSettings import HyperParameters
 from .TrainingData import TrainingData
 from .TrainingRunInfo import TrainingRunInfo
-from .Utils_DataClasses import Iteration
+from .Utils_DataClasses import Iteration, RecordLevel
 from src.engine.convergence.ConvergenceDetector import ConvergenceDetector
 from typing import Dict
 
@@ -62,7 +62,7 @@ class VCR:
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
         self.TRI.db.add(iteration_data)
-        if not self.TRI.hyper.record: return
+        if not self.TRI.should_record(RecordLevel.FULL ): return
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):
 
@@ -103,6 +103,7 @@ class VCR:
         return finalizer_log
 
     def finish_epoch(self, epoch: int):
+        self.TRI.last_epoch = epoch
         mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
         #print(f"mae={mae}")
         self.TRI.set("mae", mae)
@@ -115,18 +116,6 @@ class VCR:
         val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
         return val
 
-    def finish_epochOrig(self, epoch: int):
-        mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
-        if mae < self.TRI.config.lowest_error:    # New lowest error
-            self.TRI.config.lowest_error = mae
-            self.TRI.config.lowest_error_epoch = epoch
-
-        self.abs_error_for_epoch = 0 # Reset for next epoch
-        self.epoch_curr_number += 1
-        #epoch_metrics = self.get_metrics_from_ramdb(epoch)
-        #val = self.converge_detector.check_convergence(self.epoch_curr_number, epoch_metrics)
-        val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
-        return val #        #return "Did Not Converge"
 
     ############# Record Backpass info for pop up window of NeuroForge #############
     ############# Record Backpass info for pop up window of NeuroForge #############
@@ -137,7 +126,7 @@ class VCR:
         Inserts weight update calculations for the current iteration into the database.
         Compatible with arbitrary arg/op chains.
         """
-        if not self.TRI.hyper.record: return
+        if not self.TRI.should_record(RecordLevel.FULL ): return
         sample_row = weight_update_metrics[0]
         fields = self.build_weight_update_field_list(sample_row)
         placeholders = self.build_weight_update_placeholders(sample_row)
@@ -194,7 +183,7 @@ class VCR:
         #print("********  Distribute Error Calcs************")
         #for row in self.blame_calculations:
         #    print(row)
-        if not self.TRI.hyper.record: return
+        if not self.TRI.should_record(RecordLevel.FULL ): return
         sql = """
         INSERT INTO ErrorSignalCalcs
         (epoch, iteration, run_id, nid, weight_id, 

@@ -7,10 +7,27 @@ from src.Legos.LegoSelector import LegoSelector
 from src.engine.Config import Config
 from src.engine.RamDB import RamDB
 from src.engine.TrainingData import TrainingData
+from src.engine.Utils_DataClasses import RecordLevel
 
 
 class TrainingRunInfo:
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id):
+    __slots__ = (
+        "hyper",
+        "db",
+        "training_data",
+        "config",
+        "lego_selector",
+        "setup",
+        "gladiator_name",
+        "time_start",
+        "time_end",
+        "seed",
+        "record_level",
+        "last_epoch",
+        "run_id",
+        "config_metadata",
+    )
+    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id, record_level: RecordLevel):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
         self.hyper:              HyperParameters    = hyper
@@ -25,6 +42,8 @@ class TrainingRunInfo:
         self.time_start:        datetime            = datetime.now
         self.time_end:          datetime            = None
         self.seed:              int                 = seed
+        self.record_level:      RecordLevel         = record_level
+        self.last_epoch:       int                 = 0
         self.run_id:            int                 = run_id
 
         # ─── SET 3: Dictonary for holding everything else
@@ -80,6 +99,10 @@ class TrainingRunInfo:
         print("────────────────────────")
         for k, v in self.config_metadata.items():
             print(f"{k:20}: {v}")
+
+    def should_record(self, minimum_level: RecordLevel) -> bool:
+        return True
+        return self.record_level.value >= minimum_level.value
 
     @property
     def time_seconds(self) -> float:

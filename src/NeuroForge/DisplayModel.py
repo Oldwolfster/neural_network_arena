@@ -31,7 +31,7 @@ class DisplayModel(EZSurface):
         self.arch_popup     = ArchitecturePopup(self, self.config)
         self.layer_width        = 0 # Set in GenerateNeuron static class
 
-        self.last_epoch     = self.config.final_epoch
+        self.last_epoch     = TRI.last_epoch
         #print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
         self.input_scaler_neuron = None
@@ -82,6 +82,7 @@ class DisplayModel(EZSurface):
         Returns the appropriate epoch to display based on the global VCR state.
         If the model converged early, it freezes at its last recorded epoch.
         """
+        print (f" self.last_epoch={ self.last_epoch} and Const.vcr.CUR_EPOCH_MASTER={Const.vcr.CUR_EPOCH_MASTER}")
         if self.last_epoch is None:
             return Const.vcr.CUR_EPOCH_MASTER
         return min(Const.vcr.CUR_EPOCH_MASTER, self.last_epoch)

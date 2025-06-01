@@ -48,7 +48,7 @@ class Display_Manager:
         self._deferred_draws: list[tuple[callable, tuple, dict]] = [] #collect deferred calls here
 
         # Compute global max values across all models using Metrics module
-        self.get_max_epoch_per_model(self.db)
+        # DELETE ME self.get_max_epoch_per_model(self.db)
         self.populate_list_of_avaiable_frames()
         Const.MAX_EPOCH     = self.get_max_epoch(self.db)
         Const.MAX_ITERATION = self.get_max_iteration(self.db)
@@ -253,7 +253,7 @@ class Display_Manager:
         rs = db.query(sql)
         return rs[0].get("error_signal")
 
-    def get_max_epoch_per_model(self, db: RamDB) -> None:
+    def DELETEME_get_max_epoch_per_model(self, db: RamDB) -> None:
         """
         Retrieves the highest epoch per model from EpochSummary and stores it in each config's final_epoch.
         """
@@ -261,7 +261,7 @@ class Display_Manager:
             sql = "SELECT MAX(epoch) as max_epoch FROM EpochSummary WHERE run_id = ?"
             result = db.query(sql, (TRI.run_id,))
             max_epoch = result[0].get("max_epoch") or 0
-            TRI.final_epoch = max_epoch
+            TRI.last_epoch = max_epoch
 
     def get_max_epoch(self, db: RamDB) -> int:
         """Retrieve highest epoch for all models."""

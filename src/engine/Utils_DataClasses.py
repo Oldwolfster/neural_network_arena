@@ -44,7 +44,7 @@ class NNA_history:
             normalization_scheme="WIP",
             seed=TRI.seed,
             learning_rate=config.learning_rate,
-            epoch_count=config.final_epoch,
+            epoch_count=TRI.last_epoch,
             convergence_condition=config.cvg_condition or "None",
             runtime_seconds=config.seconds,
             final_error=TRI.get("mae")
@@ -163,3 +163,9 @@ def ez_debug(**kwargs):
     for name, value in kwargs.items():
         debug_output += f"{name}={value}\t"
     print(debug_output)
+
+class RecordLevel(Enum):
+    NONE = 0         # No recording — e.g., hyperparameter sweep (LR probe)
+    SUMMARY = 1      # Basic stats: accuracy, loss, convergence, etc.
+    FULL = 2         # + Iteration history, weight deltas, etc. (NeuroForge playback)
+    DEBUG = 3        # + Diagnostics, blame signals, and dev-level traces

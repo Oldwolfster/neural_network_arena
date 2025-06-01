@@ -51,8 +51,8 @@ class DisplayModel__Graph():
             #print (f"You click me at {mouse_x - self.my_model.left - self.location_left } of {self.location_width}")
             click_ratio = (mouse_x - self.my_model.left - self.location_left) / self.location_width
             click_ratio = max(0, min(click_ratio, 1))  # Clamp to [0, 1]
-            target_epoch = int(click_ratio * self.my_model.config.final_epoch)
-            Const.vcr.jump_to_epoch(target_epoch)
+            #TODO FIX THIS target_epoch = int(click_ratio * self.my_model.config.finl_epoh)
+            #TODO FIX THIS Const.vcr.jump_to_epoch(target_epoch)
 
 
     def create_plot_surface_from_results(self):
