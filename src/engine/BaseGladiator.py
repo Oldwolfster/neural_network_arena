@@ -86,7 +86,6 @@ class Gladiator(ABC):
         epochs_to_run = self.number_of_epochs if exploratory_epochs == 0 else exploratory_epochs
 
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
-            self.config.final_epoch = epoch                             # If correct, great, if not, corrected next epoch.
             self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
             if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
                 return
@@ -107,11 +106,12 @@ class Gladiator(ABC):
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
             self.run_a_sample(np.array(sample), np.array(sample_unscaled))
             if self.VCR.abs_error_for_epoch > 1e21:
-                self.TRI.set("mae", self.VCR.abs_error_for_epoch)
+                self.VCR.finish_epoch(epoch_num + 1)
                 return  "Gradient Explosion" #Check for gradient explosion
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def run_a_sample(self, sample, sample_unscaled):
+
         self                . snapshot_weights("", "_before")
         error, loss, blame  = self.optimize_passes(sample)
 
@@ -141,6 +141,7 @@ class Gladiator(ABC):
     def optimize_passes(self, sample_scaled):
         # Step 1: Forward pass
         prediction_raw = self.forward_pass(sample_scaled)  # Call model-specific logic
+
         if prediction_raw is None: raise ValueError(f"{self.__class__.__name__}.forward_pass must return a value for sample={sample!r}"            ) # ensure forward_pass actually returned something
 
         # Step 2: Judge pass - calculate error, loss, and blame (gradient)

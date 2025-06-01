@@ -1,6 +1,5 @@
 import json
 import sqlite3
-
 import numpy as np
 from tabulate import tabulate
 from datetime import datetime
@@ -522,6 +521,92 @@ class RamDB:
             return "(no callers)"
 
 
+
+    def copy_tables_to_permanent(self, db_name='arena_history.db', subfolder='history'):
+        """
+        Copy all tables from the in-memory SQLite database (self.conn) into the
+        permanent SQLite database on disk (overwriting any existing tables with the same name).
+
+        Skips the internal 'sqlite_sequence' table.
+
+        Parameters:
+        - db_name (str): filename of the permanent DB (defaults to 'arena_history.db').
+        - subfolder (str): name of the folder under the grandparent directory where the permanent DB lives.
+        """
+        # 1. Open (or create) the permanent database file.
+        perm_conn = self.get_perm_db_connection(db_name=db_name, subfolder=subfolder)
+        perm_cursor = perm_conn.cursor()
+
+        # 2. Get a cursor on the in-memory DB.
+        mem_cursor = self.conn.cursor()
+
+        # 3. Enumerate all tables in-memory (including their CREATE statements).
+        mem_cursor.execute(
+            "SELECT name, sql "
+            "FROM sqlite_master "
+            "WHERE type='table'"
+        )
+        tables = mem_cursor.fetchall()  # List of (table_name, create_sql)
+
+        for name, create_sql in tables:
+            # Skip SQLite's internal sequence table.
+            if name == 'sqlite_sequence':
+                continue
+
+            # 4a. Drop the table if it already exists in the permanent DB.
+            drop_sql = f"DROP TABLE IF EXISTS {name}"
+            perm_cursor.execute(drop_sql)
+            #print(f"drop_sql= {drop_sql}")
+
+            # 4b. Re-create the table exactly as it was in-memory.
+            #    (The 'sql' column already contains something like
+            #     "CREATE TABLE table_name (col1 INTEGER, col2 TEXT, ...)" )
+            perm_cursor.execute(create_sql)
+            #print(f"create_sql= {create_sql}")
+
+            # 4c. Copy rows from in-memory -> permanent.
+            mem_cursor.execute(f"SELECT * FROM {name}")
+            rows = mem_cursor.fetchall()
+            if rows:
+                # Build a placeholder string like "?, ?, ?, …" matching the column count
+                placeholders = ", ".join("?" for _ in rows[0])
+                perm_cursor.executemany(
+                    f"INSERT INTO {name} VALUES ({placeholders})",
+                    rows
+                )
+
+        # 5. Commit & close the permanent connection
+        perm_conn.commit()
+        perm_conn.close()
+
+    def get_perm_db_connection(self, db_name='arena_history.db', subfolder='history'):
+        """
+        Connects to an SQLite database located in the specified subfolder within the parent directory of this script.
+        If the subfolder does not exist, it is created.
+
+        Parameters:
+        - db_name (str): Name of the database file.
+        - subfolder (str): Name of the subfolder where the database file is located.
+
+        Returns:
+        - conn: SQLite3 connection object.
+        """
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        parent_dir = os.path.abspath(os.path.join(script_dir, '..'))
+        grandparent_dir = os.path.abspath(os.path.join(parent_dir, '..'))
+        subfolder_path = os.path.join(grandparent_dir, subfolder)
+        try:
+            os.makedirs(subfolder_path, exist_ok=True)
+        except OSError as e:
+            print(f"Error creating directory {subfolder_path}: {e}")
+            raise
+        db_path = os.path.join(subfolder_path, db_name)
+        try:
+            conn = sqlite3.connect(db_path)
+            return conn
+        except sqlite3.Error as e:
+            print(f"Error connecting to database at {db_path}: {e}")
+            raise
 
 
 '''

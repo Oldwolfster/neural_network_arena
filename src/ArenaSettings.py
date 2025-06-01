@@ -1,29 +1,15 @@
 from typing import List
 from dataclasses import dataclass, field
 
-
-from src.Legos.ActivationFunctions  import *
-from src.Legos.WeightInitializers   import *
-from src.Legos.Optimizers           import *
-from src.Legos.Scalers              import *
-from src.Legos.LossFunctions        import *
-
-# test = lister.list_legos("hidden_activation")
-# test = lister.list_legos("output_activation")
-# test = lister.list_legos("optimizer")
-# test = lister.list_legos("scaler") # works a bit different....
-# test = lister.list_legos("initializer")
-
-
 @dataclass
 class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    record                  :bool   = True
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
     training_set_size       :int    = 30        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
+    nf_count                :int    = 2
     min_no_epochs           :int    = 0         # run for at least this many epochs
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
     run_neuroForge          :bool   = True
@@ -54,16 +40,22 @@ class HyperParameters:
 
 
 dimensions={
-    "loss_function": "*" ,
+    #"loss_function": [Loss_MSE,Loss_BCE],
+    #"loss_function": "*" ,
     #"hidden_activation": [Activation_ReLU, Activation_Tanh],
+    #"initializer": "*"
+    #"output_activation": *
+    #"batch_size":[1,2,4,8,999]
+    #"architecture":[[4 , 4, 1], [2 , 2, 1]]
 }
-dimensions={}
+#dimensions={}
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
     'All_Defaults'
+
     #,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
@@ -76,80 +68,65 @@ gladiators = [
     #'Hand_Tuned'
     #,'test_newOpt'
    #,'NeuroForge_Template'
-
-
-    #,'Test_BCE'
-    #'Test_BCE'
-    #,'TestBatch'
-    #,'Adam_Template'
-   # 'Adam_XOR_DEBUG_2'
-    #'NeuroForge_CaliforniaHousing'
-    #'GBS_Baseline'
-    #'GBS_XOR'
-    #'HayabusaNormalizer'
     #'_Template_Simpletron'
 ]
 
 ############################################################
 # ARENA -  Training Data Production Algorithm              #
 ############################################################
-training_pit                = "XOR"
-#training_pit                = "CaliforniaHousePricesUSD"
-training_pit                = "Predict_Income_2_Inputs"
-#training_pit="Predict_Income_2_Inputs_Nonlinear"
-#training_pit="Predict_EnergyOutput__From_Weather_Turbine"
-#training_pit="Predict_TrafficFlow__From_Weather_Time_Events"
-#training_pit="StockPrice__From_Indicators"
-#training_pit                = "SimpleBinaryDecision"  # Single Input Credit score
-#training_pit              = "Arena_CenteredData"
-#training_pit                = "Predict_MedicalCost_WithOutliers"
-#training_pit               = "Titanic"
-#training_pit                = "Predict_Income_Piecewise_Growth"
-#training_pit                = "Moons"
-#training_pit                = "Manual"
-#training_pit                = "Predict_Income_2_Inputs_5Coefficents"
-##training_pit              = "Salary2InputsNonlinear"
-#training_pit                = "California_Housing"
-#training_pit                = "Customer_Churn_4X3"
-#training_pit = "CarValueFromMiles"
-training_pit = "DefaultRisk__From_Income_Debt"
-training_pit = "DefaultRisk__From_Income_Debt"
-######## Tests
 #"Regime_Trigger_Switch" #Impossible for normal FFNN
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
-#batch_arenas         = [
-arenas         = [
-"Deceptive_Multi_Regime_Entangler"
-#"DefaultRisk__From_Income_Debt"
- ]
-""" 
+arenas   = ['Predict_Income_2_Inputs']
+arenas2   = ['Iris_Two_Class']
+arenas2   = [
+"Titanic"
+
+,'Predict_Income_2_Inputs'
+,'MultiModal_Temperature'
+,"Parity_Check"
+,"Iris_Two_Class"
 
 
+,'Deceptive_Multi_Regime_Entangler'
+,'DefaultRisk__From_Income_Debt'
+,'Moons'
+,'CarValueFromMiles'
+,"California_Housing"
+,"SimpleBinaryDecision"
+,"Customer_Churn_4X3"
+,"Predict_EnergyOutput__From_Weather_Turbine"
+,"Predict_Income_2_Inputs_Nonlinear"
+
+,'Predict_Income_Piecewise_Growth'
+,'Predict_Income_2_Inputs_5Coefficents'
 ,"MultiModal_Nonlinear_Interactions"
 ,"AutoNormalize_Challenge"
-,"Titanic"
 
+,"CaliforniaHousePricesUSD"
 ,"Bit_Flip_Memory"
-,"Iris_Two_Class"
+
+,'XOR'
 ,"Chaotic_Function_Prediction"
 ,"Circle_In_Square"
 ,"Custom_Function_Recovery"
 ,"One_Giant_Outlier"
-,"Parity_Check"
+
 ,"Sparse_Inputs"
 , 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
 ,'Chaotic_Solar_Periodic'    #89
 , 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
-,'MultiModal_Temperature'
+
 ,'Piecewise_Regime'
 ,'Red_Herring_Features'
 ,'Redundant_Features'
 ,'Target_Drift_Commodity'
 ,'XOR_Floats'
 ,'Nested_Sine_Flip'
-,'DefaultRisk__From_Income_Debt'    
-
+,'DefaultRisk__From_Income_Debt'
+,'Predict_MedicalCost_WithOutliers'
+  ]
+"""
 """
 
 

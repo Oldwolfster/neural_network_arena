@@ -105,7 +105,7 @@ class ArchitecturePopup(Popup_Base):
 
                 "",  # Training Outcome header
                 smart_format(cfg.seconds),
-                f"{cfg.final_epoch} (Epochs)",
+                f"{TRI.last_epoch} (Epochs)",
                 smart_format(TRI.get("lowest_mae")),
                 TRI.get("lowest_error_epoch"),
                 cfg.cvg_condition,

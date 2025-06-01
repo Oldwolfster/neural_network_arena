@@ -215,6 +215,9 @@ class DisplayModel__Neuron_Base:
             ORDER BY weight_id ASC
         """
         weights_data = self.db.query(SQL, (self.run_id, self.nid, self.my_model.display_epoch, Const.vcr.CUR_ITERATION), False)
+        if self.nid == 5:
+            print(f"self.run_id={self.run_id}  self.my_model.display_epoch={ self.my_model.display_epoch}")
+            print(f"weights_data={weights_data}")
 
         if weights_data:
             self.weights = [column[1] for column in weights_data]  # Extract values

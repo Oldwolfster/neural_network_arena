@@ -43,6 +43,7 @@ class DisplayModel__NeuronWeights:
         self.print_weight_lbl           = False
 
         if self.num_weights > 0:
+            print("neuronweights11")
             self.bar_height                 = self.calculate_bar_height(num_weights=self.num_weights, neuron_height=self.neuron_height, padding_top=self.padding_top,padding_bottom=self.padding_bottom, gap_between_bars= self.gap_between_bars,gap_between_weights=self.gap_between_weights)
             height_per_label                = self.neuron_height/self.num_weights
             #if self.neuron.nid==6:          print(f"height_per_label={height_per_label}")
@@ -269,16 +270,15 @@ class DisplayModel__NeuronWeights:
         if weight_index == 0:
             label_text = "Bias"
         text_rect = get_text_rect(label_text, Const.FONT_SIZE_WEIGHT) #Get rect for index label.
-        text_rect.topleft = label_x,label_y
-
+        text_rect.topleft = label_x, label_y
+        print("neuronweights1")
         if self.neuron.layer == 0 and self.neuron.location_left > text_rect.width + 5:
             label_x = self.neuron.location_left - text_rect.width -  3
-
-
             draw_text_with_background(self.neuron.screen, label_text, label_x, label_y, Const.FONT_SIZE_WEIGHT, Const.COLOR_WHITE, Const.COLOR_BLUE, border_color=Const.COLOR_BLACK)
-
+            print("neuronweights2")
             # Record label loc for input arrows to go to.
             if self.need_label_coord:
+                print("neuronweights3")
                 self.my_fcking_labels.append((label_x-text_rect.width * 0.2, label_y))
             return
         if self.need_label_coord:

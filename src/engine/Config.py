@@ -39,7 +39,7 @@ class Config:
         self.seconds: float                         = 0.0
         self.cvg_condition: str                     = "Did Not Converge"
         self.learning_rate: float                   = 0.0       # Read in beginning to instantiate  neurons with correct LR
-        self.final_epoch: int                       = 0 # Last epoch to run
+        #DELETE ME self.final_epochdelete: int                       = 0 # Last epoch to run
         self.exploratory                            = False
         self._percent_off                           = None
         self._accuracy_percent                      = None

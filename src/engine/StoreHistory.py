@@ -5,11 +5,11 @@ import ast  # For safely evaluating strings back to data structures
 from tabulate import tabulate
 
 from src.engine.Config import Config
-from src.engine.Utils_DataClasses import NNA_history, ModelInfo
+from src.engine.Utils_DataClasses import NNA_history, ModelInfo, RecordLevel
 from datetime import datetime
 
-def record_results(TRI, record_level):
-    if record_level == 0: return
+def record_results(TRI):
+    if not TRI.should_record(RecordLevel.FULL ): return
     config = TRI.config
     TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
     TRI                         . record_finish_time()
@@ -99,7 +99,6 @@ def list_snapshots(result_rows: int, filename="snapshots.csv"):
     os.startfile(filename)
 
 def create_snapshot_table(conn):
-    print("creating table")
     cursor = conn.cursor()
     cursor.execute('''    
     CREATE TABLE IF NOT EXISTS NNA_history (
@@ -126,7 +125,7 @@ def create_snapshot_table(conn):
     )
     ''')
     conn.commit()
-    print("created")
+
 
 
 def get_db_connection(db_name='arena_history.db', subfolder='history'):
