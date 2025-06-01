@@ -45,7 +45,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         total                       = len(batch.setups)
         #print(f"batch={batch}")
         for i, setup in enumerate(batch.setups):
-            print(f"Training Model ({i} of {total}) with these settings: {setup}")
+            print(f"Training Model ({i+1} of {total}) with these settings: {setup}")
             if not setup.get("lr_specified", False): #feels backwards but is correct
                 setup["learning_rate"] = self.learning_rate_sweep(setup)
             record_level = RecordLevel.FULL

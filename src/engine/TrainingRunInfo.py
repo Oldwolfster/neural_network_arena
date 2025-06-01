@@ -39,7 +39,7 @@ class TrainingRunInfo:
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
         self.gladiator_name:    str                 = setup["gladiator"]
-        self.time_start:        datetime            = datetime.now
+        self.time_start:        datetime            = datetime.now()
         self.time_end:          datetime            = None
         self.seed:              int                 = seed
         self.record_level:      RecordLevel         = record_level
@@ -81,7 +81,7 @@ class TrainingRunInfo:
         return False
 
     def record_finish_time(self):
-        self.time_end = datetime.now
+        self.time_end = datetime.now()
 
     def display(self):
         print("\n📊 Training Run Summary")

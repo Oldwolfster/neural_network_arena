@@ -7,14 +7,15 @@ from tabulate import tabulate
 from src.engine.Config import Config
 from src.engine.Utils_DataClasses import NNA_history, ModelInfo, RecordLevel
 from datetime import datetime
+from datetime import datetime
 
 def record_results(TRI):
+    TRI.record_finish_time()
     if not TRI.should_record(RecordLevel.FULL ): return
     config = TRI.config
     TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-    TRI                         . record_finish_time()
 
-    model_info                  = ModelInfo(TRI.run_id,  TRI.gladiator_name, TRI.config .seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
+    model_info                  = ModelInfo(TRI.run_id,  TRI.gladiator_name, TRI.time_seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
     TRI.db.add     (model_info)              #Writes record to ModelInfo table
 
     conn = get_db_connection()

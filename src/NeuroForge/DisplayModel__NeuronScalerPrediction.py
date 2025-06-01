@@ -99,9 +99,9 @@ class DisplayModel__NeuronScalerPrediction:
             text_color=Const.COLOR_WHITE,
             padding=8
         )
-        print(f"LABEL1 ={label}")
+        #print(f"LABEL1 ={label}")
         if self.need_label_coord and raw_value == "Prediction":
-            print(f"LABEL2 ={label}")
+            #print(f"LABEL2 ={label}")
             self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos+ self.oval_height * .5))
             self.label_y_positions.append(
                 (x_pos + self.neuron.location_width + 5, y_pos)

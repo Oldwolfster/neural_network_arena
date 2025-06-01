@@ -46,7 +46,7 @@ class NNA_history:
             learning_rate=config.learning_rate,
             epoch_count=TRI.last_epoch,
             convergence_condition=config.cvg_condition or "None",
-            runtime_seconds=config.seconds,
+            runtime_seconds=TRI.time_seconds,
             final_error=TRI.get("mae")
         )
 
