@@ -77,7 +77,7 @@ gladiators = [
 #"Regime_Trigger_Switch" #Impossible for normal FFNN
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
-arenas   = ['Predict_Income_2_Inputs']
+arenas   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas2   = ['Iris_Two_Class']
 arenas2   = [
 "Titanic"

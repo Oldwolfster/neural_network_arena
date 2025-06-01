@@ -59,6 +59,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
         """
         Creates connections from input panel to the first layer of neurons. (In the first model only - otherwise too much clutter)
         """
+        #return # TODO temp for test, remove me
         model = self.first_model
 
         input_positions = Const.dm.input_panel.label_y_positions  # 🔹 Reference input positions
@@ -72,6 +73,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
             end_y   += 6.9
             #print(f"to neuron start_x={start_x}, start_y={start_y}, end_x={end_x}, end_y={end_y}")
             self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
 
 
     def add_input_connections(self, forward: bool):

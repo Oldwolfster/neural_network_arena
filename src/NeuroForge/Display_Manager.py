@@ -253,16 +253,6 @@ class Display_Manager:
         rs = db.query(sql)
         return rs[0].get("error_signal")
 
-    def DELETEME_get_max_epoch_per_model(self, db: RamDB) -> None:
-        """
-        Retrieves the highest epoch per model from EpochSummary and stores it in each config's final_epoch.
-        """
-        for TRI in Const.TRIs:
-            sql = "SELECT MAX(epoch) as max_epoch FROM EpochSummary WHERE run_id = ?"
-            result = db.query(sql, (TRI.run_id,))
-            max_epoch = result[0].get("max_epoch") or 0
-            TRI.last_epoch = max_epoch
-
     def get_max_epoch(self, db: RamDB) -> int:
         """Retrieve highest epoch for all models."""
 

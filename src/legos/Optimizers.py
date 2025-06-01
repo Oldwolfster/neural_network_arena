@@ -3,10 +3,10 @@ from src.engine.Utils_DataClasses import ez_debug
 from src.engine import Neuron
 from src.engine.Neuron import Neuron
 
-standard_single_headers    = ["Input", "Blame", "Raw Adj"]
+standard_single_headers    = ["Input", "Nudge", "Raw Adj"]
 standard_single_operators  = ["*",         "=",       "*"]
 
-standard_batch_headers     = ["Input", "Blame", "Raw Adj", "Cum."]
+standard_batch_headers     = ["Input", "Nudge", "Raw Adj", "Cum."]
 standard_batch_operators   = ["*",     "=",     " ",         "||"]
 
 adam_finalizer_headers     = ["BatchTot", "Count", "Avg", "m", "v", "t", "m hat", "v hat"]

@@ -24,6 +24,7 @@ class Config:
         # 🔹 Unique components
         self.gladiator_name: str                    = gladiator_name
         self.optimizer                              = None #: Optimizer
+        self.learning_rate: float                   = 0.0       # Read in beginning to instantiate  neurons with correct LR
         self.batch_mode: BatchMode                  = None
         self.batch_size: int                        = None
         self.architecture: list                     = None
@@ -35,14 +36,14 @@ class Config:
         self.roi_mode                               = ROI_Mode.SWEET_SPOT
         self.bd_parameters                          = None # target a, target b, threshold.
 
-        # Misc attributes  ##MAKE SURE TO ADD TO DATA RESET
-        self.seconds: float                         = 0.0
+
+        #self.seconds: float                         = 0.0
         self.cvg_condition: str                     = "Did Not Converge"
-        self.learning_rate: float                   = 0.0       # Read in beginning to instantiate  neurons with correct LR
-        #DELETE ME self.final_epochdelete: int                       = 0 # Last epoch to run
-        self.exploratory                            = False
-        self._percent_off                           = None
-        self._accuracy_percent                      = None
+        #self.exploratory                            = False
+
+
+        # Optimizer specific headers for the pop up window of the neurons
+        #TO are backprop_headers in use... i don't see" accp blm" anywhere...
         self.backprop_headers                       = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
         self.popup_headers                          = None #TODO Standardize these 4 names.
         self.popup_operators                        = None
@@ -131,53 +132,3 @@ class Config:
             #(0, 300, {"loss_function": Loss_MSE}                        , "output_activation.name == 'None'"),
             #(0, 210, {"loss_function": Loss_MSE}, "training_data.has_high_outliers()"),
             #(0, 210, {"loss_function": Loss_MAE}, "not training_data.has_high_outliers()"),
-
-    @property
-    def percent_off(self):
-        if self._percent_off is None:
-            if self.training_data.problem_type == "Binary Decision":
-                SQL_MAX_OFF = """
-                    SELECT MAX(Accuracy) AS Accuracy
-                    FROM EpochSummary
-                    WHERE model_id = ?
-                """
-                result = self.db.query(SQL_MAX_OFF, (self.gladiator_name,))
-                if result and result[0].get("Accuracy") is not None:
-                    self._percent_off = 100.0 - (result[0]["Accuracy"] )
-                else:
-                    self._percent_off = 100.0
-            else:
-                mean_target = self.training_data.mean_absolute_target
-                if mean_target == 0:
-                    self._percent_off = 100.0
-                else:
-                    self._percent_off = (self.lowest_error / mean_target) * 100
-        return self._percent_off
-
-    @property
-    def accuracy_percent(self):
-        return 0
-        if self._accuracy_percent is None:
-            if self.training_data.problem_type == "Binary Decision":
-                SQL_MAX_ACC = """
-                    SELECT MAX(Accuracy) AS Accuracy
-                    FROM EpochSummary
-                    WHERE model_id = ?
-                """
-                result = self.db.query(SQL_MAX_ACC, (self.gladiator_name,))
-                if result and result[0].get("Accuracy") is not None:
-                    self._accuracy_percent = result[0]["Accuracy"]
-                else:
-                    self._accuracy_percent = 0.0
-            else: # for regression it is percent within target
-                if self.scaler.target_is_scaled:
-                    mean_target = self.scaler.mean_target
-                else:
-                    mean_target = self.training_data.mean_absolute_target
-                #ez_debug(mean_target=mean_target,lowest_err=self.lowest_error,isscaled=self.scaler.target_is_scaled)
-                if mean_target == 0:
-                    self._accuracy_percent = 0.0
-                else:
-                    raw_accuracy = 100.0 - ((self.lowest_error / mean_target) * 100)
-                    self._accuracy_percent = max(0.0, min(100.0, raw_accuracy))
-        return self._accuracy_percent

@@ -82,7 +82,7 @@ class DisplayModel(EZSurface):
         Returns the appropriate epoch to display based on the global VCR state.
         If the model converged early, it freezes at its last recorded epoch.
         """
-        print (f" self.last_epoch={ self.last_epoch} and Const.vcr.CUR_EPOCH_MASTER={Const.vcr.CUR_EPOCH_MASTER}")
+        #print (f" self.last_epoch={ self.last_epoch} and Const.vcr.CUR_EPOCH_MASTER={Const.vcr.CUR_EPOCH_MASTER}")
         if self.last_epoch is None:
             return Const.vcr.CUR_EPOCH_MASTER
         return min(Const.vcr.CUR_EPOCH_MASTER, self.last_epoch)
