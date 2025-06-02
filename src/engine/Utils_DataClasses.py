@@ -28,24 +28,24 @@ class NNA_history:
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
     def from_config(cls, TRI, config ):
         return cls(
-            run_id = TRI.run_id,
-            arena_name=config.training_data.arena_name,
-            gladiator_name=config.gladiator_name,
-            accuracy=TRI.accuracy,
-            architecture=config.architecture,
-            best_mae= TRI.get("lowest_mae"),
-            problem_type=config.training_data.problem_type,
-            loss_function_name=config.loss_function.name,
-            hidden_activation_name=config.hidden_activation.name,
-            output_activation_name=(
-                    config.output_activation or config.loss_function.recommended_output_activation
-            ).name,
+            run_id                  = TRI.run_id,
+            arena_name              =TRI.training_data.arena_name,
+            gladiator_name          =TRI.gladiator_name,
+            accuracy                =TRI.accuracy,
+            architecture            =config.architecture,
+            best_mae                = TRI.get("lowest_mae"),
+            problem_type            =config.training_data.problem_type,
+            loss_function_name      =config.loss_function.name,
+            hidden_activation_name  =config.hidden_activation.name,
+            output_activation_name  =(
+                                        config.output_activation or config.loss_function.recommended_output_activation
+                                        ).name,
             weight_initializer_name=config.initializer.name,
             normalization_scheme="WIP",
             seed=TRI.seed,
             learning_rate=config.learning_rate,
             epoch_count=TRI.last_epoch,
-            convergence_condition=config.cvg_condition or "None",
+            convergence_condition= TRI.converge_cond or "None",
             runtime_seconds=TRI.time_seconds,
             final_error=TRI.get("mae")
         )

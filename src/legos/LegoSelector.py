@@ -1,21 +1,21 @@
 from dataclasses import asdict
 from typing import Any
 
-
+from src.engine.Utils_DataClasses import RecordLevel
 
 
 class LegoSelector:
     def __init__(self):
         self.applied_rules = []
 
-    def apply(self, config, rules, output_to_log: bool):
+    def apply(self, config, rules, tri):
         # track which rule‐indices we’ve applied (and to what value)
         # keep running until no rule makes an actual change
-        while self._apply_single_rule(config, rules, output_to_log):
+        while self._apply_single_rule(config, rules, tri):
             pass
 
 
-    def _apply_single_rule(self, config, rules,  output_to_log: bool) -> bool:
+    def _apply_single_rule(self, config, rules,  tri) -> bool:
         """
         Returns True if it applied one rule (and mutated config).
         """
@@ -44,7 +44,7 @@ class LegoSelector:
                                 "value": value,
                                 "condition": condition
                             })
-                            if output_to_log: print(f"  ➤ Rule applied: {priority}: {key} = {value} from condition: '{condition}'")
+                            if tri.should_record(RecordLevel.SUMMARY ): print(f"  ➤ Rule applied: {priority}: {key} = {value} from condition: '{condition}'")
                             return True
             except Exception as e:
                 print(f"⚠️ Rule failed: {priority} {condition} -> {e}")

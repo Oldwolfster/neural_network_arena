@@ -36,12 +36,6 @@ class Config:
         self.roi_mode                               = ROI_Mode.SWEET_SPOT
         self.bd_parameters                          = None # target a, target b, threshold.
 
-
-        #self.seconds: float                         = 0.0
-        self.cvg_condition: str                     = "Did Not Converge"
-        #self.exploratory                            = False
-
-
         # Optimizer specific headers for the pop up window of the neurons
         #TO are backprop_headers in use... i don't see" accp blm" anywhere...
         self.backprop_headers                       = ["Config", "(*)", "Accp Blm", "=", "Raw Adj","LR", "=", "Final Adj"]
@@ -79,10 +73,10 @@ class Config:
             if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
             else: return  self.bd_parameters[0]
 
-    def smartNetworkSetup(self, setup):
+    def smartNetworkSetup(self, tri):
 
-        self.update_attributes_from_setup(setup)
-        self.lego_selector.apply(self, self.get_rules(), self.exploratory)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
+        self.update_attributes_from_setup(tri.setup)
+        self.lego_selector.apply(self, self.get_rules(), tri)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
         if self.default_scalers:
             self.scaler.set_all_input_scalers(Scaler_Robust)
         if self.target_scaler:

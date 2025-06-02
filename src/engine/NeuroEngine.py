@@ -2,7 +2,7 @@ import os
 import pprint
 import time
 from enum import Enum
-
+import psutil
 from src.engine.Utils import dynamic_instantiate, set_seed
 from .SQL import record_training_data
 from .StoreHistory import record_results
@@ -45,13 +45,11 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         total                       = len(batch.setups)
         #print(f"batch={batch}")
         for i, setup in enumerate(batch.setups):
-            print(f"Training Model ({i+1} of {total}) with these settings: {setup}")
             if not setup.get("lr_specified", False): #feels backwards but is correct
                 setup["learning_rate"] = self.learning_rate_sweep(setup)
-            record_level = RecordLevel.FULL
-            #if total-i<3: record_level =3
-            TRIs.append(self.atomic_train_a_model(setup, record_level, epochs=0, run_id=i+1))                 # pprint.pprint(batch.ATAMs)
-            print(f"MAE of {TRIs[-1].get("lowest_mae")}")
+            record_level = RecordLevel.FULL if i < self.shared_hyper.nf_count else RecordLevel.SUMMARY
+            print(f"Training Model ({i+1} of {total}) with these settings: {setup}")
+            TRIs.append(self.atomic_train_a_model(setup, record_level, epochs=0, run_id=i+1))                 # pprint.pprint(batch.ATAMs)            print(f"MAE of {TRIs[-1].get("lowest_mae")}")
         #TRIs[0].db.query_print("Select * From EpochSummary")
         #generate_reports            (self.db, TRIs[0].training_data)
         #TRIs[0].db.list_tables(3)
@@ -64,7 +62,6 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             training_data               = self.instantiate_arena(setup["arena"]) # Passed to base_gladiator through TRI
             set_seed                    ( self.seed)    #Reset seed as it likely was used in training_data
             create_weight_tables        ( self.db, run_id)
-
             TRI                         = TrainingRunInfo(self.shared_hyper, self.db, training_data, setup, self.seed, run_id, record_level)
             NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
             NN.train(epochs)            # Actually train model
@@ -96,7 +93,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
         while lr >= min_lr and lr < max_lr and trials < max_trials:
             setup["learning_rate"] = lr
-            TRI = self.atomic_train_a_model(setup, record_level=0, epochs=20)
+            TRI = self.atomic_train_a_model(setup, RecordLevel.NONE, epochs=20)
             error = TRI.get("mae")
 
             print(f"😈Gladiator: {gladiator} - LR: {lr:.1e} → Last MAE: {error:.5f}")
@@ -126,7 +123,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             lr *= factor
             trials += 1
 
-        print(f"\n🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f})")
+        print(f"🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f})")
         return best_lr
 
     def learning_rate_sweep2(self, setup: dict) -> float:
