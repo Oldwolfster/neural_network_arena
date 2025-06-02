@@ -42,7 +42,7 @@ class HyperParameters:
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
     #"loss_function": "*" ,
-    #"hidden_activation": [Activation_ReLU, Activation_Tanh],
+    "hidden_activation": "*",
     #"initializer": "*"
     #"output_activation": *
     #"batch_size":[1,2,4,8,999]
@@ -77,17 +77,14 @@ gladiators = [
 #"Regime_Trigger_Switch" #Impossible for normal FFNN
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
-arenas   = ['Iris_Two_Class','Predict_Income_2_Inputs']
+arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas2   = ['Iris_Two_Class']
-arenas2   = [
+arenas   = [
 "Titanic"
-
 ,'Predict_Income_2_Inputs'
 ,'MultiModal_Temperature'
 ,"Parity_Check"
 ,"Iris_Two_Class"
-
-
 ,'Deceptive_Multi_Regime_Entangler'
 ,'DefaultRisk__From_Income_Debt'
 ,'Moons'
@@ -97,26 +94,21 @@ arenas2   = [
 ,"Customer_Churn_4X3"
 ,"Predict_EnergyOutput__From_Weather_Turbine"
 ,"Predict_Income_2_Inputs_Nonlinear"
-
 ,'Predict_Income_Piecewise_Growth'
 ,'Predict_Income_2_Inputs_5Coefficents'
 ,"MultiModal_Nonlinear_Interactions"
 ,"AutoNormalize_Challenge"
-
 ,"CaliforniaHousePricesUSD"
 ,"Bit_Flip_Memory"
-
 ,'XOR'
 ,"Chaotic_Function_Prediction"
 ,"Circle_In_Square"
 ,"Custom_Function_Recovery"
 ,"One_Giant_Outlier"
-
 ,"Sparse_Inputs"
 , 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
 ,'Chaotic_Solar_Periodic'    #89
 , 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
-
 ,'Piecewise_Regime'
 ,'Red_Herring_Features'
 ,'Redundant_Features'

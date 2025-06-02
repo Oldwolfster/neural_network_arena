@@ -18,13 +18,14 @@ class TrainingRunInfo:
         "config",
         "lego_selector",
         "setup",
+        "run_id",
         "gladiator_name",
         "time_start",
         "time_end",
         "seed",
         "record_level",
         "last_epoch",
-        "run_id",
+        "converge_cond",
         "config_metadata",
     )
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id, record_level: RecordLevel):
@@ -38,13 +39,14 @@ class TrainingRunInfo:
         self.setup                                  = setup
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
+        self.run_id:            int                 = run_id
         self.gladiator_name:    str                 = setup["gladiator"]
+        self.seed:              int                 = seed
         self.time_start:        datetime            = datetime.now()
         self.time_end:          datetime            = None
-        self.seed:              int                 = seed
         self.record_level:      RecordLevel         = record_level
-        self.last_epoch:       int                 = 0
-        self.run_id:            int                 = run_id
+        self.last_epoch:        int                 = 0
+        self.converge_cond:     str                 = None
 
         # ─── SET 3: Dictonary for holding everything else
         self.config_metadata: Dict[str, Any] = {}
@@ -101,7 +103,7 @@ class TrainingRunInfo:
             print(f"{k:20}: {v}")
 
     def should_record(self, minimum_level: RecordLevel) -> bool:
-        return True
+        #return True
         return self.record_level.value >= minimum_level.value
 
     @property

@@ -108,7 +108,7 @@ class ArchitecturePopup(Popup_Base):
                 f"{TRI.last_epoch} (Epochs)",
                 smart_format(TRI.get("lowest_mae")),
                 TRI.get("lowest_error_epoch"),
-                cfg.cvg_condition,
+                TRI.converge_cond,
             ]
             return describe_rows  # <== This was over-indented before
 

@@ -11,12 +11,12 @@ from datetime import datetime
 
 def record_results(TRI):
     TRI.record_finish_time()
-    if not TRI.should_record(RecordLevel.FULL ): return
+    if not TRI.should_record(RecordLevel.SUMMARY): return
     config = TRI.config
-    TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-
-    model_info                  = ModelInfo(TRI.run_id,  TRI.gladiator_name, TRI.time_seconds, TRI.config .cvg_condition, TRI.config .architecture, TRI.config .training_data.problem_type )
-    TRI.db.add     (model_info)              #Writes record to ModelInfo table
+    if TRI.should_record(RecordLevel.FULL):
+        TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+        model_info                  = ModelInfo(TRI.run_id,  TRI.gladiator_name, TRI.time_seconds, TRI.converge_cond, TRI.config .architecture, TRI.config .training_data.problem_type )
+        TRI.db.add     (model_info)              #Writes record to ModelInfo table
 
     conn = get_db_connection()
     create_snapshot_table(conn)
@@ -157,3 +157,31 @@ def get_db_connection(db_name='arena_history.db', subfolder='history'):
     except sqlite3.Error as e:
         print(f"Error connecting to database at {db_path}: {e}")
         raise
+def create_snapshot_table(conn):
+    cursor = conn.cursor()
+    cursor.execute('''    
+        CREATE TABLE IF NOT EXISTS NNA_history (
+            timestamp DATETIME,
+            run_id INTEGER,
+            runtime_seconds REAL,
+            gladiator_name TEXT,      
+            arena_name TEXT,
+            accuracy REAL,
+            best_mae REAL,
+            final_error REAL,
+            architecture TEXT,        
+            loss_function_name TEXT,
+            hidden_activation_name TEXT,
+            output_activation_name TEXT,
+            weight_initializer_name TEXT,
+            normalization_scheme TEXT,
+            learning_rate REAL,
+            epoch_count INTEGER,
+            convergence_condition TEXT,        
+            problem_type TEXT,
+            seed INTEGER,
+            pk INTEGER PRIMARY KEY AUTOINCREMENT
+        )
+    ''')
+    conn.commit()
+

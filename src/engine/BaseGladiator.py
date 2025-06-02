@@ -54,7 +54,7 @@ class Gladiator(ABC):
 
     def finalize_setup(self):
         self.configure_model(self.config)                   # Typically overwritten in child  class.
-        self.config.smartNetworkSetup(self.TRI.setup)
+        self.config.smartNetworkSetup(self.TRI)
         self.initialize_neurons(
             architecture        = self.config.architecture.copy(),   # Avoid mutation
             initializers        = [self.config.initializer],         # <- List of 1 initializer
@@ -86,8 +86,8 @@ class Gladiator(ABC):
         epochs_to_run = self.number_of_epochs if exploratory_epochs == 0 else exploratory_epochs
 
         for epoch in range(epochs_to_run):                              # Loop to run specified # of epochs
-            self.config.cvg_condition = self.run_an_epoch(epoch)        # Call function to run single epoch
-            if self.config.cvg_condition    != "Did Not Converge":         # Converged so end early
+            self.TRI.converge_cond       =  self.run_an_epoch(epoch)        # Call function to run single epoch
+            if self.TRI.converge_cond   != "Did Not Converge":         # Converged so end early
                 return
 
     def run_an_epoch(self, epoch_num: int) -> str:
