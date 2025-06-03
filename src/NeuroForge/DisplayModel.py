@@ -36,7 +36,7 @@ class DisplayModel(EZSurface):
         self.graph          = None
         self.input_scaler_neuron = None
         self.prediction_scaler_neuron = None
-        #self.run_id       = TRI.gladiator_name
+        #self.run_id       = TRI.gladiator
         self.run_id       = TRI.run_id
         #self.neurons        = [[] for _ in range(len(self.config.architecture))]  # Nested list by layers
         self.neurons        = []
@@ -44,7 +44,7 @@ class DisplayModel(EZSurface):
         #_, _,self.threshold = config.training_data.get_binary_decision_settings(config.loss_function)
 
         btn = Button_Base(
-                text=f"{beautify_text(self.config.gladiator_name)} {TRI.run_id}",
+                text=f"{beautify_text(self.config.gladiator)} {TRI.run_id}",
                 width_pct=10, height_pct=4, left_pct=1, top_pct=1,
                 on_click=self.show_info,
                 on_hover=lambda: self.arch_popup.show_me(),

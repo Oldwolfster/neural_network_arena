@@ -519,8 +519,8 @@ class DisplayModel__Neuron_Base:
 
         num_args   = len(headers)
         arg_fields = [f"B.arg_{i+1}" for i in range(num_args)]
-        upd_table  = f"WeightAdjustments_update_{self.config.gladiator_name}"
-        fin_table  = f"WeightAdjustments_finalize_{self.config.gladiator_name}"
+        upd_table  = f"WeightAdjustments_update_{self.config.gladiator}"
+        fin_table  = f"WeightAdjustments_finalize_{self.config.gladiator}"
 
         sql = f"""
             SELECT {', '.join(arg_fields)}

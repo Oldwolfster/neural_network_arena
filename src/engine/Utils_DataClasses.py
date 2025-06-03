@@ -6,61 +6,61 @@ from enum import Enum
 @dataclass
 class NNA_history:
     run_id: int
-    arena_name: str
-    gladiator_name: str
+    arena: str
+    gladiator: str
     accuracy: float
     architecture: list
     problem_type: str
     best_mae: float
-    loss_function_name: str
-    hidden_activation_name: str
-    output_activation_name: str
-    weight_initializer_name: str
+    loss_function: str
+    hidden_activation: str
+    output_activation: str
+    weight_initializer: str
     normalization_scheme: str
     seed: int
     learning_rate: float
     epoch_count: int
     convergence_condition: str
     runtime_seconds: int
-    final_error: float
+    final_mae: float
+    sample_count: int
 
     @classmethod
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
     def from_config(cls, TRI, config ):
         return cls(
             run_id                  = TRI.run_id,
-            arena_name              =TRI.training_data.arena_name,
-            gladiator_name          =TRI.gladiator_name,
+            arena                   =TRI.training_data.arena_name,
+            gladiator               =TRI.gladiator,
             accuracy                =TRI.accuracy,
             architecture            =config.architecture,
             best_mae                = TRI.get("lowest_mae"),
             problem_type            =config.training_data.problem_type,
-            loss_function_name      =config.loss_function.name,
-            hidden_activation_name  =config.hidden_activation.name,
-            output_activation_name  =(
-                                        config.output_activation or config.loss_function.recommended_output_activation
-                                        ).name,
-            weight_initializer_name=config.initializer.name,
-            normalization_scheme="WIP",
-            seed=TRI.seed,
-            learning_rate=config.learning_rate,
-            epoch_count=TRI.last_epoch,
-            convergence_condition= TRI.converge_cond or "None",
-            runtime_seconds=TRI.time_seconds,
-            final_error=TRI.get("mae")
+            loss_function           =config.loss_function.name,
+            hidden_activation       =config.hidden_activation.name,
+            output_activation       =config.output_activation.name,
+            weight_initializer      =config.initializer.name,
+            normalization_scheme    ="WIP",
+            seed                    =TRI.seed,
+            learning_rate           =config.learning_rate,
+            epoch_count             =TRI.last_epoch,
+            convergence_condition   = TRI.converge_cond or "None",
+            runtime_seconds         =TRI.time_seconds,
+            final_mae               =TRI.get("mae"),
+            sample_count            =TRI.training_data.sample_count
         )
 
     def display(self):
         print("\n🧬 Reproducibility Snapshot1")
         print("────────────────────────────")
-        print(f"Arena:             {self.arena_name}")
-        print(f"Gladiator:         {self.gladiator_name}")
+        print(f"Arena:             {self.arena}")
+        print(f"Gladiator:         {self.gladiator}")
         print(f"Architecture:      {self.architecture}")
         print(f"Problem Type:      {self.problem_type}")
-        print(f"Loss Function:     {self.loss_function_name}")
-        print(f"Hidden AF:         {self.hidden_activation_name}")
-        print(f"Output AF:         {self.output_activation_name}")
-        print(f"Weight Init:       {self.weight_initializer_name}")
+        print(f"Loss Function:     {self.loss_function}")
+        print(f"Hidden AF:         {self.hidden_activation}")
+        print(f"Output AF:         {self.output_activation}")
+        print(f"Weight Init:       {self.weight_initializer}")
         print(f"Data Norm Scheme:  {self.normalization_scheme}")
         print(f"Seed:              {self.seed}")
         print(f"Learning Rate:     {self.learning_rate}")
