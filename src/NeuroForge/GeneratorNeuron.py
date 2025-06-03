@@ -184,7 +184,7 @@ class GeneratorNeuron:
             position=0,
             output_layer=0,
             text_version=text_version,
-            model_id=model.config.gladiator_name,
+            model_id=model.config.gladiator,
             screen=model.surface,
             max_activation=max_act
         )
@@ -224,7 +224,7 @@ class GeneratorNeuron:
             position=0,
             output_layer=0,
             text_version=text_version,
-            model_id=model.config.gladiator_name,
+            model_id=model.config.gladiator,
             screen=model.surface,
             max_activation=max_act
         )

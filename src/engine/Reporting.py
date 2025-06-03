@@ -128,11 +128,11 @@ def create_weight_tables(db, run_id):
 
 def delete_records(db, run_id, possible_columns=None):
         """
-        Deletes records across all tables where one of the possible columns matches the given gladiator_name.
+        Deletes records across all tables where one of the possible columns matches the given gladiator.
 
         Args:
             db: Your database connection or wrapper.
-            gladiator_name (str): The model ID or name to delete.
+            gladiator (str): The model ID or name to delete.
             possible_columns (list of str, optional): Columns to check, in order of preference.
         """
         if possible_columns is None:
@@ -159,8 +159,8 @@ def delete_records(db, run_id, possible_columns=None):
             matching_column = next((col for col in possible_columns if col in column_names), None)
 
             if matching_column:
-                #print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator_name}'")
-                #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator_name,))
+                #print(f"🧹 Deleting from {table_name} where {matching_column} = '{gladiator}'")
+                #db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = ?", (gladiator,))
                 db.execute(f"DELETE FROM {table_name} WHERE {matching_column} = '{run_id}'")
 
 

@@ -82,7 +82,7 @@ class ArchitecturePopup(Popup_Base):
         def describe(TRI):
             cfg = TRI.config
             describe_rows = [
-                cfg.gladiator_name,  # Training Setup header, no value
+                cfg.gladiator,  # Training Setup header, no value
                 architecture(cfg.architecture),
                 cfg.initializer.name,
                 hidden_activation(cfg.architecture, cfg.hidden_activation.name),

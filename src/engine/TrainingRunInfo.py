@@ -19,7 +19,7 @@ class TrainingRunInfo:
         "lego_selector",
         "setup",
         "run_id",
-        "gladiator_name",
+        "gladiator",
         "time_start",
         "time_end",
         "seed",
@@ -40,7 +40,7 @@ class TrainingRunInfo:
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
         self.run_id:            int                 = run_id
-        self.gladiator_name:    str                 = setup["gladiator"]
+        self.gladiator:         str                 = setup["gladiator"]
         self.seed:              int                 = seed
         self.time_start:        datetime            = datetime.now()
         self.time_end:          datetime            = None

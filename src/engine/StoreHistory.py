@@ -3,20 +3,33 @@ import os
 import datetime
 import ast  # For safely evaluating strings back to data structures
 from tabulate import tabulate
-
+from src.engine.SQL import get_db_connection
 from src.engine.Config import Config
 from src.engine.Utils_DataClasses import NNA_history, ModelInfo, RecordLevel
 from datetime import datetime
 from datetime import datetime
 
+import csv
+from pathlib import Path
+
 def record_results(TRI):
     TRI.record_finish_time()
-    if not TRI.should_record(RecordLevel.SUMMARY): return
+    if not TRI.should_record(RecordLevel.SUMMARY):
+        return
+
     config = TRI.config
+
     if TRI.should_record(RecordLevel.FULL):
-        TRI.config                  . configure_popup_headers()# MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
-        model_info                  = ModelInfo(TRI.run_id,  TRI.gladiator_name, TRI.time_seconds, TRI.converge_cond, TRI.config .architecture, TRI.config .training_data.problem_type )
-        TRI.db.add     (model_info)              #Writes record to ModelInfo table
+        TRI.config.configure_popup_headers()  # MUST OCCUR AFTER CONFIGURE MODEL SO THE OPTIMIZER IS SET
+        model_info = ModelInfo(
+            TRI.run_id,
+            TRI.gladiator,
+            TRI.time_seconds,
+            TRI.converge_cond,
+            TRI.config.architecture,
+            TRI.config.training_data.problem_type
+        )
+        TRI.db.add(model_info)  # Writes record to ModelInfo table
 
     conn = get_db_connection()
     create_snapshot_table(conn)
@@ -27,136 +40,138 @@ def record_results(TRI):
 
 def insert_snapshot(conn, snapshot: NNA_history):
     cursor = conn.cursor()
-    #run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+    # run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    #run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
     timestamp = datetime.now()
 
     cursor.execute('''
-    INSERT INTO NNA_history (
-        run_id, accuracy, best_mae, timestamp, arena_name, gladiator_name, architecture, problem_type, 
-        loss_function_name, hidden_activation_name, output_activation_name, 
-        weight_initializer_name, normalization_scheme, seed, learning_rate, 
-        epoch_count, convergence_condition, runtime_seconds, final_error
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO NNA_history (
+            timestamp, 
+            run_id,
+            runtime_seconds, 
+            gladiator, 
+            arena, 
+            accuracy, 
+            best_mae, 
+            final_mae,            
+            architecture,             
+            loss_function, 
+            hidden_activation, 
+            output_activation, 
+            weight_initializer, 
+            normalization_scheme,            
+            learning_rate, 
+            epoch_count, 
+            convergence_condition,
+            problem_type,
+            sample_count,
+            seed
+             
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
-        snapshot.run_id, snapshot.accuracy, snapshot.best_mae, timestamp, snapshot.arena_name, snapshot.gladiator_name,
-        repr(snapshot.architecture), snapshot.problem_type
-        , snapshot.loss_function_name,        snapshot.hidden_activation_name, snapshot.output_activation_name,
-        snapshot.weight_initializer_name, snapshot.normalization_scheme,
-        snapshot.seed, snapshot.learning_rate, snapshot.epoch_count, snapshot.convergence_condition,
-        snapshot.runtime_seconds, snapshot.final_error
+        timestamp,
+        snapshot.run_id,
+        snapshot.runtime_seconds,
+        snapshot.gladiator,
+        snapshot.arena,
+        snapshot.accuracy,
+        snapshot.best_mae,
+        snapshot.final_mae,
+        repr(snapshot.architecture),
+        snapshot.loss_function,
+        snapshot.hidden_activation,
+        snapshot.output_activation,
+        snapshot.weight_initializer,
+        snapshot.normalization_scheme,
+        snapshot.learning_rate,
+        snapshot.epoch_count,
+        snapshot.convergence_condition,
+        snapshot.problem_type,
+        snapshot.sample_count,
+        snapshot.seed,
     ))
     conn.commit()
-    #print(f"Snapshot saved with run_id: {run_id}")
+
+    # Write the same snapshot to CSV (create if not exists, otherwise append)
+    export_snapshot_to_csv(snapshot, timestamp)
 
 
-def list_snapshots_in_console(result_rows: int):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"SELECT seed as _seed,* FROM NNA_history ORDER BY timestamp DESC LIMIT {result_rows} ")
-
-    rows = cursor.fetchall()
-    headers = [description[0] for description in cursor.description]
-    print(tabulate(rows, headers=headers, tablefmt="grid"))
-    conn.close()
-
-import csv
-
-def list_snapshots(result_rows: int, filename="snapshots.csv"):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute(f"""
-        SELECT seed AS _seed, *
-        FROM NNA_history
-        ORDER BY timestamp DESC
-        LIMIT {result_rows}
-    """)
-
-    rows = cursor.fetchall()
-    headers = [description[0] for description in cursor.description]
-
-    # 👇 Generate timestamp
-    from pathlib import Path
-    from datetime import datetime
-
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    log_folder = Path("..") / "gladiator_matches"
-    log_folder.mkdir(parents=True, exist_ok=True)  # Ensure folder exists
-
-    filename = log_folder / f"GladiatorMatches_logfile_{timestamp}.csv"
-
-    with open(filename, "w", newline="", encoding="utf-8") as csvfile:
-
-        writer = csv.writer(csvfile)
-        writer.writerow(headers)
-        writer.writerows(rows)
-
-    print(f"✅ Exported {len(rows)} rows to {filename}")
-    conn.close()
-
-    import os
-
-    # Right after conn.close()
-    os.startfile(filename)
-
-def create_snapshot_table(conn):
-    cursor = conn.cursor()
-    cursor.execute('''    
-    CREATE TABLE IF NOT EXISTS NNA_history (
-        timestamp DATETIME,
-        run_id INTEGER,
-        runtime_seconds REAL,
-        gladiator_name TEXT,      
-        arena_name TEXT,
-        accuracy REAL,
-        best_mae REAL,
-        final_error REAL,
-        architecture TEXT,        
-        loss_function_name TEXT,
-        hidden_activation_name TEXT,
-        output_activation_name TEXT,
-        weight_initializer_name TEXT,
-        normalization_scheme TEXT,
-        learning_rate REAL,
-        epoch_count INTEGER,
-        convergence_condition TEXT,        
-        problem_type TEXT,
-        seed INTEGER,
-        pk INTEGER PRIMARY KEY AUTOINCREMENT
-    )
-    ''')
-    conn.commit()
-
-
-
-def get_db_connection(db_name='arena_history.db', subfolder='history'):
+def export_snapshot_to_csv(snapshot: NNA_history, timestamp, csv_filename='arena_history.csv', subfolder='history'):
     """
-    Connects to an SQLite database located in the specified subfolder within the parent directory of this script.
-    If the subfolder does not exist, it is created.
+    Appends a single NNA_history snapshot to a CSV file. If the CSV does not exist, it is created with headers.
 
     Parameters:
-    - db_name (str): Name of the database file.
-    - subfolder (str): Name of the subfolder where the database file is located.
-
-    Returns:
-    - conn: SQLite3 connection object.
+    - snapshot (NNA_history): The snapshot data to write.
+    - timestamp (datetime): The timestamp associated with this snapshot.
+    - csv (str): The name of the CSV file (default: 'arena_history.csv').
+    - subfolder (str): The subfolder (relative to the grandparent directory) where the CSV is stored.
     """
+    # Determine the subfolder path (same logic as get_db_connection)
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.abspath(os.path.join(script_dir, '..'))
     grandparent_dir = os.path.abspath(os.path.join(parent_dir, '..'))
     subfolder_path = os.path.join(grandparent_dir, subfolder)
-    try:
-        os.makedirs(subfolder_path, exist_ok=True)
-    except OSError as e:
-        print(f"Error creating directory {subfolder_path}: {e}")
-        raise
-    db_path = os.path.join(subfolder_path, db_name)
-    try:
-        conn = sqlite3.connect(db_path)
-        return conn
-    except sqlite3.Error as e:
-        print(f"Error connecting to database at {db_path}: {e}")
-        raise
+    os.makedirs(subfolder_path, exist_ok=True)
+
+    csv_path = os.path.join(subfolder_path, csv_filename)
+    file_exists = os.path.isfile(csv_path)
+
+    with open(csv_path, 'a', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+
+        # If the file is new, write header row first
+        if not file_exists:
+            headers = [
+                'timestamp',
+                'run_id',
+                'runtime_seconds',
+                'gladiator',
+                'arena',
+                'accuracy',
+                'best_mae',
+                'final_mae',
+                'architecture',
+                'loss_function',
+                'hidden_activation',
+                'output_activation',
+                'weight_initializer',
+                'normalization_scheme',
+                'learning_rate',
+                'epoch_count',
+                'convergence_condition',
+                'problem_type',
+                'sample_count',
+                'seed'
+
+            ]
+            writer.writerow(headers)
+
+        # Write the snapshot's data
+        writer.writerow([
+            timestamp.isoformat(),
+            snapshot.run_id,
+            snapshot.runtime_seconds,
+            snapshot.gladiator,
+            snapshot.arena,
+            snapshot.accuracy,
+            snapshot.best_mae,
+            snapshot.final_mae,
+            repr(snapshot.architecture),
+            snapshot.loss_function,
+            snapshot.hidden_activation,
+            snapshot.output_activation,
+            snapshot.weight_initializer,
+            snapshot.normalization_scheme,
+            snapshot.learning_rate,
+            snapshot.epoch_count,
+            snapshot.convergence_condition,
+            snapshot.problem_type,
+            snapshot.sample_count,
+            snapshot.seed,
+
+        ])
+
+
 def create_snapshot_table(conn):
     cursor = conn.cursor()
     cursor.execute('''    
@@ -164,24 +179,24 @@ def create_snapshot_table(conn):
             timestamp DATETIME,
             run_id INTEGER,
             runtime_seconds REAL,
-            gladiator_name TEXT,      
-            arena_name TEXT,
+            gladiator TEXT,      
+            arena TEXT,
             accuracy REAL,
             best_mae REAL,
-            final_error REAL,
+            final_mae REAL,
             architecture TEXT,        
-            loss_function_name TEXT,
-            hidden_activation_name TEXT,
-            output_activation_name TEXT,
-            weight_initializer_name TEXT,
+            loss_function TEXT,
+            hidden_activation TEXT,
+            output_activation TEXT,
+            weight_initializer TEXT,
             normalization_scheme TEXT,
             learning_rate REAL,
             epoch_count INTEGER,
             convergence_condition TEXT,        
             problem_type TEXT,
-            seed INTEGER,
+            sample_count INTEGER,
+            seed INTEGER,            
             pk INTEGER PRIMARY KEY AUTOINCREMENT
         )
     ''')
     conn.commit()
-

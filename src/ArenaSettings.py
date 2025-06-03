@@ -41,14 +41,14 @@ class HyperParameters:
 
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
-    #"loss_function": "*" ,
+    "loss_function": "*" ,
     "hidden_activation": "*",
-    #"initializer": "*"
+    "initializer": "*"
     #"output_activation": *
     #"batch_size":[1,2,4,8,999]
     #"architecture":[[4 , 4, 1], [2 , 2, 1]]
 }
-#dimensions={}
+dimensions={}
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
@@ -78,7 +78,7 @@ gladiators = [
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
-arenas2   = ['Iris_Two_Class']
+arenas2  = ['Iris_Two_Class']
 arenas   = [
 "Titanic"
 ,'Predict_Income_2_Inputs'

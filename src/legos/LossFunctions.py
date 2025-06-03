@@ -398,7 +398,7 @@ Loss_HalfWit = StrategyLossFunction(
     derivative_formula="(prediction - target)",
     bd_defaults= [-1, 1, 0]
 )
-
+'''
 def schrodinger_loss(y_pred, y_true):
     """
     Schrodinger Loss: Absolutely no idea which direction to go.
@@ -426,7 +426,7 @@ Loss_Schrodinger = StrategyLossFunction(
     derivative_formula="1 / n  (for all values — direction is lost to the void)",
     bd_defaults= [-99, -97, -96]
 )
-
+'''
 
 
 # This allows others to introspect available loss functions if needed
