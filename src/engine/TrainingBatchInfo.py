@@ -9,26 +9,43 @@ from src.engine.SQL import get_db_connection
 class TrainingBatchInfo:
     def __init__(self, gladiators, arenas, dimensions: Dict[str, List[Any]]):
         self.conn           = get_db_connection()
+        self.initialized    = False
         self.gladiators     = gladiators
         self.arenas         = arenas
         self.dimensions     = dimensions
         self                . create_table_if_needed()
-        self.id_of_current  = self.run_sql("SELECT pk FROM training_batch_tasks WHERE status = 'pending' ORDER BY pk ASC LIMIT 1")
-        self.id_of_last     = self.run_sql("SELECT MAX(pk) FROM training_batch_tasks")
+        self                . set_ids()
         print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
         self                . prepare_batch_table()
+        print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
 
     def run_sql(self,sql) -> int:
         with self.conn:
             result = self.conn.execute(sql).fetchone()
             return result[0] if result and result[0] is not None else 0
 
+    def mark_done_and_get_next_config(self):
+        self.run_sql(f"UPDATE training_batch_tasks SET status = 'done' WHERE pk = {self.id_of_current}")
+        if self.initialized: self.id_of_current +=1 #accounts for first one which would be one to high otherwise.
+        self.initialized = True
+        if self.id_of_current > self.id_of_last:
+            print("🎉 All tasks complete.\n")
+            return None
+        else:
+            config = self.run_sql(f"SELECT config FROM training_batch_tasks  WHERE pk = {self.id_of_current}")
+            return json.loads(config)
+
     def prepare_batch_table(self):
         if self.id_of_current == 0:
             print("🧪 No existing batch found — starting a new one.")
             _BatchGenerationLogic(self.conn, self.gladiators, self.arenas, self.dimensions).generate()
+            self.set_ids()
         else:
             print("📌 Resuming existing batch.")
+
+    def set_ids(self):
+        self.id_of_current  = self.run_sql("SELECT pk FROM training_batch_tasks WHERE status = 'pending' ORDER BY pk ASC LIMIT 1")
+        self.id_of_last     = self.run_sql("SELECT MAX(pk) FROM training_batch_tasks")
 
     def create_table_if_needed(self):
         with self.conn:
@@ -42,17 +59,6 @@ class TrainingBatchInfo:
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-
-    def mark_done_and_get_next_config(self):
-        self.run_sql(f"UPDATE training_batch_tasks SET status = 'done' WHERE pk = {self.id_of_current}")
-        self.id_of_current +=1
-        if self.id_of_current > self.id_of_last:
-            print("🎉 All tasks complete.")
-            return None
-        else:
-            config = self.run_sql(f"SELECT config FROM training_batch_tasks  WHERE pk = {self.id_of_current}")
-            return json.loads(config)
-
 
 class _BatchGenerationLogic:
     def __init__(self, conn, gladiators, arenas, dimensions):
