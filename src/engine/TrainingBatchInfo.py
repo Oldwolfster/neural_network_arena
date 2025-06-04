@@ -1,68 +1,115 @@
 from datetime import datetime
-from typing import List
-from typing import Dict
-from typing import Any
+from typing import List, Dict, Any
 from itertools import product
 import os
+import json
 from src.Legos.LegoLister import LegoLister
-
-# test = lister.list_legos("hidden_activation")
-# test = lister.list_legos("output_activation")
-# test = lister.list_legos("optimizer")
-# test = lister.list_legos("scaler") # works a bit different....
-# test = lister.list_legos("initializer")
+from src.engine.SQL import get_db_connection
 
 class TrainingBatchInfo:
     def __init__(self, gladiators, arenas, dimensions: Dict[str, List[Any]]):
-        self.gladiators = gladiators
-        self.lister = LegoLister()
-        self.arenas = arenas
-        self.dimensions = dimensions
-        self.setups = []
-        self.expand_wildcards()
-        self.build_run_instructions()
-        #self.remove_lists_from_setups()
-        print(f"Setups={self.setups}")
+        self.conn           = get_db_connection()
+        self.gladiators     = gladiators
+        self.arenas         = arenas
+        self.dimensions     = dimensions
+        self                . create_table_if_needed()
+        self.id_of_current  = self.run_sql("SELECT pk FROM training_batch_tasks WHERE status = 'pending' ORDER BY pk ASC LIMIT 1")
+        self.id_of_last     = self.run_sql("SELECT MAX(pk) FROM training_batch_tasks")
+        print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
+        self                . prepare_batch_table()
 
-    def remove_lists_from_setups(self):
-        for setup in self.setups:
-            for key, value in setup.items():
-                if isinstance(value, list) and len(value) == 1:
-                    setup[key] = value[0]
+    def run_sql(self,sql) -> int:
+        with self.conn:
+            result = self.conn.execute(sql).fetchone()
+            return result[0] if result and result[0] is not None else 0
+
+    def prepare_batch_table(self):
+        if self.id_of_current == 0:
+            print("🧪 No existing batch found — starting a new one.")
+            _BatchGenerationLogic(self.conn, self.gladiators, self.arenas, self.dimensions).generate()
+        else:
+            print("📌 Resuming existing batch.")
+
+    def create_table_if_needed(self):
+        with self.conn:
+            self.conn.execute('''
+                CREATE TABLE IF NOT EXISTS training_batch_tasks (
+                    pk INTEGER PRIMARY KEY AUTOINCREMENT,
+                    gladiator TEXT,
+                    arena TEXT,
+                    config TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
+    def mark_done_and_get_next_config(self):
+        self.run_sql(f"UPDATE training_batch_tasks SET status = 'done' WHERE pk = {self.id_of_current}")
+        self.id_of_current +=1
+        if self.id_of_current > self.id_of_last:
+            print("🎉 All tasks complete.")
+            return None
+        else:
+            config = self.run_sql(f"SELECT config FROM training_batch_tasks  WHERE pk = {self.id_of_current}")
+            return json.loads(config)
+
+
+class _BatchGenerationLogic:
+    def __init__(self, conn, gladiators, arenas, dimensions):
+        self.conn       = conn
+        self.gladiators = gladiators
+        self.arenas     = arenas
+        self.dimensions = dimensions
+        self.lister     = LegoLister()
+
+    def generate(self):
+        self.expand_wildcards()
+        setups = self.build_setups()
+
+        with self.conn:
+            self.conn.execute("DELETE FROM training_batch_tasks")  # ensure clean slate
+            self.conn.execute("DELETE FROM sqlite_sequence WHERE name = 'training_batch_tasks'") # Reset counter
+            for setup in setups:
+                self.conn.execute('''
+                    INSERT INTO training_batch_tasks (gladiator, arena, config)
+                    VALUES (?, ?, ?)
+                ''', (setup["gladiator"], setup["arena"], json.dumps(setup)))
 
     def expand_wildcards(self):
         for key, val in self.dimensions.items():
             if val == "*":
                 legos = self.lister.list_legos(key)
-                # → Convert “legos” from a dict(name→obj) into a list of obj’s
                 self.dimensions[key] = list(legos.values())
 
+    def build_setups(self) -> List[Dict[str, Any]]:
+        keys   = list(self.dimensions.keys())
+        values = list(self.dimensions.values())
+        combos = list(product(*values))
+        setups = []
 
-    def build_run_instructions(self):
-        config_keys = list(self.dimensions.keys())
-        config_values = list(self.dimensions.values())
-        combos = list(product(*config_values))
+        for arena in self.arenas:
+            for gladiator in self.gladiators:
+                lr_flag = self.model_sets_lr(gladiator)
 
-        for gladiator in self.gladiators:
-            lr_flag = self.model_explicitly_sets_lr(gladiator)
-            for arena in self.arenas:
                 for combo in combos:
-                    config_dict = dict(zip(config_keys, combo))
-                    config_dict["gladiator"] = gladiator
-                    config_dict["arena"] = arena
-                    config_dict["lr_specified"] = lr_flag
-                    self.setups.append(config_dict)
-    def one_option_for_get_unique_run_id():
-        now = datetime.now()
-        return int(now.strftime("%Y%m%d%H%M%S%f"))  # microsecond precision
+                    config = dict(zip(keys, combo))
+                    config.update({
+                        "gladiator": gladiator,
+                        "arena": arena,
+                        "lr_specified": lr_flag
+                    })
+                    setups.append(config)
 
-    def model_explicitly_sets_lr(self, gladiator_name: str) -> bool:
+        return setups
+
+    def model_sets_lr(self, gladiator_name: str) -> bool:
         for root, _, files in os.walk("coliseum/gladiators"):
-            for file in files:
-                if file == f"{gladiator_name}.py":
-                    with open(os.path.join(root, file), 'r', encoding='utf-8') as f:
-                        for line in f:
-                            if "config.learning_rate" in line and not line.strip().startswith("#"):
-                                return True
-                    return False
-        raise FileNotFoundError(f"❌ Could not find file for gladiator '{gladiator_name}' (expected '{gladiator_name}.py') in 'coliseum/gladiators'.")
+            if f"{gladiator_name}.py" in files:
+                path = os.path.join(root, f"{gladiator_name}.py")
+                with open(path, 'r', encoding='utf-8') as f:
+                    return any(
+                        "config.learning_rate" in line and not line.strip().startswith("#")
+                        for line in f
+                    )
+        raise FileNotFoundError(f"❌ Could not find file for gladiator '{gladiator_name}'.")
+

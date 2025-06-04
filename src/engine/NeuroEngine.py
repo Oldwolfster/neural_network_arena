@@ -39,7 +39,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.test_attribute         = None #TODO DELETE ME
         self.test_strategy          = None #TODO DELETE ME
 
-    def run_a_batch(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
+    def run_a_batchOriginal(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
         TRIs: List[TrainingRunInfo] = []
         batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
         total                       = len(batch.setups)
@@ -56,6 +56,25 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         TRIs[0].db.copy_tables_to_permanent()
         #TRIs[0].db.query_print("Select * From Weight")
         neuroForge                  (TRIs[-4:])
+    def run_a_batch(self):
+        TRIs: List[TrainingRunInfo] = []
+        batch                       = TrainingBatchInfo(gladiators, arenas, dimensions)
+        while True:
+            setup                   = batch.mark_done_and_get_next_config()
+            if setup is None:         break
+            print                   ( f"💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪")
+            print                   ( f"💪💪 Training Model ({batch.id_of_current} of {batch.id_of_last}) with these settings: {setup}")
+            if not setup.get        ( "lr_specified", False):   setup["learning_rate"] = self.learning_rate_sweep(setup)
+            record_level            = RecordLevel.FULL if i <= self.shared_hyper.nf_count else RecordLevel.SUMMARY
+            TRI                     = self.atomic_train_a_model(setup, record_level, epochs=0, run_id=batch.id_of_current)
+            if record_level         ==RecordLevel.FULL: TRIs.append(TRI)
+
+        if TRIs:
+            print("🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬")
+            print("🔬🔬 Loading Neuroforge...")
+            print("🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬")
+            TRIs[0].db.copy_tables_to_permanent()
+            neuroForge(TRIs[0:])    #neuroForge(TRIs[-4:])
 
     def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model
             set_seed                    ( self.seed)
