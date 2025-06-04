@@ -2,6 +2,10 @@ import math
 
 
 class Scheduler:
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return self.name
+
     def __init__(self, name, get_lr_function, desc="", when_to_use="", best_for=""):
         self.name = name
         self.get_lr = get_lr_function  # (epoch, iter, base_lr, total_epochs) → new_lr

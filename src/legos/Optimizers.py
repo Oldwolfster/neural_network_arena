@@ -23,6 +23,10 @@ class BatchMode(IntEnum):
     #MINI_SHUFFLED_STICKY    = auto()  # Mini-batches using same shuffled order each epoch
 
 class StrategyOptimizer:
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return self.name
+
     def __init__(self,
             update_function,
             finalizer_function=None,

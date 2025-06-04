@@ -1,4 +1,8 @@
 class Regularizer:
+    def __repr__(self):
+        """Custom representation for debugging."""
+        return self.name
+
     def __init__(self, name, penalty_function, desc="", when_to_use="", best_for=""):
         """
         penalty_function: Callable(weight_array) -> scalar penalty (added to loss) AND

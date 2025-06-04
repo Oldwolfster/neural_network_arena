@@ -82,7 +82,7 @@ class ArchitecturePopup(Popup_Base):
         def describe(TRI):
             cfg = TRI.config
             describe_rows = [
-                cfg.gladiator,  # Training Setup header, no value
+                TRI.gladiator,  # Training Setup header, no value
                 architecture(cfg.architecture),
                 cfg.initializer.name,
                 hidden_activation(cfg.architecture, cfg.hidden_activation.name),
@@ -104,7 +104,7 @@ class ArchitecturePopup(Popup_Base):
                 "",
 
                 "",  # Training Outcome header
-                smart_format(cfg.seconds),
+                smart_format(TRI.time_seconds),
                 f"{TRI.last_epoch} (Epochs)",
                 smart_format(TRI.get("lowest_mae")),
                 TRI.get("lowest_error_epoch"),
