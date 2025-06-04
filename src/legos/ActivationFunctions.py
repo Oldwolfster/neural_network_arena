@@ -13,7 +13,7 @@ class StrategyActivationFunction:
 
     def __repr__(self):
         """Custom representation for debugging."""
-        return f"Activation Function: {self.name}"
+        return self.name
 
     def apply_derivative(self, x):
         """Compute the derivative for backpropagation."""

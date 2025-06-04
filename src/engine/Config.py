@@ -2,7 +2,7 @@ from src.Legos.ActivationFunctions import *
 from src.Legos.WeightInitializers import *
 from src.Legos.Optimizers import *
 from src.Legos.Scalers import *
-from ..Legos.LossFunctions import *
+from src.Legos.LossFunctions import *
 from .RamDB import RamDB
 from .TrainingData import TrainingData
 

@@ -1,5 +1,10 @@
 from typing import List
 from dataclasses import dataclass, field
+from src.Legos.ActivationFunctions import *
+from src.Legos.WeightInitializers import *
+from src.Legos.Optimizers import *
+from src.Legos.Scalers import *
+from src.Legos.LossFunctions import *
 
 @dataclass
 class HyperParameters:
@@ -9,7 +14,7 @@ class HyperParameters:
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
     training_set_size       :int    = 30        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
-    nf_count                :int    = 2
+    nf_count                :int    = 0
     min_no_epochs           :int    = 0         # run for at least this many epochs
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
     run_neuroForge          :bool   = True
@@ -42,13 +47,16 @@ class HyperParameters:
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
     "loss_function": "*" ,
-    "hidden_activation": "*",
-    "initializer": "*"
+    #"hidden_activation": "*",
+    #"initializer": "*"
     #"output_activation": *
     #"batch_size":[1,2,4,8,999]
     #"architecture":[[4 , 4, 1], [2 , 2, 1]]
 }
-dimensions={}
+dimensions2={
+    "loss_function": [Loss_MSE,Loss_BCE]
+    #"loss_function": "*"
+}
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
@@ -56,7 +64,7 @@ dimensions={}
 gladiators = [
     'All_Defaults'
 
-    #,'BiggerIsNotBetter'
+    ,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'
@@ -78,8 +86,8 @@ gladiators = [
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
-arenas2  = ['Iris_Two_Class']
-arenas   = [
+arenas  = ['Iris_Two_Class']
+arenas2   = [
 "Titanic"
 ,'Predict_Income_2_Inputs'
 ,'MultiModal_Temperature'

@@ -13,6 +13,7 @@ class TrainingBatchInfo:
         self.gladiators     = gladiators
         self.arenas         = arenas
         self.dimensions     = dimensions
+        self.lister         = LegoLister()
         self                . create_table_if_needed()
         self                . set_ids()
         print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
@@ -32,8 +33,19 @@ class TrainingBatchInfo:
             print("🎉 All tasks complete.\n")
             return None
         else:
-            config = self.run_sql(f"SELECT config FROM training_batch_tasks  WHERE pk = {self.id_of_current}")
-            return json.loads(config)
+            #config = self.run_sql(f"SELECT config FROM training_batch_tasks  WHERE pk = {self.id_of_current}")
+            #return json.loads(config)
+            raw = self.run_sql(f"SELECT config FROM training_batch_tasks WHERE pk = {self.id_of_current}")
+            config = json.loads(raw)
+            return self.inflate_config(config)
+
+
+    def inflate_config(self, setup: Dict[str, Any]) -> Dict[str, Any]:
+        for key, val in setup.items():
+            if isinstance(val, str) and key in self.lister.registry:
+                setup[key] = self.lister.get_lego(key, val)
+        return setup
+
 
     def prepare_batch_table(self):
         if self.id_of_current == 0:
@@ -76,6 +88,7 @@ class _BatchGenerationLogic:
             self.conn.execute("DELETE FROM training_batch_tasks")  # ensure clean slate
             self.conn.execute("DELETE FROM sqlite_sequence WHERE name = 'training_batch_tasks'") # Reset counter
             for setup in setups:
+                print(f"setup = {setup}")
                 self.conn.execute('''
                     INSERT INTO training_batch_tasks (gladiator, arena, config)
                     VALUES (?, ?, ?)
@@ -98,14 +111,19 @@ class _BatchGenerationLogic:
                 lr_flag = self.model_sets_lr(gladiator)
 
                 for combo in combos:
-                    config = dict(zip(keys, combo))
+                    #Worked in ram, not when writing to table --> config = dict(zip(keys, combo))
+                    config = {}
+                    for k, v in zip(keys, combo):
+                        if k in self.lister.registry:
+                            config[k] = str(v)  # will call __repr__()
+                        else:
+                            config[k] = v
                     config.update({
                         "gladiator": gladiator,
                         "arena": arena,
                         "lr_specified": lr_flag
                     })
                     setups.append(config)
-
         return setups
 
     def model_sets_lr(self, gladiator_name: str) -> bool:
