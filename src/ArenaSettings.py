@@ -84,12 +84,15 @@ arenas   = [
 ,'Predict_Income_2_Inputs'
 ,'MultiModal_Temperature'
 ,"Parity_Check"
+  ]
+"""
 ,"Iris_Two_Class"
 ,'Deceptive_Multi_Regime_Entangler'
 ,'DefaultRisk__From_Income_Debt'
 ,'Moons'
 ,'CarValueFromMiles'
 ,"California_Housing"
+
 ,"SimpleBinaryDecision"
 ,"Customer_Churn_4X3"
 ,"Predict_EnergyOutput__From_Weather_Turbine"
@@ -117,8 +120,7 @@ arenas   = [
 ,'Nested_Sine_Flip'
 ,'DefaultRisk__From_Income_Debt'
 ,'Predict_MedicalCost_WithOutliers'
-  ]
-"""
+
 """
 
 
