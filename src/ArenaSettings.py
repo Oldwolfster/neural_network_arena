@@ -12,7 +12,7 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
-    training_set_size       :int    = 4        # Qty of training data
+    training_set_size       :int    = 30        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
     nf_count                :int    = 4
     min_no_epochs           :int    = 0         # run for at least this many epochs
@@ -46,24 +46,21 @@ class HyperParameters:
 
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
-    #"loss_function": "*" ,
-    #"hidden_activation": "*",
-    #"initializer": "*"
+    "loss_function": "*" ,
+    "hidden_activation": "*",
+    "initializer": "*",
     #"output_activation": *
     #"batch_size":[1,2,4,8,999]
     #"architecture":[[4 , 4, 1], [2 , 2, 1]]
 }
-dimensions2={
-    #"loss_function": [Loss_MSE,Loss_BCE]
-    #"loss_function": "*"
-}
+dimensions2={}
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    #'All_Defaults'
-    'BCE'
+    'All_Defaults'
+    #'BCE'
     #,'MSE'
 
     #,'BiggerIsNotBetter'
@@ -95,8 +92,7 @@ arenas   = [
     #######################################################################
 
 'Predict_Income_2_Inputs'
-      ]
-"""
+
 ,'California_Housing'
 ,'One_Giant_Outlier'
 ,'Nested_Sine_Flip'
@@ -139,7 +135,8 @@ arenas   = [
 ,'XOR'
 ,'Moons'
 ,'Iris_Two_Class'
-
+      ]
+"""
 """
 
 

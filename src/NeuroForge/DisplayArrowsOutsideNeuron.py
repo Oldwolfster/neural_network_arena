@@ -116,9 +116,8 @@ class DisplayArrowsOutsideNeuron(EZSurface):
             end_x = Const.SCREEN_WIDTH *.91
             end_y = 239.96
 
-
             # ✅ Now create an arrow using the correct X and Y values
-            self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+            #self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
 
             #From output layer to prediction scaler - coming from same place so no change to start_x and start_y
             if model.config.scaler.target_is_scaled:

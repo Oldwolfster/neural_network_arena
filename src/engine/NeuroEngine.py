@@ -1,4 +1,5 @@
 import os
+from src.engine.Utils import smart_format
 import pprint
 import time
 from enum import Enum
@@ -64,7 +65,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             setup                   = batch.mark_done_and_get_next_config()
             if setup is None:         break
             print                   ( f"💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪")
-            print                   ( f"💪💪 Training Model ({batch.id_of_current} of {batch.id_of_last}) with these settings: {setup}")
+            print                   ( f"💪 Training Model ({batch.id_of_current} of {batch.id_of_last}) with these settings: {setup}")
             if not setup.get        ( "lr_specified", False):   setup["learning_rate"] = self.learning_rate_sweep(setup)
             record_level            = RecordLevel.FULL if batch.id_of_current <= self.shared_hyper.nf_count else RecordLevel.SUMMARY
             TRI                     = self.atomic_train_a_model(setup, record_level, epochs=0, run_id=batch.id_of_current)
@@ -110,13 +111,13 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         best_lr      = None
         lr           = start_lr
         trials       = 0
-
+        print(f"\t😈 Welcome to the Learning Rate Sweep.  Heads up, Below info is 'LR:→MAE' repeated😈\n\t😈", end=""),
         while lr >= min_lr and lr < max_lr and trials < max_trials:
             setup["learning_rate"] = lr
             TRI = self.atomic_train_a_model(setup, RecordLevel.NONE, epochs=20)
             error = TRI.get("mae")
 
-            print(f"😈Gladiator: {gladiator} - LR: {lr:.1e} → Last MAE: {error:.5f}")
+            print(f"\tLR:{lr:.1e} → {smart_format(error)}", end="")
 
             # ─── check for gradient explosion ───────────────────────────
             if error > 1e20 and factor == 10:           # gradient explosion – no need to search higher
@@ -136,14 +137,14 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 no_improve_count += 1
 
             if no_improve_count >= patience:
-                print(f"⌛ No improvement in {patience} consecutive trials—stopping early.")
+                #print(f"⌛ No improvement in {patience} consecutive trials—stopping early.")
                 break
             # ─────────────────────────────────────────────────────────────
 
             lr *= factor
             trials += 1
 
-        print(f"🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f})")
+        print(f"\n\t😈\t🏆🏆🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f} 🏆🏆🏆)")
         return best_lr
 
     def learning_rate_sweep2(self, setup: dict) -> float:

@@ -23,7 +23,7 @@ class DisplayPanelInput(EZForm):
             height_pct=height_pct,
             left_pct=left_pct,
             top_pct=top_pct,
-            banner_text="Inputs",
+            banner_text="Sample",
             banner_color=banner_color,
             bg_color=bg_color,
             font_color=Const.COLOR_BLACK
@@ -51,4 +51,4 @@ class DisplayPanelInput(EZForm):
             input_index += 1
 
         # Update the target value explicitly
-        self.fields[self.target_name] = smart_format(rs.get("target", ""))
+        self.fields[self.target_name] = smart_format(rs.get("target_unscaled", ""))

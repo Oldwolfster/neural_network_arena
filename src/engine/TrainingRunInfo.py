@@ -35,7 +35,7 @@ class TrainingRunInfo:
         self.db:                 RamDB              = db
         self.training_data:      TrainingData       = training_data
         self.config:             Config             = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=setup["gladiator"])
-        self.lego_selector:      LegoSelector       = LegoSelector()
+        #self.lego_selector:      LegoSelector       = LegoSelector()
         self.setup                                  = setup
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────

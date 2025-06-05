@@ -52,7 +52,7 @@ class VCR:
         """
         Add the current iteration data to the database
         """
-        self.abs_error_for_epoch += abs(iteration_data.error)
+        self.abs_error_for_epoch += abs(iteration_data.error_unscaled)
         if iteration_data.is_true: self.bd_correct += 1
 
         self.bd_correct

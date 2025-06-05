@@ -20,6 +20,7 @@ class DisplayModel__NeuronScalerPrediction:
         # Configuration settings
         self.BANNER_HEIGHT              = 29  # 4 pixels above + 26 pixels total height #TODO this should be tied to drawing banner rather than a const
         self.oval_height                = 19
+        self.oval_vertical_tweak        = 63.9
         self.oval_overhang              =   12.069
         # Neuron attributes
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
@@ -29,6 +30,7 @@ class DisplayModel__NeuronScalerPrediction:
         # Weight mechanics
         self.ez_printer                 = ez_printer
         self.my_fcking_labels           = [] # WARNING: Do NOT rename. Debugging hell from Python interpreter defects led to this.
+        self.label_y_positions          = []
         self.need_label_coord           = True #track if we recorded the label positions for the arrows to point from
 
     def render(self):                   #self.debug_weight_changes()
@@ -37,8 +39,8 @@ class DisplayModel__NeuronScalerPrediction:
         prediction_unscaled = rs.get("prediction_unscaled",  "[]")
         target_raw          = rs.get("target",  "[]")
         target_unscaled     = rs.get("target_unscaled",  "[]")
-        error_raw           = target_raw - prediction_raw
-        error_unscaled      = target_unscaled - prediction_unscaled
+        error_raw           = rs.get("error",  "[]")
+        error_unscaled      = rs.get("error_unscaled",  "[]")
 
         # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
         start_x = self.neuron.location_left
@@ -46,14 +48,13 @@ class DisplayModel__NeuronScalerPrediction:
         #self.draw_oval_with_text(     start_x,            start_y,            oval_width,            35,            False,      #overhang            "",            "Scaler",            "",            self.font        )
 
         self.output_one_set(1, target_raw,"Target", target_unscaled)
-
         self.output_one_set(2, prediction_raw,"Prediction", prediction_unscaled)
-
         self.output_one_set(3, error_raw,"Error", error_unscaled)
+        self.need_label_coord = False
 
     def output_one_set(self, index, label, raw_value, unscaled_value):
-        start_y = 51
-        y_pos = (index - 1) * 2 * self.oval_height * .96 + start_y + self.neuron.location_top
+
+        y_pos = (index - 1) * 2 * self.oval_height * .96 +self.oval_vertical_tweak + self.neuron.location_top
         self.draw_oval_with_text(
             self.neuron.location_left- self.oval_overhang,
             y_pos,
@@ -67,10 +68,10 @@ class DisplayModel__NeuronScalerPrediction:
             padding=8
         )
         #print(f"LABEL1 ={label}")
-        if self.need_label_coord and raw_value == "Prediction":
-            #print(f"LABEL2 ={label}")
-            self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos+ self.oval_height * .5))
-            self.need_label_coord = False
+        if self.need_label_coord: #  and raw_value == "Prediction":
+            self.label_y_positions.append((self.neuron.location_left + self.oval_overhang + self.neuron.location_width, y_pos+ self.oval_height * .5))
+            if raw_value == "Prediction":
+                self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos+ self.oval_height * .5))
 
 
     def draw_oval_with_text(
