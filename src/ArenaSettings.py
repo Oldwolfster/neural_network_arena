@@ -14,7 +14,7 @@ class HyperParameters:
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
     training_set_size       :int    = 4        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
-    nf_count                :int    = 2
+    nf_count                :int    = 4
     min_no_epochs           :int    = 0         # run for at least this many epochs
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
     run_neuroForge          :bool   = True
@@ -63,8 +63,8 @@ dimensions2={
 ############################################################
 gladiators = [
     #'All_Defaults'
-    #'BCE'
-    'MSE'
+    'BCE'
+    #,'MSE'
 
     #,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
