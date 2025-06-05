@@ -12,9 +12,9 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
-    training_set_size       :int    = 30        # Qty of training data
+    training_set_size       :int    = 4        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
-    nf_count                :int    = 0
+    nf_count                :int    = 2
     min_no_epochs           :int    = 0         # run for at least this many epochs
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
     run_neuroForge          :bool   = True
@@ -46,7 +46,7 @@ class HyperParameters:
 
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
-    "loss_function": "*" ,
+    #"loss_function": "*" ,
     #"hidden_activation": "*",
     #"initializer": "*"
     #"output_activation": *
@@ -54,7 +54,7 @@ dimensions={
     #"architecture":[[4 , 4, 1], [2 , 2, 1]]
 }
 dimensions2={
-    "loss_function": [Loss_MSE,Loss_BCE]
+    #"loss_function": [Loss_MSE,Loss_BCE]
     #"loss_function": "*"
 }
 
@@ -62,9 +62,11 @@ dimensions2={
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
 gladiators = [
-    'All_Defaults'
+    #'All_Defaults'
+    #'BCE'
+    'MSE'
 
-    ,'BiggerIsNotBetter'
+    #,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'
@@ -87,47 +89,56 @@ gladiators = [
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas  = ['Iris_Two_Class']
-arenas2   = [
-"Titanic"
-,'Predict_Income_2_Inputs'
-,'MultiModal_Temperature'
-,"Parity_Check"
-  ]
-"""
-,"Iris_Two_Class"
-,'Deceptive_Multi_Regime_Entangler'
-,'DefaultRisk__From_Income_Debt'
-,'Moons'
-,'CarValueFromMiles'
-,"California_Housing"
+arenas   = [
+    #######################################################################
+    ######################### Regression ##################################
+    #######################################################################
 
-,"SimpleBinaryDecision"
-,"Customer_Churn_4X3"
-,"Predict_EnergyOutput__From_Weather_Turbine"
-,"Predict_Income_2_Inputs_Nonlinear"
-,'Predict_Income_Piecewise_Growth'
-,'Predict_Income_2_Inputs_5Coefficents'
-,"MultiModal_Nonlinear_Interactions"
-,"AutoNormalize_Challenge"
-,"CaliforniaHousePricesUSD"
-,"Bit_Flip_Memory"
-,'XOR'
-,"Chaotic_Function_Prediction"
-,"Circle_In_Square"
-,"Custom_Function_Recovery"
-,"One_Giant_Outlier"
-,"Sparse_Inputs"
-, 'Adversarial_Noise'       #BiggerIsNotBetter worked great, all defaults gradient exploded (with 4,4 architecture
-,'Chaotic_Solar_Periodic'    #89
-, 'Delayed_Effect_BloodSugar'  #4,4, with target scaling -TS hurt
-,'Piecewise_Regime'
-,'Red_Herring_Features'
-,'Redundant_Features'
-,'Target_Drift_Commodity'
-,'XOR_Floats'
+'Predict_Income_2_Inputs'
+      ]
+"""
+,'California_Housing'
+,'One_Giant_Outlier'
 ,'Nested_Sine_Flip'
-,'DefaultRisk__From_Income_Debt'
+,'Chaotic_Function_Prediction'
+,'Piecewise_Regime'
+,'Adversarial_Noise'
+,'MultiModal_Nonlinear_Interactions'
+
+,'MultiModal_Temperature'
+,'CaliforniaHousePricesUSD'
+,'Delayed_Effect_BloodSugar'
+,'Predict_EnergyOutput__From_Weather_Turbine'
+,'Chaotic_Solar_Periodic'
+,'Custom_Function_Recovery'
+,'Deceptive_Multi_Regime_Entangler'
+,'Predict_Income_2_Inputs_5Coefficents'
+,'Predict_Income_2_Inputs_Nonlinear'
+,'Predict_Income_Piecewise_Growth'
+,'Customer_Churn_4X3'
+,'AutoNormalize_Challenge'
+,'Red_Herring_Features'
+,'CarValueFromMiles'
 ,'Predict_MedicalCost_WithOutliers'
+,'Target_Drift_Commodity'
+,'Redundant_Features'
+
+    #######################################################################
+    ######################### Binary Decision #############################
+    #######################################################################
+
+  ,'Titanic'
+,'SimpleBinaryDecision'
+,'DefaultRisk__From_Income_Debt'
+,'DefaultRisk__From_Income_Debt'
+,'Bit_Flip_Memory'
+,'Parity_Check'
+,'XOR_Floats'
+,'Sparse_Inputs'
+,'Circle_In_Square'
+,'XOR'
+,'Moons'
+,'Iris_Two_Class'
 
 """
 
