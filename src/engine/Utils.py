@@ -172,6 +172,9 @@ def smart_format(num):
         return "0"
     #elif abs(num) < 1e-6:  # Use scientific notation for very small numbers
     #    return f"{num:.2e}"
+
+    elif abs(num) >= 1e8:  # Very large → scientific
+        return f"{num:.1e}"
     elif abs(num) < 0.001:  # Use 6 decimal places for small numbers
         #formatted = f"{num:,.6f}"
         return f"{num:.1e}"

@@ -102,6 +102,14 @@ class Iteration:
         return float(self.target - self.prediction_raw)
 
     @property
+    def error_unscaled(self):
+        return float(self.target_unscaled - self.prediction_unscaled)
+
+    @property
+    def absolute_error_unscaled(self) -> float:
+        return float(abs(self.error_unscaled))
+
+    @property
     def absolute_error(self) -> float:
         return float(abs(self.error))
 

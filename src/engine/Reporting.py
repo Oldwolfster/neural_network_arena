@@ -200,6 +200,7 @@ def epoch_create_view_epochSummary(db: RamDB):
             round((m.correct * 1.0 / (m.correct + m.wrong)) * 100,3) AS [Accuracy],
             m.wrong,
             m.mean_absolute_error,
+            m.mean_absolute_error_unscaled,
             m.mean_squared_error,
             m.root_mean_squared_error,
             n.combined_weights AS weights,
@@ -211,6 +212,7 @@ def epoch_create_view_epochSummary(db: RamDB):
                 SUM(is_true) AS correct,
                 SUM(is_false) AS wrong,
                 AVG(absolute_error) AS mean_absolute_error,
+                AVG(absolute_error_unscaled) AS mean_absolute_error_unscaled,
                 SUM(squared_error) / COUNT(*) AS mean_squared_error,
                 SQRT(SUM(squared_error) / COUNT(*)) AS root_mean_squared_error
             FROM Iteration
