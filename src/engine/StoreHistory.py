@@ -197,6 +197,19 @@ def create_snapshot_table(conn):
             problem_type TEXT,
             sample_count INTEGER,
             seed INTEGER,            
+
+
+            --target_min REAL,               -- either min numeric or count of smaller class
+            --target_max REAL,               -- either max numeric or count of larger class
+            
+            --target_min_label TEXT,         -- e.g., "Repay" or "0"
+            --target_max_label TEXT,         -- e.g., "Default" or "1"
+            
+            --target_mean REAL,              -- mean of target values (esp useful in regression)
+            --target_stdev REAL              -- standard deviation of targets
+            -- notes TEXT                    -- Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+
+            --rerun_config TEXT  -- Serialized config for re-running this experiment
             pk INTEGER PRIMARY KEY AUTOINCREMENT
         )
     ''')
