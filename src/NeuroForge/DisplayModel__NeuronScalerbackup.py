@@ -12,25 +12,28 @@ import json
 from src.engine.Utils_DataClasses import ez_debug
 
 from src.NeuroForge.DisplayModel__Neuron_Base import DisplayModel__Neuron_Base
-from src.NeuroForge.DisplayModel__NeuronScalerInputs import  DisplayModel__NeuronScalers
+from src.NeuroForge.DisplayModel__NeuronScalerInputs import  DisplayModel__NeuronScalerInputs
+from src.NeuroForge.DisplayModel__NeuronScalerPrediction import DisplayModel__NeuronScalerPrediction
 from src.engine.Utils_DataClasses import ez_debug
 
 class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
     def _from_base_constructor(self):
         """Called from DisplayModel_Neuron_Base constructor"""
         #ez_debug(text_ver = self.text_version)
-        self.location_width *= .9
-        self.trunk_width    = 69
-        self.neuron_visualizer      = DisplayModel__NeuronScalers(self, self.ez_printer)
-        if self.text_version == "Verbose":
-            self.banner_text = "Scaler"
+        self.location_width *= .59
+        self.trunk_width    = 169
+        #self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
+        if self.is_input == True:
+            self.banner_text = "Input Scaler"
+            self.neuron_visualizer      = DisplayModel__NeuronScalerInputs(self, self.ez_printer)
+            #ez_debug(banner=self.banner_text,inorout=self.is_input)
         else:
-            if self.is_input == True:
-                self.banner_text = "Input Scaler"
-                #ez_debug(banner=self.banner_text,inorout=self.is_input)
+            self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
+            if self.my_model.layer_width < 240:
+                self.banner_text = "UnScaler"
             else:
                 self.banner_text = "UnScaled Prediction"
-                #ez_debug(banner=self.banner_text,inorout=self.is_input)
+            #ez_debug(banner=self.banner_text,inorout=self.is_input)
 
     def draw_neuron(self):
         """Draw the neuron visualization."""
@@ -48,8 +51,8 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         # Draw the neuron body below the label
         body_y_start = self.location_top + label_strip_height
         body_height = self.location_height - label_strip_height
-        make_skinny = (self.location_width-self.trunk_width)/2
-        body_rect = (self.location_left+make_skinny, body_y_start, self.location_width-make_skinny*2, body_height)
+
+        body_rect = (self.location_left, body_y_start, self.location_width, body_height)
         #pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, (self.location_left, body_y_start, self.location_width, body_height), border_radius=6, width=7)
         pygame.draw.rect(self.screen,  Const.COLOR_FOR_NEURON_BODY, body_rect, border_radius=6, width=7)
         #print(f"drawing scaler neuron at = {body_rect}")
