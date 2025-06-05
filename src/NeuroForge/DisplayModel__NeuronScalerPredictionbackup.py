@@ -18,21 +18,37 @@ class DisplayModel__NeuronScalerPrediction:
 
     def __init__(self, neuron, ez_printer):
         # Configuration settings
+        self.padding_top                = 5
+        self.gap_between_bars           = 0
+        self.gap_between_weights        = 0
         self.BANNER_HEIGHT              = 29  # 4 pixels above + 26 pixels total height #TODO this should be tied to drawing banner rather than a const
-        self.oval_height                = 19
-        self.oval_overhang              =   12.069
-        # Neuron attributes
-        self.neuron                     = neuron  # ✅ Store reference to parent neuron
+        self.right_margin               = 40  # SET IN ITITALNew: Space reserved for activation visualization
+        self.padding_bottom             = 3
+        self.bar_border_thickness       = 1
+        self.oval_height                = 24
+        self.oval_overhang              =   1.069
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
+        # Neuron attributes
+        self.neuron                     = neuron  # ✅ Store reference to parent neuron
+        self.num_weights                = 0
+        self.bar_height                 = 20
+        self.max_activation             = 0
+
 
         # Weight mechanics
         self.ez_printer                 = ez_printer
         self.my_fcking_labels           = [] # WARNING: Do NOT rename. Debugging hell from Python interpreter defects led to this.
+        self.label_y_positions          = [] # for outgoing arrows
         self.need_label_coord           = True #track if we recorded the label positions for the arrows to point from
+        self.num_weights                = 0
+        self.neuron_height              = self.neuron.location_height
+
 
     def render(self):                   #self.debug_weight_changes()
+
         rs = Const.dm.get_model_iteration_data()
+        #ez_debug(rs=rs)
         prediction_raw      = rs.get("prediction_raw",  "[]")
         prediction_unscaled = rs.get("prediction_unscaled",  "[]")
         target_raw          = rs.get("target",  "[]")
@@ -40,22 +56,39 @@ class DisplayModel__NeuronScalerPrediction:
         error_raw           = target_raw - prediction_raw
         error_unscaled      = target_unscaled - prediction_unscaled
 
-        # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
+        prediction_unscaled=smart_format(prediction_unscaled)
+        #ez_debug(prediction_unscaled=prediction_unscaled)
+
+        oval_width  = self.neuron.location_width
+        oval_height = self.bar_height
+
+        # 2) draw the header (same hack you had before)
         start_x = self.neuron.location_left
         start_y = self.neuron.location_top-5
+
+        #Draws the 3d looking oval behind the header to differentiate
         #self.draw_oval_with_text(     start_x,            start_y,            oval_width,            35,            False,      #overhang            "",            "Scaler",            "",            self.font        )
 
-        self.output_one_set(1, target_raw,"Target", target_unscaled)
+        start_y = 60
+        oval1_y = start_y
+        oval2_y = start_y + self.oval_height*2
+        oval3_y = start_y + self.oval_height*4
 
-        self.output_one_set(2, prediction_raw,"Prediction", prediction_unscaled)
+        self.output_one_set(self.neuron.location_left- self.oval_overhang
+                            , self.neuron.location_top + oval1_y
+                            , target_raw,"Target", target_unscaled)
 
-        self.output_one_set(3, error_raw,"Error", error_unscaled)
+        self.output_one_set(self.neuron.location_left- self.oval_overhang
+                            , self.neuron.location_top + oval2_y
+                            , prediction_raw,"Prediction", prediction_unscaled)
 
-    def output_one_set(self, index, label, raw_value, unscaled_value):
-        start_y = 51
-        y_pos = (index - 1) * 2 * self.oval_height * .96 + start_y + self.neuron.location_top
+        self.output_one_set(self.neuron.location_left- self.oval_overhang
+                            , self.neuron.location_top + oval3_y
+                            , error_raw,"Error", error_unscaled)
+
+    def output_one_set(self, x_pos, y_pos, label, raw_value, unscaled_value):
         self.draw_oval_with_text(
-            self.neuron.location_left- self.oval_overhang,
+            x_pos,
             y_pos,
             self.neuron.location_width + self.oval_overhang*2,
             True,
@@ -70,6 +103,9 @@ class DisplayModel__NeuronScalerPrediction:
         if self.need_label_coord and raw_value == "Prediction":
             #print(f"LABEL2 ={label}")
             self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos+ self.oval_height * .5))
+            self.label_y_positions.append(
+                (x_pos + self.neuron.location_width + 5, y_pos)
+            )
             self.need_label_coord = False
 
 
@@ -100,10 +136,10 @@ class DisplayModel__NeuronScalerPrediction:
 
         # 2) compute the three areas
         radius = self.oval_height // 2
-        txt_y_adj = 52
-        label_area  = pygame.Rect(x + 12, y- self.oval_height   *  .69,   width - 2*radius-11, self.oval_height)
-        left_area   = pygame.Rect(x, y ,  self.oval_height, self.oval_height)
-        right_area  = pygame.Rect(x + width - self.oval_height-30, y , self.oval_height, self.oval_height)
+
+        label_area  = pygame.Rect(x + 1, y- self.oval_height   *  .69,   width - 2*radius-11, self.oval_height)
+        left_area   = pygame.Rect(x, y,  self.oval_height, self.oval_height)
+        right_area  = pygame.Rect(x + width - self.oval_height-30, y, self.oval_height, self.oval_height)
 
 
         if self.neuron.my_model.layer_width < 160:
@@ -117,8 +153,7 @@ class DisplayModel__NeuronScalerPrediction:
         #self.blit_text_aligned(self.neuron.screen, label_area, label, self.font, Const.COLOR_BLACK,  'left', padding)
         #self.blit_text_aligned(self.neuron.screen, pill_rect,  smart_format(unscaled_value), self.font, text_color,  'right',  padding)
         global_label_area = label_area.move(self.neuron.my_model.left, self.neuron.my_model.top)
-        txt_y_adj = 2
-        global_pill_rect =  pill_rect.move(self.neuron.my_model.left,self.neuron.my_model.top+ txt_y_adj)
+        global_pill_rect =  pill_rect.move(self.neuron.my_model.left,self.neuron.my_model.top)
 
         Const.dm.schedule_draw(
             self.blit_text_aligned,

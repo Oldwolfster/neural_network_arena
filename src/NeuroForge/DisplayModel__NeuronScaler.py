@@ -20,9 +20,13 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
     def _from_base_constructor(self):
         """Called from DisplayModel_Neuron_Base constructor"""
         #ez_debug(text_ver = self.text_version)
-        self.location_width *= .9
-        self.trunk_width    = 169
-        #self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
+        # Decrease width if possible
+        target_width= 136.9
+        if self.location_width> target_width:   #room to thin it out
+            if not  self.is_input:      #only move tthe prediction.. leav input where it is
+                self.location_left += (self.location_width-target_width) * .5
+            self.location_width = target_width
+
         if self.is_input == True:
             self.banner_text = "Input Scaler"
             self.neuron_visualizer      = DisplayModel__NeuronScalerInputs(self, self.ez_printer)
@@ -30,9 +34,9 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         else:
             self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
             if self.my_model.layer_width < 240:
-                self.banner_text = "UnScaler"
+                self.banner_text = "Scaled / Real"
             else:
-                self.banner_text = "UnScaled Prediction"
+                self.banner_text = "Scaled / Real"
             #ez_debug(banner=self.banner_text,inorout=self.is_input)
 
     def draw_neuron(self):

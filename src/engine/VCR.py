@@ -61,8 +61,9 @@ class VCR:
         if any(record_weight_updates_from_finalize):
             self.record_weight_updates(record_weight_updates_from_finalize, "finalize")
 
-        self.TRI.db.add(iteration_data)
         if not self.TRI.should_record(RecordLevel.FULL ): return
+        self.TRI.db.add(iteration_data)
+
         # Iterate over layers and neurons
         for layer_index, layer in enumerate(layers):
 
