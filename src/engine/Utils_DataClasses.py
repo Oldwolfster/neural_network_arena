@@ -24,6 +24,14 @@ class NNA_history:
     runtime_seconds: int
     final_mae: float
     sample_count: int
+    target_min : float                  # either min numeric or count of smaller class
+    target_max : float                  # either max numeric or count of larger class
+    target_min_label: str               # e.g., "Repay" or "0"
+    target_max_label:str                # e.g., "Default" or "1"
+    target_mean : float                 # mean of target values (esp useful in regression)
+    target_stdev : float                # standard deviation of targets
+    notes : str                 # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+    rerun_config : str
 
     @classmethod
     #def from_config(cls, learning_rate: float, epoch_count: int, last_error: float, config):
@@ -47,7 +55,15 @@ class NNA_history:
             convergence_condition   = TRI.converge_cond or "None",
             runtime_seconds         =TRI.time_seconds,
             final_mae               =TRI.get("mae"),
-            sample_count            =TRI.training_data.sample_count
+            sample_count            =TRI.training_data.sample_count,
+            target_min =TRI.training_data.target_min,                       # either min numeric or count of smaller class
+            target_max =TRI.training_data.target_min,                       # either max numeric or count of larger class
+            target_min_label=TRI.training_data.target_min_label,                   # e.g., "Repay" or "0"
+            target_max_label =TRI.training_data.target_max_label,                  # e.g., "Default" or "1"
+            target_mean =TRI.training_data.target_mean,                       # mean of target values (esp useful in regression)
+            target_stdev =TRI.training_data.target_stdev,                       # standard deviation of targets
+            notes ="notes here",                             # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+            rerun_config ="coming soon"
         )
 
     def display(self):

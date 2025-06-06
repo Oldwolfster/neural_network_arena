@@ -6,6 +6,7 @@ from src.Legos.LossFunctions import *
 from .RamDB import RamDB
 from .TrainingData import TrainingData
 
+
 from .convergence.ConvergenceDetector import ROI_Mode
 from .. import NeuroForge
 from ..ArenaSettings import HyperParameters
@@ -17,12 +18,15 @@ from dataclasses import dataclass, field
 class Config:
     # 🔹 Shared components for all models
 
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData, gladiator_name:str):
-        self.lego_selector: LegoSelector            = LegoSelector()
+    def __init__(self, TRI, hyper: HyperParameters, db: RamDB, training_data : TrainingData):
+        self.TRI                   = TRI
+        self.lego_selector: LegoSelector            = LegoSelector(TRI)
+
         self.training_data: TrainingData            = training_data # NOTE: training_data is stored in Config temporarily to support the rule engine.
 
         # 🔹 Unique components
-        self.gladiator_name: str                    = gladiator_name
+
+        #self.gladiator_name: str                    = gladiator_name
         self.optimizer                              = None #: Optimizer
         self.learning_rate: float                   = 0.0       # Read in beginning to instantiate  neurons with correct LR
         self.batch_mode: BatchMode                  = None

@@ -5,10 +5,10 @@ from src.engine.Utils_DataClasses import RecordLevel
 
 
 class LegoSelector:
-    def __init__(self):
+    def __init__(self, TRI):
         self.applied_rules = []
-        #if tri.should_record(RecordLevel.SUMMARY ):
-        #    print(f"\t🧠 Welcome to 'Smart Configuration' Anything not set in your model will be set to optimal conditions(hopefully) 🧠\n\t🧠 ", end=""),
+        if TRI.should_record(RecordLevel.SUMMARY ):
+            print(f"\t🧠 Welcome to 'Smart Configuration' Anything not set in your model will be set to optimal conditions(hopefully) 🧠\n\t🧠 ", end=""),
 
     def apply(self, config, rules, tri):
         # track which rule‐indices we’ve applied (and to what value)

@@ -40,32 +40,14 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.test_attribute         = None #TODO DELETE ME
         self.test_strategy          = None #TODO DELETE ME
 
-    def run_a_batchOriginal(self):          # lr_sweeps = self.check_for_learning_rate_sweeps(gladiators)   # Eventually Move this to TrainingBatchInfo
-        TRIs: List[TrainingRunInfo] = []
-        batch                       = TrainingBatchInfo(gladiators,arenas, dimensions)
-        total                       = len(batch.setups)
-        #print(f"batch={batch}")
-        for i, setup in enumerate(batch.setups):
-            if not setup.get("lr_specified", False): #feels backwards but is correct
-                setup["learning_rate"] = self.learning_rate_sweep(setup)
-            record_level = RecordLevel.FULL if i < self.shared_hyper.nf_count else RecordLevel.SUMMARY
-            print(f"Training Model ({i+1} of {total}) with these settings: {setup}")
-            TRIs.append(self.atomic_train_a_model(setup, record_level, epochs=0, run_id=i+1))                 # pprint.pprint(batch.ATAMs)            print(f"MAE of {TRIs[-1].get("lowest_mae")}")
-        #TRIs[0].db.query_print("Select * From EpochSummary")
-        #generate_reports            (self.db, TRIs[0].training_data)
-        #TRIs[0].db.list_tables(3)
-        TRIs[0].db.copy_tables_to_permanent()
-        #TRIs[0].db.query_print("Select * From Weight")
-        neuroForge                  (TRIs[-4:])
-
     def run_a_batch(self):
         TRIs: List[TrainingRunInfo] = []
         batch                       = TrainingBatchInfo(gladiators, arenas, dimensions)
         while True:
             setup                   = batch.mark_done_and_get_next_config()
             if setup is None:         break
-            print                   ( f"💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪")
-            print                   ( f"💪 Training Model ({batch.id_of_current} of {batch.id_of_last}) with these settings: {setup}")
+            print                   ( f"\n💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪")
+            print                   ( f"💪 {batch.id_of_current} of {batch.id_of_last} being trained with these settings: {setup}")
             if not setup.get        ( "lr_specified", False):   setup["learning_rate"] = self.learning_rate_sweep(setup)
             record_level            = RecordLevel.FULL if batch.id_of_current <= self.shared_hyper.nf_count else RecordLevel.SUMMARY
             TRI                     = self.atomic_train_a_model(setup, record_level, epochs=0, run_id=batch.id_of_current)
