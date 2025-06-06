@@ -175,3 +175,43 @@ class TrainingData:
         upper_bound = mean + std_threshold * std
         lower_bound = mean - std_threshold * std
         return np.all((arr >= lower_bound) & (arr <= upper_bound))
+
+    @property
+    def target_values(self):
+        return [row[-1] for row in self.raw_data]
+
+    @property
+    def target_mean(self) -> float:
+        if "target_mean" not in self._cache:
+            self._cache["target_mean"] = float(np.mean(self.target_values))
+        return self._cache["target_mean"]
+
+    @property
+    def target_stdev(self) -> float:
+        if "target_stdev" not in self._cache:
+            self._cache["target_stdev"] = float(np.std(self.target_values))
+        return self._cache["target_stdev"]
+
+    @property
+    def target_min(self) -> float:
+        if "target_min" not in self._cache:
+            self._cache["target_min"] = float(min(self.target_values))
+        return self._cache["target_min"]
+
+    @property
+    def target_max(self) -> float:
+        if "target_max" not in self._cache:
+            self._cache["target_max"] = float(max(self.target_values))
+        return self._cache["target_max"]
+
+    @property
+    def target_min_label(self) -> Optional[str]:
+        if not self.target_labels or len(set(self.target_values)) != 2:
+            return None
+        return self.target_labels[0]
+
+    @property
+    def target_max_label(self) -> Optional[str]:
+        if not self.target_labels or len(set(self.target_values)) != 2:
+            return None
+        return self.target_labels[1]

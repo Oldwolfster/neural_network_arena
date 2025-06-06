@@ -31,10 +31,11 @@ class TrainingRunInfo:
     def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id, record_level: RecordLevel):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
+        self.record_level:      RecordLevel         = record_level
         self.hyper:              HyperParameters    = hyper
         self.db:                 RamDB              = db
         self.training_data:      TrainingData       = training_data
-        self.config:             Config             = Config(hyper=self.hyper,db=self.db, training_data=self.training_data, gladiator_name=setup["gladiator"])
+        self.config:             Config             = Config(self , hyper=self.hyper, db=self.db, training_data=self.training_data, )
         #self.lego_selector:      LegoSelector       = LegoSelector()
         self.setup                                  = setup
 
@@ -44,7 +45,6 @@ class TrainingRunInfo:
         self.seed:              int                 = seed
         self.time_start:        datetime            = datetime.now()
         self.time_end:          datetime            = None
-        self.record_level:      RecordLevel         = record_level
         self.last_epoch:        int                 = 0
         self.converge_cond:     str                 = None
 

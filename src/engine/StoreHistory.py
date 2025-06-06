@@ -66,9 +66,17 @@ def insert_snapshot(conn, snapshot: NNA_history):
             convergence_condition,
             problem_type,
             sample_count,
+            target_min,
+            target_max,
+            target_min_label,
+            target_max_label,
+            target_mean,
+            target_stdev,
+            notes,
+            rerun_config,  
             seed
              
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?,  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ''', (
         timestamp,
         snapshot.run_id,
@@ -89,6 +97,14 @@ def insert_snapshot(conn, snapshot: NNA_history):
         snapshot.convergence_condition,
         snapshot.problem_type,
         snapshot.sample_count,
+        snapshot.target_min,
+        snapshot.target_max,
+        snapshot.target_min_label,
+        snapshot.target_max_label,
+        snapshot.target_mean,
+        snapshot.target_stdev,
+        snapshot.notes,
+        snapshot.rerun_config,
         snapshot.seed,
     ))
     conn.commit()
@@ -142,6 +158,15 @@ def export_snapshot_to_csv(snapshot: NNA_history, timestamp, csv_filename='arena
                 'convergence_condition',
                 'problem_type',
                 'sample_count',
+                'target_min',                # either min numeric or count of smaller class
+                'target_max',
+                'target_min_label',          # e.g., "Repay" or "0"
+                'target_max_label',          # e.g., "Default" or "1"
+                'target_mean',               # mean of target values (esp useful in regression)
+                'target_stdev',              #-- standard deviation of targets
+                'notes',    # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+                'rerun_config',# Serialized config for re-running this experiment
+
                 'seed'
 
             ]
@@ -168,8 +193,15 @@ def export_snapshot_to_csv(snapshot: NNA_history, timestamp, csv_filename='arena
             snapshot.convergence_condition,
             snapshot.problem_type,
             snapshot.sample_count,
-            snapshot.seed,
-
+            snapshot.target_min,
+            snapshot.target_max,
+            snapshot.target_min_label,
+            snapshot.target_max_label,
+            snapshot.target_mean,
+            snapshot.target_stdev,
+            snapshot.notes,
+            snapshot.rerun_config,
+            snapshot.seed
         ])
 
 
@@ -196,20 +228,18 @@ def create_snapshot_table(conn):
             convergence_condition TEXT,        
             problem_type TEXT,
             sample_count INTEGER,
-            seed INTEGER,            
-
-
-            --target_min REAL,               -- either min numeric or count of smaller class
-            --target_max REAL,               -- either max numeric or count of larger class
             
-            --target_min_label TEXT,         -- e.g., "Repay" or "0"
-            --target_max_label TEXT,         -- e.g., "Default" or "1"
             
-            --target_mean REAL,              -- mean of target values (esp useful in regression)
-            --target_stdev REAL              -- standard deviation of targets
-            -- notes TEXT                    -- Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
-
-            --rerun_config TEXT  -- Serialized config for re-running this experiment
+            target_min REAL,                -- either min numeric or count of smaller class
+            target_max REAL,                -- either max numeric or count of larger class            
+            target_min_label TEXT,          -- e.g., "Repay" or "0"
+            target_max_label TEXT,          -- e.g., "Default" or "1"            
+            target_mean REAL,               -- mean of target values (esp useful in regression)
+            target_stdev REAL,               -- standard deviation of targets
+            notes TEXT,                      -- Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+              
+            rerun_config TEXT,               -- Serialized config for re-running this experiment
+            seed INTEGER,
             pk INTEGER PRIMARY KEY AUTOINCREMENT
         )
     ''')
