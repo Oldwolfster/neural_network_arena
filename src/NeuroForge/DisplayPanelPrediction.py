@@ -36,15 +36,15 @@ class DisplayPanelPrediction(EZForm):
 
         # Extract values
         target          = rs_iteration.get("target_unscaled", 0.0)
-        prediction      = rs_iteration.get("prediction_unscaled", 0.0)
-        prediction_raw  = rs_iteration.get("prediction_raw", 0.0)
+        prediction      = rs_iteration.get("prediction", 0.0)
+        prediction_raw  = rs_iteration.get("prediction_unscaled", 0.0)
         loss_gradient   = rs_iteration.get("loss_gradient", 0.0)
         error           = rs_iteration.get("error_unscaled", 0.0)
         avg_error       = rs_epoch.get("mean_absolute_error_unscaled", 0.0)
 
         # 🧠 Binary Decision Special Case
         if self.problem_type == "Binary Decision":
-            predictions = f"{smart_format(prediction_raw)} ({smart_format(prediction)})"
+            predictions = f"{smart_format(prediction_raw)} / {smart_format(prediction)}"
             if abs(prediction - target) < 1e-6:
                 self.banner_text = "Correct"
                 self.set_colors(1)

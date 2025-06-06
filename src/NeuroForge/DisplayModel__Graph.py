@@ -9,11 +9,11 @@ from src.engine.Utils import smart_format
 
 class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):
-    def __init__(self, width, height, left, top, model_surface, run_id, my_model):
+    def __init__(self, width, height, left, top, model_surface, run_id, model):
         """Creates a Graph showing MAE over epoch"""
         #super().__init__(width_pct, height_pct, left_pct, top_pct, bg_color=Const.COLOR_BLUE)
         #super().__init__(width_pct=0, left_pct=0, top_pct=0, height_pct=0,                         pixel_adjust_width=width, pixel_adjust_left=left,                         pixel_adjust_top=top, pixel_adjust_height=height)
-        self.my_model               = my_model #reference to DisplayManager__Model object
+        self.model               = model #reference to DisplayManager__Model object
         self.model_surface          = model_surface
 
         # Positioning
@@ -32,7 +32,7 @@ class DisplayModel__Graph():
 
         # Create header text
         self.header_text = "Error History"
-        #self.error_text = f"{smart_format(my_model.config.lowest_error)} at {my_model.config.lowest_error_epoch} "
+        #self.error_text = f"{smart_format(model.config.lowest_error)} at {model.config.lowest_error_epoch} "
         #self.error_text = "Coming soon"
         self.error_text = ""
         self.font = pygame.font.Font(None, 30)
@@ -42,7 +42,7 @@ class DisplayModel__Graph():
         Also ensures pygame_gui receives events.
         """
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # Left click
-            self.check_click(self.my_model.left,self.my_model.top)
+            self.check_click(self.model.left,self.model.top)
 
     def check_click(self, model_x, model_y):
         """
@@ -52,10 +52,10 @@ class DisplayModel__Graph():
         neuron_x = model_x + self.location_left
         neuron_y = model_y + self.location_top
         if (neuron_x <= mouse_x <= neuron_x + self.location_width) and (neuron_y <= mouse_y <= neuron_y + self.location_height):
-            #print (f"You click me at {mouse_x - self.my_model.left - self.location_left } of {self.location_width}")
-            click_ratio = (mouse_x - self.my_model.left - self.location_left) / self.location_width
+            #print (f"You click me at {mouse_x - self.model.left - self.location_left } of {self.location_width}")
+            click_ratio = (mouse_x - self.model.left - self.location_left) / self.location_width
             click_ratio = max(0, min(click_ratio, 1))  # Clamp to [0, 1]
-            #TODO FIX THIS target_epoch = int(click_ratio * self.my_model.config.finl_epoh)
+            #TODO FIX THIS target_epoch = int(click_ratio * self.model.config.finl_epoh)
             #TODO FIX THIS Const.vcr.jump_to_epoch(target_epoch)
 
 

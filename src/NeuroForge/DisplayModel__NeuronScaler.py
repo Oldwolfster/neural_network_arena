@@ -38,7 +38,7 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
             self.banner_text = "Thresholder"
         else:
             self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
-            if self.my_model.layer_width < 240:
+            if self.model.layer_width < 240:
                 self.banner_text = "Scaled / Real"
             else:
                 self.banner_text = "Scaled / Real"

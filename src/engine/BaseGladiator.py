@@ -57,13 +57,16 @@ class Gladiator(ABC):
             initializers        = [self.config.initializer],         # <- List of 1 initializer
             hidden_activation   = self.config.hidden_activation,
             output_activation   = self.config.output_activation or self.config.loss_function.recommended_output_activation)
-        ez_debug(outputNNN=Neuron.output_neuron.activation.bd_defaults)
+        #ez_debug(outputNNN=Neuron.output_neuron.activation.bd_defaults)
         self.customize_neurons  (self.config)                 # Typically overwritten in child  class.
         self.TRI.set("bd_target_alpha"   , Neuron.output_neuron.activation.bd_defaults[0])
         self.TRI.set("bd_target_beta"    , Neuron.output_neuron.activation.bd_defaults[1])
         self.TRI.set("bd_threshold"     , Neuron.output_neuron.activation.bd_defaults[2])
         self.TRI.set("bd_label_alpha", self.TRI.training_data.target_labels[0])
         self.TRI.set("bd_label_beta", self.TRI.training_data.target_labels[1])
+        #beta = self.TRI.get("bd_class_beta")
+        #alph = self.TRI.get("bd_class_alpha")
+        #ez_debug(beta1=beta,alph1 = alph)
 
     def configure_model(self, config: Config):  pass #Typically overwritten in child  class.
     def customize_neurons(self,config: Config): pass #Typically overwritten in child  class.
@@ -113,10 +116,15 @@ class Gladiator(ABC):
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def threshold(self, value):
+        beta = self.TRI.get("bd_target_beta")
+        alph = self.TRI.get("bd_target_alpha")
+        thresh = self.TRI.get("bd_threshold")
+
+        #ez_debug(beta2=beta,alph2 = alph, thresh=thresh, value2 = value)
         if value >= self.TRI.get("bd_threshold"):
-            return self.TRI.get("bd_target_alpha")
+            return self.TRI.get("bd_target_beta")
         else:
-            return self.TRI.get("bd_class_beta")
+            return self.TRI.get("bd_target_alpha")
 
     def run_a_sample(self, sample, sample_unscaled):
 

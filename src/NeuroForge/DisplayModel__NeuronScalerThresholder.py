@@ -27,7 +27,10 @@ class DisplayModel__NeuronScalerThresholder:
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
-        self.neuron.location_top        =           249
+        #self.neuron.location_top        = 249
+        above_neuron                    = neuron.model.prediction_scaler_neuron
+        self.neuron.location_top        = above_neuron.location_top + above_neuron.location_height+6.9
+        self.neuron.location_height     = 96
 
 
         # Weight mechanics
@@ -108,7 +111,7 @@ class DisplayModel__NeuronScalerThresholder:
         right_area  = pygame.Rect(x + width - self.oval_height-30, y , self.oval_height, self.oval_height)
 
 
-        if self.neuron.my_model.layer_width < 160:
+        if self.neuron.model.layer_width < 160:
             text1 = ""    #not enough room so remove it.
 
         # 3) blit the three texts
@@ -118,9 +121,9 @@ class DisplayModel__NeuronScalerThresholder:
         #self.blit_text_aligned(self.neuron.screen, pill_rect,  smart_format(raw_value), self.font, text_color,   'left',   padding)
         #self.blit_text_aligned(self.neuron.screen, label_area, label, self.font, Const.COLOR_BLACK,  'left', padding)
         #self.blit_text_aligned(self.neuron.screen, pill_rect,  smart_format(unscaled_value), self.font, text_color,  'right',  padding)
-        global_label_area = label_area.move(self.neuron.my_model.left, self.neuron.my_model.top)
+        global_label_area = label_area.move(self.neuron.model.left, self.neuron.model.top)
         txt_y_adj = 2
-        global_pill_rect =  pill_rect.move(self.neuron.my_model.left,self.neuron.my_model.top+ txt_y_adj)
+        global_pill_rect =  pill_rect.move(self.neuron.model.left,self.neuron.model.top+ txt_y_adj)
 
         Const.dm.schedule_draw(
             self.blit_text_aligned,
@@ -173,7 +176,7 @@ class DisplayModel__NeuronScalerThresholder:
 
     def draw_top_plane(self):
         # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
-        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-6.9, self.neuron.location_width, self.banner_height )
+        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-3.69, self.neuron.location_width, self.banner_height* .369 )
         self.draw_pill(top_plan_rect)
         #self.draw_differentshapeneuron()
 

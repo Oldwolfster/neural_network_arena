@@ -109,7 +109,7 @@ class DisplayModel(EZSurface):
         GeneratorNeuron.create_neurons(self, max_activation)
         for layer in self.neurons:
             for neuron in layer:
-                neuron.my_model = self
+                neuron.model = self
 
         # Create error over epochs graph
         self.graph = self.create_graph(self.graph_holder)# Add Graph  # MAE over epoch
@@ -140,7 +140,7 @@ class DisplayModel(EZSurface):
 
     def create_graph(self, gh):
         doublewide= gh.location_width * 2 + 20
-        return DisplayModel__Graph(left=gh.location_left, width=doublewide , top=gh.location_top, height=gh.location_height, model_surface=self.surface, run_id=self.run_id, my_model=self)
+        return DisplayModel__Graph(left=gh.location_left, width=doublewide , top=gh.location_top, height=gh.location_height, model_surface=self.surface, run_id=self.run_id, model=self)
 
     def render(self):
         """Draw neurons and connections."""

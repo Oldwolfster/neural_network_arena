@@ -124,6 +124,10 @@ class DisplayArrowsOutsideNeuron(EZSurface):
                 end_x = model.left + model.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][0]
                 end_y = model.top + model.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][1]
                 self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+            if 1== 2 and model.thresholder:
+                end_x = model.left + model.thresholder.neuron_visualizer.my_fcking_labels[0][0]
+                end_y = model.top + model.thresholder.neuron_visualizer.my_fcking_labels[0][0]
+
 
 
     def render(self):

@@ -103,7 +103,7 @@ class DisplayModel__NeuronScalerPrediction:
         right_area  = pygame.Rect(x + width - self.oval_height-30, y , self.oval_height, self.oval_height)
 
 
-        if self.neuron.my_model.layer_width < 160:
+        if self.neuron.model.layer_width < 160:
             text1 = ""    #not enough room so remove it.
 
         # 3) blit the three texts
@@ -113,9 +113,9 @@ class DisplayModel__NeuronScalerPrediction:
         #self.blit_text_aligned(self.neuron.screen, pill_rect,  smart_format(raw_value), self.font, text_color,   'left',   padding)
         #self.blit_text_aligned(self.neuron.screen, label_area, label, self.font, Const.COLOR_BLACK,  'left', padding)
         #self.blit_text_aligned(self.neuron.screen, pill_rect,  smart_format(unscaled_value), self.font, text_color,  'right',  padding)
-        global_label_area = label_area.move(self.neuron.my_model.left, self.neuron.my_model.top)
+        global_label_area = label_area.move(self.neuron.model.left, self.neuron.model.top)
         txt_y_adj = 2
-        global_pill_rect =  pill_rect.move(self.neuron.my_model.left,self.neuron.my_model.top+ txt_y_adj)
+        global_pill_rect =  pill_rect.move(self.neuron.model.left,self.neuron.model.top+ txt_y_adj)
 
         Const.dm.schedule_draw(
             self.blit_text_aligned,

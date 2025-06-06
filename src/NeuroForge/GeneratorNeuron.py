@@ -120,7 +120,7 @@ class GeneratorNeuron:
                     output_layer=0,
                     text_version=text_version,
                     run_id=GeneratorNeuron.model.run_id,
-                    my_model=GeneratorNeuron.model,
+                    model=GeneratorNeuron.model,
                     screen= GeneratorNeuron.model.surface, max_activation=max_act,
                     is_input=is_input
 
@@ -141,7 +141,7 @@ class GeneratorNeuron:
                             output_layer=0,
                             text_version=text_version,
                             run_id=GeneratorNeuron.model.run_id,
-                            my_model=GeneratorNeuron.model,
+                            model=GeneratorNeuron.model,
                             screen= GeneratorNeuron.model.surface, max_activation=max_act,
                             is_input=is_input
                         )
