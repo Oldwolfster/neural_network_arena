@@ -12,7 +12,7 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
-    training_set_size       :int    = 3        # Qty of training data
+    training_set_size       :int    = 10        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
     nf_count                :int    = 4
     min_no_epochs           :int    = 0         # run for at least this many epochs
@@ -69,12 +69,6 @@ gladiators = [
     #'GBS'
     #'Simplex'
     #'NeuroShepherd'
-    #,'Simplex2'
-    #'GBS'
-    #'BCEWL_LR_Sweep'
-   # 'BCEWL_LR_Set_to_point1'
-    #'Hand_Tuned'
-    #,'test_newOpt'
    #,'NeuroForge_Template'
     #'_Template_Simpletron'
 ]
@@ -87,15 +81,14 @@ gladiators = [
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas  = ['CaliforniaHousePricesUSD']
-arenas2  = ['Iris_Two_Class']
-arenas   = [
+arenas  = ['GoofyBinaryDecision']
+arenas2  = [
     #######################################################################
     ######################### Regression ##################################
     #######################################################################
 
 'Predict_Income_2_Inputs'
-      ]
-"""
+
 ,'California_Housing'
 ,'One_Giant_Outlier'
 ,'Nested_Sine_Flip'
@@ -139,6 +132,10 @@ arenas   = [
 ,'Moons'
 ,'Iris_Two_Class'
 
+
+
+      ]
+"""
 """
 
 

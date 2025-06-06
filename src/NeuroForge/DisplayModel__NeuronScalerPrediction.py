@@ -20,13 +20,13 @@ class DisplayModel__NeuronScalerPrediction:
         # Configuration settings
         self.banner_height              = 40
         self.oval_height                = 19
-        self.oval_vertical_tweak        = 63.9
+        self.oval_vertical_tweak        = 56.69
         self.oval_overhang              =   12.069
         # Neuron attributes
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
-
+        self.neuron.location_top        =   69
 
 
         # Weight mechanics
@@ -168,7 +168,7 @@ class DisplayModel__NeuronScalerPrediction:
 
     def draw_top_plane(self):
         # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
-        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-10, self.neuron.location_width, self.banner_height )
+        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-6.9, self.neuron.location_width, self.banner_height )
         self.draw_pill(top_plan_rect)
         #self.draw_differentshapeneuron()
 

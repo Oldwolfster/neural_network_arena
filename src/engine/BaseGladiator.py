@@ -36,9 +36,6 @@ class Gladiator(ABC):
         self.VCR                    = VCR(TRI, Neuron.neurons)  # Args3, is ramdb
         self.total_iterations       = 1                         # Timestep for optimizers such as adam
         self.number_of_epochs       = self.hyper.epochs_to_run
-        self._bd_threshold          = None
-        self._bd_class_alpha        = None
-        self._bd_class_beta         = None
         self.iteration              = 0
         self.epoch                  = 0
         self.too_high_adjst         = self.training_data.input_max * 5 #TODO make '5' a hyperparamter
@@ -59,9 +56,14 @@ class Gladiator(ABC):
             architecture        = self.config.architecture.copy(),   # Avoid mutation
             initializers        = [self.config.initializer],         # <- List of 1 initializer
             hidden_activation   = self.config.hidden_activation,
-            output_activation   = self.config.output_activation
-            or self.config.loss_function.recommended_output_activation)
-        self.customize_neurons(self.config)                 # Typically overwritten in child  class.
+            output_activation   = self.config.output_activation or self.config.loss_function.recommended_output_activation)
+        ez_debug(outputNNN=Neuron.output_neuron.activation.bd_defaults)
+        self.customize_neurons  (self.config)                 # Typically overwritten in child  class.
+        self.TRI.set("bd_target_alpha"   , Neuron.output_neuron.activation.bd_defaults[0])
+        self.TRI.set("bd_target_beta"    , Neuron.output_neuron.activation.bd_defaults[1])
+        self.TRI.set("bd_threshold"     , Neuron.output_neuron.activation.bd_defaults[2])
+        self.TRI.set("bd_label_alpha", self.TRI.training_data.target_labels[0])
+        self.TRI.set("bd_label_beta", self.TRI.training_data.target_labels[1])
 
     def configure_model(self, config: Config):  pass #Typically overwritten in child  class.
     def customize_neurons(self,config: Config): pass #Typically overwritten in child  class.
@@ -110,6 +112,12 @@ class Gladiator(ABC):
                 return  "Gradient Explosion" #Check for gradient explosion
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
+    def threshold(self, value):
+        if value >= self.TRI.get("bd_threshold"):
+            return self.TRI.get("bd_target_alpha")
+        else:
+            return self.TRI.get("bd_class_beta")
+
     def run_a_sample(self, sample, sample_unscaled):
 
         self                . snapshot_weights("", "_before")
@@ -117,7 +125,7 @@ class Gladiator(ABC):
 
         # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
-        prediction_thresh   = self.config.threshold_prediction(prediction_raw)
+        prediction_thresh   = self.threshold(prediction_raw)
 
         # Step 4: Record iteration data
         iteration_data = Iteration(
@@ -407,46 +415,9 @@ class Gladiator(ABC):
         #print(f"architecture2 = {self.config.architecture}  Neuron count = {len(Neuron.neurons)}")
 
     ################################################################################################
-    ################################ SECTION 4 - Binary Decision logic ####################################
+    ################################ SECTION 4 - Misc ####################################
     ################################################################################################
-    @property
-    def bd_class_alpha(self):
-        return self._bd_class_alpha
 
-    @bd_class_alpha.setter
-    def bd_class_alpha(self, value):
-        rule = self.config.loss_function.bd_rules[2]  # Extract the modification rule
-        if rule.startswith("Error"):
-            raise ValueError(f"🚨 Modification of bd_class_alpha is not allowed for this loss function! {rule}")
-        if rule.startswith("Warning"):
-            print(f"⚠️ {rule}")  # Show warning but allow modification
-        self._bd_class_alpha = value
-
-    @property
-    def bd_class_beta(self):
-        return self._bd_class_beta
-
-    @bd_class_beta.setter
-    def bd_class_beta(self, value):
-        rule = self.config.loss_function.bd_rules[2]  # Extract the modification rule
-        if rule.startswith("Error"):
-            raise ValueError(f"🚨 Modification of bd_class_alpha is not allowed for this loss function! {rule}")
-        if rule.startswith("Warning"):
-            print(f"⚠️ {rule}")  # Show warning but allow modification
-        self._bd_class_beta = value
-
-    @property
-    def bd_threshold(self):
-        return self._bd_threshold
-
-    @bd_threshold.setter
-    def bd_threshold(self, value):
-        rule = self.config.loss_function.bd_rules[3]  # Extract the modification rule
-        if rule.startswith("Error"):
-            raise ValueError(f"🚨 Modification of Threshold is not allowed for this loss function! {rule}")
-        if rule.startswith("Warning"):
-            print(f"⚠️ {rule}")  # Show warning but allow modification
-        self._bd_threshold = value
 
     def on_epoch_end(self, epoch, error_summary):
         """

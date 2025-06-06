@@ -4,6 +4,7 @@ from src.NeuroForge.ButtonBase import Button_Base
 from src.NeuroForge.DisplayArrow import DisplayArrow
 from src.NeuroForge.DisplayModel__Graph import DisplayModel__Graph
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
+from src.NeuroForge.DisplayModel__NeuronScaler import DisplayModel__NeuronScaler
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
 from src.NeuroForge.PopupArchitecture import ArchitecturePopup
@@ -13,7 +14,7 @@ from src.engine.Utils import draw_rect_with_border, draw_text_with_background, e
 from src.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
-    __slots__ = ("TRI", "last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "run_id", "graph_holder", "graph")
+    __slots__ = ("TRI", "thresholder", "last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "run_id", "graph_holder", "graph")
     def __init__(self, TRI: TrainingRunInfo, position: dict )   :
         """Initialize a display model using pixel-based positioning."""
         super().__init__(
@@ -34,6 +35,7 @@ class DisplayModel(EZSurface):
         self.last_epoch     = TRI.last_epoch
         #print(f"self.last_epoch = {self.last_epoch}")
         self.graph          = None
+        self.thresholder    = None
         self.input_scaler_neuron = None
         self.prediction_scaler_neuron = None
         #self.run_id       = TRI.gladiator
@@ -115,6 +117,26 @@ class DisplayModel(EZSurface):
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
 
+        ez_debug(BD=self.TRI.training_data.is_binary_decision)
+        # Create thresholder if problem type is BD
+        if  1== 2 : #self.TRI.training_data.is_binary_decision:
+            predictor = self.prediction_scaler_neuron
+            ez_debug(predictor=predictor)
+            self.thresholder = DisplayModel__NeuronScaler(
+                self,
+                left=predictor.location_left + 10,
+                top=predictor.location_top + 10,
+                width=predictor.location_width,
+                height=predictor.location_height,
+                nid=-1,         # Not in data flow
+                layer=-1,
+                position=0,
+                output_layer=0,
+                text_version=predictor.text_version,
+                run_id=self.TRI.run_id,
+                screen=self.surface,
+                max_activation=0
+            )
 
     def create_graph(self, gh):
         doublewide= gh.location_width * 2 + 20
@@ -132,6 +154,9 @@ class DisplayModel(EZSurface):
             self.input_scaler_neuron.draw_neuron()
         if self.prediction_scaler_neuron is not None:
             self.prediction_scaler_neuron.draw_neuron()
+        if self.thresholder is not None:
+            #print("drawing thresholder")
+            self.thresholder.draw_neuron()
 
         for layer in self.neurons:
             for neuron in layer:

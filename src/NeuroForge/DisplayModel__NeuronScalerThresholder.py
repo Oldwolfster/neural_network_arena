@@ -3,7 +3,7 @@ from src.engine.Utils import *
 from src.NeuroForge import Const
 import json
 
-class DisplayModel__NeuronScalerInputs:
+class DisplayModel__NeuronScalerThresholder:
     """
     DisplayModel__NeuronWeights is created by DisplayModel_Neuron.
     It is an instance of visualizer following the  strategy pattern.
@@ -18,24 +18,24 @@ class DisplayModel__NeuronScalerInputs:
 
     def __init__(self, neuron, ez_printer):
         # Configuration settings
+        #print("hello from thresh")
         self.banner_height              = 40
         self.oval_height                = 19
-        self.oval_vertical_tweak        = 96
+        self.oval_vertical_tweak        = 39.699
         self.oval_overhang              =   12.069
         # Neuron attributes
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
-        self.scale_methods              = self.neuron.config.scaler.get_scaling_names()
-        self.scaled_inputs              = None
-        self.unscaled_inputs            = None
+        self.neuron.location_top        =           249
+
 
         # Weight mechanics
         self.ez_printer                 = ez_printer
         self.my_fcking_labels           = [] # WARNING: Do NOT rename. Debugging hell from Python interpreter defects led to this.
         self.label_y_positions          = []
         self.need_label_coord           = True #track if we recorded the label positions for the arrows to point from
-        self.neuron.location_top= 96
+
     def render(self):                   #self.debug_weight_changes()
         rs = Const.dm.get_model_iteration_data()
         prediction_raw      = rs.get("prediction_raw",  "[]")
@@ -46,25 +46,22 @@ class DisplayModel__NeuronScalerInputs:
         error_unscaled      = rs.get("error_unscaled",  "[]")
 
         self.draw_top_plane()
-        self.get_info()
 
-        for i, ((scaled, unscaled), method) in enumerate(
-            zip(zip(self.scaled_inputs, self.unscaled_inputs), self.scale_methods)
-        ):
-            self.output_one_set(i, unscaled,method, scaled)
+        question = f"if {smart_format(prediction_raw)} is > {self.neuron.TRI.get('bd_threshold')}"
+        self.output_one_set(1, question ,"", "")
+        self.output_one_set(2, "YES ->", "",self.neuron.TRI.get('bd_target_alpha'))
+        self.output_one_set(3,"NO  ->", "",self.neuron.TRI.get('bd_target_beta'))
         self.need_label_coord = False
-
-
-
-
 
     def output_one_set(self, index, label, raw_value, unscaled_value):
 
-        y_pos = (index - 1) * 2 * self.oval_height * .96 +self.oval_vertical_tweak + self.neuron.location_top
+        y_pos = (index - 1) * self.oval_height * 1.1369 +self.oval_vertical_tweak + self.neuron.location_top
+
+        x_offset = 20 if index>1 else 0 # indent 2nd two ovals
         self.draw_oval_with_text(
-            self.neuron.location_left- self.oval_overhang,
+            self.neuron.location_left- self.oval_overhang+x_offset,
             y_pos,
-            self.neuron.location_width + self.oval_overhang*2,
+            self.neuron.location_width + self.oval_overhang*2-x_offset,
             True,
             label,
             raw_value,
@@ -74,14 +71,9 @@ class DisplayModel__NeuronScalerInputs:
         )
         #print(f"LABEL1 ={label}")
         if self.need_label_coord: #  and raw_value == "Prediction":
-            #incoming arrows
-            self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang - 6.9, y_pos+ self.oval_height * .5-5))
-            #outgoing arrows
-            self.label_y_positions.append((self.neuron.location_left + self.oval_overhang + self.neuron.location_width + 6.9, y_pos+ self.oval_height * .5-16.9))
-            #Ensure large enough
-            self.neuron.location_height = y_pos - self.oval_vertical_tweak  + 1.69 * self.oval_height
-
-
+            self.label_y_positions.append((self.neuron.location_left + self.oval_overhang + self.neuron.location_width, y_pos+ self.oval_height * .5))
+            if raw_value == "Prediction":
+                self.my_fcking_labels.append((self.neuron.location_left- self.oval_overhang, y_pos+ self.oval_height * .5))
 
 
     def draw_oval_with_text(
@@ -181,8 +173,9 @@ class DisplayModel__NeuronScalerInputs:
 
     def draw_top_plane(self):
         # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
-        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-10, self.neuron.location_width, self.banner_height )
+        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-6.9, self.neuron.location_width, self.banner_height )
         self.draw_pill(top_plan_rect)
+        #self.draw_differentshapeneuron()
 
 
     def draw_pill(self,  rect, color= Const.COLOR_BLUE):
@@ -221,34 +214,3 @@ class DisplayModel__NeuronScalerInputs:
             r.centerx = area_rect.centerx
 
         surface.blit(surf, r)
-
-##############################################
-    ################################
-
-    def get_info(self):
-        """
-        Changed for Input Scaler.
-        This function ensures ovals are evenly spaced and positioned inside the neuron.
-        """
-        rs = Const.dm.get_model_iteration_data()
-
-        def load_list(raw):
-            # if it’s a JSON‐string list, parse it…
-            if isinstance(raw, str):
-                return json.loads(raw)
-            # if it’s already a list, use it…
-            if isinstance(raw, list):
-                return raw
-            # if it’s a bare number (float/int), wrap it into a one-element list
-            if isinstance(raw, (int, float)):
-                return [raw]
-            # fallback to empty
-            return []
-
-        self.unscaled_inputs = load_list(rs.get("inputs_unscaled",  "[]"))
-        self.scaled_inputs   = load_list(rs.get("inputs", "[]"))
-        self.num_weights = len(self.scaled_inputs)
-
-
-    ###################################
-############################################

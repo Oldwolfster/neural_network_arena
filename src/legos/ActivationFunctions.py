@@ -2,9 +2,10 @@ import numpy as np
 
 class StrategyActivationFunction:
     """Encapsulates an activation function and its derivative."""
-    def __init__(self, function, derivative, name="Custom"):
+    def __init__(self, function, derivative, bd_defaults, name="Custom"):
         self.function = function
         self.derivative = derivative
+        self.bd_defaults = bd_defaults
         self.name = name
 
     def __call__(self, x):
@@ -23,30 +24,36 @@ class StrategyActivationFunction:
 Activation_NoDamnFunction = StrategyActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,
+    bd_defaults= [-1, 1, 0],
     name="None"
 )
 
 Activation_Sigmoid = StrategyActivationFunction(
     function=lambda x: 1 / (1 + np.exp(-x)),
     derivative=lambda x: x * (1 - x),  # More efficient if x = sigmoid(x)
+    bd_defaults= [0, 1, 0.5],
     name="Sigmoid"
+
 )
 
 Activation_Tanh = StrategyActivationFunction(
     function=np.tanh,
     derivative=lambda x: 1 - np.tanh(x)**2,
+    bd_defaults= [-1, 1, 0],
     name="Tanh"
 )
 
 Activation_ReLU = StrategyActivationFunction(
     function=lambda x: np.maximum(0, x),
     derivative=lambda x: np.where(x > 0, 1, 0),
+    bd_defaults= [0, 1, 0.5],
     name="ReLU"
 )
 
 Activation_LeakyReLU = StrategyActivationFunction(
     function=lambda x, alpha=0.01: np.where(x > 0, x, alpha * x),
     derivative=lambda x, alpha=0.01: np.where(x > 0, 1, alpha),
+    bd_defaults= [0, 1, 0.5],
     name="LeakyReLU"
 )
 

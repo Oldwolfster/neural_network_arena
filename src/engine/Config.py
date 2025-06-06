@@ -38,7 +38,7 @@ class Config:
         self.output_activation: type                = None  # Will default to loss_function.recommended_output_activation if None
         self.target_scaler                          = None
         self.roi_mode                               = ROI_Mode.SWEET_SPOT
-        self.bd_parameters                          = None # target a, target b, threshold.
+        #self.bd_parameters                          = None # target a, target b, threshold.
 
         # Optimizer specific headers for the pop up window of the neurons
         #TO are backprop_headers in use... i don't see" accp blm" anywhere...
@@ -70,13 +70,6 @@ class Config:
         (self.popup_headers, self.popup_operators,
          self.popup_finalizer_headers, self.popup_finalizer_operators) = self.optimizer.configure_optimizer(self)
 
-    def threshold_prediction(self, prediction): #not ideal home but until i find better...
-        if not self.bd_parameters:  #Not BD so return same value.
-            return prediction
-        else:
-            if prediction >= self.bd_parameters[2]: return self.bd_parameters[1]
-            else: return  self.bd_parameters[0]
-
     def smartNetworkSetup(self, tri):
 
         self.update_attributes_from_setup(tri.setup)
@@ -86,8 +79,8 @@ class Config:
         if self.target_scaler:
             self.scaler.set_target_scaler(self.target_scaler)
         #print(f"loss function {self.loss_function}")
-        if self.training_data.binary_decision and not self.bd_parameters:
-            self.bd_parameters  = self.loss_function.bd_defaults
+        #if self.training_data.binary_decision and not self.bd_parameters:
+        #    self.bd_parameters  = self.loss_function.bd_defaults
 
     def update_attributes_from_setup(self, setup):  #setup looks like this setup={'loss_function': [Mean Absolute Error], 'gladiator': 'All_Defaults', 'arena': 'DefaultRisk__From_Income_Debt', 'lr_specified': True}
         # only update attribute if it exists

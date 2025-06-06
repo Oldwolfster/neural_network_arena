@@ -129,109 +129,27 @@ class GeneratorNeuron:
                     GeneratorNeuron.model.input_scaler_neuron = scaler_neuron
                 else:
                     GeneratorNeuron.model.prediction_scaler_neuron = scaler_neuron
-
+                    if GeneratorNeuron.model.TRI.training_data.is_binary_decision: # Addthresholder as well
+                        GeneratorNeuron.model.thresholder  = DisplayModel__NeuronScaler(
+                            left=x_position,
+                            top=y_position,
+                            width=layer_width,
+                            height=neuron_height,
+                            nid=-2,         # Not in data flow
+                            layer=-1,
+                            position=abs(neuron_index),
+                            output_layer=0,
+                            text_version=text_version,
+                            run_id=GeneratorNeuron.model.run_id,
+                            my_model=GeneratorNeuron.model,
+                            screen= GeneratorNeuron.model.surface, max_activation=max_act,
+                            is_input=is_input
+                        )
 
     @staticmethod
     def separate_graph_holder_from_neurons():
         graph_slot = GeneratorNeuron.model.neurons[-1].pop() # removes the graph from the data structure of neurons and records the reference
         GeneratorNeuron.model.graph_holder = graph_slot  # or .graph_panel, .graph_target, etc.
-
-
-
-
-
-
-
-        #GeneratorNeuron.maybe_add_input_scaler_visual(size, margin, extra_width_to_center, text_version, max_act, gap)
-        #GeneratorNeuron.maybe_add_input_scaler_visual(
-        #    size, text_version, max_act, x_positions
-        #)
-        #GeneratorNeuron.maybe_add_prediction_scaler_visual(
-        #    size, text_version, max_act, x_positions, max_layers
-        #)
-
-
-
-
-    @staticmethod
-    def maybe_add_input_scaler_visual(
-        size: int,
-        text_version: str,
-        max_act: float,
-        x_positions: list[float]
-    ):
-        """
-        Optionally add a visual neuron for the input scaler,
-        pinned at the very first column (x_positions[0]).
-        """
-        model = GeneratorNeuron.model
-        if model.config.scaler.inputs_are_unscaled:
-            model.input_scaler_neuron = None
-            return  # nothing to show
-        print("Adding input scaler")
-        # first column is where our scaler sits
-        x_coord = x_positions[0]
-        y_coord = model.height // 2 - size // 2
-        print(f"input scaler x_coord = {x_coord}")
-        scaler_neuron = DisplayModel__NeuronScaler(
-            model,
-            left=x_coord,
-            top=y_coord,
-            width=size,
-            height=size,
-            nid=-1,         # Not in data flow
-            layer=-1,
-            position=0,
-            output_layer=0,
-            text_version=text_version,
-            model_id=model.config.gladiator,
-            screen=model.surface,
-            max_activation=max_act
-        )
-        model.input_scaler_neuron = scaler_neuron
-
-
-    @staticmethod
-    def maybe_add_prediction_scaler_visual(
-        size: int,
-        text_version: str,
-        max_act: float,
-        x_positions: list[float],
-        max_layer: int
-    ):
-        """
-        Optionally add a visual neuron for the prediction scaler,
-        pinned at the very first column (x_positions[0]).
-        """
-        model = GeneratorNeuron.model
-        if model.config.scaler.target_is_unscaled:
-            model.prediction_scaler_neuron = None
-            return  # nothing to show
-        print("Adding prediction scaler")
-        # first column is where our scaler sits
-        x_coord = x_positions[max_layer-1] - size
-
-        y_coord = model.height // 2 - size // 2
-        print(f"target scaler x_coord = {x_coord}")
-        scaler_neuron = DisplayModel__NeuronScaler(
-            model,
-            left=x_coord+111 ,
-            top=y_coord,
-            width=size,
-            height=size,
-            nid=-1,         # Not in data flow
-            layer=-1,
-            position=0,
-            output_layer=0,
-            text_version=text_version,
-            model_id=model.config.gladiator,
-            screen=model.surface,
-            max_activation=max_act
-        )
-        model.prediction_scaler_neuron = scaler_neuron
-
-
-
 
     @staticmethod
     def _compute_layer_x_positions(

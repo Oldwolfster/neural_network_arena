@@ -1,6 +1,7 @@
 import pygame
 from src.Legos.ActivationFunctions import get_activation_derivative_formula
 from src.Legos.Optimizers import *
+from src.NeuroForge.DisplayModel__NeuronScalerThresholder import DisplayModel__NeuronScalerThresholder
 
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
@@ -26,14 +27,16 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
             if not  self.is_input:      #only move tthe prediction.. leav input where it is
                 self.location_left += (self.location_width-target_width) * .5
             self.location_width = target_width
-        self.location_height = 169
-        self.location_top= 96
+        self.location_height = 161.696
+        #self.location_top= 96
         if self.is_input == True:
             self.banner_text = "Input Scaler"
             self.neuron_visualizer      = DisplayModel__NeuronScalerInputs(self, self.ez_printer)
             #ez_debug(banner=self.banner_text,inorout=self.is_input)
+        elif self.nid == -2 : #-2 means thresholder
+            self.neuron_visualizer      = DisplayModel__NeuronScalerThresholder(self, self.ez_printer)
+            self.banner_text = "Thresholder"
         else:
-
             self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
             if self.my_model.layer_width < 240:
                 self.banner_text = "Scaled / Real"
