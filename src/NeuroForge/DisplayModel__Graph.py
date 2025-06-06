@@ -21,6 +21,9 @@ class DisplayModel__Graph():
         self.location_top           = top
         self.location_width         = width
         self.location_height        = height
+        self._plot_scale_factor             =    1.07969    #increases X and Y (down and left)
+        self._plot_scale_factor2                = .9069      #increase x relative to y
+
         SQL = "SELECT epoch, mean_absolute_error FROM EpochSummary WHERE run_id = ? ORDER BY epoch"
         self.results = Const.dm.db.query(SQL, (run_id,))
 
@@ -30,7 +33,8 @@ class DisplayModel__Graph():
         # Create header text
         self.header_text = "Error History"
         #self.error_text = f"{smart_format(my_model.config.lowest_error)} at {my_model.config.lowest_error_epoch} "
-        self.error_text = "Coming soon"
+        #self.error_text = "Coming soon"
+        self.error_text = ""
         self.font = pygame.font.Font(None, 30)
 
     def process_an_event(self, event):
@@ -61,7 +65,7 @@ class DisplayModel__Graph():
         mae_values = [r['mean_absolute_error'] for r in self.results]
 
         dpi = 100
-        figsize = (self.location_width / dpi, self.location_height* .769 / dpi)
+        figsize = (self.location_width  * self._plot_scale_factor / dpi, self.location_height * self._plot_scale_factor *  self._plot_scale_factor2 / dpi)
 
         # 🔹 Create the figure and axis
         fig = plt.figure(figsize=figsize, dpi=dpi)
@@ -93,13 +97,20 @@ class DisplayModel__Graph():
 
 
         # 🔹 Remove padding, ticks, labels, and borders
-        ax.set_xticks([])
-        ax.set_yticks([])
-        ax.set_xlabel("")
-        ax.set_ylabel("")
+        #ax.set_xticks([])
+        #ax.set_yticks([])
+        #ax.set_xlabel("")
+        #ax.set_ylabel("")
+        ax.set_xlabel("Epoch", fontsize=14, labelpad=2)
+        ax.set_ylabel("MAE", fontsize=14, labelpad=2)
+        ax.tick_params(axis='x', labelsize=12, length=3)
+        ax.tick_params(axis='y', labelsize=12, length=3)
+
         for spine in ax.spines.values():
             spine.set_visible(False)
-        plt.subplots_adjust(left=0, right=1, top=.97, bottom=0)
+        #plt.subplots_adjust(left=0, right=1, top=.97, bottom=0)
+        plt.subplots_adjust(left=0.15, right=0.98, top=0.95, bottom=0.16)
+
 
         # 🔹 Force y-axis to start at 0
         #ax.set_ylim(bottom=0)
@@ -124,8 +135,10 @@ class DisplayModel__Graph():
     def render(self):
         """Called once per pygame loop"""
         # Blit the pre-rendered plot onto the EZSurface's surface.
-        self.model_surface.blit(self.plot_surface, (self.location_left, self.location_top + 30))
-
+        #self.model_surface.blit(self.plot_surface, (self.location_left, self.location_top + 30))
+        blit_x = self.location_left + (self.location_width * (1 - self._plot_scale_factor))
+        blit_y = self.location_top + 30  # Top stays fixed
+        self.model_surface.blit(self.plot_surface, (blit_x, blit_y))
         #Create header
 
         self.draw_graph_frame()

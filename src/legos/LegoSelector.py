@@ -47,7 +47,7 @@ class LegoSelector:
                                 "condition": condition
                             })
                             if tri.should_record(RecordLevel.SUMMARY ): #print(f"  ➤ Rule applied: {priority}: {key} = {value} from condition: '{condition}'")
-                                print(f"{priority}: {key} = {value}", end="") # from condition: '{condition}'")
+                                print(f"\t{priority}: {key} = {value}", end="") # from condition: '{condition}'")
                             return True
             except Exception as e:
                 print(f"⚠️ Rule failed: {priority} {condition} -> {e}")

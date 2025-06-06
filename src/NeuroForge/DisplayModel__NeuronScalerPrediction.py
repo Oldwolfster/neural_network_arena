@@ -18,7 +18,7 @@ class DisplayModel__NeuronScalerPrediction:
 
     def __init__(self, neuron, ez_printer):
         # Configuration settings
-        self.BANNER_HEIGHT              = 29  # 4 pixels above + 26 pixels total height #TODO this should be tied to drawing banner rather than a const
+        self.banner_height              = 40
         self.oval_height                = 19
         self.oval_vertical_tweak        = 63.9
         self.oval_overhang              =   12.069
@@ -26,6 +26,8 @@ class DisplayModel__NeuronScalerPrediction:
         self.neuron                     = neuron  # ✅ Store reference to parent neuron
         self.font                       = pygame.font.Font(None, Const.FONT_SIZE_WEIGHT)
         self.font_small                 = pygame.font.Font(None, Const.FONT_SIZE_SMALL)
+
+
 
         # Weight mechanics
         self.ez_printer                 = ez_printer
@@ -42,11 +44,7 @@ class DisplayModel__NeuronScalerPrediction:
         error_raw           = rs.get("error",  "[]")
         error_unscaled      = rs.get("error_unscaled",  "[]")
 
-        # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
-        start_x = self.neuron.location_left
-        start_y = self.neuron.location_top-5
-        #self.draw_oval_with_text(     start_x,            start_y,            oval_width,            35,            False,      #overhang            "",            "Scaler",            "",            self.font        )
-
+        self.draw_top_plane()
         self.output_one_set(1, target_raw,"Target", target_unscaled)
         self.output_one_set(2, prediction_raw,"Prediction", prediction_unscaled)
         self.output_one_set(3, error_raw,"Error", error_unscaled)
@@ -63,7 +61,6 @@ class DisplayModel__NeuronScalerPrediction:
             label,
             raw_value,
             unscaled_value,
-            oval_color=Const.COLOR_BLUE,
             text_color=Const.COLOR_WHITE,
             padding=8
         )
@@ -78,7 +75,6 @@ class DisplayModel__NeuronScalerPrediction:
         self,        x, y,
         proposed_width,  overhang,
         raw_value, label, unscaled_value,
-        oval_color=(Const.COLOR_BLUE),
         text_color=(Const.COLOR_WHITE),
         padding=8
     ):
@@ -97,12 +93,12 @@ class DisplayModel__NeuronScalerPrediction:
             width = proposed_width
             pill_rect = pygame.Rect(x, y, width, self.oval_height)
 
-        self.draw_pill(pill_rect, oval_color)
+        self.draw_pill(pill_rect)
 
         # 2) compute the three areas
         radius = self.oval_height // 2
         txt_y_adj = 52
-        label_area  = pygame.Rect(x + 12, y- self.oval_height   *  .69,   width - 2*radius-11, self.oval_height)
+        label_area  = pygame.Rect(x + 12, y- self.oval_height   *  .69 - 3,   width - 2*radius-11, self.oval_height)
         left_area   = pygame.Rect(x, y ,  self.oval_height, self.oval_height)
         right_area  = pygame.Rect(x + width - self.oval_height-30, y , self.oval_height, self.oval_height)
 
@@ -165,8 +161,19 @@ class DisplayModel__NeuronScalerPrediction:
             padding
         )
 
+    def draw_differentshapeneuron(self):
+        # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
+        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top, self.neuron.location_width,self.neuron.location_height )
+        self.draw_pill(top_plan_rect)
 
-    def draw_pill(self,  rect, color):
+    def draw_top_plane(self):
+        # 2) draw the header (same hack you had before) #Draws the 3d looking oval behind the header to differentiate
+        top_plan_rect  = pygame.Rect(self.neuron.location_left, self.neuron.location_top-10, self.neuron.location_width, self.banner_height )
+        self.draw_pill(top_plan_rect)
+        #self.draw_differentshapeneuron()
+
+
+    def draw_pill(self,  rect, color= Const.COLOR_BLUE):
         """
         Draws a horizontal pill (oval the long way) into rect:
         two half-circles on the ends plus a connecting rectangle.

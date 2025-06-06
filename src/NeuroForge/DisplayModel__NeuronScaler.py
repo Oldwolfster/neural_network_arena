@@ -27,9 +27,9 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
                 self.location_left += (self.location_width-target_width) * .5
             self.location_width = target_width
         self.location_height = 169
+        self.location_top= 96
         if self.is_input == True:
             self.banner_text = "Input Scaler"
-            self.location_top= 96
             self.neuron_visualizer      = DisplayModel__NeuronScalerInputs(self, self.ez_printer)
             #ez_debug(banner=self.banner_text,inorout=self.is_input)
         else:

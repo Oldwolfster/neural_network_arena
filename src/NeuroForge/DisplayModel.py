@@ -117,7 +117,8 @@ class DisplayModel(EZSurface):
 
 
     def create_graph(self, gh):
-        return DisplayModel__Graph(left=gh.location_left, width= gh.location_width, top=gh.location_top, height=gh.location_height, model_surface=self.surface, run_id=self.run_id, my_model=self)
+        doublewide= gh.location_width * 2 + 20
+        return DisplayModel__Graph(left=gh.location_left, width=doublewide , top=gh.location_top, height=gh.location_height, model_surface=self.surface, run_id=self.run_id, my_model=self)
 
     def render(self):
         """Draw neurons and connections."""

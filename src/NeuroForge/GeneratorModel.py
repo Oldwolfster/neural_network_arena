@@ -25,6 +25,7 @@ class ModelGenerator:
                 continue  # Skip models not assigned a position
 
             model_position = ModelGenerator.model_positions[TRI.run_id]  # Fetch position
+            print(f"model_position = {model_position}") #print graphs position
             display_model = DisplayModel(TRI, model_position)  # Pass both config & position
             display_model.initialize_with_model_info()
             ModelGenerator.display_models.append(display_model)
