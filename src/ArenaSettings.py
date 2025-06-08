@@ -12,7 +12,7 @@ class HyperParameters:
     # BATTLE Parameters are set here                           #
     ############################################################
     epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
-    training_set_size       :int    = 10        # Qty of training data
+    training_set_size       :int    = 30        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
     nf_count                :int    = 4
     min_no_epochs           :int    = 0         # run for at least this many epochs
@@ -82,13 +82,11 @@ gladiators = [
 arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas  = ['CaliforniaHousePricesUSD']
 arenas  = ['GoofyBinaryDecision']
-arenas2  = [
+arenas  = [
     #######################################################################
     ######################### Regression ##################################
     #######################################################################
-
 'Predict_Income_2_Inputs'
-
 ,'California_Housing'
 ,'One_Giant_Outlier'
 ,'Nested_Sine_Flip'
@@ -96,7 +94,6 @@ arenas2  = [
 ,'Piecewise_Regime'
 ,'Adversarial_Noise'
 ,'MultiModal_Nonlinear_Interactions'
-
 ,'MultiModal_Temperature'
 ,'CaliforniaHousePricesUSD'
 ,'Delayed_Effect_BloodSugar'
@@ -118,8 +115,7 @@ arenas2  = [
     #######################################################################
     ######################### Binary Decision #############################
     #######################################################################
-
-  ,'Titanic'
+,'Titanic'
 ,'SimpleBinaryDecision'
 ,'DefaultRisk__From_Income_Debt'
 ,'DefaultRisk__From_Income_Debt'
@@ -131,10 +127,7 @@ arenas2  = [
 ,'XOR'
 ,'Moons'
 ,'Iris_Two_Class'
-
-
-
-      ]
+]
 """
 """
 

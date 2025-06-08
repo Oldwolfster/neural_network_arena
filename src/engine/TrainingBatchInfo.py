@@ -60,16 +60,37 @@ class TrainingBatchInfo:
         self.id_of_last     = self.run_sql("SELECT MAX(pk) FROM training_batch_tasks")
 
     def create_table_if_needed(self):
+        self.create_table_if_needed_batch_run()
+        self.create_table_if_needed_batch_task
+
+    def create_table_if_needed_batch_task(self):
         with self.conn:
             self.conn.execute('''
-                CREATE TABLE IF NOT EXISTS training_batch_tasks (
-                    pk INTEGER PRIMARY KEY AUTOINCREMENT,
-                    gladiator TEXT,
-                    arena TEXT,
-                    config TEXT,
-                    status TEXT DEFAULT 'pending',
+                CREATE TABLE IF NOT EXISTS batch_task (
+                    batch_task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    batch_run_id INTEGER,           -- FK to batch_run(batch_run_id)
+                    arena TEXT,                     -- Which arena this task is for
+                    gladiator TEXT,                 -- Gladiator variant (champ + tweaks)
+                    config TEXT,                    -- JSON config for this specific task
+                    status TEXT DEFAULT 'pending', -- 'pending', 'running', 'completed', 'error'
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                )
+                );
+            ''')
+
+
+    def create_table_if_needed_batch_run(self):
+        with self.conn:
+            self.conn.execute('''
+                CREATE TABLE IF NOT EXISTS batch_run (
+                    batch_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT,                   -- "AutoML Defaults v1", "Hinge Sweep"
+                    description TEXT,            -- Longer human-readable summary
+                    gladiators TEXT,              -- Base Champ class name
+                    arenas TEXT,                     -- Which arena this task is for
+                    config TEXT,                 -- JSON config (rule snapshot, hyperparams, etc.)
+                    is_autogen BOOLEAN,          -- True if rule-generated (AutoML), false if manual
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                );
             ''')
 
 class _BatchGenerationLogic:

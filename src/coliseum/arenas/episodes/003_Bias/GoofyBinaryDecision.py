@@ -19,7 +19,7 @@ class BiasEmphasis_CreditScore(BaseArena):
             score = random.uniform(0, 100)
 
             repayment_probability = score  / 100
-            result = 1 if random.random() < repayment_probability else 0
+            result = 8 if random.random() < repayment_probability else 2
 
             training_data.append((score, result))
         return training_data, ["Credit Score", "Repayment"]

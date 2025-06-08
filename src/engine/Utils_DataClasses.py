@@ -56,14 +56,14 @@ class NNA_history:
             runtime_seconds         =TRI.time_seconds,
             final_mae               =TRI.get("mae"),
             sample_count            =TRI.training_data.sample_count,
-            target_min =TRI.training_data.target_min,                       # either min numeric or count of smaller class
-            target_max =TRI.training_data.target_min,                       # either max numeric or count of larger class
-            target_min_label=TRI.training_data.target_min_label,                   # e.g., "Repay" or "0"
-            target_max_label =TRI.training_data.target_max_label,                  # e.g., "Default" or "1"
-            target_mean =TRI.training_data.target_mean,                       # mean of target values (esp useful in regression)
-            target_stdev =TRI.training_data.target_stdev,                       # standard deviation of targets
-            notes ="notes here",                             # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
-            rerun_config ="coming soon"
+            target_min              =TRI.training_data.target_min,                       # either min numeric or count of smaller class
+            target_max              =TRI.training_data.target_max,                       # either max numeric or count of larger class
+            target_min_label        =TRI.training_data.target_min_label,                   # e.g., "Repay" or "0"
+            target_max_label        =TRI.training_data.target_max_label,                  # e.g., "Default" or "1"
+            target_mean             =TRI.training_data.target_mean,                       # mean of target values (esp useful in regression)
+            target_stdev            =TRI.training_data.target_stdev,                       # standard deviation of targets
+            notes                   ="notes here",                             # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+            rerun_config            ="coming soon"
         )
 
     def display(self):

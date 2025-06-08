@@ -64,6 +64,8 @@ class Gladiator(ABC):
         self.TRI.set("bd_threshold"     , Neuron.output_neuron.activation.bd_defaults[2])
         self.TRI.set("bd_label_alpha", self.TRI.training_data.target_labels[0])
         self.TRI.set("bd_label_beta", self.TRI.training_data.target_labels[1])
+        self.TRI.set("bd_target_alpha_unscaled",self.TRI.training_data.target_min )
+        self.TRI.set("bd_target_beta_unscaled",self.TRI.training_data.target_max )
         #beta = self.TRI.get("bd_class_beta")
         #alph = self.TRI.get("bd_class_alpha")
         #ez_debug(beta1=beta,alph1 = alph)
@@ -131,7 +133,7 @@ class Gladiator(ABC):
         self                . snapshot_weights("", "_before")
         error, loss, blame  = self.optimize_passes(sample)
 
-        # 3 possible prediction values... raw, unscaled, and thresholded(called just prediction) for binary decision
+        # 4 possible prediction values...   prediction_raw, prediction_raw_unscaled,prediction_thresholded, prediction_thresholded_unscaled(called just prediction) for binary decision
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
         prediction_thresh   = self.threshold(prediction_raw)
 

@@ -80,17 +80,34 @@ class TrainingBatchInfo:
                     return False
         raise FileNotFoundError(f"❌ Could not find file for gladiator '{gladiator_name}' (expected '{gladiator_name}.py') in 'coliseum/gladiators'.")
 
+
+
     def create_training_batch_tasks_table(self):
         cursor = self.conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS training_batch_tasks (
-                pk INTEGER PRIMARY KEY AUTOINCREMENT,
+                batch_task_id INTEGER PRIMARY KEY AUTOINCREMENT,      -- atomic record, each row = one run config
                 gladiator TEXT,
                 arena TEXT,
                 config TEXT,  -- JSON-serialized config dict
                 status TEXT DEFAULT 'pending',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
+        ''')
+        self.conn.commit()
+
+    def create_training_batch_tasks_table(self):
+        cursor = self.conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS batches (
+                batch_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,                      -- "AutoML Defaults 1", etc.
+                description TEXT,               -- Full sentence if needed
+                gladiator TEXT,                 -- Base model/champ used
+                config TEXT,                    -- JSON serialized full config (or rule name)
+                is_autogen BOOLEAN,            -- True = rule-based (Legionnaire)
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
         ''')
         self.conn.commit()
 

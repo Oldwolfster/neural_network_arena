@@ -47,7 +47,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             setup                   = batch.mark_done_and_get_next_config()
             if setup is None:         break
             print                   ( f"\n💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪💪")
-            print                   ( f"💪 {batch.id_of_current} of {batch.id_of_last} being trained with these settings: {setup}")
+            print                   ( f"💪 {batch.id_of_current} of {batch.id_of_last}-{setup["arena"]} - these settings: {setup}")
             if not setup.get        ( "lr_specified", False):   setup["learning_rate"] = self.learning_rate_sweep(setup)
             record_level            = RecordLevel.FULL if batch.id_of_current <= self.shared_hyper.nf_count else RecordLevel.SUMMARY
             TRI                     = self.atomic_train_a_model(setup, record_level, epochs=0, run_id=batch.id_of_current)
