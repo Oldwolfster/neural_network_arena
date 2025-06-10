@@ -123,7 +123,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
         start_y = 369.96 + 36.9
 
         to_neuron = model.neurons[-1][0] #output neuron
-        end_x = to_neuron.location_right_side  + model.left + 20
+        end_x = to_neuron.location_right_side  + model.left + 9.69
         end_y = to_neuron.location_bottom_side + model.top - 20
 
         # ✅ Now create an arrow using the correct X and Y values

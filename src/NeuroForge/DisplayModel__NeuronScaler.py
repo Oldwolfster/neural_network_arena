@@ -39,7 +39,8 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         # Either way, show prediction window  ##
         elif 1==1:
             self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
-            if self.model.layer_width < 240:
+            #if self.model.layer_width < 24: #Based on layer
+            if self.neuron_visualizer.neuron.location_width < 24:
                 self.banner_text = "Prediction"
             else:
                 self.banner_text = "Prediction"

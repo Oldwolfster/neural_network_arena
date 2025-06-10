@@ -230,7 +230,7 @@ class DisplayModel(EZSurface):
 
         if self.prediction_scaler_neuron:
             end_x = self.prediction_scaler_neuron.location_left + x_end_offset
-            end_y = self.prediction_scaler_neuron.location_top + self.thresholder.location_height//2 + y_end_offset
+            end_y = self.prediction_scaler_neuron.location_top + self.prediction_scaler_neuron.location_height//2 + y_end_offset
             end_y = self.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][1]
             self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
 

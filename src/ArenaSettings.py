@@ -54,6 +54,8 @@ dimensions={
     #"architecture":[[4 , 4, 1], [2 , 2, 1]]
 }
 dimensions={}
+dimensions={"loss_function": [Loss_MSE,Loss_BCE]}
+
 
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
@@ -61,14 +63,10 @@ dimensions={}
 gladiators = [ 'All_Defaults']
 gladiators2 = [
     'All_Defaults'
-    #'BCE'
-    #,'MSE'
-
     #,'BiggerIsNotBetter'
     #'Simplified_Descent_01_Solves_XOR_in_2'    #With 2 Layers. LR of 4 and seed  181026hits xor in 2 epochs.
     #'GBS'
     #'Simplex'
-    #'NeuroShepherd'
    #,'NeuroForge_Template'
     #'_Template_Simpletron'
 ]
