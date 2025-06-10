@@ -36,12 +36,13 @@ class DisplayModel__NeuronScaler(DisplayModel__Neuron_Base):
         elif self.nid == -2 : #-2 means thresholder
             self.neuron_visualizer      = DisplayModel__NeuronScalerThresholder(self, self.ez_printer)
             self.banner_text = "Thresholder"
-        else:
+        # Either way, show prediction window  ##
+        elif 1==1:
             self.neuron_visualizer      = DisplayModel__NeuronScalerPrediction(self, self.ez_printer)
             if self.model.layer_width < 240:
-                self.banner_text = "Scaled / Real"
+                self.banner_text = "Prediction"
             else:
-                self.banner_text = "Scaled / Real"
+                self.banner_text = "Prediction"
             #ez_debug(banner=self.banner_text,inorout=self.is_input)
 
     def draw_neuron(self):

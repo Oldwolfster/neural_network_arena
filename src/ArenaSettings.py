@@ -11,7 +11,7 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 100       # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 5       # Number of times training run will cycle through all training data
     training_set_size       :int    = 30        # Qty of training data
     default_learning_rate   :float  = .1        # Affects magnitude of weight adjustments #.0001 Equalizer
     nf_count                :int    = 4
@@ -43,7 +43,7 @@ class HyperParameters:
     criteria_neuron :List[int] = None       # None = show all - otherwise list of neurons to include
     criteria_weight :List[int] = None       # None = show all - 0= Ommit weights - Otherwise list all weights to include
 
-
+property
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
     "loss_function": "*" ,
@@ -80,14 +80,15 @@ gladiators2 = [
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 arenas   = ['Iris_Two_Class','Predict_Income_2_Inputs']
-arenas  = ['CaliforniaHousePricesUSD']
-arenas  = ['Bit_Flip_Memory']
+arenas  = ['California_HousingUSD']
+arenas  = ['SimpleBinaryDecision']
 arenas2  = [
     #######################################################################
     ######################### Regression ##################################
     #######################################################################
 'Predict_Income_2_Inputs'
 ,'California_Housing'
+,'California_HousingUSD'
 ,'One_Giant_Outlier'
 ,'One_Giant_OutlierExplainable'
 ,'Nested_Sine_Flip'
@@ -96,7 +97,7 @@ arenas2  = [
 ,'Adversarial_Noise'
 ,'MultiModal_Nonlinear_Interactions'
 ,'MultiModal_Temperature'
-,'CaliforniaHousePricesUSD'
+
 ,'Delayed_Effect_BloodSugar'
 ,'Predict_EnergyOutput__From_Weather_Turbine'
 ,'Chaotic_Solar_Periodic'

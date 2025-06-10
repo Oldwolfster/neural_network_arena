@@ -46,6 +46,8 @@ def draw_text_with_background(screen, value_to_print, x, y, font_size, text_colo
 
 
 
+
+
 def format_percent(x: float, decimals: int = 2) -> str:
         """
         Format a fraction x (e.g. 0.9999) as a percentage string:

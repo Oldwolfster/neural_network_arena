@@ -25,8 +25,8 @@ class GeneratorNeuron:
             GeneratorNeuron.output_layer += 1
 
         # Append 1 if target is unscaled
-        if GeneratorNeuron.model.config.scaler.target_is_scaled:
-            full_architecture.append(-1)#-1 indicates it's a "1 special neuron"
+        #if GeneratorNeuron.model.config.scaler.target_is_scaled:
+        full_architecture.append(-1)#-1 indicates it's a "1 special neuron"
         return  full_architecture
 
     @staticmethod
@@ -127,7 +127,7 @@ class GeneratorNeuron:
                 )
                 if layer_index== 0:
                     GeneratorNeuron.model.input_scaler_neuron = scaler_neuron
-                else:
+                elif 1==1:
                     GeneratorNeuron.model.prediction_scaler_neuron = scaler_neuron
                     if GeneratorNeuron.model.TRI.training_data.is_binary_decision: # Addthresholder as well
                         GeneratorNeuron.model.thresholder  = DisplayModel__NeuronScaler(

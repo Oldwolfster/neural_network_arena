@@ -192,7 +192,7 @@ class Display_Manager:
             if idx == 1:    #move 2nd box down (0 based)
                 top = 52
             if idx <2:      #Only show two prediction panels
-                panel = DisplayPanelPrediction(run_id, problem_type, TRI.config.loss_function, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
+                panel = DisplayPanelPrediction(run_id, problem_type, TRI, width_pct=panel_width, height_pct=39, left_pct=99-panel_width, top_pct=top)
                 self.components.append(panel)
 
     def query_dict_iteration(self):

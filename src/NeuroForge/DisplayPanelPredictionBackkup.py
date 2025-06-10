@@ -6,27 +6,18 @@ from src.NeuroForge import Const
 class DisplayPanelPrediction(EZForm):
     __slots__ = ("model_id", "problem_type", "loss_function")
 
-    def __init__(self, model_id: str, problem_type: str, TRI, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
+    def __init__(self, model_id: str, problem_type: str, loss_function, width_pct: int, height_pct: int, left_pct: int, top_pct: int):
         self.model_id       = model_id
-        self.loss_function  = TRI.config.loss_function
+        self.loss_function  = loss_function
         self.problem_type   = problem_type
-        self.target_name    = TRI.hyper.data_labels[-1].strip()
+        self.target_name    = Const.TRIs[0].hyper.data_labels[-1].strip()
 
         # Define the fields and default values for the form
-        fieldsold = {
+        fields = {
             self.target_name: "0.000",
             "Prediction": "0.000",
             "Error / Avg": "0.000 / 0.000",
-            f"{self.loss_function.short_name} Gradient": "0.0",
-        }
-        fields = {
-            #self.target_name: "0.000",
-            #"Prediction": "0.000",
-            "Error": "0.000",
-            "Epoch Avg Err": "0.000",
-            "Loss Function":self.loss_function.short_name,
-            "Loss Value": "Hover Here!",
-            f"{self.loss_function.short_name} Gradient": "0.0",
+            f"{loss_function.short_name} Gradient": "0.0",
         }
 
         super().__init__(
@@ -35,7 +26,7 @@ class DisplayPanelPrediction(EZForm):
             height_pct=height_pct,
             left_pct=left_pct,
             top_pct=top_pct,
-            banner_text="BPBBB",
+            banner_text="Prediction",
             banner_color=Const.COLOR_BLUE
         )
 
@@ -64,16 +55,7 @@ class DisplayPanelPrediction(EZForm):
             predictions = smart_format(prediction)
 
         # Update field values
-        #self.fields["Prediction"] = predictions
-        #self.fields[self.target_name] = smart_format(target)
-        self.fields["Error"] = smart_format(error)
-        self.fields["Epoch Avg Err"] = smart_format(avg_error)
+        self.fields["Prediction"] = predictions
+        self.fields[self.target_name] = smart_format(target)
+        self.fields["Error / Avg"] = f"{smart_format(error)} / {smart_format(avg_error)}"
         self.fields[f"{self.loss_function.short_name} Gradient"] = smart_format(loss_gradient)
-
-        """
-            "Error": "0.000",
-            "Epoch Avg": "0.000",            
-            "Loss Function":self.loss_function.short_name,
-            "Loss Value": "Hover Here!",
-            f"{self.loss_function.short_name} Gradient": "0.0",
-        """

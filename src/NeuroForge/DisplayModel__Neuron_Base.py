@@ -21,7 +21,7 @@ class DisplayModel__Neuron_Base:
     3) Draw the "Standard" components of the neuron.  (Body, Banner, and Banner Text)
     4) Invoke the appropriate "Visualizer" to draw the details of the Neuron
     """
-    __slots__ = ("TRI", "am_really_short", "model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "run_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
+    __slots__ = ("TRI", "location_right_side", "location_bottom_side","am_really_short", "model", "is_input","config", "column_widths","cached_tooltip", "text_version", "last_epoch","last_iteration", "font_header", "header_text", "font_body", "max_per_weight", "max_activation",  "run_id", "screen", "db", "rs", "nid", "layer", "position", "is_output", "label", "location_left", "location_top", "location_width", "location_height", "weights", "weights_before", "neuron_inputs", "raw_sum", "activation_function", "activation_value", "activation_gradient", "banner_text", "tooltip_columns", "weight_adjustments", "blame_calculations", "avg_err_sig_for_epoch", "loss_gradient", "ez_printer", "neuron_visualizer", "neuron_build_text", )
 
     input_values = []   # Class variable to store inputs #TODO Delete me
     def __repr__(self):
@@ -49,6 +49,8 @@ class DisplayModel__Neuron_Base:
         self.location_top           = top
         self.location_width         = width
         self.location_height        = height
+        self.location_right_side    = left + width
+        self.location_bottom_side   = top + height
 
         # Neural properties
         self.weights                = []
@@ -520,8 +522,8 @@ class DisplayModel__Neuron_Base:
 
         num_args   = len(headers)
         arg_fields = [f"B.arg_{i+1}" for i in range(num_args)]
-        upd_table  = f"WeightAdjustments_update_{self.config.gladiator}"
-        fin_table  = f"WeightAdjustments_finalize_{self.config.gladiator}"
+        upd_table  = f"WeightAdjustments_update_{self.TRI.gladiator}"
+        fin_table  = f"WeightAdjustments_finalize_{self.TRI.gladiator}"
 
         sql = f"""
             SELECT {', '.join(arg_fields)}

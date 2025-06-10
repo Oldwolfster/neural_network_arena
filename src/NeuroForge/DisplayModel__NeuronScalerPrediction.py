@@ -44,6 +44,13 @@ class DisplayModel__NeuronScalerPrediction:
         error_raw           = rs.get("error",  "[]")
         error_unscaled      = rs.get("error_unscaled",  "[]")
 
+        # Don't display if target is not scaled
+        if target_raw       == target_unscaled:
+
+            prediction_unscaled = " "
+            target_unscaled     = " "
+            error_unscaled      = " "
+
         self.draw_top_plane()
         self.output_one_set(1, target_raw,"Target", target_unscaled)
         self.output_one_set(2, prediction_raw,"Prediction", prediction_unscaled)

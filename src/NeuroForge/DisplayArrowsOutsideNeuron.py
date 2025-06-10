@@ -36,7 +36,7 @@ class DisplayArrowsOutsideNeuron(EZSurface):
         first_layer = model.neurons[0]  # First hidden layer
         neuron_visualizer = model.input_scaler_neuron.neuron_visualizer
         input_positions = neuron_visualizer.label_y_positions#   Const.dm.input_panel.label_y_positions  # 🔹 Reference input positions
-        for target_neuron in first_layer:  # 🔹 Loop through all neurons in first layer
+        for target_neuron in first_layer:  # 🔹 ONLY ONE!!!! BUT IF IT CHANGES CODE IS HERE  Loop through all neurons in first layer
             #print(f"neuron_id={target_neuron.nid}")
             neuron_visualizer = target_neuron.neuron_visualizer
             for input_index, (start_x, start_y) in enumerate(input_positions):  # 🔹 Track input index
@@ -102,7 +102,36 @@ class DisplayArrowsOutsideNeuron(EZSurface):
                 self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
 
 
+
     def add_output_connections(self):
+        model = self.first_model
+        #start_x = model.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][0] + model.left
+        #start_y = model.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][1] + model.top
+        start_x = model.prediction_scaler_neuron.neuron_visualizer.label_y_positions[2][0] + model.left
+        start_y = model.prediction_scaler_neuron.neuron_visualizer.label_y_positions[2][1] + model.top
+
+            # ✅ Fixed prediction panel coordinates
+        end_x = Const.SCREEN_WIDTH *.9169
+        end_y = 169.96
+
+
+
+        # ✅ Now create an arrow using the correct X and Y values
+        self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface, thickness= 6,arrow_size=50  ,layer_colors=((255,0,0),(0,255,0),(0,0,255))))
+
+        start_x = Const.SCREEN_WIDTH *.9169
+        start_y = 369.96 + 36.9
+
+        to_neuron = model.neurons[-1][0] #output neuron
+        end_x = to_neuron.location_right_side  + model.left + 20
+        end_y = to_neuron.location_bottom_side + model.top - 20
+
+        # ✅ Now create an arrow using the correct X and Y values
+        self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface, thickness= 6,arrow_size=50 , layer_colors=((255,0,0),(0,255,0),(0,0,255))))
+
+
+
+    def add_output_to_prediction(self):
         """
         Creates connections from the last layer of neurons to the prediction panel.
         """

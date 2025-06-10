@@ -108,7 +108,7 @@ class Gladiator(ABC):
         """
 
         self.epoch = epoch_num      # Set so the child model has access
-        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.config.gladiator_name} MAE = {self.TRI.get("mae")} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.TRI.gladiator} MAE = {self.TRI.get("mae")} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
             self.run_a_sample(np.array(sample), np.array(sample_unscaled))

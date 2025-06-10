@@ -51,7 +51,7 @@ class Config:
         # Scaler properties
         self.scaler:        MultiScaler             = MultiScaler(training_data)
         self.target_scaler                          = None
-        self.default_scalers                        = None
+        self.default_scalers                        = None  #THIS DOES NOT WORK
         self.default_input_scaler                   = None
         self._set_all_inputs                        = False  # backing field if needed
 
@@ -66,6 +66,18 @@ class Config:
             self.apply_default_scalers_to_all_inputs()
         self._set_all_inputs = value
 
+    @property
+    def TargetScalerSetter(self): #TODO is this being used???
+        return self._set_all_inputs
+
+    @SetAllInputs.setter
+    def TargetScalerSetter(self, value: bool):  #Needed to allow running target scaler as a dimension
+        if value:
+            # apply scaling logic across all inputs
+            self.apply_default_scalers_to_all_inputs()
+        self._set_all_inputs = value
+
+
     def configure_popup_headers(self):
         (self.popup_headers, self.popup_operators,
          self.popup_finalizer_headers, self.popup_finalizer_operators) = self.optimizer.configure_optimizer(self)
@@ -74,8 +86,8 @@ class Config:
 
         self.update_attributes_from_setup(tri.setup)
         self.lego_selector.apply(self, self.get_rules(), tri)        #print(f"pretty rules\n{self.lego_selector.pretty_print_applied_rules()}")
-        if self.default_scalers:
-            self.scaler.set_all_input_scalers(Scaler_Robust)
+        if self.default_input_scaler:
+            self.scaler.set_all_input_scalers(self.default_input_scaler)
         if self.target_scaler:
             self.scaler.set_target_scaler(self.target_scaler)
         #print(f"loss function {self.loss_function}")
@@ -101,7 +113,7 @@ class Config:
             (0, 300, {"output_activation"   : Activation_NoDamnFunction}    , "loss_function.name == 'Mean Squared Error'"),
             (0, 300, {"output_activation"   : Activation_Tanh}              , "loss_function.name == 'Hinge Loss'"),
 
-            (0, 400, {"default_scalers"     : True}                         , "scaler.not_set_yet == False"),       #This one is different as ONE setting impacts scaler for ALL inputs
+            (0, 400, {"default_input_scaler"     : Scaler_Robust}           , "scaler.not_set_yet == False"),       #This one is different as ONE setting impacts scaler for ALL inputs
             (0, 500, {"target_scaler"       : Scaler_MinMax_Neg1to1}        , "output_activation.name == 'Tanh'"),
             (0, 500, {"target_scaler"       : Scaler_MinMax}                , "output_activation.name == 'Sigmoid'"),
             (0, 600, {"initializer"         : Initializer_He}               , "hidden_activation.name == 'LeakyReLU'"),

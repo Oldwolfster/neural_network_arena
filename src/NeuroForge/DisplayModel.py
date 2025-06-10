@@ -10,6 +10,7 @@ from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
 from src.NeuroForge.PopupArchitecture import ArchitecturePopup
 from src.engine import TrainingRunInfo
 from src.engine.Config import Config
+from src.engine.Neuron import Neuron
 from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 from src.engine.Utils import smart_format
 
@@ -116,6 +117,7 @@ class DisplayModel(EZSurface):
         Const.dm.eventors.append(self.graph)
         self.render()   #Run once so everything is created
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
+        self.create_output_to_thresholder()
 
         ez_debug(BD=self.TRI.training_data.is_binary_decision)
         # Create thresholder if problem type is BD
@@ -209,6 +211,28 @@ class DisplayModel(EZSurface):
         #print(f"Max activation for run {result}")
         # Return the max activation or a default value to prevent division by zero
         return result[0]['max_activation'] if result and result[0]['max_activation'] is not None else 1.0
+
+    def create_output_to_thresholder(self):
+        x_start_offset= 1
+        y_start_offset= 13.69
+        x_end_offset= -16.969
+        y_end_offset= -3.69
+        to_neuron = self.neurons[-1][0] #output neuron
+        #to_neuron2 = self.neurons
+        ez_debug(to_neuron=to_neuron)
+        #ez_debug(to_neuron2=to_neuron2)
+        start_x = to_neuron.location_right_side + x_start_offset
+        start_y = to_neuron.location_top+ to_neuron.location_height//2 + y_start_offset
+        if self.thresholder:
+            end_x = self.thresholder.location_left + x_end_offset
+            end_y = self.thresholder.location_top + self.thresholder.location_height//2 + y_end_offset
+            self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
+
+        if self.prediction_scaler_neuron:
+            end_x = self.prediction_scaler_neuron.location_left + x_end_offset
+            end_y = self.prediction_scaler_neuron.location_top + self.thresholder.location_height//2 + y_end_offset
+            end_y = self.prediction_scaler_neuron.neuron_visualizer.my_fcking_labels[0][1]
+            self.arrows_forward.append(DisplayArrow(start_x, start_y, end_x, end_y, screen=self.surface))
 
     def create_neuron_to_neuron_arrows(self, forward: bool):
         """Creates neuron-to-neuron arrows using DisplayArrow."""
