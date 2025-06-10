@@ -63,6 +63,20 @@ class TrainingBatchInfo:
         self.create_table_if_needed_batch_run()
         self.create_table_if_needed_batch_task
 
+    def create_table_if_needed(self):
+        with self.conn:
+            self.conn.execute('''
+                --CREATE TABLE IF NOT EXISTS training_batch_tasks (
+                CREATE TABLE IF NOT EXISTS training_batch_tasks (
+                    pk INTEGER PRIMARY KEY AUTOINCREMENT,
+                    gladiator TEXT,
+                    arena TEXT,
+                    config TEXT,
+                    status TEXT DEFAULT 'pending',
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+
     def create_table_if_needed_batch_task(self):
         with self.conn:
             self.conn.execute('''
@@ -76,6 +90,7 @@ class TrainingBatchInfo:
                     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                 );
             ''')
+
 
 
     def create_table_if_needed_batch_run(self):

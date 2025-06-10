@@ -58,8 +58,8 @@ dimensions={}
 ############################################################
 # GLADIATORS - Neural Network Models to Compete            #
 ############################################################
-#gladiators = [ 'CaliforniaHousePricesUSD']
-gladiators = [
+gladiators = [ 'All_Defaults']
+gladiators2 = [
     'All_Defaults'
     #'BCE'
     #,'MSE'
@@ -79,16 +79,17 @@ gladiators = [
 #"Regime_Trigger_Switch" #Impossible for normal FFNN
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
-arenas2   = ['Iris_Two_Class','Predict_Income_2_Inputs']
+arenas   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas  = ['CaliforniaHousePricesUSD']
-arenas  = ['GoofyBinaryDecision']
-arenas  = [
+arenas  = ['Bit_Flip_Memory']
+arenas2  = [
     #######################################################################
     ######################### Regression ##################################
     #######################################################################
 'Predict_Income_2_Inputs'
 ,'California_Housing'
 ,'One_Giant_Outlier'
+,'One_Giant_OutlierExplainable'
 ,'Nested_Sine_Flip'
 ,'Chaotic_Function_Prediction'
 ,'Piecewise_Regime'

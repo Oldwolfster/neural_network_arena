@@ -37,8 +37,8 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         self.shared_hyper           = hyper
         self.seed                   = set_seed(self.shared_hyper.random_seed)
         self.training_data          = None
-        self.test_attribute         = None #TODO DELETE ME
-        self.test_strategy          = None #TODO DELETE ME
+        #self.test_attribute         = None #TODO DELETE ME
+        #self.test_strategy          = None #TODO DELETE ME
 
     def run_a_batch(self):
         TRIs: List[TrainingRunInfo] = []
@@ -58,6 +58,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print("🔬🔬 Loading Neuroforge... 🔬🔬")
             print("🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬")
             TRIs[0].db.copy_tables_to_permanent()
+            print(TRIs[0].training_data.raw_data)
             neuroForge(TRIs)
 
     def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model
