@@ -93,10 +93,10 @@ class TrainingRunInfo:
             float: Regression accuracy, or None if data is missing.
         """
         #print(f"accuracy_regression {self.training_data.problem_type}")
-        mae = self.get("mae")
+
         mean_target = self.training_data.mean_absolute_target
-        if mae is None or mean_target == 0 : return 0            # Avoid divide-by-zero or missing data
-        return  (1.0 - (mae / mean_target)) * 100                      #return max(0.0, min(1.0, accuracy))  # Clamp to [0, 1]
+        if self.mae is None or mean_target == 0 : return 0            # Avoid divide-by-zero or missing data
+        return  (1.0 - (self.mae / mean_target)) * 100                      #return max(0.0, min(1.0, accuracy))  # Clamp to [0, 1]
 
     @property
     def accuracy_bd(self) -> float:

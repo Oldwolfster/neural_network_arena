@@ -1,7 +1,7 @@
 import json
 from tabulate import tabulate
 from typing import List
-from src.engine.Utils_DataClasses import ModelInfo
+
 from src.ArenaSettings import HyperParameters
 from src.engine.Neuron import Neuron
 from src.engine.RamDB import RamDB

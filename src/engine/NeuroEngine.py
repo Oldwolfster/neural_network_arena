@@ -58,7 +58,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print("🔬🔬 Loading Neuroforge... 🔬🔬")
             print("🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬")
             TRIs[0].db.copy_tables_to_permanent()
-            print(f"Training Data: {TRIs[0].training_data.raw_data}")
+            if self.shared_hyper.display_train_data: print(f"Training Data: {TRIs[0].training_data.raw_data}")
             neuroForge(TRIs)
 
     def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model

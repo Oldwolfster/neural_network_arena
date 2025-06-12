@@ -13,11 +13,35 @@ class HyperParameters:
     ############################################################
     epochs_to_run           :int    = 5       # Number of times training run will cycle through all training data
     training_set_size       :int    = 30        # Qty of training data
-    random_seed             :int    = 599059   # for seed 580636 - ONE EPOCH    #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs    #for seed 946824, 366706 we got it in one!
     nf_count                :int    = 1
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
+    #run_neuroForge          :bool   = True
+    random_seed             :int    = 599059 #748141
+    #160995   #181026 #393828 #874170  331670
+    # for seed 580636 - ONE EPOCH
+    #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs     #241709 LR1 converges in 24 friggen epochs!
+    #for seed 946824, 366706 we got it in one!
+    #311161 gets 3 epochs with adaptive LR and explosion threshold of 5.
+    #375655 get 2 epochs
 
+    ##############################################################
+    # Convergence Thresholds                                     #
+    ##############################################################
+    threshold_Signal_MostAccurate   = .001
+    threshold_Signal_Economic       = .3        # The larger the quicker it converges
+    threshold_Signal_SweetSpot      = .01       # The larger the quicker it converges
+    converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
+    converge_threshold      :float  = 1e-12      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
+    accuracy_threshold      :float  = .000005        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
+    data_labels                     = []        # List to hold the optional data labels
 
+    ##############################################################
+    # NEW REPORT Parameters are set here - GOING TO MULT NEURONS #
+    ##############################################################
+    criteria_neuron :List[int] = None       # None = show all - otherwise list of neurons to include
+    criteria_weight :List[int] = None       # None = show all - 0= Ommit weights - Otherwise list all weights to include
+
+property
 dimensions={
     #"loss_function": [Loss_MSE,Loss_BCE],
     "loss_function": "*" ,
@@ -105,3 +129,15 @@ arenas2  = [
 """
 """
 
+
+
+############################################################
+# List or use training data from a previous run            #
+############################################################
+instead_of_run_show_past_runs       = False                 # Get list of prior runs
+#instead_of_run_show_past_runs      = True                   # Get list of prior runs
+run_previous_training_data          = ''                    # Use training data from past run
+#run_previous_training_data          = '20241028_195936'    # Use training data from past run
+
+#21.371165216310544
+#35.41909166991863

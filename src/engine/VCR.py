@@ -55,7 +55,7 @@ class VCR:
         self.abs_error_for_epoch += abs(iteration_data.error_unscaled)
         if iteration_data.is_true: self.bd_correct += 1
 
-        self.bd_correct
+
         record_weight_updates_from_finalize = self.maybe_finalize_batch(iteration_data.iteration,   self.TRI.training_data.sample_count, self.TRI.config.batch_size,  self.TRI.config.optimizer.finalizer)
 
         if any(record_weight_updates_from_finalize):

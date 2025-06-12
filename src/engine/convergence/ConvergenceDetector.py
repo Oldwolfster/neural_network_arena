@@ -29,7 +29,8 @@ class ConvergenceDetector:
         # Map of phases to signal classes
         self.phase_signals = {
             "watch": [
-                Signal_PerfectAccuracy(self.hyper.accuracy_threshold, self.metrics)
+                #Signal_PerfectAccuracy(self.hyper.accuracy_threshold, self.metrics)
+                Signal_PerfectAccuracy(1e019, self.metrics)
                 #,Signal_CornerCatch(.1, self.metrics)
                #,self.get_roi_signal(config.roi_mode, self.hyper, self.metrics)
             ],
@@ -88,6 +89,7 @@ class ConvergenceDetector:
         rs = db.query(sql, params)
         return rs[0] if rs else {}
 
+    """
     def get_roi_signal(self, roi_mode: ROI_Mode, hyper, metrics):
         print (f"roi_mode={roi_mode}")
         if roi_mode == ROI_Mode.MOST_ACCURATE:
@@ -98,4 +100,16 @@ class ConvergenceDetector:
             return Signal_Economic(hyper.threshold_Signal_Economic, metrics)
         else:
             raise ValueError(f"Unsupported ROI mode: {roi_mode}")
+    ##############################################################
+    # Convergence Thresholds                                     #
+    ##############################################################
+    threshold_Signal_MostAccurate   = .001
+    threshold_Signal_Economic       = .3        # The larger the quicker it converges
+    threshold_Signal_SweetSpot      = .01       # The larger the quicker it converges
+    converge_epochs         :int    = 10       # How many epochs of no change before we call it converged?
+    converge_threshold      :float  = 1e-12      # What percentage must MAE be within compared to prior epochs MAE to call it "same" #.001 Equalizer
+    accuracy_threshold      :float  = .000005        # In regression, how close must it be to be considered "accurate" - Careful - raising this to 1 or higher will break binary decision
+    data_labels                     = []        # List to hold the optional data labels
 
+
+"""

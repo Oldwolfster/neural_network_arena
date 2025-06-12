@@ -145,7 +145,7 @@ class Gladiator(ABC):
             loss                =loss,
             loss_function       =self.config.loss_function.name,
             loss_gradient       =blame,
-            accuracy_threshold  =self.hyper.accuracy_threshold,
+            accuracy_threshold  =1e-10,
         )
         self.VCR.record_iteration(iteration_data, Neuron.layers)
 

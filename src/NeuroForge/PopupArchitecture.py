@@ -107,7 +107,7 @@ class ArchitecturePopup(Popup_Base):
                 smart_format(TRI.time_seconds),
                 f"{TRI.last_epoch} (Epochs)",
                 smart_format(TRI.lowest_mae),
-                TRI.lowest_error_epoch,
+                TRI.lowest_mae_epoch,
                 TRI.converge_cond,
             ]
             return describe_rows  # <== This was over-indented before
