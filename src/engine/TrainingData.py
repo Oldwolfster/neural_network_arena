@@ -52,6 +52,7 @@ class TrainingData:
             self.is_binary_decision = True
 
 
+
     @property
     def raw_data(self):
         return self._raw_data

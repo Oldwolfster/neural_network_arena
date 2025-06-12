@@ -66,7 +66,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             training_data               = self.instantiate_arena(setup["arena"]) # Passed to base_gladiator through TRI
             set_seed                    ( self.seed)    #Reset seed as it likely was used in training_data
             create_weight_tables        ( self.db, run_id)
-            TRI                         = TrainingRunInfo(self.shared_hyper, self.db, training_data, setup, self.seed, run_id, record_level)
+            TRI                         = TrainingRunInfo(self.db, training_data, self.shared_hyper.training_set_size,self.shared_hyper.epochs_to_run, setup, self.seed, run_id, record_level)
             NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
             NN.train(epochs)            # Actually train model
             record_results              (TRI)        # Store Config for this model #TODO make use of RecordLevel

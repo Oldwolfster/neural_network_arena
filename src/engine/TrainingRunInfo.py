@@ -13,20 +13,24 @@ from src.engine.Utils_DataClasses import RecordLevel
 class TrainingRunInfo:
     __slots__ = ("hyper", "db", "training_data", "config", "setup",
                  "run_id", "gladiator", "time_start","time_end",
+                 "max_epochs", "sample_count",
                  "seed", "record_level", "last_epoch", "converge_cond",
                  "mae", "lowest_mae", "lowest_mae_epoch",
                  "bd_target_alpha","bd_target_beta","bd_target_alpha_unscaled","bd_target_beta_unscaled","bd_threshold","bd_label_alpha","bd_label_beta","bd_target_alpha","bd_correct")
 
     def __init__(
-            self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id, record_level: RecordLevel):
+            self, db: RamDB, training_data : TrainingData, set_size, max_epochs,  setup, seed, run_id, record_level: RecordLevel):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
         self.record_level:      RecordLevel         = record_level
-        self.hyper:              HyperParameters    = hyper
+        #self.hyper:              HyperParameters    = hyper
         self.db:                 RamDB              = db
         self.training_data:      TrainingData       = training_data
-        self.config:             Config             = Config(self , hyper=self.hyper, db=self.db, training_data=self.training_data, )
-        self.setup                                  = setup
+        self.config:             Config             = Config(self ,  db=self.db, training_data=self.training_data, )
+        self.setup                                  = setup     #the string written to db with purpose of rerunning exactly at a later date
+        self.max_epochs:         int                = max_epochs
+        self.sample_count:       int                = set_size
+
         #self.lego_selector:     LegoSelector       = LegoSelector()
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────

@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/SynologyDrive/Development/PycharmProjects/neural_network_arena/history/arena_history.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="5704"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="ErrorSignalCalcs" custom_title="0" dock_id="1" table="4,16:mainErrorSignalCalcs"/><dock_state state="000000ff00000000fd0000000100000002000005bb00000385fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000000005bb0000013a00ffffff000005bb0000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1"> select * from NNA_history 
+ -- where timestamp &gt; '2025-06-01 20:44:37.301792' 
+ -- and loss_function_name in ('Mean Squared Error','Binary Cross-Entropy')
+order by problem_type,accuracy, timestamp DESC
+ -- order by timestamp DESC
+
+ 
+ 
+ 
+
+
+
+
+</sql><sql name="Iteration">-- select * from ModelInfo
+-- select run_id, count(1) from  weight group by run_id
+
+select -- * 
+target, prediction,prediction_raw,prediction_unscaled, is_true
+from iteration where -- prediction &gt; 0 
+epoch = 1 and iteration =1
+ 
+ 
+ 
+
+
+
+
+</sql><sql name="RamDB.sql" filename="C:/Users/dad/Documents/RamDB.sql">-- Reference to file &quot;C:/Users/dad/Documents/RamDB.sql&quot; (not supported by this version) --</sql><sql name="TopByActivation">SELECT r.*
+FROM NNA_history r
+JOIN (
+    -- Insert the Step 1 query here
+    SELECT arena, hidden_activation, MIN(timestamp) AS best_timestamp
+    FROM NNA_history r
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM NNA_history r2
+        WHERE r2.arena = r.arena
+          AND r2.hidden_activation = r.hidden_activation
+          AND (
+            r2.accuracy &gt; r.accuracy
+            OR (r2.accuracy = r.accuracy AND r2.best_mae &lt; r.best_mae)
+            OR (r2.accuracy = r.accuracy AND r2.best_mae = r.best_mae AND r2.final_mae &lt; r.final_mae)
+          )
+    )
+    GROUP BY arena, hidden_activation
+) winners
+ON r.arena = winners.arena
+   AND r.hidden_activation = winners.hidden_activation
+   AND r.timestamp = winners.best_timestamp
+order by problem_type, arena, accuracy DESC ;
+</sql><sql name="TopByArena">
+WITH config AS (
+    SELECT 1 AS top_n
+)
+
+SELECT
+	SUBSTR(problem_type, 1, 1) || '-' || arena AS arena,			
+	rowcount,
+    ROUND(accuracy, 2)     AS accuracy,
+    ROUND(best_mae, 2)     AS best_mae,
+    ROUND(final_mae, 2)    AS final_mae,
+    architecture,
+    loss_function,
+    hidden_activation,
+    output_activation,
+    weight_initializer,
+    normalization_scheme,
+    learning_rate,
+    epoch_count,
+    convergence_condition,
+    runtime_seconds,
+    gladiator,
+    -- problem_type,
+    
+    target_min,
+    target_max,
+    target_min_label,
+    target_max_label,
+    target_mean,
+    target_stdev,
+	sample_count,
+    notes,
+    rerun_config,
+    seed,
+    run_id,
+    timestamp,
+    pk,
+    rank
+FROM (
+    SELECT 
+        r.*,
+        ROW_NUMBER() OVER (PARTITION BY arena ORDER BY accuracy DESC) AS rank,
+        COUNT(*) OVER (PARTITION BY arena) AS rowcount
+    FROM NNA_history r
+) AS sub,
+config
+WHERE rank &lt;= config.top_n
+--ORDER BY problem_type, accuracy DESC
+ORDER BY problem_type, arena, rank;
+
+
+
+
+
+/*
+SELECT
+    arena,
+    accuracy,
+    best_mae,
+    final_mae,
+    architecture,
+    loss_function,
+    hidden_activation,
+    output_activation,
+    weight_initializer,
+    normalization_scheme,
+    learning_rate,
+    epoch_count,
+    convergence_condition,
+    runtime_seconds,
+    gladiator,
+    problem_type,
+    sample_count,
+    target_min,
+    target_max,
+    target_min_label,
+    target_max_label,
+    target_mean,
+    target_stdev,
+    notes,
+    rerun_config,
+    seed,
+    run_id,
+    timestamp,
+    pk,
+    rank,
+    rowcount
+FROM (
+    SELECT 
+        r.*, 
+        ROW_NUMBER() OVER (PARTITION BY arena ORDER BY accuracy DESC) AS rank,
+        COUNT(*) OVER (PARTITION BY arena) AS rowcount
+    FROM NNA_history r
+) sub
+WHERE rank &lt;= 1
+-- ORDER BY problem_type, arena, rank
+ORDER BY  problem_type, accuracy DESC
+*/
+/*
+Adveserial noise seems to prefer MAE over MSE with NO HIDDEN ACTIVATION????
+How are we  getting negative accuracy
+
+
+*/</sql><sql name="Time">SELECT 
+  *, 
+  runs / (1.0 * diff_seconds / 3600.0) AS runs_per_hour, 
+  runs / (1.0 * diff_seconds / 60.0) AS runs_per_min,
+  runs / (1.0 * diff_seconds ) AS runs_per_sec
+FROM (
+	WITH filtered AS (
+		SELECT * FROM NNA_history
+		-- 🔍 Optional: Add criteria here, e.g., WHERE problem_type = 'Binary Decision'
+	),
+	time_diff AS (
+		SELECT 
+			MIN(timestamp) AS start_time,
+			MAX(timestamp) AS end_time,			
+			(SELECT COUNT(1) FROM filtered)
+			AS runs
+		FROM filtered
+	)
+
+	SELECT 
+		start_time,
+		end_time,		
+		runs,
+		STRFTIME('%s', end_time) - STRFTIME('%s', start_time) AS diff_seconds,
+		TIME(STRFTIME('%s', end_time) - STRFTIME('%s', start_time), 'unixepoch') AS diff_hhmmss
+	FROM time_diff
+) subq;
+</sql><sql name="Arena">SELECT arena, count(1)runs, avg(accuracy) ,max(problem_type) problem_type	,max(target_min)target_min	,max(target_max)target_max	,max(target_mean)target_mean	,max(target_stdev)target_stdev
+FROM NNA_history r
+    GROUP BY arena
+order by accuracy DESC
+</sql><current_tab id="2"/></tab_sql></sqlb_project>

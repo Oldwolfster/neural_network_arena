@@ -27,7 +27,7 @@ class VCR:
         self.iteration_num          = 0                         # Current Iteration #
         self.epoch_curr_number      = 1                         # Which epoch are we currently on.
         self.sample_count           = len(TRI.training_data.get_list())          # Calculate and store sample count= 0               # Number of samples in each iteration.
-        self.converge_detector      = ConvergenceDetector(TRI.hyper, TRI.training_data, TRI.config)
+        self.converge_detector      = ConvergenceDetector(TRI.training_data, TRI.config)
         self.abs_error_for_epoch    = 0
         self.bd_correct             = 0
         self.convergence_signal     = None      # Will be set by convergence detector

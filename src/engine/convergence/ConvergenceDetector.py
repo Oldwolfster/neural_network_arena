@@ -17,8 +17,7 @@ class ROI_Mode(Enum):
     MOST_ACCURATE       = "most_accurate"  # Squeeze every drop
 
 class ConvergenceDetector:
-    def __init__(self, hyper: HyperParameters, td: TrainingData, config):
-        self.hyper = hyper
+    def __init__(self,  td: TrainingData, config):
         self.td = td
         self.metrics = []
         self.triggered_signals: List[str] = []

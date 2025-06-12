@@ -8,7 +8,7 @@ from src.engine.Utils import smart_format
 class DisplayPanelInput(EZForm):
     def __init__(self,  width_pct: int, height_pct: int, left_pct: int, top_pct: int, bg_color=Const.COLOR_WHITE, banner_color=Const.COLOR_BLUE):#data_labels: List[str]
         """Dynamically creates an input form for displaying model input values."""
-        data_labels = Const.TRIs[0].hyper.data_labels
+        data_labels = Const.TRIs[0].training_data.feature_labels
         self.target_name = data_labels[-1]
 
         # Construct fields: Input fields first, then target value last

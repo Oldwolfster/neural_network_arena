@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 class Config:
     # 🔹 Shared components for all models
 
-    def __init__(self, TRI, hyper: HyperParameters, db: RamDB, training_data : TrainingData):
+    def __init__(self, TRI, db: RamDB, training_data : TrainingData):
         self.TRI                   = TRI
         self.lego_selector: LegoSelector            = LegoSelector(TRI)
 

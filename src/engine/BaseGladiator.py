@@ -31,11 +31,10 @@ class Gladiator(ABC):
         self.TRI                    = TRI # TrainingRunInfo
         self.config                 = TRI.config
         self.db                     = TRI.db
-        self.hyper                  = TRI.hyper
         self.training_data          = TRI.training_data         # Only needed for sqlMgr ==> self.ramDb = args[3]
         self.VCR                    = VCR(TRI, Neuron.neurons)  # Args3, is ramdb
         self.total_iterations       = 1                         # Timestep for optimizers such as adam
-        self.number_of_epochs       = self.hyper.epochs_to_run
+        self.number_of_epochs       = TRI.max_epochs
         self.iteration              = 0
         self.epoch                  = 0
         self.too_high_adjst         = self.training_data.input_max * 5 #TODO make '5' a hyperparamter

@@ -36,7 +36,7 @@ class LegoLister:
             "by_name": by_display_name
         }
 
-        print(f"\n🔎 Found legos for '{config_property}':")
+        print(f"\n🔎 Found legos for '{config_property}' why is it doing this on resume?:")
         for k in by_display_name:
             print(f"  {k}")
 

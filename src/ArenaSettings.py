@@ -17,18 +17,18 @@ class HyperParameters:
     nf_count                :int    = 4
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
 
-
 dimensions={
-    #"loss_function": [Loss_MSE,Loss_BCE],
-    "loss_function": "*" ,
-    "hidden_activation": "*",
-    "initializer": "*",
-    #"output_activation": *
-    #"batch_size":[1,2,4,8,999]
-    #"architecture":[[4 , 4, 1], [2 , 2, 1]]
+    "loss_function": [Loss_MSE, Loss_MSE, Loss_HalfWit, Loss_BCE, Loss_BCE, Loss_Huber, Loss_Hinge,Loss_LogCosh],
+    "hidden_activation" : "*",   # [Activation_Tanh, Activation_Sigmoid, Activation_LeakyReLU, Activation_ReLU, Activation_NoDamnFunction]
+    "output_activation" : "*",   # [Activation_Tanh, Activation_Sigmoid, Activation_LeakyReLU, Activation_ReLU, Activation_NoDamnFunction]
+    "initializer"       : "*",
+    "optimizer"         : [Optimizer_SGD, Optimizer_Adam],  #suspect not working
+    "architecture"      : [[4 , 4, 1], [2 , 2, 1]],
+    "batch_size":[1,2,4,8,999]
 }
-dimensions={}
-dimensions={"loss_function": [Loss_MSE,Loss_BCE]}
+
+dimensions2={"loss_function": [Loss_MSE,Loss_BCE]}
+dimensions = {}
 
 
 ############################################################
