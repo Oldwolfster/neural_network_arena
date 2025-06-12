@@ -11,24 +11,14 @@ from src.engine.Utils_DataClasses import RecordLevel
 
 
 class TrainingRunInfo:
-    __slots__ = (
-        "hyper",
-        "db",
-        "training_data",
-        "config",
-        "lego_selector",
-        "setup",
-        "run_id",
-        "gladiator",
-        "time_start",
-        "time_end",
-        "seed",
-        "record_level",
-        "last_epoch",
-        "converge_cond",
-        "config_metadata",
-    )
-    def __init__(self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id, record_level: RecordLevel):
+    __slots__ = ("hyper", "db", "training_data", "config", "setup",
+                 "run_id", "gladiator", "time_start","time_end",
+                 "seed", "record_level", "last_epoch", "converge_cond",
+                 "mae", "lowest_mae", "lowest_mae_epoch",
+                 "bd_target_alpha","bd_target_beta","bd_target_alpha_unscaled","bd_target_beta_unscaled","bd_threshold","bd_label_alpha","bd_label_beta","bd_target_alpha","bd_correct")
+
+    def __init__(
+            self, hyper: HyperParameters, db: RamDB, training_data : TrainingData,  setup, seed, run_id, record_level: RecordLevel):
         #create_weight_tables(db, ATAM["gladiator"])
         # ─── SET 1: Global Shared Objects ───────────────────────────────
         self.record_level:      RecordLevel         = record_level
@@ -36,10 +26,13 @@ class TrainingRunInfo:
         self.db:                 RamDB              = db
         self.training_data:      TrainingData       = training_data
         self.config:             Config             = Config(self , hyper=self.hyper, db=self.db, training_data=self.training_data, )
-        #self.lego_selector:      LegoSelector       = LegoSelector()
         self.setup                                  = setup
+        #self.lego_selector:     LegoSelector       = LegoSelector()
 
         # ─── SET 2: Core Stable Metrics (Always Present) ────────────────
+        self.mae:               float               = None
+        self.lowest_mae:        float               = 6.9e69
+        self.lowest_mae_epoch:  int                 = 0
         self.run_id:            int                 = run_id
         self.gladiator:         str                 = setup["gladiator"]
         self.seed:              int                 = seed
@@ -48,39 +41,16 @@ class TrainingRunInfo:
         self.last_epoch:        int                 = 0
         self.converge_cond:     str                 = None
 
-        # ─── SET 3: Dictonary for holding everything else
-        self.config_metadata: Dict[str, Any] = {}
-
-    # ─── Idiot-Proof Helpers ────────────────────────────────────────
-    def get(self, key, default=None):
-        """
-        Safely retrieve a value from config_metadata.
-
-        Args:
-            key (str): The metadata key to retrieve.
-            default (Any, optional): Value to return if key is not present. Defaults to None.
-
-        Returns:
-            Any: The stored value, or default if not found.
-        """
-        return self.config_metadata.get(key, default)
-
-    def set(self, key, value):
-        self.config_metadata[key] = value
-
-    def set_if_lower(self, key, value) -> bool:
-        old = self.config_metadata.get(key, float("inf"))
-        if value < old:
-            self.config_metadata[key] = value
-            return True
-        return False
-
-    def set_if_higher(self, key, value) -> bool:
-        old = self.config_metadata.get(key, float("-inf"))
-        if value > old:
-            self.config_metadata[key] = value
-            return True
-        return False
+        # ─── SET 3: Old dictionary converted
+        self.bd_target_alpha:   float               = None
+        self.bd_target_beta:    float               = None
+        self.bd_target_alpha_unscaled:  float       = None
+        self.bd_target_beta_unscaled:   float       = None
+        self.bd_threshold:      float               = None
+        self.bd_label_alpha:    float               = None
+        self.bd_label_beta:     float               = None
+        self.bd_target_alpha:   float               = None
+        self.bd_correct:        int                 = 0
 
     def record_finish_time(self):
         self.time_end = datetime.now()
@@ -131,7 +101,7 @@ class TrainingRunInfo:
     @property
     def accuracy_bd(self) -> float:
         #print("accuracy_bd")
-        bd_correct = self.get("bd_correct")
+        bd_correct = self.bd_correct
         samples = self.training_data.sample_count
         return (bd_correct / samples ) * 100
 

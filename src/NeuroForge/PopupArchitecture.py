@@ -106,8 +106,8 @@ class ArchitecturePopup(Popup_Base):
                 "",  # Training Outcome header
                 smart_format(TRI.time_seconds),
                 f"{TRI.last_epoch} (Epochs)",
-                smart_format(TRI.get("lowest_mae")),
-                TRI.get("lowest_error_epoch"),
+                smart_format(TRI.lowest_mae),
+                TRI.lowest_error_epoch,
                 TRI.converge_cond,
             ]
             return describe_rows  # <== This was over-indented before

@@ -119,7 +119,7 @@ class DisplayModel(EZSurface):
         self.create_neuron_to_neuron_arrows(True)  # Forward pass arrows
         self.create_output_to_thresholder()
 
-        ez_debug(BD=self.TRI.training_data.is_binary_decision)
+        #ez_debug(BD=self.TRI.training_data.is_binary_decision)
         # Create thresholder if problem type is BD
         if  1== 2 : #self.TRI.training_data.is_binary_decision:
             predictor = self.prediction_scaler_neuron
@@ -219,7 +219,7 @@ class DisplayModel(EZSurface):
         y_end_offset= -3.69
         to_neuron = self.neurons[-1][0] #output neuron
         #to_neuron2 = self.neurons
-        ez_debug(to_neuron=to_neuron)
+        #ez_debug(to_neuron=to_neuron)
         #ez_debug(to_neuron2=to_neuron2)
         start_x = to_neuron.location_right_side + x_start_offset
         start_y = to_neuron.location_top+ to_neuron.location_height//2 + y_start_offset

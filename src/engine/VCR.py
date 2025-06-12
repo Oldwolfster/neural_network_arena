@@ -107,13 +107,15 @@ class VCR:
         self.TRI.last_epoch = epoch
         mae = self.abs_error_for_epoch / self.TRI.training_data.sample_count
         #print(f"mae={mae}")
-        self.TRI.set("mae", mae)
-        if self.TRI.set_if_lower("lowest_mae", mae):
-            self.TRI.set("lowest_error_epoch", epoch)
-        self.TRI.set("bd_correct", self.bd_correct)
-        self.abs_error_for_epoch = 0                        # Reset for next epoch
-        self.bd_correct = 0                                 # Reset for next epoch
-        self.epoch_curr_number += 1
+        self.TRI.mae = mae
+        if self.TRI.lowest_mae > mae:
+            self.TRI.lowest_mae         = mae
+            self.TRI.lowest_mae_epoch   = epoch
+
+        self.TRI.bd_correct             = self.bd_correct
+        self.abs_error_for_epoch        = 0                        # Reset for next epoch
+        self.bd_correct                 = 0                                 # Reset for next epoch
+        self.epoch_curr_number          += 1
         val =  self.converge_detector.check_convergence(self.epoch_curr_number, mae )
         return val
 

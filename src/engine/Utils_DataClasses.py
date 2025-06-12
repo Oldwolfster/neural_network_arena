@@ -38,32 +38,32 @@ class NNA_history:
     def from_config(cls, TRI, config ):
         return cls(
             run_id                  = TRI.run_id,
-            arena                   =TRI.training_data.arena_name,
-            gladiator               =TRI.gladiator,
-            accuracy                =TRI.accuracy,
-            architecture            =config.architecture,
-            best_mae                = TRI.get("lowest_mae"),
-            problem_type            =config.training_data.problem_type,
-            loss_function           =config.loss_function.name,
-            hidden_activation       =config.hidden_activation.name,
-            output_activation       =config.output_activation.name,
-            weight_initializer      =config.initializer.name,
-            normalization_scheme    ="WIP",
-            seed                    =TRI.seed,
-            learning_rate           =config.learning_rate,
-            epoch_count             =TRI.last_epoch,
+            arena                   = TRI.training_data.arena_name,
+            gladiator               = TRI.gladiator,
+            accuracy                = TRI.accuracy,
+            architecture            = config.architecture,
+            best_mae                = TRI.lowest_mae,
+            problem_type            = config.training_data.problem_type,
+            loss_function           = config.loss_function.name,
+            hidden_activation       = config.hidden_activation.name,
+            output_activation       = config.output_activation.name,
+            weight_initializer      = config.initializer.name,
+            normalization_scheme    = "WIP",
+            seed                    = TRI.seed,
+            learning_rate           = config.learning_rate,
+            epoch_count             = TRI.last_epoch,
             convergence_condition   = TRI.converge_cond or "None",
-            runtime_seconds         =TRI.time_seconds,
-            final_mae               =TRI.get("mae"),
-            sample_count            =TRI.training_data.sample_count,
-            target_min              =TRI.training_data.target_min,                       # either min numeric or count of smaller class
-            target_max              =TRI.training_data.target_max,                       # either max numeric or count of larger class
-            target_min_label        =TRI.training_data.target_min_label,                   # e.g., "Repay" or "0"
-            target_max_label        =TRI.training_data.target_max_label,                  # e.g., "Default" or "1"
-            target_mean             =TRI.training_data.target_mean,                       # mean of target values (esp useful in regression)
-            target_stdev            =TRI.training_data.target_stdev,                       # standard deviation of targets
-            notes                   ="notes here",                             # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
-            rerun_config            ="coming soon"
+            runtime_seconds         = TRI.time_seconds,
+            final_mae               = TRI.mae,
+            sample_count            = TRI.training_data.sample_count,
+            target_min              = TRI.training_data.target_min,                       # either min numeric or count of smaller class
+            target_max              = TRI.training_data.target_max,                       # either max numeric or count of larger class
+            target_min_label        = TRI.training_data.target_min_label,                   # e.g., "Repay" or "0"
+            target_max_label        = TRI.training_data.target_max_label,                  # e.g., "Default" or "1"
+            target_mean             = TRI.training_data.target_mean,                       # mean of target values (esp useful in regression)
+            target_stdev            = TRI.training_data.target_stdev,                       # standard deviation of targets
+            notes                   = "notes here",                             # Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+            rerun_config            = "coming soon"
         )
 
     def display(self):

@@ -8,7 +8,7 @@ class LegoSelector:
     def __init__(self, TRI):
         self.applied_rules = []
         if TRI.should_record(RecordLevel.SUMMARY ):
-            print(f"\t🧠 Welcome to 'Smart Configuration' Anything not set in your model will be set to optimal conditions(hopefully) 🧠\n\t🧠 ", end=""),
+            print(f"\t🧠🧠 Welcome to 'Smart Configuration' Anything not set in your model will be set to optimal conditions(hopefully) 🧠🧠", end=""),
 
     def apply(self, config, rules, tri):
         # track which rule‐indices we’ve applied (and to what value)
@@ -47,7 +47,7 @@ class LegoSelector:
                                 "condition": condition
                             })
                             if tri.should_record(RecordLevel.SUMMARY ): #print(f"  ➤ Rule applied: {priority}: {key} = {value} from condition: '{condition}'")
-                                print(f"\t{priority}: {key} = {value}", end="") # from condition: '{condition}'")
+                                print(f"\t🧠{priority}: {key} = {value}") # from condition: '{condition}'")
                             return True
             except Exception as e:
                 print(f"⚠️ Rule failed: {priority} {condition} -> {e}")

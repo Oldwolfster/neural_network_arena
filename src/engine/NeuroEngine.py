@@ -58,7 +58,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print("🔬🔬 Loading Neuroforge... 🔬🔬")
             print("🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬")
             TRIs[0].db.copy_tables_to_permanent()
-            print(TRIs[0].training_data.raw_data)
+            print(f"Training Data: {TRIs[0].training_data.raw_data}")
             neuroForge(TRIs)
 
     def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model
@@ -94,13 +94,13 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         best_lr      = None
         lr           = start_lr
         trials       = 0
-        print(f"\t😈 Welcome to the Learning Rate Sweep.  Heads up, Below info is 'LR:→MAE' repeated😈\n\t😈", end=""),
+        print(f"\t😈😈 Welcome to the Learning Rate Sweep.  Heads up, Below info is 'LR:→MAE' repeated😈😈"),
         while lr >= min_lr and lr < max_lr and trials < max_trials:
             setup["learning_rate"] = lr
             TRI = self.atomic_train_a_model(setup, RecordLevel.NONE, epochs=20)
-            error = TRI.get("mae")
-
-            print(f"\tLR:{lr:.1e} → {smart_format(error)}", end="")
+            error = TRI.mae
+            #print(f"\tLR:{lr:.1e} → {smart_format(error)}", end="")
+            print(f"\t😈\tLR:{lr:.1e} → {smart_format(error)}")
 
             # ─── check for gradient explosion ───────────────────────────
             if error > 1e20 and factor == 10:           # gradient explosion – no need to search higher
@@ -127,7 +127,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             lr *= factor
             trials += 1
 
-        print(f"\n\t😈\t🏆🏆🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f} 🏆🏆🏆)")
+        print(f"\t😈\t🏆🏆🏆 Best learning_rate = {best_lr:.1e} (last_mae = {best_error:.5f} 🏆🏆🏆)\n")
         return best_lr
 
     def learning_rate_sweep2(self, setup: dict) -> float:
@@ -155,7 +155,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         while trials < max_trials and lr <= max_lr:
             setup["learning_rate"] = lr
             TRI = self.atomic_train_a_model(setup, record_level=0, epochs=20)
-            error = TRI.get("mae")
+            error = TRI.mae
 
             # Treat any missing/inf MAE as “explosion”
             if error is None or not math.isfinite(error) or error > 1e10:
@@ -189,7 +189,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             while trials < max_trials and lr >= min_lr:
                 setup["learning_rate"] = lr
                 TRI = self.atomic_train_a_model(setup, record_level=0, epochs=20)
-                error = TRI.get("mae")
+                error = TRI.mae
 
                 # If we hit explosion again (unlikely at tiny rates), break
                 if error is None or not math.isfinite(error) or error > 1e10:
@@ -237,7 +237,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         while lr >= min_lr and lr < max_lr:
             setup["learning_rate"] = lr
             TRI = self.atomic_train_a_model(setup,  record_level=0, epochs=20)
-            error = TRI.get("mae")
+            error = TRI.mae
 
 
             print(f"😈Gladiator: {gladiator} - LR: {lr:.1e} → Last MAE: {error:.5f}")

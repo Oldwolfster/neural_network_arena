@@ -59,16 +59,14 @@ class Gladiator(ABC):
             output_activation   = self.config.output_activation or self.config.loss_function.recommended_output_activation)
         #ez_debug(outputNNN=Neuron.output_neuron.activation.bd_defaults)
         self.customize_neurons  (self.config)                 # Typically overwritten in child  class.
-        self.TRI.set("bd_target_alpha"   , Neuron.output_neuron.activation.bd_defaults[0])
-        self.TRI.set("bd_target_beta"    , Neuron.output_neuron.activation.bd_defaults[1])
-        self.TRI.set("bd_threshold"     , Neuron.output_neuron.activation.bd_defaults[2])
-        self.TRI.set("bd_label_alpha", self.TRI.training_data.target_labels[0])
-        self.TRI.set("bd_label_beta", self.TRI.training_data.target_labels[1])
-        self.TRI.set("bd_target_alpha_unscaled",self.TRI.training_data.target_min )
-        self.TRI.set("bd_target_beta_unscaled",self.TRI.training_data.target_max )
-        #beta = self.TRI.get("bd_class_beta")
-        #alph = self.TRI.get("bd_class_alpha")
-        #ez_debug(beta1=beta,alph1 = alph)
+        self.TRI.bd_target_alpha = Neuron.output_neuron.activation.bd_defaults[0]
+        self.TRI.bd_target_beta = Neuron.output_neuron.activation.bd_defaults[1]
+        self.TRI.bd_threshold = Neuron.output_neuron.activation.bd_defaults[2]
+        self.TRI.bd_label_alpha = self.TRI.training_data.target_labels[0]
+        self.TRI.bd_label_beta = self.TRI.training_data.target_labels[1]
+        self.TRI.bd_target_alpha_unscaled = self.TRI.training_data.target_min
+        self.TRI.bd_target_beta_unscaled = self.TRI.training_data.target_max
+
 
     def configure_model(self, config: Config):  pass #Typically overwritten in child  class.
     def customize_neurons(self,config: Config): pass #Typically overwritten in child  class.
@@ -108,7 +106,7 @@ class Gladiator(ABC):
         """
 
         self.epoch = epoch_num      # Set so the child model has access
-        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.TRI.gladiator} MAE = {self.TRI.get("mae")} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.TRI.gladiator} MAE = {self.TRI.mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
             self.run_a_sample(np.array(sample), np.array(sample_unscaled))
@@ -118,15 +116,10 @@ class Gladiator(ABC):
         return self.VCR.finish_epoch(epoch_num + 1)      # Finish epoch and return convergence signal
 
     def threshold(self, value):
-        beta = self.TRI.get("bd_target_beta")
-        alph = self.TRI.get("bd_target_alpha")
-        thresh = self.TRI.get("bd_threshold")
-
-        #ez_debug(beta2=beta,alph2 = alph, thresh=thresh, value2 = value)
-        if value >= self.TRI.get("bd_threshold"):
-            return self.TRI.get("bd_target_beta")
+        if value >= self.TRI.bd_threshold:
+            return self.TRI.bd_target_beta
         else:
-            return self.TRI.get("bd_target_alpha")
+            return self.TRI.bd_target_alpha
 
     def run_a_sample(self, sample, sample_unscaled):
 
