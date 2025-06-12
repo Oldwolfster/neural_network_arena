@@ -14,7 +14,7 @@ class HyperParameters:
     epochs_to_run           :int    = 5       # Number of times training run will cycle through all training data
     training_set_size       :int    = 30        # Qty of training data
     random_seed             :int    = 599059   # for seed 580636 - ONE EPOCH    #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs    #for seed 946824, 366706 we got it in one!
-    nf_count                :int    = 1
+    nf_count                :int    = 4
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
 
 

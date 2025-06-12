@@ -19,6 +19,8 @@ class DisplayArrow:
         draw_start_arrow: bool = False,
         thickness_offsets: tuple = (16, 8, 0),
         layer_colors: tuple = None,
+        # ── new── how many pixels to shave off the arrowhead distance
+        shaft_extension: int = 4,
     ):
         # 🔹 Ensure values are numbers (or raise)
         if not all(isinstance(v, (int, float)) for v in (start_x, start_y, end_x, end_y)):
@@ -41,6 +43,9 @@ class DisplayArrow:
         self.head_angle = head_angle
         self.draw_start_arrow = draw_start_arrow
 
+        # ── new── how many pixels closer the shaft reaches
+        self.shaft_extension = shaft_extension
+
         # ← layering params (optional)
         self.thickness_offsets = thickness_offsets
         self.layer_colors = tuple(layer_colors) if layer_colors is not None else None
@@ -55,8 +60,8 @@ class DisplayArrow:
                 w = self.thickness + offset
                 size = self.arrow_size + offset
 
-                # shaft stops at arrow-base
-                bx, by = self._calculate_arrow_base(
+                # ── use the extended‐shaft helper
+                bx, by = self._calculate_extended_arrow_base(
                     self.end_x, self.end_y, self.start_x, self.start_y, size
                 )
                 pygame.draw.line(
@@ -75,7 +80,7 @@ class DisplayArrow:
 
                 # optional head at start
                 if self.draw_start_arrow:
-                    sx, sy = self._calculate_arrow_base(
+                    sx, sy = self._calculate_extended_arrow_base(
                         self.start_x, self.start_y, self.end_x, self.end_y, size
                     )
                     pygame.draw.line(
@@ -92,8 +97,8 @@ class DisplayArrow:
 
         else:
             # single-color mode
-            # shaft stops at arrow-base
-            bx, by = self._calculate_arrow_base(
+            # ── use the extended‐shaft helper
+            bx, by = self._calculate_extended_arrow_base(
                 self.end_x, self.end_y, self.start_x, self.start_y, self.arrow_size
             )
             pygame.draw.line(
@@ -112,7 +117,7 @@ class DisplayArrow:
 
             # optional head at start
             if self.draw_start_arrow:
-                sx, sy = self._calculate_arrow_base(
+                sx, sy = self._calculate_extended_arrow_base(
                     self.start_x, self.start_y, self.end_x, self.end_y, self.arrow_size
                 )
                 pygame.draw.line(
@@ -157,3 +162,8 @@ class DisplayArrow:
         bx = tip_x - arrow_size * math.cos(angle)
         by = tip_y - arrow_size * math.sin(angle)
         return bx, by
+
+    def _calculate_extended_arrow_base(self, tip_x, tip_y, base_x, base_y, arrow_size):
+        """ Like _calculate_arrow_base but moves the base 'shaft_extension' pixels closer to the tip. """
+        effective_size = max(arrow_size - self.shaft_extension, 0)
+        return self._calculate_arrow_base(tip_x, tip_y, base_x, base_y, effective_size)
