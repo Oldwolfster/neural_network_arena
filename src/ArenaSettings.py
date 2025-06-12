@@ -6,6 +6,8 @@ from src.Legos.Optimizers import *
 from src.Legos.Scalers import *
 from src.Legos.LossFunctions import *
 
+
+
 @dataclass
 class HyperParameters:
     ############################################################
