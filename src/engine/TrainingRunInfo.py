@@ -45,14 +45,14 @@ class TrainingRunInfo:
         self.last_epoch:        int                 = 0
         self.converge_cond:     str                 = None
 
-        # ─── SET 3: Old dictionary converted
+        # ─── SET 3: binary decision
         self.bd_target_alpha:   float               = None
         self.bd_target_beta:    float               = None
         self.bd_target_alpha_unscaled:  float       = None
         self.bd_target_beta_unscaled:   float       = None
         self.bd_threshold:      float               = None
-        self.bd_label_alpha:    float               = None
-        self.bd_label_beta:     float               = None
+        self.bd_label_alpha:    str               = None
+        self.bd_label_beta:     str               = None
         self.bd_target_alpha:   float               = None
         self.bd_correct:        int                 = 0
 

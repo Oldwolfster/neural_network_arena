@@ -103,23 +103,24 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print(f"\t😈\tLR:{lr:.1e} → {smart_format(error)}")
 
             # ─── check for gradient explosion ───────────────────────────
-            if error > 1e20 and factor == 10:           # gradient explosion – no need to search higher
+            if (error is None or error > 1e20) and factor == 10:           # gradient explosion – no need to search higher
                 factor = 0.1                            # reverse direction
                 lr      = 1e-6
+
                 # Reset patience once we flip direction
                 no_improve_count = 0
                 continue
             # ─────────────────────────────────────────────────────────────
 
             # ─── track best_error and reset or increment patience ──────
-            if error < best_error:
+            if error is not None and error < best_error:
                 best_error      = error
                 best_lr         = lr
                 no_improve_count = 0
             else:
                 no_improve_count += 1
 
-            if no_improve_count >= patience:
+            if no_improve_count >= patience and best_lr is not None:
                 #print(f"⌛ No improvement in {patience} consecutive trials—stopping early.")
                 break
             # ─────────────────────────────────────────────────────────────

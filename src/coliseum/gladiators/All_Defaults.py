@@ -24,11 +24,11 @@ class NeuroForge_Template(Gladiator):
             💪  For example setting config options.        """
         #ez_debug(inp_scaler1 = config.input_scaler)
         config.architecture         = [2,4, 1]               # Neurons in hidden layers - output neuron(s) added automatically
-        config.optimizer            = Optimizer_Adam
+        #config.optimizer            = Optimizer_Adam
         #config.learning_rate          = 1e-4
         #config.initializer          = Initializer_Xavier
         #config.hidden_activation     = Activation_Tanh
-        #config.output_activation    = Activation_Tanh
+        config.output_activation    = Activation_Tanh
         #config.loss_function        = Loss_Hinge
         #config.batch_size           = 2
         #config.batch_mode           = BatchMode.MINI_BATCH   #NOTE single_sample or full overwrite batch_size

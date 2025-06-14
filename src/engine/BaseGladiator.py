@@ -108,7 +108,9 @@ class Gladiator(ABC):
         if epoch_num % 100 == 0 and epoch_num!=0:  print (f"Epoch: {epoch_num} for {self.TRI.gladiator} MAE = {self.TRI.mae} at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
         for self.iteration, (sample, sample_unscaled) in enumerate(zip(self.config.scaler.scaled_samples, self.config.scaler.unscaled_samples)):
-            self.run_a_sample(np.array(sample), np.array(sample_unscaled))
+            if self.run_a_sample(np.array(sample), np.array(sample_unscaled)) == "Gradient Explosion":
+                return "Gradient Explosion"
+
             if self.VCR.abs_error_for_epoch > 1e21:
                 self.VCR.finish_epoch(epoch_num + 1)
                 return  "Gradient Explosion" #Check for gradient explosion
@@ -124,6 +126,7 @@ class Gladiator(ABC):
 
         self                . snapshot_weights("", "_before")
         error, loss, blame  = self.optimize_passes(sample)
+        if error == "Gradient Explosion": return error
 
         # 4 possible prediction values...   prediction_raw, prediction_raw_unscaled,prediction_thresholded, prediction_thresholded_unscaled(called just prediction) for binary decision
         prediction_raw      = Neuron.output_neuron.activation_value  # Extract single neuron’s activation
@@ -151,7 +154,7 @@ class Gladiator(ABC):
     def optimize_passes(self, sample_scaled):
         # Step 1: Forward pass
         prediction_raw = self.forward_pass(sample_scaled)  # Call model-specific logic
-
+        if prediction_raw > 1e69: return "Gradient Explosion", None, None
         if prediction_raw is None: raise ValueError(f"{self.__class__.__name__}.forward_pass must return a value for sample={sample!r}"            ) # ensure forward_pass actually returned something
 
         # Step 2: Judge pass - calculate error, loss, and blame (gradient)
@@ -183,6 +186,7 @@ class Gladiator(ABC):
             for neuron in layer:
                 neuron.raw_sum = sum(input_val * weight for input_val, weight in zip(prev_activations, neuron.weights))
                 neuron.raw_sum += neuron.bias
+                if neuron.raw_sum > 1e69: return neuron.raw_sum #Catch gradient explosion
                 neuron.activate()
                 #print(f"neuron.activation={neuron.activation_value}")
         return  Neuron.output_neuron.activation_value  # Extract output neuron’s activation
@@ -222,7 +226,7 @@ class Gladiator(ABC):
 
     def back_pass__determine_blame_for_a_hidden_neuron(self, neuron: Neuron):
         """
-        Calculate the error signal for a hidden neuron by summing the contributions from all neurons in the next layer.
+        Calculate the error signal for a hidden neuron by summing the contributions from all 'blame feeding' neurons in the next layer.
         args: neuron:  The neuron we are calculating the error for.
         """
         activation_gradient         = neuron.activation_gradient
