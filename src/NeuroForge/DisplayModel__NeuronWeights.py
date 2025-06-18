@@ -1,6 +1,7 @@
 import pygame
 from src.NNA.engine.Utils import *
 from src.NeuroForge import Const
+from src.NNA.engine.UtilsPyGame import *
 
 class DisplayModel__NeuronWeights:
     """

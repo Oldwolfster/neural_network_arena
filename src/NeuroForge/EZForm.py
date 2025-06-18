@@ -2,7 +2,7 @@ from typing import Dict
 import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.EZSurface import EZSurface
-from src.NNA.engine.Utils import get_darker_color
+from src.NNA.engine.UtilsPyGame import get_darker_color
 import os
 
 class EZForm(EZSurface):

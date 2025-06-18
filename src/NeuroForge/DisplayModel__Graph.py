@@ -4,7 +4,7 @@ from src.NeuroForge import Const
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
-from src.NNA.engine.Utils import draw_gradient_rect
+from src.NNA.engine.UtilsPyGame import draw_gradient_rect
 from src.NNA.engine.Utils import smart_format
 
 class DisplayModel__Graph():

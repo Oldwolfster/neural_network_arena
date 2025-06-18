@@ -6,8 +6,8 @@ from src.NeuroForge import Const
 from src.NeuroForge.Popup_Base import Popup_Base
 from src.NNA.engine.Config import Config
 from src.NNA.Legos.Optimizers import BatchMode
-from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text, smart_format
-
+from src.NNA.engine.UtilsPyGame import draw_rect_with_border, draw_text_with_background,  check_label_collision, get_text_rect, beautify_text, smart_format
+from src.NNA.engine.Utils import ez_debug
 class PopupTrainingData(Popup_Base):
     def __init__(self):
         super().__init__(column_width_overrides={

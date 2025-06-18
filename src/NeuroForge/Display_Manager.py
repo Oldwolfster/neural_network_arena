@@ -7,7 +7,8 @@ from src.NeuroForge.PopupTrainingData import PopupTrainingData
 from src.NNA.engine.Config import Config
 from src.NNA.engine.RamDB import RamDB
 from src.NeuroForge import Const
-from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
+from src.NNA.engine.UtilsPyGame import draw_rect_with_border, draw_text_with_background,  check_label_collision, get_text_rect, beautify_text
+from src.NNA.engine.Utils import ez_debug
 from src.NeuroForge.DisplayArrowsOutsideNeuron import DisplayArrowsOutsideNeuron
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl

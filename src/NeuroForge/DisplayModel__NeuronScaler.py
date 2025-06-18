@@ -6,7 +6,7 @@ from src.NeuroForge.DisplayModel__NeuronScalerThresholder import DisplayModel__N
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
 from src.NNA.engine.Neuron import Neuron
-from src.NNA.engine.Utils import smart_format, draw_gradient_rect, is_numeric
+from src.NNA.engine.UtilsPyGame import smart_format, draw_gradient_rect, is_numeric
 from src.NeuroForge import Const
 import json
 

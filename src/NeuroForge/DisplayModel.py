@@ -11,7 +11,7 @@ from src.NeuroForge.PopupArchitecture import ArchitecturePopup
 from src.NNA.engine import TrainingRunInfo
 from src.NNA.engine.Config import Config
 from src.NNA.engine.Neuron import Neuron
-from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
+from src.NNA.engine.UtilsPyGame import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 from src.NNA.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
