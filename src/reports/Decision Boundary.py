@@ -2,7 +2,7 @@ import re
 import numpy as np
 import matplotlib.pyplot as plt
 from src.reports._BaseReport import BaseReport
-from src.engine.RamDB import RamDB
+from src.NNA.engine.RamDB import RamDB
 
 class ReportDecisionBoundary(BaseReport):
     def __init__(self, *args):

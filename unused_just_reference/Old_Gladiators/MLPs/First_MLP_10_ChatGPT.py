@@ -1,5 +1,5 @@
-from src.engine.Metrics import GladiatorOutput
-from src.engine.BaseGladiator import Gladiator
+from src.NNA.engine.Metrics import GladiatorOutput
+from src.NNA.engine.BaseGladiator import Gladiator
 import numpy as np
 
 class First_MLP_10_ChatGPT(Gladiator):

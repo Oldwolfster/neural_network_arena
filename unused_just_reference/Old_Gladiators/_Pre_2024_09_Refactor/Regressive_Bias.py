@@ -1,5 +1,5 @@
-from src.engine.Metrics import Metrics, IterationData
-from src.engine.BaseGladiator import Gladiator
+from src.NNA.engine.Metrics import Metrics, IterationData
+from src.NNA.engine.BaseGladiator import Gladiator
 
 class Regressive_Bias(Gladiator):
     """

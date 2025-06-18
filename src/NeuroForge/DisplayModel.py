@@ -8,11 +8,11 @@ from src.NeuroForge.DisplayModel__NeuronScaler import DisplayModel__NeuronScaler
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
 from src.NeuroForge.PopupArchitecture import ArchitecturePopup
-from src.engine import TrainingRunInfo
-from src.engine.Config import Config
-from src.engine.Neuron import Neuron
-from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
-from src.engine.Utils import smart_format
+from src.NNA.engine import TrainingRunInfo
+from src.NNA.engine.Config import Config
+from src.NNA.engine.Neuron import Neuron
+from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
+from src.NNA.engine.Utils import smart_format
 
 class DisplayModel(EZSurface):
     __slots__ = ("TRI", "thresholder", "last_epoch", "input_scaler_neuron", "prediction_scaler_neuron", "layer_width", "hoverlings", "arch_popup","buttons", "config", "neurons", "threshold", "arrows_forward", "run_id", "graph_holder", "graph")

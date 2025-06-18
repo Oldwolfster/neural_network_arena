@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from src.Legos.ActivationFunctions import *
 from src.Legos.WeightInitializers import *
 from src.Legos.Optimizers import *
-from src.Legos.Scalers import *
+from src.NNA.Legos.Scalers import *
 from src.Legos.LossFunctions import *
 
 @dataclass

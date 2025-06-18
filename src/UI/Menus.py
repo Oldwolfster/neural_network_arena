@@ -1,7 +1,7 @@
 import pygame
 import pygame_menu
 from src.NeuroForge import Const
-from src.engine.RamDB import RamDB
+from src.NNA.engine.RamDB import RamDB
 
 # A simple callback to use for the menu items
 show_menu = False
@@ -61,7 +61,7 @@ def create_menu(WIDTH : int, HEIGHT : int, db: RamDB):
     menu.add.button('Quit', close_menu )
     return menu
 
-from src.engine.Utils import dynamic_instantiate
+from src.NNA.engine.Utils import dynamic_instantiate
 def load_report(report_name, db: RamDB):
     """Callback function for opening a report.
 

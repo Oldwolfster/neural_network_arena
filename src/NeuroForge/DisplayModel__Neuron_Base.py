@@ -1,15 +1,15 @@
 import pygame
-from src.Legos.ActivationFunctions import get_activation_derivative_formula
-from src.Legos.Optimizers import *
+from src.NNA.Legos.ActivationFunctions import get_activation_derivative_formula
+from src.NNA.Legos.Optimizers import *
 
 from src.NeuroForge.DisplayModel__NeuronWeights import DisplayModel__NeuronWeights
 from src.NeuroForge.EZPrint import EZPrint
-from src.engine.Neuron import Neuron
-from src.engine.Utils import smart_format, draw_gradient_rect, is_numeric
+from src.NNA.engine.Neuron import Neuron
+from src.NNA.engine.Utils import smart_format, draw_gradient_rect, is_numeric
 from src.NeuroForge import Const
 import json
 
-from src.engine.Utils_DataClasses import ez_debug
+from src.NNA.engine.Utils_DataClasses import ez_debug
 
 class DisplayModel__Neuron_Base:
     """

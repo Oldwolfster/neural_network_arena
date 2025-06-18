@@ -1,8 +1,8 @@
 from typing import Tuple, List
 import pygame
-from src.engine.Config import Config
+from src.NNA.engine.Config import Config
 from src.NeuroForge import Const
-from src.engine.Utils import ez_debug
+from src.NNA.engine.Utils import ez_debug
 
 class Popup_Base:
     def __init__(self,  text_color = Const.COLOR_BLACK,  highlight_differences: bool = True, column_width_overrides: dict[int, int] = None ):

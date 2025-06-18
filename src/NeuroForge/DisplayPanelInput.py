@@ -3,7 +3,7 @@ from typing import List
 import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.EZFormLEFT import EZForm
-from src.engine.Utils import smart_format
+from src.NNA.engine.Utils import smart_format
 
 class DisplayPanelInput(EZForm):
     def __init__(self,  width_pct: int, height_pct: int, left_pct: int, top_pct: int, bg_color=Const.COLOR_WHITE, banner_color=Const.COLOR_BLUE):#data_labels: List[str]

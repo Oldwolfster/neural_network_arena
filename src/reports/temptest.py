@@ -1,7 +1,7 @@
 import re
 
 from src.reports._BaseReport import BaseReport
-from src.engine.RamDB import RamDB
+from src.NNA.engine.RamDB import RamDB
 import matplotlib.pyplot as plt
 
 class ReportingMadeEasy(BaseReport):

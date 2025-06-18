@@ -4,8 +4,8 @@ from src.NeuroForge.ui.GlowButton import GlowButton
 from src.NeuroForge.ui.HoloPanel import HoloPanel
 from src.NeuroForge.ui.InputPanel import LabelInputPanel
 from src.NeuroForge.ui.TreePanel import TreePanel
-from src.engine import BaseArena
-from src.engine.BaseGladiator import Gladiator
+from src.NNA.engine import BaseArena
+from src.NNA.engine.BaseGladiator import Gladiator
 from src.NeuroForge import Const
 
 class WindowMatches(BaseWindow):

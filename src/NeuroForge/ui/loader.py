@@ -1,7 +1,7 @@
 import os
 import importlib.util
 import inspect
-from src.engine.BaseGladiator import Gladiator  # or wherever your base class is
+from src.NNA.engine.BaseGladiator import Gladiator  # or wherever your base class is
 
 def load_gladiators(directory):
     gladiators = []

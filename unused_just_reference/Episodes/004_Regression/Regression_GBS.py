@@ -1,5 +1,5 @@
-from src.engine.Metrics import GladiatorOutput
-from src.engine.BaseGladiator import Gladiator
+from src.NNA.engine.Metrics import GladiatorOutput
+from src.NNA.engine.BaseGladiator import Gladiator
 
 class Regression_GBS(Gladiator):
     """

@@ -4,8 +4,8 @@ from src.NeuroForge import Const
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import matplotlib.pyplot as plt
 
-from src.engine.Utils import draw_gradient_rect
-from src.engine.Utils import smart_format
+from src.NNA.engine.Utils import draw_gradient_rect
+from src.NNA.engine.Utils import smart_format
 
 class DisplayModel__Graph():
     #def __init__(self, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):

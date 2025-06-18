@@ -1,10 +1,8 @@
-from typing import List
-from dataclasses import dataclass, field
-from src.Legos.ActivationFunctions import *
-from src.Legos.WeightInitializers import *
-from src.Legos.Optimizers import *
-from src.Legos.Scalers import *
-from src.Legos.LossFunctions import *
+from dataclasses import dataclass
+from src.NNA.Legos.ActivationFunctions import *
+from src.NNA.Legos.WeightInitializers import *
+from src.NNA.Legos.Optimizers import *
+from src.NNA.Legos.LossFunctions import *
 
 
 @dataclass

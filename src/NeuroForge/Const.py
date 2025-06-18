@@ -1,11 +1,7 @@
 from typing import List
 from typing import TYPE_CHECKING
-#from src.NeuroForge import Display_Manager
-from src.engine.Config import Config
-from copy import deepcopy
-from src.Legos.Scalers import *
-import pygame
-from src.engine.TrainingRunInfo import TrainingRunInfo
+
+from src.NNA.engine.TrainingRunInfo import TrainingRunInfo
 # ==============================
 # Global References
 # ==============================

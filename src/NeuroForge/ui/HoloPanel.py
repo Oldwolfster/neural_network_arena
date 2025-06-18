@@ -1,7 +1,7 @@
 import pygame
 from src.NeuroForge import Const
 from src.NeuroForge.ui.GlowText import GlowText
-from src.engine.Utils import get_darker_color
+from src.NNA.engine.Utils import get_darker_color
 
 
 class HoloPanel:

@@ -1,10 +1,10 @@
 #from src.NeuroForge.DisplayModel import DisplayModel
-from src.Legos.Scalers import Scaler_NONE
+from src.NNA.Legos.Scalers import Scaler_NONE
 from src.NeuroForge.DisplayModel__Neuron import DisplayModel__Neuron
 from src.NeuroForge.DisplayModel__NeuronScaler import DisplayModel__NeuronScaler
-from src.engine.Config import Config
+from src.NNA.engine.Config import Config
 import copy
-from src.engine.Utils import ez_debug
+from src.NNA.engine.Utils import ez_debug
 class GeneratorNeuron:
     model = None #Refernce to the Model it is creating neurons for.
     nid = 0

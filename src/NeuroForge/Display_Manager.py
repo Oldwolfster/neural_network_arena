@@ -4,10 +4,10 @@ import pygame
 from src.NeuroForge.ButtonBase import  Button_Base
 from src.NeuroForge.PopupInfoButton import PopupInfoButton
 from src.NeuroForge.PopupTrainingData import PopupTrainingData
-from src.engine.Config import Config
-from src.engine.RamDB import RamDB
+from src.NNA.engine.Config import Config
+from src.NNA.engine.RamDB import RamDB
 from src.NeuroForge import Const
-from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
+from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 from src.NeuroForge.DisplayArrowsOutsideNeuron import DisplayArrowsOutsideNeuron
 from src.NeuroForge.DisplayBanner import DisplayBanner
 from src.NeuroForge.DisplayPanelCtrl import DisplayPanelCtrl
@@ -15,7 +15,7 @@ from src.NeuroForge.DisplayPanelInput import DisplayPanelInput
 from src.NeuroForge.DisplayPanelPrediction import DisplayPanelPrediction
 from src.NeuroForge.GeneratorModel import ModelGenerator
 from src.NeuroForge.ui.WindowMatches import WindowMatches
-from src.engine.TrainingRunInfo import TrainingRunInfo
+from src.NNA.engine.TrainingRunInfo import TrainingRunInfo
 
 class Display_Manager:
     """

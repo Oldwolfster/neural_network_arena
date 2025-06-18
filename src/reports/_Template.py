@@ -1,5 +1,5 @@
 from src.reports._BaseReport import BaseReport
-from src.engine.RamDB import RamDB
+from src.NNA.engine.RamDB import RamDB
 
 
 class ReportingMadeEasy(BaseReport):

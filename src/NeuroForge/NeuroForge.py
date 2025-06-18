@@ -5,13 +5,13 @@ from src.NeuroForge.Display_Manager import Display_Manager
 from src.NeuroForge.VCR import VCR
 
 from src.UI.Menus import create_menu
-from src.engine.Config import Config
-from src.engine.RamDB import RamDB
+from src.NNA.engine.Config import Config
+from src.NNA.engine.RamDB import RamDB
 from src.ArenaSettings import HyperParameters
-from src.engine.Utils_DataClasses import ModelInfo
+from src.NNA.engine.Utils_DataClasses import ModelInfo
 from typing import List
 from src.NeuroForge.ButtonMenu import ButtonMenu, ButtonInfo
-from src.engine.TrainingRunInfo import TrainingRunInfo
+from src.NNA.engine.TrainingRunInfo import TrainingRunInfo
 
 def neuroForge(TRIs:  List[TrainingRunInfo]):
     """Initialize NeuroForge and run the visualization loop."""

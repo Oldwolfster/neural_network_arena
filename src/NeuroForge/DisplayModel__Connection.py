@@ -1,6 +1,6 @@
 import math
 import pygame
-from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect
+from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect
 from src.NeuroForge import Const
 class DisplayModel__Connection:
     def __init__(self, from_neuron, to_neuron, my_screen, weight_index=0):

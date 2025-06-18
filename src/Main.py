@@ -8,8 +8,8 @@ if parent_dir not in sys.path:
     sys.path.insert(0, parent_dir)
 
 from src.ArenaSettings import *
-from src.Legos.LegoLister import LegoLister
-from src.engine.NeuroEngine import NeuroEngine
+from src.NNA.Legos.LegoLister import LegoLister
+from src.NNA.engine.NeuroEngine import NeuroEngine
 
 
 def main():

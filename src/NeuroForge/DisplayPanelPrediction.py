@@ -1,6 +1,6 @@
 import pygame
 from src.NeuroForge.EZForm import EZForm
-from src.engine.Utils import smart_format
+from src.NNA.engine.Utils import smart_format
 from src.NeuroForge import Const
 
 class DisplayPanelPrediction(EZForm):

@@ -1,5 +1,5 @@
 from src.reports._BaseReport import BaseReport
-from src.engine.RamDB import RamDB
+from src.NNA.engine.RamDB import RamDB
 class ReportingMadeEasy(BaseReport):
     def purpose(self) -> str:
         return "📝 Purpose: Verify that loss gradient, activation gradient, and error signals are calculated correctly."

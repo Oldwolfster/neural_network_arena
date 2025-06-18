@@ -1,7 +1,7 @@
 import pygame
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge import Const
-from src.engine.TrainingData import TrainingData
+from src.NNA.engine.TrainingData import TrainingData
 
 class DisplayBanner(EZSurface):
     def __init__(self, training_data: TrainingData, max_epoch: int, max_iteration: int, width_pct=98, height_pct=4.369, left_pct=1, top_pct=0):

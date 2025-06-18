@@ -4,8 +4,8 @@ from src.NeuroForge.DisplayArrow import DisplayArrow
 from src.NeuroForge.DisplayModel__Connection import DisplayModel__Connection
 from src.NeuroForge.EZSurface import EZSurface
 from src.NeuroForge.GeneratorNeuron import GeneratorNeuron
-from src.engine.Config import Config
-from src.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
+from src.NNA.engine.Config import Config
+from src.NNA.engine.Utils import draw_rect_with_border, draw_text_with_background, ez_debug, check_label_collision, get_text_rect, beautify_text
 
 class DisplayArrowsOutsideNeuron(EZSurface):
     #__slots__ = ("config", "neurons", "arrows_forward", "model_id")

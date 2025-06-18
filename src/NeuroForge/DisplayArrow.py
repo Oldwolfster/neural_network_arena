@@ -1,7 +1,7 @@
 import math
 import pygame
 
-from src.engine.Utils import ez_debug
+from src.NNA.engine.Utils import ez_debug
 
 
 class DisplayArrow:
