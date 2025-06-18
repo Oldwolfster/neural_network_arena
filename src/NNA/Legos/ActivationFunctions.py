@@ -1,4 +1,4 @@
-import numpy as np
+import math
 
 class StrategyActivationFunction:
     """Encapsulates an activation function and its derivative."""
@@ -20,40 +20,40 @@ class StrategyActivationFunction:
         """Compute the derivative for backpropagation."""
         return self.derivative(x)
 
+
 # Standard activations as objects
 Activation_NoDamnFunction = StrategyActivationFunction(
     function=lambda x: x,
     derivative=lambda x: 1,
-    bd_defaults= [-1, 1, 0],
+    bd_defaults=[-1, 1, 0],
     name="None"
 )
 
 Activation_Sigmoid = StrategyActivationFunction(
-    function=lambda x: 1 / (1 + np.exp(-x)),
+    function=lambda x: 1 / (1 + math.exp(-x)),
     derivative=lambda x: x * (1 - x),  # More efficient if x = sigmoid(x)
-    bd_defaults= [0, 1, 0.5],
+    bd_defaults=[0, 1, 0.5],
     name="Sigmoid"
-
 )
 
 Activation_Tanh = StrategyActivationFunction(
-    function=np.tanh,
-    derivative=lambda x: 1 - np.tanh(x)**2,
-    bd_defaults= [-1, 1, 0],
+    function=math.tanh,
+    derivative=lambda x: 1 - math.tanh(x)**2,
+    bd_defaults=[-1, 1, 0],
     name="Tanh"
 )
 
 Activation_ReLU = StrategyActivationFunction(
-    function=lambda x: np.maximum(0, x),
-    derivative=lambda x: np.where(x > 0, 1, 0),
-    bd_defaults= [0, 1, 0.5],
+    function=lambda x: x if x > 0 else 0,
+    derivative=lambda x: 1 if x > 0 else 0,
+    bd_defaults=[0, 1, 0.5],
     name="ReLU"
 )
 
 Activation_LeakyReLU = StrategyActivationFunction(
-    function=lambda x, alpha=0.01: np.where(x > 0, x, alpha * x),
-    derivative=lambda x, alpha=0.01: np.where(x > 0, 1, alpha),
-    bd_defaults= [0, 1, 0.5],
+    function=lambda x: x if x > 0 else 0.01 * x,
+    derivative=lambda x: 1 if x > 0 else 0.01,
+    bd_defaults=[0, 1, 0.5],
     name="LeakyReLU"
 )
 
@@ -69,12 +69,11 @@ def get_activation_derivative_formula(activation_name: str) -> str:
     """
     formulas = {
         "Sigmoid":  "σ'(x) = σ(x) * (1 - σ(x))",
-        "Tanh":"tanh'(x) = 1 - tanh(x)^2",
-        "ReLU":"ReLU'(x) = 1 if x > 0 else 0",
-        "LeakyReLU": "LeakyReLU'(x) = 1 if x > 0 else α"
-   }
+        "Tanh":     "tanh'(x) = 1 - tanh(x)^2",
+        "ReLU":     "ReLU'(x) = 1 if x > 0 else 0",
+        "LeakyReLU":"LeakyReLU'(x) = 1 if x > 0 else α"
+    }
     return formulas.get(activation_name)
-
 
 def get_activation_formula(activation_name: str) -> dict:
     """
@@ -88,20 +87,20 @@ def get_activation_formula(activation_name: str) -> dict:
     """
     formulas = {
         "Sigmoid": {
-            "function": "σ(x) = 1 / (1 + e^(-x))",
-            "derivative": "σ'(x) = σ(x) * (1 - σ(x))"
+            "function":  "σ(x) = 1 / (1 + e^(-x))",
+            "derivative":"σ'(x) = σ(x) * (1 - σ(x))"
         },
         "Tanh": {
-            "function": "tanh(x) = (e^x - e^(-x)) / (e^x + e^(-x))",
-            "derivative": "tanh'(x) = 1 - tanh(x)^2"
+            "function":  "tanh(x) = (e^x - e^(-x)) / (e^x + e^(-x))",
+            "derivative":"tanh'(x) = 1 - tanh(x)^2"
         },
         "ReLU": {
-            "function": "ReLU(x) = max(0, x)",
-            "derivative": "ReLU'(x) = 1 if x > 0 else 0"
+            "function":  "ReLU(x) = max(0, x)",
+            "derivative":"ReLU'(x) = 1 if x > 0 else 0"
         },
         "LeakyReLU": {
-            "function": "LeakyReLU(x) = x if x > 0 else α * x",
-            "derivative": "LeakyReLU'(x) = 1 if x > 0 else α"
+            "function":  "LeakyReLU(x) = x if x > 0 else α * x",
+            "derivative":"LeakyReLU'(x) = 1 if x > 0 else α"
         }
     }
 

@@ -1,6 +1,5 @@
 from src.NNA.Legos.ActivationFunctions import *
 
-
 class Neuron:
     """
     Represents a single neuron with weights, bias, an activation function, learning rates for each cog
@@ -26,7 +25,7 @@ class Neuron:
 
         # ✅ Apply weight initializer strategy
         self.initialize_weights(weight_initializer)
-        self.neuron_inputs = np.zeros_like(self.weights)
+        self.neuron_inputs = [0.0] * len(self.weights)
 
         # ✅ Ensure activation is never None
         self.activation = activation if activation is not None else Activation_NoDamnFunction
@@ -121,4 +120,3 @@ class Neuron:
             sql_query = f"INSERT INTO Weight (run_id, epoch, iteration, nid, weight_id, value_before, value) VALUES {', '.join(sql_statements)};"
             #print(f"Query for weights: {sql_query}")
             db.execute(sql_query, "Weight")
-

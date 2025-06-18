@@ -10,9 +10,9 @@ class HyperParameters:
     ############################################################
     # BATTLE Parameters are set here                           #
     ############################################################
-    epochs_to_run           :int    = 110       # Number of times training run will cycle through all training data
+    epochs_to_run           :int    = 11       # Number of times training run will cycle through all training data
     training_set_size       :int    = 30        # Qty of training data
-    random_seed             :int    = 0   # for seed 580636 - ONE EPOCH    #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs    #for seed 946824, 366706 we got it in one!
+    random_seed             :int    = 580636   # for seed 580636 - ONE EPOCH    #for seed 181026  DF LR 05 =9 but DF LR 4 = just 2 epochs    #for seed 946824, 366706 we got it in one!
     nf_count                :int    = 2
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
 
@@ -43,7 +43,7 @@ arenas   = ['Iris_Two_Class','Predict_Income_2_Inputs']
 arenas  = ['California_HousingUSD']
 arenas2 = ['Nested_Sine_Flip']
 arenas2  = ['Bit_Flip_Memory']
-arenas = ['SimpleBinaryDecision']
+arenas = ['Titanic']
 
 arenas2  = [
 #######################################################################

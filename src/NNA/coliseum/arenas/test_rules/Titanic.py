@@ -1,36 +1,44 @@
-import seaborn as sns
-import pandas as pd
+import csv
+from urllib.request import urlopen
+from io import StringIO
 
 from src.NNA.engine.BaseArena import BaseArena
 
 
-def load_titanic_dataframe():
-    df = sns.load_dataset('titanic')
+def load_titanic_data():
+    url = "https://raw.githubusercontent.com/mwaskom/seaborn-data/master/titanic.csv"
+    response = urlopen(url)
+    csv_text = response.read().decode('utf-8')
+    reader = csv.DictReader(StringIO(csv_text))
 
-    # Select features and target
-    df = df[["pclass", "sex", "age", "fare", "survived"]]
+    data = []
+    for row in reader:
+        try:
+            # Ensure no missing values in selected fields
+            if all(row[k] for k in ["pclass", "sex", "age", "fare", "survived"]):
+                # Convert and encode values
+                pclass = int(row["pclass"])
+                sex = 0 if row["sex"] == "male" else 1
+                age = float(row["age"])
+                fare = float(row["fare"])
+                survived = int(row["survived"])
 
-    # Drop rows with missing values
-    df = df.dropna()
+                data.append((pclass, sex, age, fare, survived))
+        except ValueError:
+            continue  # Skip malformed rows
 
-    # Encode 'sex' as 0/1
-    df["sex"] = df["sex"].map({"male": 0, "female": 1})
-
-    return df
+    return data
 
 
-class   Arena_TitanicSurvivors_Real(BaseArena):
+class Arena_TitanicSurvivors_Real(BaseArena):
     def __init__(self, max_rows=None):
         self.max_rows = max_rows
 
     def generate_training_data(self):
-        df = load_titanic_dataframe()
+        data = load_titanic_data()
 
         if self.max_rows:
-            df = df.head(self.max_rows)
-
-        samples = df.to_numpy().tolist()
-        training_data = [tuple(row) for row in samples]
+            data = data[:self.max_rows]
 
         labels = ["Pclass", "Sex", "Age", "Fare", "Outcome"]
-        return training_data, labels, ["Died", "Survived"]
+        return data, labels, ["Died", "Survived"]
