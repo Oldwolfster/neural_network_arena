@@ -43,9 +43,12 @@ class TrainingData:
 
         self._cache         = {}                    # Private dictionary for caching values
         self.feature_labels = feature_labels        # Optional feature labels (e.g., ["Credit Score", "Income"])
-        if target_labels is None:
-            target_labels = ["Alpha", "Beta"]
+
+        if not target_labels:
+            target_labels = ["Beta","Alpha"]
         self.target_labels  = target_labels         # Optional outcome labels (e.g., ["Repaid", "Defaulted"])
+        #print(f"target_labels {target_labels}")
+
         self.problem_type   = self.determine_problem_type()
         self.is_binary_decision = False
         if self.problem_type == "Binary Decision": # If it's BD and no labels were provided, assign default labels

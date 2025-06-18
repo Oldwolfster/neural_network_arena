@@ -1,5 +1,5 @@
 import random
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from src.engine.BaseArena import BaseArena
 import math
 
@@ -11,7 +11,7 @@ class DefaultRisk__From_Income_Debt(BaseArena):
     def __init__(self, num_samples: int):
         self.num_samples = num_samples
 
-    def generate_training_data(self) -> Tuple[List[Tuple[float, float, float, int]], List[str]]:
+    def generate_training_data(self) -> Tuple[List[Tuple[float, float, float, int]], List[str],Optional[List[str]]]:
         training_data = []
 
         for _ in range(self.num_samples):
@@ -32,4 +32,4 @@ class DefaultRisk__From_Income_Debt(BaseArena):
 
             training_data.append((income, debt, dti_ratio, target))
 
-        return training_data, ["Income", "Debt", "Debt-to-Income Ratio", "Default Risk"]
+        return training_data, ["Income", "Debt", "Debt-to-Income Ratio", "Default Risk"], ["Low Risk","High Risk"]

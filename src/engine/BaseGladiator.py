@@ -61,8 +61,8 @@ class Gladiator(ABC):
         self.TRI.bd_target_alpha = Neuron.output_neuron.activation.bd_defaults[0]
         self.TRI.bd_target_beta = Neuron.output_neuron.activation.bd_defaults[1]
         self.TRI.bd_threshold = Neuron.output_neuron.activation.bd_defaults[2]
-        self.TRI.bd_label_alpha = self.TRI.training_data.target_labels[0]
-        self.TRI.bd_label_beta = self.TRI.training_data.target_labels[1]
+        #self.TRI.bd_label_alpha = self.TRI.training_data.target_labels[0]
+        #self.TRI.bd_label_beta = self.TRI.training_data.target_labels[1]
         self.TRI.bd_target_alpha_unscaled = self.TRI.training_data.target_min
         self.TRI.bd_target_beta_unscaled = self.TRI.training_data.target_max
 

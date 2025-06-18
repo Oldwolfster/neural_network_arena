@@ -38,6 +38,8 @@ class Display_Manager:
         self.eventors       = []  # Components that need event handling
         self.models         = []  # List for display models
         self.db             = TRIs[0].db  # Temporary shortcut
+        #self.bd_label_alpha = TRIs[0].training_data.target_labels[1]
+        #self.bd_label_beta  = TRIs[0].training_data.target_labels[0]
         self.data_iteration = None
         self.data_epoch     = None
         self.last_iteration = 0

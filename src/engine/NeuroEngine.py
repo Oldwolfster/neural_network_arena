@@ -59,7 +59,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print("🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬🔬")
             TRIs[0].db.copy_tables_to_permanent()
             if self.shared_hyper.display_train_data: print(f"Training Data: {TRIs[0].training_data.raw_data}")
-            neuroForge(TRIs)
+            #neuroForge(TRIs)
 
     def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model
             set_seed                    ( self.seed)
@@ -259,11 +259,17 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         arena               = dynamic_instantiate(arena_name, 'coliseum\\arenas', self.shared_hyper.training_set_size)
         arena.arena_name    = arena_name
         src                 = arena.source_code
+        #print(f"src={src}")
         result              = arena.generate_training_data_with_or_without_labels()             # Place holder to do any needed analysis on training data
-        labels              = []
+        feature_labels              = []
         if isinstance(result, tuple):
-            data, labels = result
-            td = TrainingData(data, labels)  # Handle if training data has labels
+            #data, feature_labels = result
+            #td = TrainingData(data, feature_labels)  # Handle if training data has labels
+            #td.source_code = src
+            data = result[0]
+            feature_labels = result[1] if len(result) > 1 else []
+            target_labels = result[2] if len(result) > 2 else []
+            td = TrainingData(data, feature_labels, target_labels)  # Handle if training data has labels
             td.source_code = src
         else:
             data = result
@@ -277,7 +283,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 labels.append("Target")  # For the target
 
         # Assign the labels to hyperparameters and return
-        self.shared_hyper.data_labels = labels
+        #self.shared_hyper.data_labels = labels
         td.arena_name = arena_name
         #Deprecated - use random seed instead record_training_data(td.get_list())
         return td

@@ -22,4 +22,5 @@ class BiasEmphasis_CreditScore(BaseArena):
             result = 1 if random.random() < repayment_probability else 0
 
             training_data.append((score, result))
-        return training_data, ["Credit Score", "Repayment"]
+        return training_data, ["Credit Score", "Repayment"], ["Defaulted","Repaid"]
+        #return training_data, ["Credit Score", "Repayment"]

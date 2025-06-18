@@ -1,14 +1,14 @@
+import os
+import sys
 
-import time
+# Add the parent directory of this file to sys.path - Makes compatible with python inside unity.
+this_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(this_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
 from src.ArenaSettings import *
-#from src.engine.Engine import run_a_match, run_batch_of_matches, run_all_matchups
-from engine.SQL import list_runs
-import datetime
-
-import cProfile
-
 from src.Legos.LegoLister import LegoLister
-
 from src.engine.NeuroEngine import NeuroEngine
 
 

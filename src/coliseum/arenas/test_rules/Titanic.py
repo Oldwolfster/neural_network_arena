@@ -19,7 +19,7 @@ def load_titanic_dataframe():
     return df
 
 
-class Arena_TitanicSurvivors_Real(BaseArena):
+class   Arena_TitanicSurvivors_Real(BaseArena):
     def __init__(self, max_rows=None):
         self.max_rows = max_rows
 
@@ -32,5 +32,5 @@ class Arena_TitanicSurvivors_Real(BaseArena):
         samples = df.to_numpy().tolist()
         training_data = [tuple(row) for row in samples]
 
-        labels = ["Pclass", "Sex", "Age", "Fare", "Survived"]
-        return training_data, labels
+        labels = ["Pclass", "Sex", "Age", "Fare", "Outcome"]
+        return training_data, labels, ["Died", "Survived"]

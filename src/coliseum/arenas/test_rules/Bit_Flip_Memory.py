@@ -1,5 +1,5 @@
 import random
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from src.engine.BaseArena import BaseArena
 
 
@@ -8,7 +8,7 @@ class Arena_BitFlipMemory(BaseArena):
         self.num_samples = num_samples
         self.bit_length = bit_length
 
-    def generate_training_data(self) -> Tuple[List[Tuple[float, ...]], List[str]]:
+    def generate_training_data(self)-> Tuple[List[Tuple[float, float, float, int]], List[str],Optional[List[str]]]:
         training_data = []
 
         for _ in range(self.num_samples):
@@ -29,4 +29,4 @@ class Arena_BitFlipMemory(BaseArena):
         input_labels = [f"bit_{i}" for i in range(self.bit_length)] + ["flip_index"]
         target_labels = [f"bit_{i}_flipped" for i in range(self.bit_length)]
 
-        return training_data, input_labels + target_labels
+        return training_data, input_labels + target_labels, ["Not Flipped", "Flipped"]

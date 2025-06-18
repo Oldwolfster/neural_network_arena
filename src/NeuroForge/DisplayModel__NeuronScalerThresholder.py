@@ -50,17 +50,26 @@ class DisplayModel__NeuronScalerThresholder:
 
         self.draw_top_plane()
 
-        alpha =  self.neuron.TRI.bd_target_alpha
-        alpha_unscaled = self.neuron.TRI.bd_target_alpha_unscaled
         question = f"if {smart_format(prediction_raw)} is > {self.neuron.TRI.bd_threshold}"
-        alpha_txt= alpha if alpha == alpha_unscaled else f"{alpha} / {alpha_unscaled}"
+        alpha =  self.neuron.TRI.bd_target_alpha
         beta =   self.neuron.TRI.bd_target_beta
-        beta_unscaled =   self.neuron.TRI.bd_target_beta_unscaled
-        beta_txt = beta if beta == beta_unscaled else  f"{beta} / {beta_unscaled}"
+        alpha_unscaled = round(self.neuron.TRI.bd_target_alpha_unscaled)
+        beta_unscaled  = round(self.neuron.TRI.bd_target_beta_unscaled)
+
+        if alpha == alpha_unscaled and beta ==  beta_unscaled: # No scaling
+            alpha_txt = alpha
+            beta_txt  = beta
+        else:
+            alpha_txt = f"{alpha} / {alpha_unscaled}"
+            beta_txt  = f"{beta} / {beta_unscaled}"
+
+
+        alpha_txt = self.neuron.TRI.training_data.target_labels[0]
+        beta_txt = self.neuron.TRI.training_data.target_labels[1]
 
         self.output_one_set(1, question ,"", "")
-        self.output_one_set(2, "YES ->", "",alpha_txt)
-        self.output_one_set(3,"NO  ->", "",beta_txt)
+        self.output_one_set(2, "YES ->", "",beta_txt)
+        self.output_one_set(3,"NO  ->", "",alpha_txt)
         self.need_label_coord = False
 
     def output_one_set(self, index, label, raw_value, unscaled_value):
