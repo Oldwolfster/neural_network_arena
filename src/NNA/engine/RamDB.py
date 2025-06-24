@@ -1,7 +1,7 @@
 import json
 import sqlite3
 import numpy as np
-from tabulate import tabulate
+#from tabulate import tabulate
 from datetime import datetime
 from pathlib import Path
 import csv
@@ -382,8 +382,8 @@ class RamDB:
             os.startfile(filename)
 
         else:
-            from tabulate import tabulate
-            report = tabulate(data, headers="keys" if as_dict else [], tablefmt="fancy_grid")
+            #from tabulate import tabulate
+            #report = tabulate(data, headers="keys" if as_dict else [], tablefmt="fancy_grid")
             if print_source:
                 print(f"PRINTING FROM RamDB query_print: {self.get_call_stack_line()}")
             print(report)
@@ -408,11 +408,11 @@ class RamDB:
                 print(f"\nTable: {table_name}")
                 # Create a list of dictionaries for tabulation
                 detailed_schema = [{"Column": col, "Type": col_type} for col, col_type in schema.items()]
-                print(tabulate(detailed_schema, headers="keys", tablefmt="fancy_grid"))
+                print("fixme") # tabulate(detailed_schema, headers="keys", tablefmt="fancy_grid"))
         if detail_level==2:
-            print(tabulate(self.tables, headers="keys", tablefmt="fancy_grid"))
+            print("fixme") # tabulate(self.tables, headers="keys", tablefmt="fancy_grid"))
         if detail_level==1:
-            print(tabulate([{"Table Name": table_name} for table_name in self.tables.keys()], headers="keys", tablefmt="fancy_grid"))
+            print("fixme") # tabulate([{"Table Name": table_name} for table_name in self.tables.keys()], headers="keys", tablefmt="fancy_grid"))
 
 
     def list_tables(self, detail_level=2):
@@ -432,7 +432,7 @@ class RamDB:
             return
 
         if detail_level == 1:
-            print(tabulate([{"Table Name": name} for name in table_names], headers="keys", tablefmt="fancy_grid"))
+            print("fixme") # tabulate([{"Table Name": name} for name in table_names], headers="keys", tablefmt="fancy_grid"))
 
         elif detail_level == 2:
             all_fields = {}
@@ -440,14 +440,14 @@ class RamDB:
                 cursor.execute(f"PRAGMA table_info({name})")
                 columns = [row[1] for row in cursor.fetchall()]
                 all_fields[name] = columns
-            print(tabulate(all_fields, headers="keys", tablefmt="fancy_grid"))
+            print("fixme") # tabulate(all_fields, headers="keys", tablefmt="fancy_grid"))
 
         elif detail_level == 3:
             for name in table_names:
                 cursor.execute(f"PRAGMA table_info({name})")
                 schema = [{"Column": row[1], "Type": row[2]} for row in cursor.fetchall()]
                 print(f"\nTable: {name}")
-                print(tabulate(schema, headers="keys", tablefmt="fancy_grid"))
+                print("fixme") # tabulate(schema, headers="keys", tablefmt="fancy_grid"))
 
 
 

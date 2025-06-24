@@ -1,5 +1,5 @@
 import json
-from tabulate import tabulate
+#from tabulate import tabulate
 from typing import List
 
 from src.ArenaSettings import HyperParameters

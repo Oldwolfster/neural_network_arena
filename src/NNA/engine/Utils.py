@@ -1,6 +1,6 @@
 import random
 import numpy as np
-from src.reports._BaseReport import BaseReport
+#from src.reports._BaseReport import BaseReport
 from src.NNA.engine.BaseArena import BaseArena
 from src.NNA.engine.BaseGladiator import Gladiator
 
@@ -179,7 +179,8 @@ def dynamic_instantiate(class_name, base_path='arenas', *args):
     # Import module and instantiate class
     module = importlib.import_module(matched_module)
     for _, obj in inspect.getmembers(module, inspect.isclass):
-        if (issubclass(obj, BaseReport) or issubclass(obj, BaseArena) or issubclass(obj, Gladiator)) and obj.__module__ == module.__name__:
+        #First one below used to be basereport
+        if (issubclass(obj, BaseArena) or issubclass(obj, BaseArena) or issubclass(obj, Gladiator)) and obj.__module__ == module.__name__:
             #return obj(*args)
             instance = obj(*args)
             # if it's an Arena, load its source as well

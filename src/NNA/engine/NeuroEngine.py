@@ -38,6 +38,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
 
     def run_a_batch(self):
         IS_UNITY                    = os.environ.get("NNA_ENV") == "unity"
+        print(f"🧠 IS_UNITY: {IS_UNITY}")
         TRIs: List[TrainingRunInfo] = []
         batch                       = TrainingBatchInfo(gladiators, arenas, dimensions)
         while True:
