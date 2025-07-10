@@ -4,7 +4,7 @@ import datetime
 import ast  # For safely evaluating strings back to data structures
 
 
-def record_training_data(training_data: list[tuple[float, ...]]):
+def DELETEME_record_training_data(training_data: list[tuple[float, ...]]):
     print(f"TRAINING DATA:::::::::::::::::\n{training_data}")
     conn = get_db_connection()
     create_table(conn)
@@ -12,7 +12,7 @@ def record_training_data(training_data: list[tuple[float, ...]]):
     conn.close()
 
 
-def insert_training_dataDEPRECATED_USE_RAND_SEED_INSTEAD(conn, training_data: list[tuple[float, ...]]):
+def DELETEME_insert_training_dataDEPRECATED_USE_RAND_SEED_INSTEAD(conn, training_data: list[tuple[float, ...]]):
     cursor = conn.cursor()
     run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     timestamp = datetime.datetime.now()
@@ -27,7 +27,7 @@ def insert_training_dataDEPRECATED_USE_RAND_SEED_INSTEAD(conn, training_data: li
     return run_id
 
 
-def list_runs():
+def DELETEME_list_runs():
     print("previous runs")
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -40,7 +40,7 @@ def list_runs():
         print(f"Run ID: {run[0]}, Timestamp: {run[1]}")
 
 
-def create_table(conn):
+def DELETEME_create_table(conn):
     cursor = conn.cursor()
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS training_data (
@@ -52,7 +52,7 @@ def create_table(conn):
     conn.commit()
 
 
-def retrieve_training_data(run_id):
+def DELETEME_retrieve_training_data(run_id):
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute('''

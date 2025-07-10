@@ -20,10 +20,10 @@ dimensions={
     "loss_function"     : [Loss_MSE, Loss_MSE, Loss_HalfWit, Loss_BCE, Loss_BCE, Loss_Huber, Loss_Hinge,Loss_LogCosh],
     "hidden_activation" : "*",   # [Activation_Tanh, Activation_Sigmoid, Activation_LeakyReLU, Activation_ReLU, Activation_NoDamnFunction]
     "output_activation" : "*",   # [Activation_Tanh, Activation_Sigmoid, Activation_LeakyReLU, Activation_ReLU, Activation_NoDamnFunction]
-    "initializer"       : "*",
-    "architecture"      : [[4 , 4, 1], [2 , 2, 1]],
-    "optimizer"         : [Optimizer_SGD, Optimizer_Adam],  #suspect not working
-    "batch_size"        : [1,2,4,8,999] #I don't hink this one works yet
+    #"initializer"       : "*",
+    #"architecture"      : [[4 , 4, 1], [2 , 2, 1]],
+    #"optimizer"         : [Optimizer_SGD, Optimizer_Adam],  #suspect not working
+    #"batch_size"        : [1,2,4,8,999] #I don't hink this one works yet
 }
 
 dimensions2={"loss_function": [Loss_MSE,Loss_BCE]}
@@ -31,7 +31,7 @@ dimensions2 = {"hidden_activation":[Activation_ReLU,Activation_LeakyReLU]}
 
 dimensions={"architecture"      : [[4 , 4, 1],[2 , 2, 1]],}
 dimensions={}#"loss_function"     : [Loss_MSE, Loss_Hinge, Loss_HalfWit, Loss_BCE]}
-
+dimensions={}
 
 ############################################################
 # ARENA -  Training Data Production Algorithm              #

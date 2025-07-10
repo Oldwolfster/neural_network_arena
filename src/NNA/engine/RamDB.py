@@ -565,7 +565,31 @@ class RamDB:
             #print(f"create_sql= {create_sql}")
 
             # 4c. Copy rows from in-memory -> permanent.
-            mem_cursor.execute(f"SELECT * FROM {name}")
+            # 4c. Copy rows from in-memory -> permanent (chunked for speed & memory safety)
+            mem_cursor.execute(f"SELECT * FROM {name} LIMIT 1")
+            sample_row = mem_cursor.fetchone()
+
+            if sample_row:
+                num_cols = len(sample_row)
+                placeholders = ", ".join("?" for _ in range(num_cols))
+                insert_sql = f"INSERT INTO {name} VALUES ({placeholders})"
+
+                CHUNK_SIZE = 1000
+                buffer = []
+
+                for row in mem_cursor.execute(f"SELECT * FROM {name}"):
+                    buffer.append(row)
+                    if len(buffer) >= CHUNK_SIZE:
+                        perm_cursor.executemany(insert_sql, buffer)
+                        buffer.clear()
+
+                # Final flush
+                if buffer:
+                    perm_cursor.executemany(insert_sql, buffer)
+
+
+
+            """  REMOVE IF ABOVE CODE IS WORKING BETTER>>> PERHAPS SPEED TEST mem_cursor.execute(f"SELECT * FROM {name}")
             rows = mem_cursor.fetchall()
             if rows:
                 # Build a placeholder string like "?, ?, ?, …" matching the column count
@@ -574,7 +598,7 @@ class RamDB:
                     f"INSERT INTO {name} VALUES ({placeholders})",
                     rows
                 )
-
+            """
         # 5. Commit & close the permanent connection
         perm_conn.commit()
         perm_conn.close()

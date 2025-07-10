@@ -14,7 +14,7 @@ class TrainingBatchInfo:
         self.arenas         = arenas
         self.dimensions     = dimensions
         self.lister         = LegoLister()
-        self                . create_table_if_needed()
+        self                . create_batch_tables()
         self                . set_ids()
         print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
         self                . prepare_batch_table()
@@ -59,11 +59,11 @@ class TrainingBatchInfo:
         self.id_of_current  = self.run_sql("SELECT pk FROM training_batch_tasks WHERE status = 'pending' ORDER BY pk ASC LIMIT 1")
         self.id_of_last     = self.run_sql("SELECT MAX(pk) FROM training_batch_tasks")
 
-    def create_table_if_needed(self):
+    def create_batch_tables(self):
         self.create_table_if_needed_batch_run()
         self.create_table_if_needed_batch_task
 
-    def create_table_if_needed(self):
+    def create_batch_tables(self):
         with self.conn:
             self.conn.execute('''
                 --CREATE TABLE IF NOT EXISTS training_batch_tasks (
@@ -77,7 +77,7 @@ class TrainingBatchInfo:
                 )
             ''')
 
-    def create_table_if_needed_batch_task(self):
+    def create_table_if_needed_batch_task2(self):
         with self.conn:
             self.conn.execute('''
                 CREATE TABLE IF NOT EXISTS batch_task (
@@ -96,6 +96,8 @@ class TrainingBatchInfo:
     def create_table_if_needed_batch_run(self):
         with self.conn:
             self.conn.execute('''
+            
+            
                 CREATE TABLE IF NOT EXISTS batch_run (
                     batch_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT,                   -- "AutoML Defaults v1", "Hinge Sweep"
