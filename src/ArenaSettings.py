@@ -16,6 +16,7 @@ class HyperParameters:
     nf_count                :int    = 2
     display_train_data      :bool   = True        # Display the training data at the end of the rn.
 
+batch_notes = "No Notes"
 dimensions={
     "loss_function"     : [Loss_MSE, Loss_MSE, Loss_HalfWit, Loss_BCE, Loss_BCE, Loss_Huber, Loss_Hinge,Loss_LogCosh],
     "hidden_activation" : "*",   # [Activation_Tanh, Activation_Sigmoid, Activation_LeakyReLU, Activation_ReLU, Activation_NoDamnFunction]
@@ -25,13 +26,13 @@ dimensions={
     #"optimizer"         : [Optimizer_SGD, Optimizer_Adam],  #suspect not working
     #"batch_size"        : [1,2,4,8,999] #I don't hink this one works yet
 }
-
-dimensions2={"loss_function": [Loss_MSE,Loss_BCE]}
+dimensions={"architecture"      : [[4 , 4, 1],[2 , 2, 1]],}
+dimensions={"loss_function": [Loss_MSE,Loss_BCE]}
 dimensions2 = {"hidden_activation":[Activation_ReLU,Activation_LeakyReLU]}
 
-dimensions={"architecture"      : [[4 , 4, 1],[2 , 2, 1]],}
-dimensions={}#"loss_function"     : [Loss_MSE, Loss_Hinge, Loss_HalfWit, Loss_BCE]}
-dimensions={}
+
+dimensions2={}#"loss_function"     : [Loss_MSE, Loss_Hinge, Loss_HalfWit, Loss_BCE]}
+dimensions2={}
 
 ############################################################
 # ARENA -  Training Data Production Algorithm              #
@@ -40,12 +41,12 @@ dimensions={}
 #,"Pathological_Discontinuous_Chaos"     #Not a dependent function
 #,'Hidden_Switch_Power'        # Designed to fail... not a dependent function
 arenas   = ['Iris_Two_Class','Predict_Income_2_Inputs']
-arenas  = ['California_HousingUSD']
+arenas2  = ['California_HousingUSD']
 arenas2 = ['Nested_Sine_Flip']
 arenas2  = ['Bit_Flip_Memory']
-arenas = ['Titanic']
+arenas2 = ['Titanic']
 
-arenas  = [
+arenas2  = [
 #######################################################################
 ######################### Regression ##################################
 #######################################################################

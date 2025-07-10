@@ -14,6 +14,15 @@ class LegoLister:
             # Add more as needed
         }
 
+        self.registry = {
+            "loss_function": ("NNA.Legos.LossFunctions", "StrategyLossFunction"),
+            "hidden_activation": ("NNA.Legos.ActivationFunctions", "StrategyActivationFunction"),
+            "output_activation": ("NNA.Legos.ActivationFunctions", "StrategyActivationFunction"),
+            "optimizer": ("NNA.Legos.Optimizers", "StrategyOptimizer"),
+            "initializer": ("NNA.Legos.WeightInitializers", "ScalerWeightInitializer"),
+        }
+
+
     
     def list_legos(self, config_property: str):
         if config_property not in self.registry:

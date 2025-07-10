@@ -7,17 +7,19 @@ from src.NNA.Legos.LegoLister import LegoLister
 from src.NNA.engine.SQL import get_db_connection
 
 class TrainingBatchInfo:
-    def __init__(self, gladiators, arenas, dimensions: Dict[str, List[Any]]):
+    def __init__(self, gladiators, arenas, batch_notes, dimensions: Dict[str, List[Any]]):
         self.conn           = get_db_connection()
         self.initialized    = False
         self.gladiators     = gladiators
         self.arenas         = arenas
+        self.batch_notes    = batch_notes
+
         self.dimensions     = dimensions
         self.lister         = LegoLister()
-        self                . create_batch_tables()
+        self.batch_id       = None
+        #print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
+        self                . start_new_batch()
         self                . set_ids()
-        print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
-        self                . prepare_batch_table()
         print               (f"self.id_of_current  = {self.id_of_current  } and self.id_of_last  = {self.id_of_last  }")
 
     def run_sql(self,sql) -> int:
@@ -26,7 +28,10 @@ class TrainingBatchInfo:
             return result[0] if result and result[0] is not None else 0
 
     def mark_done_and_get_next_config(self):
-        self.run_sql(f"UPDATE training_batch_tasks SET status = 'done' WHERE pk = {self.id_of_current}")
+
+        sql= (f"UPDATE {self.batch_run_table_name} SET status = 'done' WHERE pk = {self.id_of_current}")
+        print(f"sql={sql}")
+        self.run_sql(sql)
         if self.initialized: self.id_of_current +=1 #accounts for first one which would be one to high otherwise.
         self.initialized = True
         if self.id_of_current > self.id_of_last:
@@ -47,23 +52,102 @@ class TrainingBatchInfo:
         return setup
 
 
-    def prepare_batch_table(self):
-        if self.id_of_current == 0:
-            print("🧪 No existing batch found — starting a new one.")
-            _BatchGenerationLogic(self.conn, self.gladiators, self.arenas, self.dimensions).generate()
-            self.set_ids()
-        else:
-            print("📌 Resuming existing batch.")
+    def start_new_batch(self):
+        #if self.id_of_current == 0:
+        #    print("🧪 No existing batch found — starting a new one.")
+        self.batch_id = self.insert_batch_metadata()  # ✅ Here’s your new batch ID
+        self                . create_batch_tables()
+        _BatchGenerationLogic(self.conn, self.gladiators, self.arenas, self.batch_id ,self.dimensions).generate()
+        self.set_ids()
+        #else:
+        #    print("📌 Resuming existing batch.")
+
+    def insert_batch_metadata(self) -> int:
+        self.create_table_batch_master()
+
+        # ✨ Safely stringify values for JSON
+        safe_dimensions = {}
+        for key, values in self.dimensions.items():
+            safe_dimensions[key] = []
+            for val in values:
+                if key in self.lister.registry:
+                    safe_dimensions[key].append(str(val))
+                else:
+                    safe_dimensions[key].append(val)
+
+        dimensions_str = json.dumps(safe_dimensions)
+
+        with self.conn:
+            cursor = self.conn.execute('''
+                INSERT INTO batch_master (dimensions, notes)
+                VALUES (?, ?)
+            ''', (dimensions_str, self.batch_notes))
+            return cursor.lastrowid
 
     def set_ids(self):
         self.id_of_current  = self.run_sql("SELECT pk FROM training_batch_tasks WHERE status = 'pending' ORDER BY pk ASC LIMIT 1")
         self.id_of_last     = self.run_sql("SELECT MAX(pk) FROM training_batch_tasks")
 
     def create_batch_tables(self):
-        self.create_table_if_needed_batch_run()
-        self.create_table_if_needed_batch_task
+        self.create_table_training_batch_tasks()
+        self.create_view_training_batch_tasks()
 
-    def create_batch_tables(self):
+    def create_view_training_batch_tasks(self):
+        table_name = f"batch_runs_{self.batch_id}"
+        with self.conn:
+            # Drop existing view to avoid conflict
+            self.conn.execute("DROP VIEW IF EXISTS training_batch_tasks")
+            # Create view alias pointing to batch-specific table
+            self.conn.execute(f'''
+                CREATE VIEW training_batch_tasks AS
+                SELECT * FROM {table_name}
+            ''')
+
+    @property
+    def batch_run_table_name(self)-> str :
+        return f"batch_runs_{self.batch_id}"
+
+    def create_table_training_batch_tasks(self, ):
+        #table_name = f"batch_runs_{batch_id}"
+        with self.conn:
+            self.conn.execute(f'''
+                CREATE TABLE IF NOT EXISTS {self.batch_run_table_name} (
+                    pk INTEGER PRIMARY KEY AUTOINCREMENT,                    
+                    gladiator TEXT,
+                    arena TEXT,
+                    config TEXT,
+                    status TEXT DEFAULT 'pending',
+                    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    
+                    accuracy REAL,
+                    final_mae REAL,
+                    best_mae REAL,
+                    runtime_seconds REAL,
+                    
+                    architecture TEXT,        
+                    loss_function TEXT,
+                    hidden_activation TEXT,
+                    output_activation TEXT,
+                    weight_initializer TEXT,
+                    normalization_scheme TEXT,
+                    learning_rate REAL,
+                    epoch_count INTEGER,
+                    convergence_condition TEXT,        
+                    problem_type TEXT,
+                    sample_count INTEGER,            
+                    
+                    target_min REAL,                -- either min numeric or count of smaller class
+                    target_max REAL,                -- either max numeric or count of larger class            
+                    target_min_label TEXT,          -- e.g., "Repay" or "0"
+                    target_max_label TEXT,          -- e.g., "Default" or "1"            
+                    target_mean REAL,               -- mean of target values (esp useful in regression)
+                    target_stdev REAL,               -- standard deviation of targets
+                    notes TEXT,                      -- Optional remarks (e.g., 'testing AdamW with tanh glitch patch')
+                    seed INTEGER                    
+                )                
+            ''')
+
+    def ORIGINALcreate_table_training_batch_tasks(self):
         with self.conn:
             self.conn.execute('''
                 --CREATE TABLE IF NOT EXISTS training_batch_tasks (
@@ -77,58 +161,43 @@ class TrainingBatchInfo:
                 )
             ''')
 
-    def create_table_if_needed_batch_task2(self):
+    def create_table_batch_master(self):
         with self.conn:
             self.conn.execute('''
-                CREATE TABLE IF NOT EXISTS batch_task (
-                    batch_task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    batch_run_id INTEGER,           -- FK to batch_run(batch_run_id)
-                    arena TEXT,                     -- Which arena this task is for
-                    gladiator TEXT,                 -- Gladiator variant (champ + tweaks)
-                    config TEXT,                    -- JSON config for this specific task
-                    status TEXT DEFAULT 'pending', -- 'pending', 'running', 'completed', 'error'
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
-            ''')
+            CREATE TABLE IF NOT EXISTS batch_master (
+                pk INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT,
+                dimensions TEXT,  -- JSON string like {"seed":[1,2], "activation":["ReLU",...]}
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                notes TEXT
+            );
 
-
-
-    def create_table_if_needed_batch_run(self):
-        with self.conn:
-            self.conn.execute('''
-            
-            
-                CREATE TABLE IF NOT EXISTS batch_run (
-                    batch_run_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT,                   -- "AutoML Defaults v1", "Hinge Sweep"
-                    description TEXT,            -- Longer human-readable summary
-                    gladiators TEXT,              -- Base Champ class name
-                    arenas TEXT,                     -- Which arena this task is for
-                    config TEXT,                 -- JSON config (rule snapshot, hyperparams, etc.)
-                    is_autogen BOOLEAN,          -- True if rule-generated (AutoML), false if manual
-                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-                );
             ''')
 
 class _BatchGenerationLogic:
-    def __init__(self, conn, gladiators, arenas, dimensions):
+    def __init__(self, conn, gladiators, arenas, batch_id, dimensions):
         self.conn       = conn
         self.gladiators = gladiators
         self.arenas     = arenas
         self.dimensions = dimensions
+        self.batch_id   = batch_id
         self.lister     = LegoLister()
+
+    def training_batch_tasks_name(self,batch_id)-> str :
+        return f"batch_runs_{batch_id}"
 
     def generate(self):
         self.expand_wildcards()
         setups = self.build_setups()
 
         with self.conn:
-            self.conn.execute("DELETE FROM training_batch_tasks")  # ensure clean slate
-            self.conn.execute("DELETE FROM sqlite_sequence WHERE name = 'training_batch_tasks'") # Reset counter
+            #self.conn.execute("DELETE FROM training_batch_tasks")  # ensure clean slate
+            #self.conn.execute("DELETE FROM sqlite_sequence WHERE name = 'training_batch_tasks'") # Reset counter
             for setup in setups:
                 print(f"setup = {setup}")
-                self.conn.execute('''
-                    INSERT INTO training_batch_tasks (gladiator, arena, config)
+                table_name = self.training_batch_tasks_name(self.batch_id)
+                self.conn.execute(f'''
+                    INSERT INTO {table_name} (gladiator, arena, config)
                     VALUES (?, ?, ?)
                 ''', (setup["gladiator"], setup["arena"], json.dumps(setup)))
 

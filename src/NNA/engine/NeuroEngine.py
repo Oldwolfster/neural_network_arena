@@ -40,7 +40,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
         IS_UNITY                    = os.environ.get("NNA_ENV") == "unity"
         print(f"🧠 IS_UNITY: {IS_UNITY}")
         TRIs: List[TrainingRunInfo] = []
-        batch                       = TrainingBatchInfo(gladiators, arenas, dimensions)
+        batch                       = TrainingBatchInfo(gladiators, arenas, batch_notes, dimensions) #these parameters come from Arena Settings
         while True:
             setup                   = batch.mark_done_and_get_next_config()
             if setup is None:         break
@@ -48,7 +48,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             print                   ( f"💪 {batch.id_of_current} of {batch.id_of_last}-{setup["arena"]} - these settings: {setup}")
             if not setup.get        ( "lr_specified", False):   setup["learning_rate"] = self.learning_rate_sweep(setup)
             record_level            = RecordLevel.FULL if batch.id_of_current <= self.shared_hyper.nf_count else RecordLevel.SUMMARY
-            TRI                     = self.atomic_train_a_model(setup, record_level, epochs=0, run_id=batch.id_of_current)
+            TRI                     = self.atomic_train_a_model(setup, record_level, epochs=0, run_id=batch.id_of_current, batch_id=batch.batch_id)
             if record_level         ==RecordLevel.FULL: TRIs.append(TRI)
 
         if TRIs:
@@ -62,8 +62,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
                 NF = importlib.import_module("src.NeuroForge.NeuroForge")
                 NF.neuroForge(TRIs)
 
-
-    def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0): #ATAM is short for  -->atomic_train_a_model
+    def atomic_train_a_model(self, setup, record_level: RecordLevel, epochs=0, run_id=0, batch_id=0): #ATAM is short for  -->atomic_train_a_model
             set_seed                    ( self.seed)
             training_data               = self.instantiate_arena(setup["arena"]) # Passed to base_gladiator through TRI
             set_seed                    ( self.seed)    #Reset seed as it likely was used in training_data
@@ -72,7 +71,7 @@ class NeuroEngine:   # Note: one different standard than PEP8... we align code v
             #NN                          = dynamic_instantiate(setup["gladiator"], 'coliseum\\gladiators', TRI)
             NN                          = dynamic_instantiate(setup["gladiator"], 'NNA.coliseum.gladiators', TRI)
             NN.train(epochs)            # Actually train model
-            record_results              (TRI)        # Store Config for this model #TODO make use of RecordLevel
+            record_results              (TRI, batch_id, run_id)        # Store Config for this model #TODO make use of RecordLevel
             return                      TRI
 
     def learning_rate_sweep(self, setup: dict) -> float:

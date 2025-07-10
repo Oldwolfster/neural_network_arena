@@ -12,7 +12,7 @@ from datetime import datetime
 import csv
 from pathlib import Path
 
-def record_results(TRI):
+def record_results(TRI, batch_id, run_id):
     TRI.record_finish_time()
     if not TRI.should_record(RecordLevel.SUMMARY):
         return
@@ -34,11 +34,76 @@ def record_results(TRI):
     conn = get_db_connection()
     create_snapshot_table(conn)
     log_entry = NNA_history.from_config(TRI, config)
-    insert_snapshot(conn, log_entry)
+    #insert_snapshot(conn, log_entry)
+    update_batch_results(conn, batch_id, run_id, log_entry)
     conn.close()
 
 
-def insert_snapshot(conn, snapshot: NNA_history):
+def update_batch_results(conn, batch_id, run_id, snapshot: NNA_history):
+    table_name = f"batch_runs_{batch_id}"
+    timestamp = datetime.now()
+
+    # Explicit column list to avoid surprises
+    sql = f'''
+        UPDATE {table_name} SET
+            timestamp = ?,
+            runtime_seconds = ?,
+            accuracy = ?,
+            best_mae = ?,
+            final_mae = ?,
+            architecture = ?,
+            loss_function = ?,
+            hidden_activation = ?,
+            output_activation = ?,
+            weight_initializer = ?,
+            normalization_scheme = ?,
+            learning_rate = ?,
+            epoch_count = ?,
+            convergence_condition = ?,
+            problem_type = ?,
+            sample_count = ?,
+            target_min = ?,
+            target_max = ?,
+            target_min_label = ?,
+            target_max_label = ?,
+            target_mean = ?,
+            target_stdev = ?,
+            notes = ?,
+            seed = ?
+        WHERE pk = ?
+    '''
+    cursor = conn.cursor()
+    cursor.execute(sql, (
+        timestamp,
+        snapshot.runtime_seconds,
+        snapshot.accuracy,
+        snapshot.best_mae,
+        snapshot.final_mae,
+        repr(snapshot.architecture),
+        snapshot.loss_function,
+        snapshot.hidden_activation,
+        snapshot.output_activation,
+        snapshot.weight_initializer,
+        snapshot.normalization_scheme,
+        snapshot.learning_rate,
+        snapshot.epoch_count,
+        snapshot.convergence_condition,
+        snapshot.problem_type,
+        snapshot.sample_count,
+        snapshot.target_min,
+        snapshot.target_max,
+        snapshot.target_min_label,
+        snapshot.target_max_label,
+        snapshot.target_mean,
+        snapshot.target_stdev,
+        snapshot.notes,
+        snapshot.seed,
+        run_id
+    ))
+    conn.commit()
+
+
+def REPLACED_WITH_UPDATE_TO_BATCH_TABLE_insert_snapshot(conn, snapshot: NNA_history):
     cursor = conn.cursor()
     # run_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     #run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -113,6 +178,7 @@ def insert_snapshot(conn, snapshot: NNA_history):
 
 
 def export_snapshot_to_csv(snapshot: NNA_history, timestamp, csv_filename='arena_history.csv', subfolder='history'):
+    return
     """
     Appends a single NNA_history snapshot to a CSV file. If the CSV does not exist, it is created with headers.
 
@@ -226,8 +292,7 @@ def create_snapshot_table(conn):
             epoch_count INTEGER,
             convergence_condition TEXT,        
             problem_type TEXT,
-            sample_count INTEGER,
-            
+            sample_count INTEGER,            
             
             target_min REAL,                -- either min numeric or count of smaller class
             target_max REAL,                -- either max numeric or count of larger class            
